@@ -1,0 +1,2 @@
+2026-09-21
+Sonar scanner installation reported two transitive dependency vulnerabilities: one moderate and one high. No SonarQube server, Java runtime, Docker runtime, or scanner analysis was available locally, so analysis was not run.

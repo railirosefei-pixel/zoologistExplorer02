@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+:root {
+	color: #172033;
+	background: #f4f0e8;
+	font-family: Georgia, "Times New Roman", serif;
+	font-synthesis: none;
+	line-height: 1.5;
+	text-rendering: optimizeLegibility;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-width: 320px;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #f4f0e8 0%, #dbe7e2 100%);
+}
+
+button,
+a {
+	font: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+.app-shell {
+	width: min(100% - 2rem, 70rem);
+	margin: 0 auto;
+	padding: 1.25rem 0 4rem;
+}
+
+.site-header,
+.content-panel {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.site-header {
+	border-bottom: 1px solid rgba(23, 32, 51, 0.18);
+	padding-bottom: 1rem;
+}
+
+.brand {
+	color: #172033;
+	font-size: 1.35rem;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.button,
+.menu-item,
+.schedule-calendar-button {
+	border: 1px solid transparent;
+	border-radius: 0.5rem;
+	padding: 0.7rem 1rem;
+	transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.button:hover,
+.menu-item:hover,
+.schedule-calendar-button:hover {
+	transform: translateY(-2px);
+}
+
+.button-secondary,
+.menu-item {
+	color: #172033;
+	background: #ffffff;
+	border-color: rgba(23, 32, 51, 0.2);
+}
+
+.hero {
+	max-width: 46rem;
+	padding: clamp(4rem, 12vw, 9rem) 0 4rem;
+}
+
+.eyebrow {
+	margin: 0 0 0.75rem;
+	color: #a34f32;
+	font-family: Arial, sans-serif;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+	margin-top: 0;
+}
+
+h1 {
+	max-width: 11ch;
+	margin-bottom: 1.25rem;
+	font-size: clamp(2.8rem, 8vw, 6.5rem);
+	line-height: 0.95;
+}
+
+.hero-copy,
+.content-panel p {
+	color: #435267;
+	font-family: Arial, sans-serif;
+}
+
+.menu-panel {
+	display: grid;
+	gap: 0.5rem;
+	width: min(100%, 18rem);
+	margin: -2rem 0 2rem auto;
+	padding: 0.75rem;
+	background: #fffdf8;
+	border: 1px solid rgba(23, 32, 51, 0.14);
+	border-radius: 0.5rem;
+	box-shadow: 0 1rem 2rem rgba(23, 32, 51, 0.1);
+}
+
+.menu-item {
+	text-align: left;
+}
+
+.content-panel {
+	align-items: flex-end;
+	padding: 1.5rem;
+	background: #fffdf8;
+	border: 1px solid rgba(23, 32, 51, 0.14);
+	border-radius: 0.5rem;
+}
+
+.content-panel h2 {
+	margin-bottom: 0.5rem;
+}
+
+.content-panel p:last-child {
+	margin-bottom: 0;
+}
+
+.schedule-calendar-button {
+	color: #fffdf8;
+	background-color: #172033;
+	background-image: radial-gradient(circle at top right, #a34f32, #172033 62%);
+	border-color: #a34f32;
+	box-shadow: 0 0.75rem 1.5rem rgba(2, 6, 23, 0.24);
+	white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+	.content-panel {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.schedule-calendar-button {
+		width: 100%;
+	}
+}

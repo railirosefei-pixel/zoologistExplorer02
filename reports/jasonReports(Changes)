@@ -1,0 +1,20 @@
+2026-09-21 15:55:41 -07:00
+Added dependency-free cTeacher boilerplate to index.html, main.js, and src/input.css, including the app shell, Adult Menu, Schedule Plan interaction, responsive styling, and calendar selector styling.
+2026-09-21 15:55:41 -07:00
+Initialized npm and installed Vite 8.3.0, then configured ESM package metadata, dev/build/preview scripts, the /cTeacher/ deployment base, and dist output.
+2026-09-21
+Installed Vue 3 and @vitejs/plugin-vue, then registered the Vue plugin in vite.config.js while preserving the existing entry point.
+2026-09-21 15:59:27 -07:00
+Installed Tailwind CSS 4.3.3 and @tailwindcss/vite 4.3.3, then registered the Tailwind Vite plugin and imported Tailwind into src/input.css while preserving existing custom styles.
+2026-09-21
+Installed @playwright/test 1.63.0 and Chromium, then added Playwright's Vite web server configuration, Chromium project, and test:e2e script.
+2026-09-21 16:00:55 -07:00
+Installed Prettier 3.9.8 and added repository formatting scripts, configuration, and generated-file exclusions without rewriting existing source files.
+2026-09-21
+Installed the Node Sonar scanner and added token-free local project configuration, source/test scopes, exclusions, and the sonar npm script.
+2026-09-21
+Moved the application entry point to src/main.js, added src/App.vue with the existing app shell state and interactions, and reduced index.html to the Vue mount shell.
+2026-09-21
+Scoped Playwright to browser specs named *.spec.js so the separate Node-based audit test remains in tests without being loaded by the Playwright runner.
+2026-09-21 16:22:32 -07:00
+Added GitHub Actions CI at .github/workflows/ci.yml for Node 22 dependency installation, formatting checks, application builds, and Chromium end-to-end tests.

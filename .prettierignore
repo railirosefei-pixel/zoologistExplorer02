@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.vite/
+.vue/
+coverage/
+playwright-report/
+test-results/
+reports/

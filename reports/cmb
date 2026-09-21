@@ -1,0 +1,71 @@
+1. Page: "HomeView"
+
+    A. Containers:
+
+        a. app-shell
+            aa. Defined In: 
+            ab. Rendered In: 
+            ac. Function: 
+
+        b. app-frame
+            aa. Defined In: 
+            ab. Rendered In: 
+            ac. Function: 
+
+        c. app-layout
+            aa. Defined In: 
+            ab. Rendered In: 
+            ac. Function: 
+
+        d. primary-sidebar
+            aa. Defined In: "SidebarNav.vue" template
+            ab. Rendered In: "SidebarNav.vue" template
+            ac. Function: Hosts top-level application navigation.
+
+        e. content-panel
+            aa. Defined In: "MainPanel.vue" template
+            ab. Rendered In: "MainPanel.vue" template
+            ac. Function: Provides shared content chrome through the default slot.
+
+        f. home-view
+            aa. Defined In: "HomeView.vue" template
+            ab. Rendered In: "HomeView.vue" template
+            ac. Function: Displays the home dashboard.
+
+   d.
+
+2. Page: "HomeView"
+
+    A. Containers:
+
+        a. app-shell
+            aa. Defined In: "index.html" main element
+            ab. Rendered In: "index.html" main element
+            ac. Function: Provides the root application shell.
+
+        b. menu-panel
+            aa. Defined In: "index.html" nav element
+            ab. Rendered In: "index.html" nav element
+            ac. Function: Hosts adult planning navigation.
+
+        c. content-panel
+            aa. Defined In: "index.html" section element
+            ab. Rendered In: "index.html" section element
+            ac. Function: Displays the selected schedule planning content.
+
+    B. Buttons:
+
+        a. Adult Menu
+            aa. Defined In: "index.html" button element
+            ab. Rendered In: "index.html" header
+            ac. Function: Opens and closes the adult navigation menu.
+
+        b. Schedule Plan
+            aa. Defined In: "index.html" button element
+            ab. Rendered In: "index.html" menu-panel
+            ac. Function: Reveals the schedule planning panel.
+
+        c. Open calendar
+            aa. Defined In: "index.html" button element
+            ab. Rendered In: "index.html" content-panel
+            ac. Function: Provides the calendar action placeholder.
