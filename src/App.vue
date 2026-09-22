@@ -44,9 +44,12 @@ const currentMonthIndex = ref(0);
 const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
 const isSeptemberMonth = computed(() => currentMonth.value.monthName === "September");
 const explodedDayCellIndex = ref(null);
+const isExplosionTextureHidden = ref(false);
 const explosionInstance = ref(0);
 const explosionDurationMs = 900;
+const explosionTextureHideDelayMs = 450;
 let explosionTimeoutId;
+let explosionTextureTimeoutId;
 
 function syncVisualTheme() {
 	document.documentElement.style.setProperty(
@@ -97,9 +100,17 @@ function triggerDayCellExplosion(cellIndex) {
 	if (explosionTimeoutId) {
 		window.clearTimeout(explosionTimeoutId);
 	}
+	if (explosionTextureTimeoutId) {
+		window.clearTimeout(explosionTextureTimeoutId);
+	}
 
 	explodedDayCellIndex.value = cellIndex;
+	isExplosionTextureHidden.value = false;
 	explosionInstance.value += 1;
+	explosionTextureTimeoutId = window.setTimeout(() => {
+		isExplosionTextureHidden.value = true;
+		explosionTextureTimeoutId = undefined;
+	}, explosionTextureHideDelayMs);
 	explosionTimeoutId = window.setTimeout(clearDayCellExplosion, explosionDurationMs);
 }
 
@@ -108,8 +119,13 @@ function clearDayCellExplosion() {
 		window.clearTimeout(explosionTimeoutId);
 		explosionTimeoutId = undefined;
 	}
+	if (explosionTextureTimeoutId) {
+		window.clearTimeout(explosionTextureTimeoutId);
+		explosionTextureTimeoutId = undefined;
+	}
 
 	explodedDayCellIndex.value = null;
+	isExplosionTextureHidden.value = false;
 }
 
 onBeforeUnmount(clearDayCellExplosion);
@@ -299,6 +315,9 @@ function playStudentButtonSound() {
 									'calendar-day-cell--empty': !cell.isCurrentMonth,
 									'calendar-day-cell--september':
 										cell.isCurrentMonth && isSeptemberMonth,
+									'calendar-day-cell--exploding':
+										isExplosionTextureHidden &&
+										explodedDayCellIndex === currentMonth.cells.indexOf(cell),
 								}"
 								@click="triggerDayCellExplosion(currentMonth.cells.indexOf(cell))"
 								@keydown.enter="triggerDayCellExplosion(currentMonth.cells.indexOf(cell))"

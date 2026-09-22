@@ -341,7 +341,7 @@ body {
 	color: #2d1e13;
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5);
 	position: relative;
-	overflow: hidden;
+	overflow: visible;
 }
 
 .calendar-day-cell-number {
@@ -358,8 +358,8 @@ body {
 	top: 50%;
 	left: 50%;
 	z-index: 2;
-	width: 400%;
-	height: 400%;
+	width: 240%;
+	height: 240%;
 	max-width: none;
 	object-fit: contain;
 	transform: translate(-50%, -50%);
@@ -373,6 +373,10 @@ body {
 	background-repeat: no-repeat;
 	border-color: rgba(60, 44, 17, 0.7);
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.15), 0 0 0 1px rgba(37, 26, 12, 0.2);
+}
+
+.calendar-day-cell--exploding {
+	background-image: none;
 }
 
 .calendar-day-cell--september .calendar-day-cell-number {

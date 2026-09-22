@@ -128,3 +128,13 @@ Doubled the calendar explosion overlay dimensions to 200% in src/css/input.css w
 Doubled the calendar explosion overlay dimensions again to 400% in src/css/input.css while preserving centered positioning; npm run build passed and live browser measurement confirmed the animation height increased to approximately 3.83 times the cell height.
 2026-09-22 16:00:57 -07:00
 Fixed the calendar explosion GIF sizing issue in src/css/input.css by overriding the global image max-width constraint with max-width: none; npm run build passed and live browser measurement confirmed the rendered overlay now scales to approximately 3.8 times the day-cell dimensions.
+2026-09-22 16:08:00 -07:00
+Allowed the calendar explosion GIF to extend beyond its clicked day cell by changing the cell overflow from hidden to visible in src/css/input.css; npm run build, 2 browser smoke tests, and a live bounds check passed.
+2026-09-22 16:12:51 -07:00
+Halved the calendar explosion GIF dimensions from 400% to 200% in src/css/input.css while preserving visible overflow; npm run build, 2 browser smoke tests, and a live bounds check confirmed the animation remains outside the day cell at approximately 1.92 times its dimensions.
+2026-09-22 16:21:36 -07:00
+Increased the calendar explosion GIF dimensions by 20%, from 200% to 240%, in src/css/input.css while preserving visible overflow; npm run build, 2 browser smoke tests, and a live bounds check passed.
+2026-09-22 16:24:19 -07:00
+Removed the TNT texture from the clicked calendar cell while its explosion GIF is active by adding the calendar-day-cell--exploding state in src/App.vue and src/css/input.css; the texture restores after cleanup, and build, smoke tests, and live verification passed.
+2026-09-22 16:33:30 -07:00
+Delayed removal of the clicked day-cell TNT texture until 450ms into the 900ms explosion lifecycle in src/App.vue; the texture remains present at click time, hides near the animation midpoint, restores after cleanup, and build, smoke tests, and live timing verification passed.

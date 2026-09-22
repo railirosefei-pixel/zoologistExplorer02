@@ -14,4 +14,4 @@
 
 - Only post text of any kind in reports/acuteIssues when explicitly instructed to do so.  When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one.  Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
 
-1.) Fix the issue that is causing the size of the animation gif to not increase in size
+1.) The day box still disappears immediately after it is clicked instead of waiting 450ms after being clicked
