@@ -1,7 +1,7 @@
 2026-09-21 15:55:41 -07:00
-Added dependency-free cTeacher boilerplate to index.html, main.js, and src/input.css, including the app shell, Adult Menu, Schedule Plan interaction, responsive styling, and calendar selector styling.
+Added dependency-free application boilerplate to index.html, main.js, and src/input.css, including the app shell, Adult Menu, Schedule Plan interaction, responsive styling, and calendar selector styling.
 2026-09-21 15:55:41 -07:00
-Initialized npm and installed Vite 8.3.0, then configured ESM package metadata, dev/build/preview scripts, the /cTeacher/ deployment base, and dist output.
+Initialized npm and installed Vite 8.3.0, then configured ESM package metadata, dev/build/preview scripts, the project deployment base, and dist output.
 2026-09-21
 Installed Vue 3 and @vitejs/plugin-vue, then registered the Vue plugin in vite.config.js while preserving the existing entry point.
 2026-09-21 15:59:27 -07:00
@@ -18,3 +18,113 @@ Moved the application entry point to src/main.js, added src/App.vue with the exi
 Scoped Playwright to browser specs named *.spec.js so the separate Node-based audit test remains in tests without being loaded by the Playwright runner.
 2026-09-21 16:22:32 -07:00
 Added GitHub Actions CI at .github/workflows/ci.yml for Node 22 dependency installation, formatting checks, application builds, and Chromium end-to-end tests.
+2026-09-21 16:33:15 -07:00
+Replaced the previous project identity and deployment paths with zoologistExplorer02 across Vite, Playwright, page metadata, app branding, tests, Sonar configuration, and repository facts.
+2026-09-21 16:44:07 -07:00
+Added tests/button-isolation.test.js to audit button ids, class ownership, click expressions, generalized button selectors, and the index.html/main.js mount pipeline across all Vue files.
+2026-09-21 16:46:22 -07:00
+Installed and recorded ESLint, @eslint/js, eslint-plugin-vue, and globals as development dependencies so the Vue audit can load its configured lint toolchain.
+2026-09-21 20:40:23 -07:00
+Set the home page container to 140px wide and vertically centered the Student button within it in src/css/input.css.
+2026-09-21 20:42:32 -07:00
+Changed the home page container alignment so the Student button is top-aligned and horizontally centered in src/css/input.css; npm run build succeeded.
+2026-09-21 20:45:19 -07:00
+Changed Student button text from light to dark high-contrast color in src/css/input.css; npm run build succeeded.
+2026-09-21 20:49:48 -07:00
+Added the StudentMenu full-screen view, pastel-yellow navigation tab, functional Back button, dedicated styling, and corresponding page/container/button records in src/App.vue, src/css/input.css, and reports/cmb.
+2026-09-21 20:50:59 -07:00
+Updated tests/smoke.spec.js to validate the current home shell, Student menu transition, full-screen menu, and Back navigation.
+2026-09-21 20:51:34 -07:00
+Adjusted the Student menu smoke assertion to compare rendered height with the viewport height after browser CSS resolved 100vh to pixels.
+2026-09-21 20:54:59 -07:00
+Removed all remaining legacy project-name references from historical change and error reports; an assets-excluded repository search found no matches.
+2026-09-21 20:59:28 -07:00
+Replaced the Student button's WAV click sound with a short synthesized low chime in src/App.vue; npm run build succeeded with no errors or warnings.
+2026-09-21 21:01:44 -07:00
+Replaced the Student button's low synthesized tone with a short harmonic bell chime in src/App.vue; npm run build succeeded.
+2026-09-21 21:03:31 -07:00
+Removed the redundant explicit region role from the labeled student content section in src/App.vue; npm run build succeeded with no warnings or errors.
+2026-09-22 00:00:00 -07:00
+Added a Minecraft-inspired Calendar tab to the student workspace navigation in src/App.vue and matching gold-and-wood styling in src/css/input.css; the tab was registered in reports/cmb and the app build succeeded.
+2026-09-22 00:10:00 -07:00
+Separated student menu tab ownership by assigning distinct IDs, classes, and click handlers to each tab in src/App.vue and replaced the shared tab selector with unique styles in src/css/input.css; button isolation audit passed.
+2026-09-22 15:00:00 -07:00
+Removed the Student Workspace tab from the Student menu in src/App.vue, left Calendar as the active menu state, and kept the Back navigation intact; npm run build succeeded.
+2026-09-22 16:42:00 -07:00
+Applied the Minecraft-style font asset to the Calendar tab in src/css/input.css using the provided minecraftFont2(Bold).otf file and kept the existing tab styling intact; npm run build succeeded.
+2026-09-22 17:15:00 -07:00
+Set the home page sidebar to a 275px width with negative top, left, and bottom offsets so it reaches off the screen edges while keeping its right boundary at 275px; npm run build succeeded.
+2026-09-22 07:48:37 -07:00
+Set the Student button to 190px by 90px, applied the Minecraft2Bold font from minecraftFont2(Bold).otf, and increased its font size in src/css/input.css; npm run build succeeded.
+2026-09-22 07:55:25 -07:00
+Added grasslands(VetClinicRaili)02.webp as the home page background in src/css/input.css with cover positioning and a deployment-base URL; npm run build succeeded with runtime asset-resolution warning.
+2026-09-22 07:58:37 -07:00
+Shortened the home page background image to the viewport area right of the 275px left-aligned container in src/css/input.css; npm run build succeeded with the existing runtime asset-resolution warning.
+2026-09-22 08:02:45 -07:00
+Removed the home page container border, translucent fill, and inset highlight from src/css/input.css to eliminate the unwanted vertical line and off-white strip; npm run build succeeded.
+2026-09-22 08:07:05 -07:00
+Applied a nine-stop top-to-bottom red, orange, and yellow gradient to the left-aligned home page container in src/css/input.css; npm run build succeeded with the existing background asset resolution warning.
+2026-09-22 08:08:19 -07:00
+Updated tests/smoke.spec.js to assert the current #calendar-tab selector instead of the removed #student-menu-tab selector; the focused smoke test passed 2 tests.
+2026-09-22 08:24:56 -07:00
+Added an asset-path workflow rule to rules/copilot-rules.md requiring Vite-managed imports, BASE_URL for public assets, deployment prefixes only in vite.config.js, and npm run build after referenced asset-path changes; the build succeeded.
+2026-09-22 08:46:35 -07:00
+Added tests/asset-paths.test.js and the npm run test:assets script to enforce Vite-managed asset references and reject duplicated deployment prefixes; wired the audit into CI before npm run build, formatted the changed files, and verified the audit and build passed.
+2026-09-22 08:48:22 -07:00
+Aligned the homepage container's right edge with the 275px background boundary by removing its negative left margin in src/css/input.css; added a smoke-test regression assertion, and the focused E2E tests and production build passed.
+2026-09-22 08:51:19 -07:00
+Adjusted the homepage background size in src/css/input.css to hide the source image's built-in left white border; a preview screenshot confirmed the overhang was gone, and the focused E2E tests and production build passed.
+2026-09-22 08:56:12 -07:00
+Added a two-pixel gradient-matched overlap to the homepage sidebar edge in src/css/input.css to cover the remaining served-port seam; the port screenshot, focused E2E tests, and production build passed.
+2026-09-22 08:58:57 -07:00
+Reverted the homepage thin-white-strip mitigation changes in src/css/input.css and the related smoke-test edge assertion; the source reversion check, focused E2E tests, and production build passed.
+2026-09-22 19:15:00 -07:00
+Set the calendar day-number font to Minecraft2Bold from the provided minecraftFont2(Bold).otf asset in src/css/input.css; the relevant production build passed without errors.
+2026-09-22 13:07:07 -07:00
+Changed the Calendar panel in src/css/input.css to a viewport-constrained perfect square with its bottom edge 16px above the viewport; npm run build and the focused smoke tests passed.
+2026-09-22 13:09:21 -07:00
+Adjusted the Calendar panel in src/css/input.css to sit 16px from the student content container's left, right, and bottom edges while preserving its existing top position; npm run build and the focused smoke tests passed.
+2026-09-22 09:12:07 -07:00
+Applied the planned homepage sidebar fix by removing its negative left margin in src/css/input.css, restored the smoke-test right-edge assertion, captured served desktop and narrow screenshots, and verified the focused E2E tests and production build passed.
+2026-09-22 16:20:00 -07:00
+Set the Student button top gap to 16px by increasing the home page sidebar container padding to 1rem in src/css/input.css; the Vite production build succeeded.
+2026-09-22 11:39:51 -07:00
+Set the home page container top padding to 32px so the Student button has the required 32px gap from the container top in src/css/input.css; button isolation audit passed.
+2026-09-22 11:56:28 -07:00
+Added a two-pixel inset border around the inside edge of the left-aligned homepage container in src/css/input.css; npm run build succeeded with no relevant warnings.
+2026-09-22 11:58:09 -07:00
+Made the existing two-pixel inset border explicit on the top and bottom edges of the left-aligned homepage container in src/css/input.css; npm run build succeeded with no relevant warnings.
+2026-09-22 11:59:30 -07:00
+Added a positioned inset border layer so the homepage container's top and bottom edges remain visible within the viewport despite its overflow offsets in src/css/input.css; npm run build succeeded with no warnings.
+2026-09-22 12:01:50 -07:00
+Removed the 12px top and bottom container offsets, removed the previous top and bottom inset border layers, and restored matching visible top and bottom borders in src/css/input.css; npm run build succeeded with no relevant warnings.
+2026-09-22 13:10:28 -07:00
+Reverted the latest calendar container spacing change in src/css/input.css, restoring the preceding viewport-constrained calendar sizing; npm run build and the focused smoke tests passed.
+2026-09-22 13:18:04 -07:00
+Sized the actual calendar month card in src/css/input.css as a viewport-constrained square, keeping its top position and aligning its bottom with the existing 16px viewport inset; npm run build and the focused smoke tests passed.
+2026-09-22 13:20:04 -07:00
+Changed only the actual calendar month card in src/css/input.css so its square size ends 16px above the calendar container bottom without changing the container dimensions; npm run build and the focused smoke tests passed.
+2026-09-22 13:30:57 -07:00
+Changed only the actual calendar month card width in src/css/input.css to create 16px left and right spacing without changing the container dimensions; npm run build and the focused smoke tests passed.
+2026-09-22 13:54:17 -07:00
+Changed only the individual calendar day cells in src/css/input.css to remove their fixed minimum height so they can fit the existing calendar; npm run build and the focused smoke tests passed.
+2026-09-22 13:55:28 -07:00
+Enlarged the individual calendar day boxes in src/css/input.css so six equal rows fill the existing calendar height; npm run build and the focused smoke tests passed.
+2026-09-22 14:11:00 -07:00
+Set the single-month calendar card gap to an explicit 16px bottom margin in src/css/input.css so the calendar sits 16px above the container's inside bottom edge; the production build succeeded.
+2026-09-22 14:18:00 -07:00
+Corrected the calendar spacing logic in src/css/input.css so the single-month card uses a bottom-only 16px offset instead of all-around margin math; the production build succeeded.
+2026-09-22 20:17:00 -07:00
+Applied the requested dirt texture from assets/textures/minecraftDirt01.webp as the calendar panel background in src/App.vue and src/css/input.css using a Vite-managed import; npm run build succeeded.
+2026-09-22 14:52:41 -07:00
+Added a reusable September day-cell click trigger in src/App.vue and a full-cell explosion overlay animation in src/css/input.css; the overlay remains opaque for 371ms of its 700ms duration, and npm run build succeeded.
+2026-09-22 15:19:51 -07:00
+Reverted the September day-cell explosion trigger, overlay animation, keyframes, and explosion-only layering references from src/App.vue and src/css/input.css; npm run build succeeded with no errors or warnings.
+2026-09-22 15:53:01 -07:00
+Applied assets/animations/minecraftExplosion.gif to every calendar day-cell click in src/App.vue, centered the temporary overlay in src/css/input.css, and cleared it after the verified 0.9-second GIF duration; asset audit, production build, and 2 browser smoke tests passed.
+2026-09-22 15:54:54 -07:00
+Doubled the calendar explosion overlay dimensions to 200% in src/css/input.css while preserving centered positioning; npm run build passed and live browser measurement confirmed the animation height approximately doubled.
+2026-09-22 15:55:51 -07:00
+Doubled the calendar explosion overlay dimensions again to 400% in src/css/input.css while preserving centered positioning; npm run build passed and live browser measurement confirmed the animation height increased to approximately 3.83 times the cell height.
+2026-09-22 16:00:57 -07:00
+Fixed the calendar explosion GIF sizing issue in src/css/input.css by overriding the global image max-width constraint with max-width: none; npm run build passed and live browser measurement confirmed the rendered overlay now scales to approximately 3.8 times the day-cell dimensions.

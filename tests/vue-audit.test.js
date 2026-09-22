@@ -296,3 +296,4 @@ test("Vue files keep shared structure and style ownership consistent", () => {
     `Vue static consistency audit found issues:\n${findings.join("\n")}`
   );
 });
+

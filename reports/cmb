@@ -69,3 +69,41 @@
             aa. Defined In: "index.html" button element
             ab. Rendered In: "index.html" content-panel
             ac. Function: Provides the calendar action placeholder.
+
+    B. Buttons:
+
+        a. Student
+            aa. Defined In: "App.vue" button element
+            ab. Rendered In: "App.vue" home-page-container
+            ac. Function: Opens the student workspace and plays a short click sound.
+
+3. Page: "StudentMenu"
+
+    A. Containers:
+
+        a. student-menu-navigation
+            aa. Defined In: "App.vue" nav element
+            ab. Rendered In: "App.vue" student-menu-page
+            ac. Function: Hosts the student workspace tab and back navigation.
+
+        b. student-menu-content
+            aa. Defined In: "App.vue" section element
+            ab. Rendered In: "App.vue" student-menu-page
+            ac. Function: Displays the student workspace content area.
+
+    B. Buttons:
+
+        a. Student Workspace
+            aa. Defined In: "App.vue" button element
+            ab. Rendered In: "App.vue" student-menu-navigation
+            ac. Function: Identifies the active student workspace tab.
+
+        b. Calendar
+            aa. Defined In: "App.vue" button element
+            ab. Rendered In: "App.vue" student-menu-navigation
+            ac. Function: Opens the Calendar tab in the Minecraft-inspired student navigation.
+
+        c. Back
+            aa. Defined In: "App.vue" button element
+            ab. Rendered In: "App.vue" student-menu-navigation
+            ac. Function: Returns the user to the home page.

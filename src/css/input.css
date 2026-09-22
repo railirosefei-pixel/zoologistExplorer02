@@ -1,0 +1,397 @@
+@import "tailwindcss";
+
+@font-face {
+	font-family: "Minecraft2Bold";
+	src: url("../../assets/fonts/minecraftFont2(Bold).otf") format("opentype");
+	font-weight: 700;
+	font-style: normal;
+}
+
+:root {
+	color: #172033;
+	background: #f4f0e8;
+	font-family: Georgia, "Times New Roman", serif;
+	font-synthesis: none;
+	line-height: 1.5;
+	text-rendering: optimizeLegibility;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-width: 320px;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #f4f0e8 0%, #dbe7e2 100%);
+}
+
+.home-page-shell {
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-start;
+	min-height: 100vh;
+	padding: 0;
+	overflow: hidden;
+	background-image: var(--home-page-background-image);
+	background-position: right center;
+	background-repeat: no-repeat;
+	background-size: calc(100% - 275px) 100%;
+}
+
+.home-page-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	width: 275px;
+	min-height: 100vh;
+	border-top: 2px solid rgba(255, 248, 190, 0.7);
+	border-bottom: 2px solid rgba(255, 248, 190, 0.7);
+	padding: 32px 1rem 1rem;
+	background: linear-gradient(
+		to bottom,
+		#7f1d1d 0%,
+		#b91c1c 12.5%,
+		#ef4444 25%,
+		#c2410c 37.5%,
+		#ea580c 50%,
+		#fb923c 62.5%,
+		#ca8a04 75%,
+		#eab308 87.5%,
+		#fde047 100%
+	);
+	box-shadow:
+		inset 2px 0 0 rgba(255, 248, 190, 0.7),
+		inset -2px 0 0 rgba(255, 248, 190, 0.7);
+}
+
+.student-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 190px;
+	height: 90px;
+	padding: 0;
+	border: 1px solid rgba(120, 48, 48, 0.4);
+	border-radius: 0.8rem;
+	color: #24131a;
+	font-family: "Minecraft2Bold", sans-serif;
+	font-size: 2rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+	background: linear-gradient(180deg, #f5d7d7 0%, #ebafaf 40%, #d77e7e 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.85),
+		inset 0 -4px 0 rgba(124, 60, 60, 0.15),
+		0 8px 0 rgba(168, 68, 68, 0.35),
+		0 14px 18px rgba(106, 61, 61, 0.2);
+	transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.student-button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.02);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.9),
+		inset 0 -4px 0 rgba(124, 60, 60, 0.15),
+		0 9px 0 rgba(168, 68, 68, 0.4),
+		0 16px 18px rgba(106, 61, 61, 0.24);
+}
+
+.student-button:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.78),
+		inset 0 -2px 0 rgba(124, 60, 60, 0.15),
+		0 4px 0 rgba(168, 68, 68, 0.35);
+}
+
+.student-menu-page {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #111827 0%, #1f2937 52%, #312e81 100%);
+	color: #fff7cc;
+}
+
+.student-menu-navigation {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 0.75rem;
+	min-height: 5rem;
+	padding: 1rem 1.5rem 0;
+	border-bottom: 1px solid rgba(255, 246, 180, 0.28);
+	background: rgba(10, 15, 28, 0.78);
+}
+
+.student-menu-workspace-tab,
+.student-menu-calendar-tab,
+.student-menu-back-button {
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 4px 0 rgba(67, 38, 14, 0.45);
+}
+
+.student-menu-workspace-tab,
+.student-menu-calendar-tab {
+	background: linear-gradient(180deg, #f7e7a1 0%, #e3bc63 50%, #d29d41 100%);
+	color: #292114;
+}
+
+.student-menu-workspace-tab--active {
+	background: linear-gradient(180deg, #fef3b1 0%, #f5d460 50%, #e2ac38 100%);
+	border-color: rgba(255, 248, 190, 0.9);
+}
+
+.student-menu-calendar-tab {
+	position: relative;
+	margin-bottom: 0;
+	padding-bottom: 0.9rem;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+	background: linear-gradient(180deg, #d4f0ff 0%, #9acdf7 50%, #6d9fda 100%);
+	color: #11253d;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	transform: translateY(-0.15rem);
+}
+
+.student-menu-back-button {
+	margin-left: auto;
+	align-self: center;
+	background: rgba(255, 246, 180, 0.12);
+	color: #fff7cc;
+}
+
+.student-menu-content {
+	display: flex;
+	flex: 1;
+	align-items: stretch;
+	justify-content: center;
+	padding: 2rem 2rem 1rem;
+}
+
+.calendar-panel {
+	display: flex;
+	flex: 0 1 auto;
+	flex-direction: column;
+	width: min(calc(100vh - 8rem), 100%);
+	height: min(calc(100vh - 8rem), 100%);
+	aspect-ratio: 1;
+	min-width: 0;
+	min-height: 0;
+	border: 4px solid rgba(255, 248, 190, 0.7);
+	border-radius: 1.25rem;
+	background-image: var(--calendar-panel-background-image);
+	background-position: center;
+	background-repeat: repeat;
+	background-size: cover;
+	box-shadow:
+		inset 0 0 0 3px rgba(255, 255, 255, 0.12),
+		0 20px 38px rgba(15, 23, 42, 0.45);
+}
+
+.calendar-panel-header {
+	padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.calendar-header-row {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.calendar-previous-month-button,
+.calendar-next-month-button {
+	justify-self: center;
+	min-width: 7.5rem;
+	padding: 0.6rem 1rem;
+	border: 2px solid rgba(255, 248, 190, 0.7);
+	border-radius: 0.7rem;
+	background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 56%, #60a5fa 100%);
+	color: #16293f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
+.calendar-next-month-button {
+	justify-self: end;
+}
+
+.calendar-previous-month-button {
+	justify-self: start;
+}
+
+.student-menu-heading {
+	margin: 0;
+	font-size: clamp(2rem, 5vw, 4rem);
+	text-align: center;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	letter-spacing: 0.06em;
+	text-shadow: 4px 4px 0 rgba(80, 93, 120, 0.7);
+}
+
+.calendar-month-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+	gap: 1rem;
+	padding: 0 1.25rem 1.25rem;
+}
+
+.calendar-month-grid--single {
+	display: flex;
+	flex: 1;
+	align-items: stretch;
+	justify-content: center;
+	grid-template-columns: 1fr;
+	min-height: 0;
+	padding: 0.5rem 1.25rem 16px;
+}
+
+.calendar-month-card {
+	display: flex;
+	flex-direction: column;
+	border: 3px solid rgba(255, 240, 167, 0.82);
+	border-radius: 0.9rem;
+	background: linear-gradient(180deg, #f2d9a0 0%, #d6b676 22%, #ab7f49 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.5),
+		0 8px 0 rgba(70, 44, 18, 0.35);
+}
+
+.calendar-month-card--single {
+	--calendar-gap: 16px;
+	width: calc(100% - (var(--calendar-gap) * 2));
+	height: calc(100% - var(--calendar-gap));
+	aspect-ratio: 1;
+	max-width: none;
+	margin: 0 var(--calendar-gap);
+}
+
+.calendar-month-header {
+	padding: 0.7rem 0.8rem 0.45rem;
+	border-bottom: 2px solid rgba(72, 47, 12, 0.4);
+	background: rgba(54, 38, 20, 0.12);
+}
+
+.calendar-month-header h2 {
+	margin: 0;
+	font-size: 1.05rem;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	letter-spacing: 0.05em;
+	color: #2a1d0f;
+	text-align: center;
+}
+
+.calendar-weekday-row,
+.calendar-day-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-weekday-row {
+	padding: 0.45rem 0.5rem 0.3rem;
+	background: rgba(58, 45, 17, 0.1);
+}
+
+.calendar-weekday-row span {
+	padding: 0.2rem 0;
+	font-size: 0.62rem;
+	font-weight: 700;
+	text-align: center;
+	color: #34210d;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.calendar-day-grid {
+	flex: 1;
+	grid-template-rows: repeat(6, minmax(0, 1fr));
+	min-height: 0;
+	gap: 0.2rem;
+	padding: 0.35rem 0.5rem 0.6rem;
+}
+
+.calendar-day-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	min-height: 0;
+	border: 2px solid rgba(63, 44, 17, 0.5);
+	border-radius: 0.45rem;
+	background: linear-gradient(180deg, #fdf6d9 0%, #d7c694 100%);
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: #2d1e13;
+	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5);
+	position: relative;
+	overflow: hidden;
+}
+
+.calendar-day-cell-number {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	font-family: "Minecraft2Bold", sans-serif;
+}
+
+.calendar-day-cell-explosion {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 2;
+	width: 400%;
+	height: 400%;
+	max-width: none;
+	object-fit: contain;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+.calendar-day-cell--september {
+	background-image: var(--calendar-day-image);
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	border-color: rgba(60, 44, 17, 0.7);
+	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.15), 0 0 0 1px rgba(37, 26, 12, 0.2);
+}
+
+.calendar-day-cell--september .calendar-day-cell-number {
+	position: absolute;
+	top: 0.2rem;
+	left: 0.25rem;
+	width: 1.6rem;
+	height: 1.6rem;
+	padding: 0.15rem;
+	font-size: 1.44rem;
+	line-height: 1;
+	justify-content: flex-start;
+	align-items: flex-start;
+	color: #f7f0d7;
+	text-shadow: 1px 1px 0 rgba(29, 17, 8, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.calendar-day-cell--empty {
+	background: rgba(96, 63, 32, 0.16);
+	border-color: rgba(81, 52, 19, 0.25);
+	box-shadow: none;
+}

@@ -9,7 +9,7 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: "list",
 	use: {
-		baseURL: "http://127.0.0.1:5173/cTeacher/",
+		baseURL: "http://127.0.0.1:5173/zoologistExplorer02/",
 		trace: "on-first-retry",
 	},
 	projects: [
@@ -20,7 +20,7 @@ export default defineConfig({
 	],
 	webServer: {
 		command: "npm run dev -- --host 127.0.0.1",
-		url: "http://127.0.0.1:5173/cTeacher/",
+		url: "http://127.0.0.1:5173/zoologistExplorer02/",
 		reuseExistingServer: !process.env.CI,
 	},
 });

@@ -3,7 +3,7 @@ import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-	base: "/cTeacher/",
+	base: "/zoologistExplorer02/",
 	plugins: [vue(), tailwindcss()],
 	build: {
 		outDir: "dist",

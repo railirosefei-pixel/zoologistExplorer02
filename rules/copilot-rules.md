@@ -6,6 +6,8 @@ Vite natively handles the asset compilation and Tailwind CSS build cycle during 
 
 NEVER instruct the user to manually run independent CSS watching scripts unless modifying the root base configurations.
 
+When adding, copying, renaming, or moving an asset that is referenced by the application, import it through Vue or JavaScript from the `assets/` directory. For files served from a public directory, use `import.meta.env.BASE_URL`. Keep deployment prefixes such as `/zoologistExplorer02/` only in `vite.config.js`; never duplicate them in CSS, Vue templates, or JavaScript asset URLs. Run `npm run test:assets` to enforce these source rules, then run `npm run build` as the focused production-resolution check after changing a referenced asset or its path.
+
 </build_workflow>
 
 <core_constraints>
@@ -71,15 +73,15 @@ avoid “mystery” names or random utility classes acting as layout logic
 
 - Before executing any plan from copilotPlan.md:
 
-  - Read plan.md directly from disk.
+    - Read plan.md directly from disk.
 
-  - Do not rely on conversation context, cached content, or prior reads.
+    - Do not rely on conversation context, cached content, or prior reads.
 
-  - Verify the file's LastWriteTime and contents with a fresh terminal read.
+    - Verify the file's LastWriteTime and contents with a fresh terminal read.
 
-  - If the plan changed, repeat the read and use only the newest version.
+    - If the plan changed, repeat the read and use only the newest version.
 
-  - Quote the current target and instructions before editing.
+    - Quote the current target and instructions before editing.
 
 </instructions>
 
@@ -93,23 +95,23 @@ avoid “mystery” names or random utility classes acting as layout logic
 
 - Follow these rules for all code generation:
 
-  - Use Vue 3 Single File Components (.vue files) exclusively.
+    - Use Vue 3 Single File Components (.vue files) exclusively.
 
-  - Use the <script setup> syntax with the Composition API for all script blocks.
+    - Use the <script setup> syntax with the Composition API for all script blocks.
 
-  - Write clean, modular components. Break large components down into smaller sub-components.
+    - Write clean, modular components. Break large components down into smaller sub-components.
 
-  - Include clear JSDoc comment blocks at the top of scripts and inside files to explain component logic.
+    - Include clear JSDoc comment blocks at the top of scripts and inside files to explain component logic.
 
-  - Apply styling using utility-first Tailwind CSS classes inside the templates.
+    - Apply styling using utility-first Tailwind CSS classes inside the templates.
 
-  - If compilation or runtime errors occur, perform a read-only inspection of the logs and classify the root cause. Execute a fix only within the exact user-approved targets and side effects.
+    - If compilation or runtime errors occur, perform a read-only inspection of the logs and classify the root cause. Execute a fix only within the exact user-approved targets and side effects.
 
 </system_instructions>
 
 ## Verified repository facts (2026-09-20)
 
-- The approved publication target is GitHub Pages at `/cTeacher/`; Vite's statically configured base is `/cTeacher/` in `vite.config.js`. Recheck this fact if `vite.config.js`, the repository name, or the Pages setting changes. Evidence: Task 4 static validation; not provider-runtime evidence.
+- The approved publication target is GitHub Pages at `/zoologistExplorer02/`; Vite's statically configured base is `/zoologistExplorer02/` in `vite.config.js`. Recheck this fact if `vite.config.js`, the repository name, or the Pages setting changes. Evidence: Task 4 static validation; not provider-runtime evidence.
 - The approved CI mode is standard GitHub-hosted mode. `.github/workflows/ci.yml` uses `ubuntu-24.04`, read-only contents permission, no cache, lifecycle-disabled frozen installation, pinned official action commits, Node 22, loopback-only preview/test configuration, and Chromium provisioning. GitHub controls the mutable image, administrator capability, and available network; a successful run proves only the recorded committed candidate and provider run.
 - `dist/` and `node_modules/` are source-built or installed outputs, not committed publication inputs. Preserve local bytes when changing tracking, and revalidate the exact index state before any future tracking operation. Evidence: Task 7 byte manifests and staged index counts.
 - Sonar analysis is configured in `sonar-project.properties` and `package.json`, but remains blocked until an approved host, project/data scope, credential path, Java runtime, scanner, and output policy are confirmed. Never treat the existing `sonar` script or configuration as proof that analysis ran.

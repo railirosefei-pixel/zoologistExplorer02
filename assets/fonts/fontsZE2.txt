@@ -1,0 +1,20 @@
+<!-- .font-antiquarian-scribe -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Antiquarian Scribe
+<!-- .font-cc-stormtrooper-body -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Stormtrooper Body
+<!-- .font-cc-stormtrooper-blaster -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Stormtrooper Blaster
+<!-- .font-cc-stormtrooper-armor -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Stormtrooper Armor
+<!-- .font-socko -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Socko
+<!-- .font-katha-latin-regular -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Katha Latin Regular
+<!-- .font-katha-latin-medium -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Katha Latin Medium
+<!-- .font-katha-latin-semibold -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Katha Latin Semi-Bold
+<!-- .font-katha-latin-bold -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Katha Latin Bold
+<!-- .font-katha-latin-extrabold -->
+<link rel="stylesheet" href="https://use.typekit.net/vaq7nuy.css"> --- Katha Latin Extra-Bold

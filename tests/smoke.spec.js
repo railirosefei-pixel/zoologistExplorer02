@@ -3,32 +3,33 @@ import { test, expect } from "@playwright/test";
 test("home page loads and renders the app shell", async ({ page }) => {
   await page.goto("./");
 
-  await expect(page).toHaveTitle(/cTeacher/i);
-  await expect(page.getByText("Learn, guide, and grow with clarity.")).toBeVisible();
+  await expect(page).toHaveTitle(/zoologistExplorer02/i);
+  await expect(page.locator("#home-page-shell")).toBeVisible();
+  const backgroundImage = await page.locator("#home-page-shell").evaluate((element) =>
+    getComputedStyle(element).backgroundImage,
+  );
+  expect(backgroundImage).not.toBe("none");
+  const containerRightEdge = await page.locator("#home-page-container").evaluate(
+    (element) => element.getBoundingClientRect().right,
+  );
+  expect(containerRightEdge).toBe(275);
+  await expect(page.getByRole("button", { name: "Open student section" })).toBeVisible();
 });
 
-test("schedule calendar button exposes its dedicated visual selector", async ({ page }) => {
+test("Student button opens the full-screen menu and Back returns home", async ({ page }) => {
   await page.goto("./");
 
-  await page.getByRole("button", { name: "Adult Menu", exact: true }).click();
-  await page.getByRole("button", { name: "Schedule Plan", exact: true }).click();
+  await page.getByRole("button", { name: "Open student section" }).click();
 
-  const calendarButton = page.locator("#schedule-calendar-button");
+  const studentMenu = page.locator("#student-menu-page");
+  await expect(studentMenu).toBeVisible();
+  await expect(page.locator("#calendar-tab")).toBeVisible();
+  const menuHeight = await studentMenu.evaluate((element) => element.getBoundingClientRect().height);
+  const viewportHeight = page.viewportSize().height;
+  expect(menuHeight).toBeGreaterThanOrEqual(viewportHeight);
 
-  await expect(calendarButton).toBeVisible();
-  await expect(calendarButton).toHaveClass(/schedule-calendar-button/);
+  await page.getByRole("button", { name: "Back to home page" }).click();
 
-  const computedStyles = await calendarButton.evaluate((element) => {
-    const styles = window.getComputedStyle(element);
-
-    return {
-      backgroundImage: styles.backgroundImage,
-      borderColor: styles.borderColor,
-      boxShadow: styles.boxShadow,
-    };
-  });
-
-  expect(computedStyles.backgroundImage).toContain("radial-gradient");
-  expect(computedStyles.borderColor).not.toBe("rgb(49, 65, 88)");
-  expect(computedStyles.boxShadow).toContain("rgba(2, 6, 23");
+  await expect(page.locator("#home-page-shell")).toBeVisible();
+  await expect(studentMenu).toBeHidden();
 });
