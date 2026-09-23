@@ -194,3 +194,5 @@ Persisted square replacements when a later day click interrupts the prior explos
 Stored each revealed calendar square's color by day-cell key instead of sharing the latest color across all replacements, and added rapid-click regression assertions; the focused September browser suite passed all 3 tests.
 2026-09-23 09:54:33 -07:00
 Enabled every revealed calendar day button to open the daily menu for its own selected date, including previously revealed buttons after multiple TNT textures clear; focused browser coverage passed all 4 September tests.
+2026-09-23 10:21:06 -07:00
+Removed the Vue audit's scope-blind duplicate-name scan so valid locals with the same name in separate functions are not reported as structural issues; the focused Vue audit passed all 4 tests.

@@ -28,29 +28,6 @@ function collectVueFiles(directory) {
 		.sort();
 }
 
-function collectDuplicateNames(source) {
-	const declarationPatterns = [
-		/(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g,
-		/function\s+([A-Za-z_$][\w$]*)/g,
-		/class\s+([A-Za-z_$][\w$]*)/g,
-	];
-
-	const matches = new Map();
-
-	for (const pattern of declarationPatterns) {
-		for (const match of source.matchAll(pattern)) {
-			const name = match[1];
-			if (!name) {
-				continue;
-			}
-
-			matches.set(name, (matches.get(name) ?? 0) + 1);
-		}
-	}
-
-	return [...matches.entries()].filter(([, count]) => count > 1).map(([name]) => name);
-}
-
 function collectDuplicateIds(source) {
 	const idCounts = new Map();
 
@@ -172,22 +149,13 @@ test("Vue files lint cleanly with the project ESLint + Vue rules", async () => {
 	);
 });
 
-test("Vue files do not contain duplicate declarations, ids, or stale template conditions", () => {
+test("Vue files do not contain duplicate ids or stale template conditions", () => {
 	const findings = [];
 
 	for (const filePath of vueFiles) {
 		const source = fs.readFileSync(filePath, "utf8");
-		const scriptOnly = source.replace(/<template[\s\S]*?<\/template>/g, "");
-
-		const duplicateDeclarations = collectDuplicateNames(scriptOnly);
 		const duplicateIds = collectDuplicateIds(source);
 		const staleTemplateConditions = collectContradictoryStateChecks(source);
-
-		if (duplicateDeclarations.length > 0) {
-			findings.push(
-				`${path.relative(projectRoot, filePath)} duplicate declarations: ${[...new Set(duplicateDeclarations)].join(", ")}`,
-			);
-		}
 
 		if (duplicateIds.length > 0) {
 			findings.push(

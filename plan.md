@@ -12,6 +12,5 @@
 
 - Whenever a consistency check involving the investigation of stale, unused, duplicate, or contradictory code is run against the program, do not include the "assets" folder in the check. Do not remove the assets directory or anything contained within it
 
-- Only post text of any kind in reports/acuteIssues when explicitly instructed to do so. When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one. Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
+1.) User-facing bug: a TNT-affected day can remain interactive or visually inconsistent while the explosion texture is supposed to be clearing.  How can we resolve this without affecting the behavior, position, or formatting of the program
 
-1.) If I click on multiple day boxes, in the calendar, and the TNT textures are gone, but the buttons are still there, only some of the buttons, when clicked, lead to the daily menu.  I want the buttons to consistently take me to that specific day's daily menu regardless of how many TNT textures are gone
