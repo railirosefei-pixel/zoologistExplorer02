@@ -12,5 +12,4 @@
 
 - Whenever a consistency check involving the investigation of stale, unused, duplicate, or contradictory code is run against the program, do not include the "assets" folder in the check. Do not remove the assets directory or anything contained within it
 
-1.) User-facing bug: a TNT-affected day can remain interactive or visually inconsistent while the explosion texture is supposed to be clearing.  How can we resolve this without affecting the behavior, position, or formatting of the program
-
+1.) Run: C:\zoologistExplorer02\tests\css-js-integrity.test.js

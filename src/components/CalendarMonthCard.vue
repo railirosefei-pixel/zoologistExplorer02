@@ -11,12 +11,8 @@ defineProps({
 		type: Array,
 		required: true,
 	},
-	isExplosionTextureHidden: {
-		type: Boolean,
-		required: true,
-	},
-	isExplosionVisible: {
-		type: Boolean,
+	dayCellAnimationState: {
+		type: String,
 		required: true,
 	},
 	explodedDayCellKey: {
@@ -78,8 +74,7 @@ defineEmits(["day-cell-click"]);
 				:cell="cell"
 				:cell-id="`calendar-day-cell-${currentMonth.id}-${cellIndex}`"
 				:cell-key="`${currentMonth.id}-${cellIndex}`"
-				:is-explosion-texture-hidden="isExplosionTextureHidden"
-				:is-explosion-visible="isExplosionVisible"
+				:day-cell-animation-state="dayCellAnimationState"
 				:is-exploded="explodedDayCellKey === `${currentMonth.id}-${cellIndex}`"
 				:last-clicked-day-cell-key="lastClickedDayCellKey"
 				:hidden-day-cell-keys="hiddenDayCellKeys"

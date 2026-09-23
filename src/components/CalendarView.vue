@@ -37,9 +37,7 @@ const explodedDayCellKey = ref(null);
 const lastClickedDayCellKey = ref(null);
 const hiddenDayCellKeys = ref([]);
 const replacementVisibleDayCellKeys = ref([]);
-const isExplosionVisible = ref(false);
-const isExplosionTextureHidden = ref(false);
-const isDayCellReady = ref(false);
+const dayCellAnimationState = ref("idle");
 const pastelReplacementClasses = [
 	"calendar-day-replacement--pink",
 	"calendar-day-replacement--blue",
@@ -109,7 +107,7 @@ function handleDayCellAnimation(cellIndex) {
 		return;
 	}
 	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
-	if (explodedDayCellKey.value && !isExplosionTextureHidden.value) {
+	if (explodedDayCellKey.value && dayCellAnimationState.value === "exploding") {
 		replacementVisibleDayCellKeys.value = [
 			...new Set([...replacementVisibleDayCellKeys.value, explodedDayCellKey.value]),
 		];
@@ -125,9 +123,7 @@ function handleDayCellAnimation(cellIndex) {
 	hiddenDayCellKeys.value = [...new Set([...hiddenDayCellKeys.value, cellKey])];
 	lastClickedDayCellKey.value = cellKey;
 	explodedDayCellKey.value = cellKey;
-	isDayCellReady.value = false;
-	isExplosionVisible.value = true;
-	isExplosionTextureHidden.value = false;
+	dayCellAnimationState.value = "exploding";
 	const nextReplacementColorIndex =
 		(explosionInstance.value + currentMonthIndex.value + 1) % pastelReplacementClasses.length;
 	replacementColorClassesByDayCellKey.value = {
@@ -136,15 +132,14 @@ function handleDayCellAnimation(cellIndex) {
 	};
 	explosionInstance.value += 1;
 	explosionTextureTimeoutId = window.setTimeout(() => {
-		isExplosionTextureHidden.value = true;
+		dayCellAnimationState.value = "textureCleared";
 		replacementVisibleDayCellKeys.value = [
 			...new Set([...replacementVisibleDayCellKeys.value, cellKey]),
 		];
 		explosionTextureTimeoutId = undefined;
 	}, explosionTextureHideDelayMs);
 	explosionTimeoutId = window.setTimeout(() => {
-		isExplosionVisible.value = false;
-		isDayCellReady.value = true;
+		dayCellAnimationState.value = "ready";
 		explosionTimeoutId = undefined;
 	}, explosionDurationMs);
 }
@@ -165,9 +160,7 @@ function clearDayCellExplosion() {
 	replacementVisibleDayCellKeys.value = [];
 	replacementColorClassesByDayCellKey.value = {};
 	selectedDailyMenuDateLabel.value = "";
-	isExplosionVisible.value = false;
-	isExplosionTextureHidden.value = false;
-	isDayCellReady.value = false;
+	dayCellAnimationState.value = "idle";
 }
 
 function handleDayCellClick(cell) {
@@ -181,7 +174,7 @@ function handleDayCellClick(cell) {
 	if (
 		replacementVisibleDayCellKeys.value.includes(cellKey) ||
 		(explodedDayCellKey.value === cellKey &&
-			(isExplosionTextureHidden.value || isDayCellReady.value))
+			["textureCleared", "ready"].includes(dayCellAnimationState.value))
 	) {
 		openDailyMenuForDayCell(cell);
 		return;
@@ -236,8 +229,7 @@ onBeforeUnmount(clearDayCellExplosion);
 			<CalendarMonthCard
 				:current-month="currentMonth"
 				:weekdays="weekdays"
-				:is-explosion-texture-hidden="isExplosionTextureHidden"
-				:is-explosion-visible="isExplosionVisible"
+				:day-cell-animation-state="dayCellAnimationState"
 				:exploded-day-cell-key="explodedDayCellKey"
 				:last-clicked-day-cell-key="lastClickedDayCellKey"
 				:hidden-day-cell-keys="hiddenDayCellKeys"

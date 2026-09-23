@@ -131,7 +131,6 @@ body {
 	background: rgba(10, 15, 28, 0.78);
 }
 
-.student-menu-workspace-tab,
 .student-menu-calendar-tab,
 .student-menu-back-button {
 	min-height: 2.75rem;
@@ -147,18 +146,9 @@ body {
 		0 4px 0 rgba(67, 38, 14, 0.45);
 }
 
-.student-menu-workspace-tab,
 .student-menu-calendar-tab {
 	background: linear-gradient(180deg, #f7e7a1 0%, #e3bc63 50%, #d29d41 100%);
 	color: #292114;
-}
-
-.student-menu-workspace-tab--active {
-	background: linear-gradient(180deg, #fef3b1 0%, #f5d460 50%, #e2ac38 100%);
-	border-color: rgba(255, 248, 190, 0.9);
-}
-
-.student-menu-calendar-tab {
 	position: relative;
 	margin-bottom: 0;
 	padding-bottom: 0.9rem;

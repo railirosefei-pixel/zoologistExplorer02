@@ -5,6 +5,7 @@ import test from "node:test";
 
 const projectRoot = process.cwd();
 const sourceRoot = path.join(projectRoot, "src");
+const vueFiles = collectVueFiles(sourceRoot);
 
 function collectVueFiles(directory) {
 	if (!fs.existsSync(directory)) {
@@ -48,6 +49,56 @@ function collectGenericButtonSelectors(source) {
 		.flatMap((match) => match[1].split(","))
 		.map((selector) => selector.trim())
 		.filter((selector) => /^button(?::[\w-]+)?$/.test(selector));
+}
+
+function collectCssRuleBlocks(source) {
+	const blocks = [];
+	for (const match of source.matchAll(/([^{}]+)\s*\{([^{}]*)\}/g)) {
+		const selectorList = match[1].trim();
+		const declarations = match[2].replace(/\s+/g, " ").trim();
+		if (!selectorList || selectorList.startsWith("@")) {
+			continue;
+		}
+
+		const selectors = selectorList
+			.split(",")
+			.map((selector) => selector.trim())
+			.filter(Boolean)
+			.filter((selector) => selector !== "*" && selector !== ":root" && selector !== "body");
+
+		if (selectors.length > 0) {
+			blocks.push({ selectors, declarations });
+		}
+	}
+	return blocks;
+}
+
+function collectDuplicateCssSelectors(source) {
+	const seen = new Map();
+	const duplicates = new Set();
+	for (const block of collectCssRuleBlocks(source)) {
+		for (const selector of block.selectors) {
+			const signature = `${selector}::${block.declarations}`;
+			if (seen.has(signature)) {
+				duplicates.add(selector);
+			} else {
+				seen.set(signature, true);
+			}
+		}
+	}
+	return [...duplicates];
+}
+
+function collectCssTokens(source) {
+	const tokens = new Set();
+	for (const block of collectCssRuleBlocks(source)) {
+		for (const selector of block.selectors) {
+			for (const match of selector.matchAll(/([.#][A-Za-z_][\w-]*)/g)) {
+				tokens.add(match[1].slice(1));
+			}
+		}
+	}
+	return tokens;
 }
 
 test("buttons keep isolated rendering, style, and functionality ownership", () => {
@@ -138,5 +189,49 @@ test("buttons keep isolated rendering, style, and functionality ownership", () =
 		findings,
 		[],
 		`Button ownership audit found isolation issues:\n${findings.join("\n")}`,
+	);
+});
+
+test("src/css/input.css and src/js/main.js contain no stale, duplicate, or contradictory app logic", () => {
+	const findings = [];
+	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
+	const mainSource = fs.readFileSync(path.join(sourceRoot, "js", "main.js"), "utf8");
+	const appSource = vueFiles
+		.map((filePath) => fs.readFileSync(filePath, "utf8"))
+		.join("\n");
+
+	const duplicateCssSelectors = collectDuplicateCssSelectors(cssSource);
+	if (duplicateCssSelectors.length > 0) {
+		findings.push(
+			`input.css contains duplicate selectors: ${[...new Set(duplicateCssSelectors)].join(", ")}`,
+		);
+	}
+
+	const staleCssSelectors = [...collectCssTokens(cssSource)].filter((token) => {
+		return !appSource.includes(token) && !mainSource.includes(token);
+	});
+	if (staleCssSelectors.length > 0) {
+		findings.push(
+			`input.css contains stale selectors with no matching app usage: ${staleCssSelectors.join(", ")}`,
+		);
+	}
+
+	const importPaths = [...mainSource.matchAll(/import\s+.*?from\s+["']([^"']+)["']/g)].map(
+		(match) => match[1],
+	);
+	const duplicateImports = [...new Set(importPaths.filter((value, index) => importPaths.indexOf(value) !== index))];
+	if (duplicateImports.length > 0) {
+		findings.push(`main.js contains duplicate imports: ${duplicateImports.join(", ")}`);
+	}
+
+	const mountCalls = [...mainSource.matchAll(/mount\(["'][^"']+["']\)/g)].length;
+	if (mountCalls !== 1) {
+		findings.push(`main.js should mount the app exactly once; found ${mountCalls} mount calls`);
+	}
+
+	assert.deepEqual(
+		findings,
+		[],
+		`CSS/main script audit found stale or duplicate app logic:\n${findings.join("\n")}`,
 	);
 });

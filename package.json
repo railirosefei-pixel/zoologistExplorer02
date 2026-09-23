@@ -13,7 +13,7 @@
 		"lint": "eslint .",
 		"test": "npm run lint && npm run test:structure && npm run test:assets",
 		"test:assets": "node --test tests/asset-paths.test.js",
-		"test:structure": "node --test tests/button-isolation.test.js tests/menu-panel-separation.test.js tests/page-container-separation.test.js tests/vue-audit.test.js",
+		"test:structure": "node --test tests/button-isolation.test.js tests/menu-panel-separation.test.js tests/page-container-separation.test.js tests/vue-audit.test.js tests/css-js-integrity.test.js",
 		"test:e2e": "playwright test",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
