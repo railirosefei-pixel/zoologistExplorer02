@@ -14,4 +14,4 @@
 
 - Only post text of any kind in reports/acuteIssues when explicitly instructed to do so. When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one. Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
 
-1.) In the Daily menu, move the back button to be in the upper-right hand corner of the daily menu container, centered between the top of the Daily Menu and the top of the Daily menu container
+1.) If I click on multiple day boxes, in the calendar, and the TNT textures are gone, but the buttons are still there, only some of the buttons, when clicked, lead to the daily menu.  I want the buttons to consistently take me to that specific day's daily menu regardless of how many TNT textures are gone

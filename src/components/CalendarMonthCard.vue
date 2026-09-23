@@ -23,8 +23,20 @@ defineProps({
 		type: [String, null],
 		default: null,
 	},
-	replacementColorClass: {
-		type: String,
+	lastClickedDayCellKey: {
+		type: [String, null],
+		default: null,
+	},
+	hiddenDayCellKeys: {
+		type: Array,
+		default: () => [],
+	},
+	replacementVisibleDayCellKeys: {
+		type: Array,
+		default: () => [],
+	},
+	replacementColorClassesByDayCellKey: {
+		type: Object,
 		required: true,
 	},
 	explosionInstance: {
@@ -69,7 +81,10 @@ defineEmits(["day-cell-click"]);
 				:is-explosion-texture-hidden="isExplosionTextureHidden"
 				:is-explosion-visible="isExplosionVisible"
 				:is-exploded="explodedDayCellKey === `${currentMonth.id}-${cellIndex}`"
-				:replacement-color-class="replacementColorClass"
+				:last-clicked-day-cell-key="lastClickedDayCellKey"
+				:hidden-day-cell-keys="hiddenDayCellKeys"
+				:replacement-visible-day-cell-keys="replacementVisibleDayCellKeys"
+				:replacement-color-classes-by-day-cell-key="replacementColorClassesByDayCellKey"
 				:explosion-instance="explosionInstance"
 				:explosion-image="explosionImage"
 				@day-cell-click="$emit('day-cell-click', cell)"

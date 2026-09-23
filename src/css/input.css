@@ -369,7 +369,7 @@ body {
 	pointer-events: none;
 }
 
-.calendar-day-cell--september {
+.calendar-day-cell--current-month {
 	background-image: var(--calendar-day-image);
 	background-size: cover;
 	background-position: center;
@@ -380,6 +380,7 @@ body {
 		0 0 0 1px rgba(37, 26, 12, 0.2);
 }
 
+.calendar-day-cell--texture-suppressed,
 .calendar-day-cell--exploding {
 	background-image: none;
 }
@@ -421,7 +422,7 @@ body {
 	background: #b8dfb0;
 }
 
-.calendar-day-cell--september .calendar-day-cell-number {
+.calendar-day-cell--current-month .calendar-day-cell-number {
 	position: absolute;
 	top: 0.2rem;
 	left: 0.25rem;

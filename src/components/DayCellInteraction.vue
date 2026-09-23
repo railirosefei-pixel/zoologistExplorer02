@@ -27,8 +27,20 @@ const props = defineProps({
 		type: Boolean,
 		required: true,
 	},
-	replacementColorClass: {
-		type: String,
+	lastClickedDayCellKey: {
+		type: [String, null],
+		default: null,
+	},
+	hiddenDayCellKeys: {
+		type: Array,
+		default: () => [],
+	},
+	replacementVisibleDayCellKeys: {
+		type: Array,
+		default: () => [],
+	},
+	replacementColorClassesByDayCellKey: {
+		type: Object,
 		required: true,
 	},
 	explosionInstance: {
@@ -43,7 +55,26 @@ const props = defineProps({
 
 const emit = defineEmits(["day-cell-click"]);
 
+const isPreviouslyHiddenCell = computed(
+	() =>
+		props.hiddenDayCellKeys.includes(props.cellKey) &&
+		props.lastClickedDayCellKey !== props.cellKey &&
+		!props.isExploded,
+);
+const isCurrentCellReplacementVisible = computed(
+	() =>
+		(props.isExploded && props.isExplosionTextureHidden) ||
+		props.replacementVisibleDayCellKeys.includes(props.cellKey),
+);
+const replacementColorClass = computed(
+	() => props.replacementColorClassesByDayCellKey[props.cellKey],
+);
 const isCellLocked = computed(() => props.isExploded && !props.isExplosionTextureHidden);
+const isTextureSuppressed = computed(
+	() =>
+		props.hiddenDayCellKeys.includes(props.cellKey) &&
+		props.lastClickedDayCellKey !== props.cellKey,
+);
 
 function handleDayCellClick() {
 	if (isCellLocked.value) {
@@ -63,13 +94,17 @@ function handleDayCellClick() {
 		:aria-disabled="isCellLocked"
 		:class="{
 			'calendar-day-cell--empty': !cell.isCurrentMonth,
-			'calendar-day-cell--september': cell.isCurrentMonth,
+			'calendar-day-cell--current-month': cell.isCurrentMonth,
 			'calendar-day-cell--exploding': isExplosionTextureHidden && isExploded,
 			'calendar-day-cell--locked': isCellLocked,
+			'calendar-day-cell--texture-suppressed': isTextureSuppressed,
 		}"
 		@click="handleDayCellClick"
 	>
-		<span v-if="!isExplosionTextureHidden || !isExploded" class="calendar-day-cell-number">
+		<span
+			v-if="!isPreviouslyHiddenCell && !(isExploded && isExplosionTextureHidden)"
+			class="calendar-day-cell-number"
+		>
 			{{ cell.value || "" }}
 		</span>
 		<img
@@ -81,7 +116,7 @@ function handleDayCellClick() {
 			aria-hidden="true"
 		/>
 		<span
-			v-if="isExplosionTextureHidden && isExploded"
+			v-if="isCurrentCellReplacementVisible"
 			:id="`calendar-day-replacement-${cellKey}`"
 			class="calendar-day-replacement"
 			:class="replacementColorClass"

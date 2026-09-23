@@ -32,17 +32,21 @@ const calendarMonths = Array.from({ length: 16 }, (_, index) => {
 const currentMonthIndex = ref(0);
 const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
 const isDailyMenuOpen = ref(false);
+const selectedDailyMenuDateLabel = ref("");
 const explodedDayCellKey = ref(null);
+const lastClickedDayCellKey = ref(null);
+const hiddenDayCellKeys = ref([]);
+const replacementVisibleDayCellKeys = ref([]);
 const isExplosionVisible = ref(false);
 const isExplosionTextureHidden = ref(false);
-const isSeptemberOneReady = ref(false);
+const isDayCellReady = ref(false);
 const pastelReplacementClasses = [
 	"calendar-day-replacement--pink",
 	"calendar-day-replacement--blue",
 	"calendar-day-replacement--yellow",
 	"calendar-day-replacement--green",
 ];
-const replacementColorClass = ref(pastelReplacementClasses[0]);
+const replacementColorClassesByDayCellKey = ref({});
 const explosionInstance = ref(0);
 const explosionDurationMs = 900;
 const explosionTextureHideDelayMs = 450;
@@ -87,20 +91,29 @@ function handleDailyMenuClose() {
 	isDailyMenuOpen.value = false;
 }
 
-/** September 1 activation pipeline boundary. */
-function isSeptemberOneCell(cell) {
-	return (
-		currentMonth.value.monthName === "September" && cell?.isCurrentMonth && cell?.value === 1
-	);
+/** Calendar-day activation pipeline boundary. */
+function isCurrentMonthDayCell(cell) {
+	return Boolean(cell?.isCurrentMonth && cell?.value !== "");
+}
+
+/** Revealed-day navigation pipeline boundary. */
+function openDailyMenuForDayCell(cell) {
+	selectedDailyMenuDateLabel.value = `${currentMonth.value.monthName} ${cell.value}, ${currentMonth.value.year}`;
+	isDailyMenuOpen.value = true;
 }
 
 /** Day-cell animation pipeline boundary. */
 function handleDayCellAnimation(cellIndex) {
 	const cell = currentMonth.value.cells[cellIndex];
-	if (!isSeptemberOneCell(cell)) {
+	if (!isCurrentMonthDayCell(cell)) {
 		return;
 	}
 	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
+	if (explodedDayCellKey.value && !isExplosionTextureHidden.value) {
+		replacementVisibleDayCellKeys.value = [
+			...new Set([...replacementVisibleDayCellKeys.value, explodedDayCellKey.value]),
+		];
+	}
 
 	if (explosionTimeoutId) {
 		window.clearTimeout(explosionTimeoutId);
@@ -109,21 +122,29 @@ function handleDayCellAnimation(cellIndex) {
 		window.clearTimeout(explosionTextureTimeoutId);
 	}
 
+	hiddenDayCellKeys.value = [...new Set([...hiddenDayCellKeys.value, cellKey])];
+	lastClickedDayCellKey.value = cellKey;
 	explodedDayCellKey.value = cellKey;
-	isSeptemberOneReady.value = false;
+	isDayCellReady.value = false;
 	isExplosionVisible.value = true;
 	isExplosionTextureHidden.value = false;
 	const nextReplacementColorIndex =
 		(explosionInstance.value + currentMonthIndex.value + 1) % pastelReplacementClasses.length;
-	replacementColorClass.value = pastelReplacementClasses[nextReplacementColorIndex];
+	replacementColorClassesByDayCellKey.value = {
+		...replacementColorClassesByDayCellKey.value,
+		[cellKey]: pastelReplacementClasses[nextReplacementColorIndex],
+	};
 	explosionInstance.value += 1;
 	explosionTextureTimeoutId = window.setTimeout(() => {
 		isExplosionTextureHidden.value = true;
+		replacementVisibleDayCellKeys.value = [
+			...new Set([...replacementVisibleDayCellKeys.value, cellKey]),
+		];
 		explosionTextureTimeoutId = undefined;
 	}, explosionTextureHideDelayMs);
 	explosionTimeoutId = window.setTimeout(() => {
 		isExplosionVisible.value = false;
-		isSeptemberOneReady.value = true;
+		isDayCellReady.value = true;
 		explosionTimeoutId = undefined;
 	}, explosionDurationMs);
 }
@@ -139,21 +160,30 @@ function clearDayCellExplosion() {
 	}
 
 	explodedDayCellKey.value = null;
+	lastClickedDayCellKey.value = null;
+	hiddenDayCellKeys.value = [];
+	replacementVisibleDayCellKeys.value = [];
+	replacementColorClassesByDayCellKey.value = {};
+	selectedDailyMenuDateLabel.value = "";
 	isExplosionVisible.value = false;
 	isExplosionTextureHidden.value = false;
-	isSeptemberOneReady.value = false;
+	isDayCellReady.value = false;
 }
 
 function handleDayCellClick(cell) {
-	if (!isSeptemberOneCell(cell)) {
+	if (!isCurrentMonthDayCell(cell)) {
 		return;
 	}
 
 	const cellIndex = currentMonth.value.cells.indexOf(cell);
 	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
 
-	if (explodedDayCellKey.value === cellKey && isSeptemberOneReady.value) {
-		isDailyMenuOpen.value = true;
+	if (
+		replacementVisibleDayCellKeys.value.includes(cellKey) ||
+		(explodedDayCellKey.value === cellKey &&
+			(isExplosionTextureHidden.value || isDayCellReady.value))
+	) {
+		openDailyMenuForDayCell(cell);
 		return;
 	}
 
@@ -209,7 +239,10 @@ onBeforeUnmount(clearDayCellExplosion);
 				:is-explosion-texture-hidden="isExplosionTextureHidden"
 				:is-explosion-visible="isExplosionVisible"
 				:exploded-day-cell-key="explodedDayCellKey"
-				:replacement-color-class="replacementColorClass"
+				:last-clicked-day-cell-key="lastClickedDayCellKey"
+				:hidden-day-cell-keys="hiddenDayCellKeys"
+				:replacement-visible-day-cell-keys="replacementVisibleDayCellKeys"
+				:replacement-color-classes-by-day-cell-key="replacementColorClassesByDayCellKey"
 				:explosion-instance="explosionInstance"
 				:explosion-image="minecraftExplosion"
 				@day-cell-click="handleDayCellClick"
@@ -235,7 +268,7 @@ onBeforeUnmount(clearDayCellExplosion);
 			</button>
 			<div class="daily-menu-content">
 				<h2 id="daily-menu-heading" class="daily-menu-heading">Daily Menu</h2>
-				<p class="daily-menu-date">September 1, 2026</p>
+				<p class="daily-menu-date">{{ selectedDailyMenuDateLabel }}</p>
 			</div>
 		</section>
 	</div>

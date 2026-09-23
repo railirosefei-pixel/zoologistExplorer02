@@ -40,7 +40,7 @@ test("TNT-visible day cell is disabled until its texture has cleared", async ({ 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const clickedDay = page.locator(".calendar-day-cell--september").first();
+	const clickedDay = page.locator(".calendar-day-cell:not(.calendar-day-cell--empty)").first();
 	await clickedDay.click();
 	await expect(clickedDay).toBeDisabled();
 	await expect(page.locator(".calendar-day-replacement")).toBeVisible();
@@ -55,7 +55,7 @@ test("TNT explosion remains scoped to its clicked month and day cell", async ({ 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const clickedDay = page.locator(".calendar-day-cell--september").first();
+	const clickedDay = page.locator(".calendar-day-cell:not(.calendar-day-cell--empty)").first();
 	await clickedDay.click();
 	await expect(page.locator(".calendar-day-replacement")).toBeVisible();
 	await expect(clickedDay.locator(".calendar-day-cell-explosion")).toBeVisible();
