@@ -52,34 +52,34 @@ function handleHomeNavigation() {
 </script>
 
 <template>
-	<main
-		id="home-page-shell"
-		class="home-page-shell"
-		role="main"
-		aria-label="Student home page"
-		title="Student home page"
-		data-page-name="home-page-shell"
-	>
-		<section
-			id="home-page-container"
-			class="home-page-container"
-			role="region"
-			aria-label="Student home page container"
-			title="Student home page container"
-			data-container-name="home-page-container"
-		>
-			<button
-				id="student-button"
-				class="student-button"
-				type="button"
-				name="student-button"
-				data-button-name="student-button"
-				aria-label="Open student section"
-				title="Open student section"
-				@click="handleHomeNavigation"
-			>
-				Student
-			</button>
-		</section>
-	</main>
+  <main
+    id="home-page-shell"
+    class="home-page-shell"
+    role="main"
+    aria-label="Student home page"
+    title="Student home page"
+    data-page-name="home-page-shell"
+  >
+    <section
+      id="home-page-container"
+      class="home-page-container"
+      role="region"
+      aria-label="Student home page container"
+      title="Student home page container"
+      data-container-name="home-page-container"
+    >
+      <button
+        id="student-button"
+        class="student-button"
+        type="button"
+        name="student-button"
+        data-button-name="student-button"
+        aria-label="Open student section"
+        title="Open student section"
+        @click="handleHomeNavigation"
+      >
+        Student
+      </button>
+    </section>
+  </main>
 </template>

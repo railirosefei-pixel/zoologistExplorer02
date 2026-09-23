@@ -176,3 +176,5 @@ Added lint, aggregate test, and frontend structure-audit scripts to package.json
 Recorded a staged recommendation in reports/acuteIssues: add focused frontend pipeline behavior tests before extracting CalendarView responsibilities, then refactor one demonstrated boundary at a time with targeted validation.
 2026-09-23 06:24:10 -07:00
 Changed only DayCellInteraction.vue so the September 1 calendar cell remains locked while its TNT texture is visible and becomes activatable when that texture is hidden; focused TNT browser tests passed and editor diagnostics reported no errors.
+2026-09-23 07:12:27 -07:00
+Centered the Daily menu Back button horizontally within the space above the Daily Menu content by updating .daily-menu-back-button alignment in src/css/input.css; npm run build succeeded.

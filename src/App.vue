@@ -27,31 +27,34 @@ function handleCalendarTabOpen() {
 </script>
 
 <template>
-	<HomeView v-if="!isStudentMenuOpen" @open-student-menu="handleStudentMenuOpen" />
+  <HomeView
+    v-if="!isStudentMenuOpen"
+    @open-student-menu="handleStudentMenuOpen"
+  />
 
-	<main
-		v-else
-		id="student-menu-page"
-		class="student-menu-page"
-		role="main"
-		aria-label="Student menu"
-		title="Student menu"
-		data-page-name="student-menu-page"
-	>
-		<StudentNavigation
-			@open-calendar="handleCalendarTabOpen"
-			@close-student-menu="handleStudentMenuClose"
-		/>
+  <main
+    v-else
+    id="student-menu-page"
+    class="student-menu-page"
+    role="main"
+    aria-label="Student menu"
+    title="Student menu"
+    data-page-name="student-menu-page"
+  >
+    <StudentNavigation
+      @open-calendar="handleCalendarTabOpen"
+      @close-student-menu="handleStudentMenuClose"
+    />
 
-		<section
-			id="student-menu-content"
-			class="student-menu-content"
-			role="region"
-			aria-label="Student menu content"
-			title="Student menu content"
-			data-container-name="student-menu-content"
-		>
-			<CalendarView v-if="activeStudentTab === 'calendar'" />
-		</section>
-	</main>
+    <section
+      id="student-menu-content"
+      class="student-menu-content"
+      role="region"
+      aria-label="Student menu content"
+      title="Student menu content"
+      data-container-name="student-menu-content"
+    >
+      <CalendarView v-if="activeStudentTab === 'calendar'" />
+    </section>
+  </main>
 </template>

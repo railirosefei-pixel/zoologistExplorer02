@@ -458,7 +458,7 @@ body {
 }
 
 .daily-menu-back-button {
-	align-self: flex-end;
+	align-self: center;
 	margin: 0.25rem 0 0;
 	padding: 0.55rem 1rem;
 	border: 2px solid rgba(255, 248, 190, 0.7);
