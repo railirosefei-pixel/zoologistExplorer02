@@ -31,7 +31,6 @@ const calendarMonths = Array.from({ length: 16 }, (_, index) => {
 });
 const currentMonthIndex = ref(0);
 const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
-const isSeptemberMonth = computed(() => currentMonth.value.monthName === "September");
 const explodedDayCellKey = ref(null);
 const isExplosionVisible = ref(false);
 const isExplosionTextureHidden = ref(false);
@@ -59,11 +58,11 @@ function syncVisualTheme() {
 	);
 	document.documentElement.style.setProperty(
 		"--calendar-day-image",
-		isSeptemberMonth.value ? `url("${septemberDayTexture}")` : "none",
+		`url("${septemberDayTexture}")`,
 	);
 }
 
-watch([currentMonth, isSeptemberMonth], syncVisualTheme, { immediate: true });
+watch(currentMonth, syncVisualTheme, { immediate: true });
 onMounted(syncVisualTheme);
 
 /** Calendar-month selection pipeline boundary for the previous month. */
@@ -82,7 +81,7 @@ function handleNextMonthSelection() {
 /** Day-cell animation pipeline boundary. */
 function handleDayCellAnimation(cellIndex) {
 	const cell = currentMonth.value.cells[cellIndex];
-	if (!isSeptemberMonth.value || !cell?.isCurrentMonth) {
+	if (!cell?.isCurrentMonth) {
 		return;
 	}
 	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
@@ -178,7 +177,6 @@ onBeforeUnmount(clearDayCellExplosion);
 			<CalendarMonthCard
 				:current-month="currentMonth"
 				:weekdays="weekdays"
-				:is-september-month="isSeptemberMonth"
 				:is-explosion-texture-hidden="isExplosionTextureHidden"
 				:is-explosion-visible="isExplosionVisible"
 				:exploded-day-cell-key="explodedDayCellKey"

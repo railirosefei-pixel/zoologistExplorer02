@@ -11,10 +11,6 @@ defineProps({
 		type: Array,
 		required: true,
 	},
-	isSeptemberMonth: {
-		type: Boolean,
-		required: true,
-	},
 	isExplosionTextureHidden: {
 		type: Boolean,
 		required: true,
@@ -70,7 +66,6 @@ defineEmits(["day-cell-click"]);
 				:cell="cell"
 				:cell-id="`calendar-day-cell-${currentMonth.id}-${cellIndex}`"
 				:cell-key="`${currentMonth.id}-${cellIndex}`"
-				:is-september-month="isSeptemberMonth"
 				:is-explosion-texture-hidden="isExplosionTextureHidden"
 				:is-explosion-visible="isExplosionVisible"
 				:is-exploded="explodedDayCellKey === `${currentMonth.id}-${cellIndex}`"

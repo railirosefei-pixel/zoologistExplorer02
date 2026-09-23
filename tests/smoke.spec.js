@@ -36,6 +36,21 @@ test("Student button opens the full-screen menu and Back returns home", async ({
 	await expect(studentMenu).toBeHidden();
 });
 
+test("TNT-visible day cell is disabled until its texture has cleared", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const clickedDay = page.locator(".calendar-day-cell--september").first();
+	await clickedDay.click();
+	await expect(clickedDay).toBeDisabled();
+	await expect(page.locator(".calendar-day-replacement")).toBeVisible();
+	await expect(clickedDay.locator(".calendar-day-cell-explosion")).toBeVisible();
+	await expect(clickedDay.locator(".calendar-day-cell-number")).toBeHidden();
+
+	await page.waitForTimeout(500);
+	await expect(clickedDay).not.toBeDisabled();
+});
+
 test("TNT explosion remains scoped to its clicked month and day cell", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();

@@ -209,6 +209,34 @@ test("Vue files do not contain duplicate declarations, ids, or stale template co
 	);
 });
 
+test("Calendar day-cell behaviors are not restricted to September", () => {
+	const calendarViewSource = fs.readFileSync(
+		path.join(sourceRoot, "components", "CalendarView.vue"),
+		"utf8",
+	);
+	const dayCellSource = fs.readFileSync(
+		path.join(sourceRoot, "components", "DayCellInteraction.vue"),
+		"utf8",
+	);
+
+	const findings = [];
+	if (calendarViewSource.includes('currentMonth.value.monthName === "September"')) {
+		findings.push("CalendarView still gates day-cell behavior to September");
+	}
+	if (calendarViewSource.includes("!isSeptemberMonth.value || !cell?.isCurrentMonth")) {
+		findings.push("CalendarView still blocks animation outside September");
+	}
+	if (dayCellSource.includes("cell.isCurrentMonth && isSeptemberMonth")) {
+		findings.push("DayCellInteraction still restricts the September visual styling");
+	}
+
+	assert.deepEqual(
+		findings,
+		[],
+		`Calendar day-cell behavior is still restricted to September:\n${findings.join("\n")}`,
+	);
+});
+
 test("Vue files keep shared structure and style ownership consistent", () => {
 	const findings = [];
 	const globalStylesheetPath = path.join(sourceRoot, "css", "input.css");

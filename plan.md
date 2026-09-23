@@ -14,4 +14,4 @@
 
 - Only post text of any kind in reports/acuteIssues when explicitly instructed to do so. When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one. Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
 
-1.) 
+1.) Take every aspect of the September day boxes including the texture, animations and behaviors and apply them to every single day box in every single month across the board

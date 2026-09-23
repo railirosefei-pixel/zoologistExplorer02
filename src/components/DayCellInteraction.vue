@@ -1,5 +1,7 @@
 /** Interactive calendar day cell presentation and click boundary. */
 <script setup>
+import { computed } from "vue";
+
 const props = defineProps({
 	cell: {
 		type: Object,
@@ -11,10 +13,6 @@ const props = defineProps({
 	},
 	cellKey: {
 		type: String,
-		required: true,
-	},
-	isSeptemberMonth: {
-		type: Boolean,
 		required: true,
 	},
 	isExplosionTextureHidden: {
@@ -45,7 +43,12 @@ const props = defineProps({
 
 const emit = defineEmits(["day-cell-click"]);
 
+const isCellLocked = computed(() => props.isExplosionVisible && props.isExploded);
+
 function handleDayCellClick() {
+	if (isCellLocked.value) {
+		return;
+	}
 	emit("day-cell-click", props.cell);
 }
 </script>
@@ -56,10 +59,13 @@ function handleDayCellClick() {
 		:key="cellKey"
 		class="calendar-day-cell"
 		type="button"
+		:disabled="isCellLocked"
+		:aria-disabled="isCellLocked"
 		:class="{
 			'calendar-day-cell--empty': !cell.isCurrentMonth,
-			'calendar-day-cell--september': cell.isCurrentMonth && isSeptemberMonth,
+			'calendar-day-cell--september': cell.isCurrentMonth,
 			'calendar-day-cell--exploding': isExplosionTextureHidden && isExploded,
+			'calendar-day-cell--locked': isCellLocked,
 		}"
 		@click="handleDayCellClick"
 	>
@@ -67,7 +73,7 @@ function handleDayCellClick() {
 			{{ cell.value || "" }}
 		</span>
 		<img
-			v-if="isExplosionVisible && isSeptemberMonth && cell.isCurrentMonth && isExploded"
+			v-if="isExplosionVisible && cell.isCurrentMonth && isExploded"
 			:key="`${cellKey}-${explosionInstance}`"
 			class="calendar-day-cell-explosion"
 			:src="explosionImage"
