@@ -31,9 +31,11 @@ const calendarMonths = Array.from({ length: 16 }, (_, index) => {
 });
 const currentMonthIndex = ref(0);
 const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
+const isDailyMenuOpen = ref(false);
 const explodedDayCellKey = ref(null);
 const isExplosionVisible = ref(false);
 const isExplosionTextureHidden = ref(false);
+const isSeptemberOneReady = ref(false);
 const pastelReplacementClasses = [
 	"calendar-day-replacement--pink",
 	"calendar-day-replacement--blue",
@@ -67,6 +69,7 @@ onMounted(syncVisualTheme);
 
 /** Calendar-month selection pipeline boundary for the previous month. */
 function handlePreviousMonthSelection() {
+	isDailyMenuOpen.value = false;
 	clearDayCellExplosion();
 	currentMonthIndex.value =
 		(currentMonthIndex.value - 1 + calendarMonths.length) % calendarMonths.length;
@@ -74,20 +77,28 @@ function handlePreviousMonthSelection() {
 
 /** Calendar-month selection pipeline boundary for the next month. */
 function handleNextMonthSelection() {
+	isDailyMenuOpen.value = false;
 	clearDayCellExplosion();
 	currentMonthIndex.value = (currentMonthIndex.value + 1) % calendarMonths.length;
+}
+
+/** Daily menu close pipeline boundary. */
+function handleDailyMenuClose() {
+	isDailyMenuOpen.value = false;
+}
+
+/** September 1 activation pipeline boundary. */
+function isSeptemberOneCell(cell) {
+	return currentMonth.value.monthName === "September" && cell?.isCurrentMonth && cell?.value === 1;
 }
 
 /** Day-cell animation pipeline boundary. */
 function handleDayCellAnimation(cellIndex) {
 	const cell = currentMonth.value.cells[cellIndex];
-	if (!cell?.isCurrentMonth) {
+	if (!isSeptemberOneCell(cell)) {
 		return;
 	}
 	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
-	if (isExplosionTextureHidden.value && explodedDayCellKey.value === cellKey) {
-		return;
-	}
 
 	if (explosionTimeoutId) {
 		window.clearTimeout(explosionTimeoutId);
@@ -97,6 +108,7 @@ function handleDayCellAnimation(cellIndex) {
 	}
 
 	explodedDayCellKey.value = cellKey;
+	isSeptemberOneReady.value = false;
 	isExplosionVisible.value = true;
 	isExplosionTextureHidden.value = false;
 	const nextReplacementColorIndex =
@@ -109,6 +121,7 @@ function handleDayCellAnimation(cellIndex) {
 	}, explosionTextureHideDelayMs);
 	explosionTimeoutId = window.setTimeout(() => {
 		isExplosionVisible.value = false;
+		isSeptemberOneReady.value = true;
 		explosionTimeoutId = undefined;
 	}, explosionDurationMs);
 }
@@ -126,10 +139,23 @@ function clearDayCellExplosion() {
 	explodedDayCellKey.value = null;
 	isExplosionVisible.value = false;
 	isExplosionTextureHidden.value = false;
+	isSeptemberOneReady.value = false;
 }
 
 function handleDayCellClick(cell) {
-	handleDayCellAnimation(currentMonth.value.cells.indexOf(cell));
+	if (!isSeptemberOneCell(cell)) {
+		return;
+	}
+
+	const cellIndex = currentMonth.value.cells.indexOf(cell);
+	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
+
+	if (explodedDayCellKey.value === cellKey && isSeptemberOneReady.value) {
+		isDailyMenuOpen.value = true;
+		return;
+	}
+
+	handleDayCellAnimation(cellIndex);
 }
 
 onBeforeUnmount(clearDayCellExplosion);
@@ -144,6 +170,7 @@ onBeforeUnmount(clearDayCellExplosion);
 		aria-live="polite"
 	>
 		<header
+			v-if="!isDailyMenuOpen"
 			id="calendar-panel-header"
 			class="calendar-panel-header"
 			aria-label="Calendar panel header"
@@ -173,7 +200,7 @@ onBeforeUnmount(clearDayCellExplosion);
 				</button>
 			</div>
 		</header>
-		<div class="calendar-month-grid calendar-month-grid--single">
+		<div v-if="!isDailyMenuOpen" class="calendar-month-grid calendar-month-grid--single">
 			<CalendarMonthCard
 				:current-month="currentMonth"
 				:weekdays="weekdays"
@@ -186,5 +213,28 @@ onBeforeUnmount(clearDayCellExplosion);
 				@day-cell-click="handleDayCellClick"
 			/>
 		</div>
+		<section
+			v-else
+			id="daily-menu-panel"
+			class="daily-menu-panel"
+			role="region"
+			aria-label="Daily menu"
+			title="Daily menu"
+		>
+			<button
+				id="daily-menu-back-button"
+				class="daily-menu-back-button"
+				type="button"
+				aria-label="Back to calendar"
+				title="Back to calendar"
+				@click="handleDailyMenuClose"
+			>
+				Back
+			</button>
+			<div class="daily-menu-content">
+				<h2 id="daily-menu-heading" class="daily-menu-heading">Daily Menu</h2>
+				<p class="daily-menu-date">September 1, 2026</p>
+			</div>
+		</section>
 	</div>
 </template>

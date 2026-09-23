@@ -43,7 +43,7 @@ const props = defineProps({
 
 const emit = defineEmits(["day-cell-click"]);
 
-const isCellLocked = computed(() => props.isExplosionVisible && props.isExploded);
+const isCellLocked = computed(() => props.isExploded && !props.isExplosionTextureHidden);
 
 function handleDayCellClick() {
 	if (isCellLocked.value) {

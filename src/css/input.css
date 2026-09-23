@@ -443,3 +443,64 @@ body {
 	border-color: rgba(81, 52, 19, 0.25);
 	box-shadow: none;
 }
+
+.daily-menu-panel {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+	padding: 0.75rem 1rem 1rem;
+	border-radius: 1.25rem;
+	background: linear-gradient(180deg, rgba(132, 94, 74, 0.9), rgba(80, 55, 34, 0.92));
+	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.22);
+}
+
+.daily-menu-back-button {
+	align-self: flex-end;
+	margin: 0.25rem 0 0;
+	padding: 0.55rem 1rem;
+	border: 2px solid rgba(255, 248, 190, 0.7);
+	border-radius: 0.7rem;
+	background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 56%, #60a5fa 100%);
+	color: #16293f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.82rem;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
+.daily-menu-content {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem 1rem 2rem;
+	border: 3px solid rgba(255, 240, 167, 0.82);
+	border-radius: 0.9rem;
+	background: linear-gradient(180deg, #f2d9a0 0%, #d6b676 22%, #ab7f49 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.5),
+		0 8px 0 rgba(70, 44, 18, 0.35);
+}
+
+.daily-menu-heading {
+	margin: 0;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: clamp(2rem, 4vw, 3.5rem);
+	letter-spacing: 0.06em;
+	color: #2a1d0f;
+	text-align: center;
+}
+
+.daily-menu-date {
+	margin: 0.75rem 0 0;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.2rem;
+	letter-spacing: 0.04em;
+	color: #2a1d0f;
+	text-align: center;
+}

@@ -174,3 +174,5 @@ Documented the frontend pipeline audit hypothesis, evidence, and prioritized pot
 Added lint, aggregate test, and frontend structure-audit scripts to package.json; split CI into named static-quality, production-build, and browser-behavior jobs. Structural audits passed 6 tests, the asset audit passed 1 test, the production build succeeded, ESLint passed, targeted configuration formatting passed, and Playwright passed 3 tests.
 2026-09-22 21:01:02 -07:00
 Recorded a staged recommendation in reports/acuteIssues: add focused frontend pipeline behavior tests before extracting CalendarView responsibilities, then refactor one demonstrated boundary at a time with targeted validation.
+2026-09-23 06:24:10 -07:00
+Changed only DayCellInteraction.vue so the September 1 calendar cell remains locked while its TNT texture is visible and becomes activatable when that texture is hidden; focused TNT browser tests passed and editor diagnostics reported no errors.
