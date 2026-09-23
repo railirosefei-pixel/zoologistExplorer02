@@ -78,6 +78,10 @@ Adjusted the homepage background size in src/css/input.css to hide the source im
 Added a two-pixel gradient-matched overlap to the homepage sidebar edge in src/css/input.css to cover the remaining served-port seam; the port screenshot, focused E2E tests, and production build passed.
 2026-09-22 08:58:57 -07:00
 Reverted the homepage thin-white-strip mitigation changes in src/css/input.css and the related smoke-test edge assertion; the source reversion check, focused E2E tests, and production build passed.
+2026-09-22 18:21:29 -07:00
+Resolved the App.vue ESLint Vue formatting issues and applied Prettier formatting; focused App.vue lint and format checks passed, and the authorized App.vue behavior tests passed.
+2026-09-22 16:44:52 -07:00
+Added a randomly selected pastel square replacement button for the hidden calendar texture in src/App.vue, with an 8px inset and explicit color classes in src/css/input.css; focused Vue/button audits and npm run build passed.
 2026-09-22 19:15:00 -07:00
 Set the calendar day-number font to Minecraft2Bold from the provided minecraftFont2(Bold).otf asset in src/css/input.css; the relevant production build passed without errors.
 2026-09-22 13:07:07 -07:00
@@ -138,3 +142,19 @@ Increased the calendar explosion GIF dimensions by 20%, from 200% to 240%, in sr
 Removed the TNT texture from the clicked calendar cell while its explosion GIF is active by adding the calendar-day-cell--exploding state in src/App.vue and src/css/input.css; the texture restores after cleanup, and build, smoke tests, and live verification passed.
 2026-09-22 16:33:30 -07:00
 Delayed removal of the clicked day-cell TNT texture until 450ms into the 900ms explosion lifecycle in src/App.vue; the texture remains present at click time, hides near the animation midpoint, restores after cleanup, and build, smoke tests, and live timing verification passed.
+2026-09-22 16:51:23 -07:00
+Kept the clicked calendar day-cell TNT texture hidden for the remainder of the calendar screen session in src/App.vue, resetting only when leaving the student screen; focused Vue/button audits, npm run build, and 2 browser smoke tests passed.
+2026-09-22 16:56:06 -07:00
+Restricted the calendar explosion GIF to active September TNT day cells and limited each trigger to one 900ms playback in src/App.vue; focused Vue/button audits, npm run build, and 2 browser smoke tests passed.
+2026-09-22 17:17:19 -07:00
+Scoped TNT explosion and replacement state to a month-plus-day-cell key in src/App.vue, added a Playwright regression test in tests/smoke.spec.js, and verified the Vue audit, production build, and focused browser test passed.
+2026-09-22 17:02:05 -07:00
+Disabled retriggering for a calendar day cell after its TNT texture disappears by guarding repeated clicks in src/App.vue; focused Vue/button audits, npm run build, and 2 browser smoke tests passed.
+2026-09-22 17:30:00 -07:00
+Made the active September calendar day number disappear with its hidden TNT texture and restore after month navigation clears transient explosion state in src/App.vue; added Playwright coverage in tests/smoke.spec.js, and the full smoke suite plus asset-path audit passed.
+2026-09-22 17:29:37 -07:00
+Kept the active Minecraft explosion animation above the colored replacement button by raising its stacking order in src/css/input.css; added overlap coverage in tests/smoke.spec.js, and the focused TNT smoke test passed.
+2026-09-22 18:12:01 -07:00
+Added stable dynamic ids and a named click handler for calendar day-cell buttons, and added region/article roles to App.vue structural elements; all Node audits, Playwright tests, ESLint, and Prettier checks passed.
+2026-09-22 18:21:29 -07:00
+Added explicit Prettier ignore entries for plan.md and reports/jasonReports(Changes) and reports/jasonReports(Errors); repository-wide format check passed.

@@ -1,8 +1,6 @@
-/**
- * Student content shell for the home and calendar views.
- * The calendar layout stores month data in a generated 42-cell grid and
- * provides lightweight controls for moving between months and day-cell effects.
- */
+/** * Student content shell for the home and calendar views. * The calendar layout stores month data
+in a generated 42-cell grid and * provides lightweight controls for moving between months and
+day-cell effects. */
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import minecraftExplosion from "../assets/animations/minecraftExplosion.gif";
@@ -43,8 +41,16 @@ const calendarMonths = Array.from({ length: 16 }, (_, index) => {
 const currentMonthIndex = ref(0);
 const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
 const isSeptemberMonth = computed(() => currentMonth.value.monthName === "September");
-const explodedDayCellIndex = ref(null);
+const explodedDayCellKey = ref(null);
+const isExplosionVisible = ref(false);
 const isExplosionTextureHidden = ref(false);
+const pastelReplacementClasses = [
+	"calendar-day-replacement--pink",
+	"calendar-day-replacement--blue",
+	"calendar-day-replacement--yellow",
+	"calendar-day-replacement--green",
+];
+const replacementColorClass = ref(pastelReplacementClasses[0]);
 const explosionInstance = ref(0);
 const explosionDurationMs = 900;
 const explosionTextureHideDelayMs = 450;
@@ -77,6 +83,7 @@ function openStudentMenu() {
 }
 
 function closeStudentMenu() {
+	clearDayCellExplosion();
 	isStudentMenuOpen.value = false;
 	activeStudentTab.value = "calendar";
 }
@@ -97,6 +104,15 @@ function goToNextMonth() {
 }
 
 function triggerDayCellExplosion(cellIndex) {
+	const cell = currentMonth.value.cells[cellIndex];
+	if (!isSeptemberMonth.value || !cell?.isCurrentMonth) {
+		return;
+	}
+	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
+	if (isExplosionTextureHidden.value && explodedDayCellKey.value === cellKey) {
+		return;
+	}
+
 	if (explosionTimeoutId) {
 		window.clearTimeout(explosionTimeoutId);
 	}
@@ -104,14 +120,25 @@ function triggerDayCellExplosion(cellIndex) {
 		window.clearTimeout(explosionTextureTimeoutId);
 	}
 
-	explodedDayCellIndex.value = cellIndex;
+	explodedDayCellKey.value = cellKey;
+	isExplosionVisible.value = true;
 	isExplosionTextureHidden.value = false;
+	const nextReplacementColorIndex =
+		(explosionInstance.value + currentMonthIndex.value + 1) % pastelReplacementClasses.length;
+	replacementColorClass.value = pastelReplacementClasses[nextReplacementColorIndex];
 	explosionInstance.value += 1;
 	explosionTextureTimeoutId = window.setTimeout(() => {
 		isExplosionTextureHidden.value = true;
 		explosionTextureTimeoutId = undefined;
 	}, explosionTextureHideDelayMs);
-	explosionTimeoutId = window.setTimeout(clearDayCellExplosion, explosionDurationMs);
+	explosionTimeoutId = window.setTimeout(() => {
+		isExplosionVisible.value = false;
+		explosionTimeoutId = undefined;
+	}, explosionDurationMs);
+}
+
+function handleDayCellClick(cell) {
+	triggerDayCellExplosion(currentMonth.value.cells.indexOf(cell));
 }
 
 function clearDayCellExplosion() {
@@ -124,8 +151,13 @@ function clearDayCellExplosion() {
 		explosionTextureTimeoutId = undefined;
 	}
 
-	explodedDayCellIndex.value = null;
+	explodedDayCellKey.value = null;
+	isExplosionVisible.value = false;
 	isExplosionTextureHidden.value = false;
+}
+
+function isExplodedDayCell(cellIndex) {
+	return explodedDayCellKey.value === `${currentMonth.value.id}-${cellIndex}`;
 }
 
 onBeforeUnmount(clearDayCellExplosion);
@@ -250,7 +282,6 @@ function playStudentButtonSound() {
 				v-if="activeStudentTab === 'calendar'"
 				id="calendar-panel"
 				class="calendar-panel"
-				role="region"
 				aria-label="Calendar panel"
 				title="Calendar panel"
 				aria-live="polite"
@@ -302,37 +333,60 @@ function playStudentButtonSound() {
 							<h2>{{ currentMonth.monthName }} {{ currentMonth.year }}</h2>
 						</header>
 						<div class="calendar-weekday-row" aria-hidden="true">
-							<span v-for="day in weekdays" :key="`${currentMonth.id}-${day}`">{{ day }}</span>
+							<span v-for="day in weekdays" :key="`${currentMonth.id}-${day}`">{{
+								day
+							}}</span>
 						</div>
 						<div class="calendar-day-grid">
-							<span
+							<button
 								v-for="cell in currentMonth.cells"
+								:id="`calendar-day-cell-${currentMonth.id}-${currentMonth.cells.indexOf(cell)}`"
 								:key="`${currentMonth.id}-${cell.value || 'empty'}-${cell.isCurrentMonth}-${currentMonth.cells.indexOf(cell)}`"
 								class="calendar-day-cell"
-								role="button"
-								tabindex="0"
+								type="button"
 								:class="{
 									'calendar-day-cell--empty': !cell.isCurrentMonth,
 									'calendar-day-cell--september':
 										cell.isCurrentMonth && isSeptemberMonth,
 									'calendar-day-cell--exploding':
 										isExplosionTextureHidden &&
-										explodedDayCellIndex === currentMonth.cells.indexOf(cell),
+										isExplodedDayCell(currentMonth.cells.indexOf(cell)),
 								}"
-								@click="triggerDayCellExplosion(currentMonth.cells.indexOf(cell))"
-								@keydown.enter="triggerDayCellExplosion(currentMonth.cells.indexOf(cell))"
-								@keydown.space.prevent="triggerDayCellExplosion(currentMonth.cells.indexOf(cell))"
+								@click="handleDayCellClick(cell)"
 							>
-								<span class="calendar-day-cell-number">{{ cell.value || "" }}</span>
+								<span
+									v-if="
+										!isExplosionTextureHidden ||
+										!isExplodedDayCell(currentMonth.cells.indexOf(cell))
+									"
+									class="calendar-day-cell-number"
+								>
+									{{ cell.value || "" }}
+								</span>
 								<img
-									v-if="explodedDayCellIndex === currentMonth.cells.indexOf(cell)"
+									v-if="
+										isExplosionVisible &&
+										isSeptemberMonth &&
+										cell.isCurrentMonth &&
+										isExplodedDayCell(currentMonth.cells.indexOf(cell))
+									"
 									:key="`${currentMonth.id}-${explosionInstance}`"
 									class="calendar-day-cell-explosion"
 									:src="minecraftExplosion"
 									alt=""
 									aria-hidden="true"
 								/>
-							</span>
+								<span
+									v-if="
+										isExplosionTextureHidden &&
+										isExplodedDayCell(currentMonth.cells.indexOf(cell))
+									"
+									:id="`calendar-day-replacement-${currentMonth.id}-${currentMonth.cells.indexOf(cell)}`"
+									class="calendar-day-replacement"
+									:class="replacementColorClass"
+									aria-label="Calendar day replacement"
+								/>
+							</button>
 						</div>
 					</article>
 				</div>

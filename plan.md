@@ -12,6 +12,8 @@
 
 - Whenever a consistency check involving the investigation of stale, unused, duplicate, or contradictory code is run against the program, do not include the "assets" folder in the check. Do not remove the assets directory or anything contained within it
 
-- Only post text of any kind in reports/acuteIssues when explicitly instructed to do so.  When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one.  Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
+- Only post text of any kind in reports/acuteIssues when explicitly instructed to do so. When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one. Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
 
-1.) The day box still disappears immediately after it is clicked instead of waiting 450ms after being clicked
+1.) Split `src/App.vue` into PascalCase feature components with explicit ownership boundaries, at minimum a home view, student navigation, calendar view, calendar month/card, and day-cell interaction component.
+
+2.) Preserve DOM structure, classes, IDs, props, events, timers, cleanup, assets, and lifecycle timing, then run tests, build, lint, and Playwright checks. Try to catch any mismatch.  If a mismatch is caught, stop what you're doing, resolve the mismatch issue, then return to the task

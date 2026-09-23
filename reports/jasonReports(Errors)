@@ -32,3 +32,13 @@ No new errors were reported while reverting the homepage thin-white-strip mitiga
 The sidebar/page gap was resolved in desktop and narrow screenshots; a separate white image-edge strip remains visible because it is part of the background asset's rendered left edge, not the sidebar geometry. Focused tests and build reported no errors.
 2026-09-22 11:39:51 -07:00
 The page-container separation audit remained failing on two pre-existing section role findings in src/App.vue; the 32px Student button spacing change did not introduce these findings.
+2026-09-22 17:17:19 -07:00
+The first Vue audit run flagged dynamic template-literal use inside a class binding; the comparison was moved to a script helper, after which the focused Vue audit and production build passed.
+2026-09-22 17:30:00 -07:00
+No new errors or warnings were reported by the full smoke suite or asset-path audit for the TNT day-number visibility change.
+2026-09-22 17:29:37 -07:00
+No new errors or warnings were reported by the focused TNT smoke test for the explosion layering change.
+2026-09-22 18:12:34 -07:00
+ESLint completed with 0 errors and 204 warnings; all other checks requested by the current plan completed successfully.
+2026-09-22 18:21:29 -07:00
+Repository-wide Prettier check remained nonzero because plan.md is not formatted; plan.md was outside the authorized App.vue edit scope and was not modified. Focused App.vue Prettier passed.

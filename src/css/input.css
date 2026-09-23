@@ -88,7 +88,10 @@ body {
 		inset 0 -4px 0 rgba(124, 60, 60, 0.15),
 		0 8px 0 rgba(168, 68, 68, 0.35),
 		0 14px 18px rgba(106, 61, 61, 0.2);
-	transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
 }
 
 .student-button:hover {
@@ -357,7 +360,7 @@ body {
 	position: absolute;
 	top: 50%;
 	left: 50%;
-	z-index: 2;
+	z-index: 4;
 	width: 240%;
 	height: 240%;
 	max-width: none;
@@ -372,11 +375,45 @@ body {
 	background-position: center;
 	background-repeat: no-repeat;
 	border-color: rgba(60, 44, 17, 0.7);
-	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.15), 0 0 0 1px rgba(37, 26, 12, 0.2);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.15),
+		0 0 0 1px rgba(37, 26, 12, 0.2);
 }
 
 .calendar-day-cell--exploding {
 	background-image: none;
+}
+
+.calendar-day-replacement {
+	position: absolute;
+	inset: 8px;
+	z-index: 3;
+	width: auto;
+	height: auto;
+	aspect-ratio: 1;
+	margin: auto;
+	border: 2px solid rgba(62, 42, 18, 0.55);
+	border-radius: 0.25rem;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.55),
+		0 1px 2px rgba(45, 30, 19, 0.3);
+	cursor: pointer;
+}
+
+.calendar-day-replacement--pink {
+	background: #f7b8c8;
+}
+
+.calendar-day-replacement--blue {
+	background: #a9d8ed;
+}
+
+.calendar-day-replacement--yellow {
+	background: #f5df9b;
+}
+
+.calendar-day-replacement--green {
+	background: #b8dfb0;
 }
 
 .calendar-day-cell--september .calendar-day-cell-number {
@@ -391,7 +428,9 @@ body {
 	justify-content: flex-start;
 	align-items: flex-start;
 	color: #f7f0d7;
-	text-shadow: 1px 1px 0 rgba(29, 17, 8, 0.9), 0 0 2px rgba(0, 0, 0, 0.6);
+	text-shadow:
+		1px 1px 0 rgba(29, 17, 8, 0.9),
+		0 0 2px rgba(0, 0, 0, 0.6);
 }
 
 .calendar-day-cell--empty {
