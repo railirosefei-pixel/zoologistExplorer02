@@ -8,23 +8,26 @@ import CalendarView from "./components/CalendarView.vue";
 const isStudentMenuOpen = ref(false);
 const activeStudentTab = ref("calendar");
 
-function openStudentMenu() {
+/** Home navigation pipeline boundary. */
+function handleStudentMenuOpen() {
 	isStudentMenuOpen.value = true;
 	activeStudentTab.value = "calendar";
 }
 
-function closeStudentMenu() {
+/** Student-menu exit pipeline boundary. */
+function handleStudentMenuClose() {
 	isStudentMenuOpen.value = false;
 	activeStudentTab.value = "calendar";
 }
 
-function openCalendarTab() {
+/** Student-menu tab navigation pipeline boundary. */
+function handleCalendarTabOpen() {
 	activeStudentTab.value = "calendar";
 }
 </script>
 
 <template>
-	<HomeView v-if="!isStudentMenuOpen" @open-student-menu="openStudentMenu" />
+	<HomeView v-if="!isStudentMenuOpen" @open-student-menu="handleStudentMenuOpen" />
 
 	<main
 		v-else
@@ -36,8 +39,8 @@ function openCalendarTab() {
 		data-page-name="student-menu-page"
 	>
 		<StudentNavigation
-			@open-calendar="openCalendarTab"
-			@close-student-menu="closeStudentMenu"
+			@open-calendar="handleCalendarTabOpen"
+			@close-student-menu="handleStudentMenuClose"
 		/>
 
 		<section

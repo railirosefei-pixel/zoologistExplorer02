@@ -12,7 +12,8 @@ onMounted(() => {
 	);
 });
 
-function playStudentButtonSound() {
+/** Audio feedback pipeline boundary for home navigation. */
+function playAudioFeedback() {
 	const audioContext = new AudioContext();
 	const now = audioContext.currentTime;
 	const bellPartials = [
@@ -43,9 +44,10 @@ function playStudentButtonSound() {
 	}
 }
 
-function handleOpenStudentMenu() {
+/** Home navigation event pipeline boundary. */
+function handleHomeNavigation() {
 	emit("open-student-menu");
-	playStudentButtonSound();
+	playAudioFeedback();
 }
 </script>
 
@@ -74,7 +76,7 @@ function handleOpenStudentMenu() {
 				data-button-name="student-button"
 				aria-label="Open student section"
 				title="Open student section"
-				@click="handleOpenStudentMenu"
+				@click="handleHomeNavigation"
 			>
 				Student
 			</button>

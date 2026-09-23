@@ -2,11 +2,13 @@
 <script setup>
 const emit = defineEmits(["open-calendar", "close-student-menu"]);
 
-function handleOpenCalendar() {
+/** Student-menu navigation pipeline boundary for the calendar tab. */
+function handleCalendarNavigation() {
 	emit("open-calendar");
 }
 
-function handleCloseStudentMenu() {
+/** Student-menu navigation pipeline boundary for returning home. */
+function handleHomeNavigation() {
 	emit("close-student-menu");
 }
 </script>
@@ -28,7 +30,7 @@ function handleCloseStudentMenu() {
 			data-button-name="calendar-tab"
 			aria-label="Open Calendar tab"
 			title="Open Calendar tab"
-			@click="handleOpenCalendar"
+			@click="handleCalendarNavigation"
 		>
 			Calendar
 		</button>
@@ -40,7 +42,7 @@ function handleCloseStudentMenu() {
 			data-button-name="student-menu-back-button"
 			aria-label="Back to home page"
 			title="Back to home page"
-			@click="handleCloseStudentMenu"
+			@click="handleHomeNavigation"
 		>
 			Back
 		</button>

@@ -164,3 +164,13 @@ Split src/App.vue into PascalCase HomeView, StudentNavigation, CalendarView, Cal
 Removed redundant explicit region roles from labeled section elements in App.vue and HomeView.vue after editor diagnostics; focused Vue audit and all 3 Playwright smoke tests passed, with no editor errors remaining.
 2026-09-22 19:15:00 -07:00
 Localized the student-button audio handler to HomeView and replaced template-level anonymous emits with named handlers in HomeView, StudentNavigation, and DayCellInteraction; restored required region metadata, and all 7 Node audits, asset audit, build, ESLint, and 3 Playwright tests passed.
+2026-09-22 19:25:00 -07:00
+Added named pipeline boundaries for application mount, home navigation, student-menu navigation, calendar-month selection, day-cell animation, and audio feedback without changing rendered elements, classes, ids, styles, asset paths, or event payloads; focused Vue audit, full Node audits, asset audit, production build, ESLint, and 3 Playwright tests passed.
+2026-09-22 19:35:00 -07:00
+Configured narrowly scoped Sonar Web:S6819 suppressions for the intentional redundant roles in src/App.vue, src/components/HomeView.vue, and src/components/CalendarMonthCard.vue; all 7 configuration entries were verified.
+2026-09-22 19:26:13 -07:00
+Documented the frontend pipeline audit hypothesis, evidence, and prioritized potential fixes in reports/acuteIssues; editor validation reported no errors.
+2026-09-22 19:35:01 -07:00
+Added lint, aggregate test, and frontend structure-audit scripts to package.json; split CI into named static-quality, production-build, and browser-behavior jobs. Structural audits passed 6 tests, the asset audit passed 1 test, the production build succeeded, ESLint passed, targeted configuration formatting passed, and Playwright passed 3 tests.
+2026-09-22 21:01:02 -07:00
+Recorded a staged recommendation in reports/acuteIssues: add focused frontend pipeline behavior tests before extracting CalendarView responsibilities, then refactor one demonstrated boundary at a time with targeted validation.

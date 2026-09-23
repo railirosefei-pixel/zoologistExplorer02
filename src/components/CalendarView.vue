@@ -66,18 +66,21 @@ function syncVisualTheme() {
 watch([currentMonth, isSeptemberMonth], syncVisualTheme, { immediate: true });
 onMounted(syncVisualTheme);
 
-function goToPreviousMonth() {
+/** Calendar-month selection pipeline boundary for the previous month. */
+function handlePreviousMonthSelection() {
 	clearDayCellExplosion();
 	currentMonthIndex.value =
 		(currentMonthIndex.value - 1 + calendarMonths.length) % calendarMonths.length;
 }
 
-function goToNextMonth() {
+/** Calendar-month selection pipeline boundary for the next month. */
+function handleNextMonthSelection() {
 	clearDayCellExplosion();
 	currentMonthIndex.value = (currentMonthIndex.value + 1) % calendarMonths.length;
 }
 
-function triggerDayCellExplosion(cellIndex) {
+/** Day-cell animation pipeline boundary. */
+function handleDayCellAnimation(cellIndex) {
 	const cell = currentMonth.value.cells[cellIndex];
 	if (!isSeptemberMonth.value || !cell?.isCurrentMonth) {
 		return;
@@ -127,7 +130,7 @@ function clearDayCellExplosion() {
 }
 
 function handleDayCellClick(cell) {
-	triggerDayCellExplosion(currentMonth.value.cells.indexOf(cell));
+	handleDayCellAnimation(currentMonth.value.cells.indexOf(cell));
 }
 
 onBeforeUnmount(clearDayCellExplosion);
@@ -154,7 +157,7 @@ onBeforeUnmount(clearDayCellExplosion);
 					type="button"
 					aria-label="Show previous month"
 					title="Show previous month"
-					@click="goToPreviousMonth"
+					@click="handlePreviousMonthSelection"
 				>
 					Back
 				</button>
@@ -165,7 +168,7 @@ onBeforeUnmount(clearDayCellExplosion);
 					type="button"
 					aria-label="Show next month"
 					title="Show next month"
-					@click="goToNextMonth"
+					@click="handleNextMonthSelection"
 				>
 					Forward
 				</button>

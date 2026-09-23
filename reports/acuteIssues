@@ -1,32 +1,13 @@
-Hypothesis 1: The frontend pipeline is not sufficiently decomposed into labeled, independently diagnosable stages.
+Hypothesis 1.) The frontend is structurally organized, but its event and state pipelines are not yet verified at each handoff.
 
-Potential fixes:
-A.) Split `src/App.vue` into PascalCase feature components with explicit ownership boundaries, at minimum a home view, student navigation, calendar view, calendar month/card, and day-cell interaction component.
-B.) Keep each component's state and event handlers local to the feature they control, and expose only clearly named props and emits between components.
-C.) Add a short, explicit pipeline boundary for each user flow: entry/mount, home navigation, student-menu navigation, calendar-month selection, day-cell animation, and audio feedback.
-D.) Keep `src/js/main.js` as the mount/bootstrap boundary and move feature decisions out of the single root component so failures identify a narrower stage.
+A.) Add a dedicated pipeline behavior spec at tests/pipeline.spec.js instead of expanding structural audits. Verify HomeView open-student-menu -> App state -> StudentNavigation/CalendarView rendering, and close-student-menu -> home rendering.
+B.) Verify CalendarView month navigation in both directions, including wraparound across the 16-month range and clearing an active day-cell animation when the month changes.
+C.) Verify day-cell guards and timing as observable states: a valid September cell starts the explosion, the replacement appears after the transition, the animation finishes, and empty or non-September cells do nothing. Use state-based Playwright assertions with bounded timeouts instead of exact timer sleeps.
+D.) Keep each pipeline test named after one handoff or state transition so a failure identifies the owning boundary immediately. Run the focused pipeline spec, then the existing structure suite and build.
 
-Hypothesis 2: The current root component combines unrelated responsibilities that make extension and fault isolation difficult.
+Hypothesis 2.) CalendarView currently owns calendar data generation, visual-theme synchronization, month state, event translation, and animation cleanup; splitting it immediately would add wiring before a failing ownership boundary is demonstrated.
+A.) Do not refactor CalendarView before the behavior tests establish which responsibility is difficult to diagnose or change.
+B.) If the tests expose a real boundary, extract one responsibility at a time, starting with the pure calendar-month model, then theme synchronization, then day-cell animation lifecycle. Preserve the existing props and emitted events at each step.
+C.) Re-run the focused pipeline behavior test after every extraction, followed by the relevant static audit and production build. Keep assets excluded from stale, duplicate, and consistency searches.
 
-Potential fixes:
-A.) Move calendar data generation and month navigation into a calendar-focused module or component.
-B.) Move explosion timers, cleanup, and replacement-state transitions into a day-cell interaction component or dedicated composable with named lifecycle stages.
-C.) Move audio creation and playback into a named audio utility/composable with an explicit failure-handling boundary for unavailable `AudioContext` support.
-D.) Replace index-based repeated-cell lookups in the template with stable cell keys or prepared view-model data so rendering and interaction diagnostics point to a specific calendar cell.
-
-Hypothesis 3: The existing automated checks do not enforce the requested frontend pipeline organization.
-
-Potential fixes:
-A.) Extend `tests/vue-audit.test.js` with structural checks for the expected feature component files and root-component responsibility limits.
-B.) Add checks that each feature boundary has stable names for its state, event handlers, and major containers, while preserving the existing stable-id checks.
-C.) Add a focused test that rejects direct global style mutation from feature components unless it is routed through a named theme pipeline.
-D.) Add a focused test or static rule for feature-level module boundaries so future functionality cannot silently accumulate in `App.vue`.
-
-Hypothesis 4: Visual-theme updates are controlled through an implicit global mutation pipeline rather than an explicit, labeled ownership boundary.
-
-Potential fixes:
-A.) Replace `syncVisualTheme`'s direct `document.documentElement.style.setProperty` calls with a named theme state/composable owned by the relevant view layer.
-B.) Keep asset-to-style resolution in one explicit theme pipeline and document the inputs, outputs, and lifecycle trigger.
-C.) Add a focused test for theme synchronization when the active month changes, including cleanup or reset behavior on component unmount.
-
-Verification status: `node --test tests/*.test.js` passed; `npm run build` passed; `npx eslint src tests` passed with 0 errors and 202 warnings. These checks currently validate compilation, existing behavior, and linting, but do not enforce component decomposition or frontend pipeline boundaries.
+Recommendation.) The next implementation step should be the focused pipeline behavior spec. Refactoring CalendarView should follow only when that test evidence identifies a concrete ownership problem; the current structure and passing build do not justify a broad rewrite.
