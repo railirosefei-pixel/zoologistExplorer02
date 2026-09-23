@@ -44,3 +44,5 @@ ESLint completed with 0 errors and 204 warnings; all other checks requested by t
 Repository-wide Prettier check remained nonzero because plan.md is not formatted; plan.md was outside the authorized App.vue edit scope and was not modified. Focused App.vue Prettier passed.
 2026-09-22 19:00:00 -07:00
 ESLint completed with 0 errors and 215 warnings after the component split; Node audits, asset-path audit, production build, and Playwright validation passed with no reported behavioral mismatch.
+2026-09-22 19:15:00 -07:00
+The intermediate removal of required region metadata caused 2 static audit failures; the metadata was restored and the final suite passed. ESLint remains at 0 errors and 215 warnings.

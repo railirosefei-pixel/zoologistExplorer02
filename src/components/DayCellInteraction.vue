@@ -1,6 +1,6 @@
 /** Interactive calendar day cell presentation and click boundary. */
 <script setup>
-defineProps({
+const props = defineProps({
 	cell: {
 		type: Object,
 		required: true,
@@ -43,7 +43,11 @@ defineProps({
 	},
 });
 
-defineEmits(["day-cell-click"]);
+const emit = defineEmits(["day-cell-click"]);
+
+function handleDayCellClick() {
+	emit("day-cell-click", props.cell);
+}
 </script>
 
 <template>
@@ -57,7 +61,7 @@ defineEmits(["day-cell-click"]);
 			'calendar-day-cell--september': cell.isCurrentMonth && isSeptemberMonth,
 			'calendar-day-cell--exploding': isExplosionTextureHidden && isExploded,
 		}"
-		@click="$emit('day-cell-click', cell)"
+		@click="handleDayCellClick"
 	>
 		<span v-if="!isExplosionTextureHidden || !isExploded" class="calendar-day-cell-number">
 			{{ cell.value || "" }}

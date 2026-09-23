@@ -14,6 +14,6 @@
 
 - Only post text of any kind in reports/acuteIssues when explicitly instructed to do so. When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one. Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
 
-1.) Split `src/App.vue` into PascalCase feature components with explicit ownership boundaries, at minimum a home view, student navigation, calendar view, calendar month/card, and day-cell interaction component.
+1.) Add a short, explicit pipeline boundary for each user flow: entry/mount, home navigation, student-menu navigation, calendar-month selection, day-cell animation, and audio feedback.
 
-2.) Preserve DOM structure, classes, IDs, props, events, timers, cleanup, assets, and lifecycle timing, then run tests, build, lint, and Playwright checks. Try to catch any mismatch.  If a mismatch is caught, stop what you're doing, resolve the mismatch issue, then return to the task
+2.) Implement pipeline boundaries as named handlers/composables without changing existing elements, classes, IDs, styles, asset paths, or event payloads. Run focused Vue audits, build, lint, asset checks, and Playwright tests.

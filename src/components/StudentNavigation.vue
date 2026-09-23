@@ -1,6 +1,14 @@
 /** Navigation controls for the student workspace. */
 <script setup>
-defineEmits(["open-calendar", "close-student-menu"]);
+const emit = defineEmits(["open-calendar", "close-student-menu"]);
+
+function handleOpenCalendar() {
+	emit("open-calendar");
+}
+
+function handleCloseStudentMenu() {
+	emit("close-student-menu");
+}
 </script>
 
 <template>
@@ -20,7 +28,7 @@ defineEmits(["open-calendar", "close-student-menu"]);
 			data-button-name="calendar-tab"
 			aria-label="Open Calendar tab"
 			title="Open Calendar tab"
-			@click="$emit('open-calendar')"
+			@click="handleOpenCalendar"
 		>
 			Calendar
 		</button>
@@ -32,7 +40,7 @@ defineEmits(["open-calendar", "close-student-menu"]);
 			data-button-name="student-menu-back-button"
 			aria-label="Back to home page"
 			title="Back to home page"
-			@click="$emit('close-student-menu')"
+			@click="handleCloseStudentMenu"
 		>
 			Back
 		</button>
