@@ -54,41 +54,38 @@ function handleDayCellClick() {
 </script>
 
 <template>
-  <button
-    :id="cellId"
-    :key="cellKey"
-    class="calendar-day-cell"
-    type="button"
-    :disabled="isCellLocked"
-    :aria-disabled="isCellLocked"
-    :class="{
-      'calendar-day-cell--empty': !cell.isCurrentMonth,
-      'calendar-day-cell--september': cell.isCurrentMonth,
-      'calendar-day-cell--exploding': isExplosionTextureHidden && isExploded,
-      'calendar-day-cell--locked': isCellLocked,
-    }"
-    @click="handleDayCellClick"
-  >
-    <span
-      v-if="!isExplosionTextureHidden || !isExploded"
-      class="calendar-day-cell-number"
-    >
-      {{ cell.value || "" }}
-    </span>
-    <img
-      v-if="isExplosionVisible && cell.isCurrentMonth && isExploded"
-      :key="`${cellKey}-${explosionInstance}`"
-      class="calendar-day-cell-explosion"
-      :src="explosionImage"
-      alt=""
-      aria-hidden="true"
-    >
-    <span
-      v-if="isExplosionTextureHidden && isExploded"
-      :id="`calendar-day-replacement-${cellKey}`"
-      class="calendar-day-replacement"
-      :class="replacementColorClass"
-      aria-label="Calendar day replacement"
-    />
-  </button>
+	<button
+		:id="cellId"
+		:key="cellKey"
+		class="calendar-day-cell"
+		type="button"
+		:disabled="isCellLocked"
+		:aria-disabled="isCellLocked"
+		:class="{
+			'calendar-day-cell--empty': !cell.isCurrentMonth,
+			'calendar-day-cell--september': cell.isCurrentMonth,
+			'calendar-day-cell--exploding': isExplosionTextureHidden && isExploded,
+			'calendar-day-cell--locked': isCellLocked,
+		}"
+		@click="handleDayCellClick"
+	>
+		<span v-if="!isExplosionTextureHidden || !isExploded" class="calendar-day-cell-number">
+			{{ cell.value || "" }}
+		</span>
+		<img
+			v-if="isExplosionVisible && cell.isCurrentMonth && isExploded"
+			:key="`${cellKey}-${explosionInstance}`"
+			class="calendar-day-cell-explosion"
+			:src="explosionImage"
+			alt=""
+			aria-hidden="true"
+		/>
+		<span
+			v-if="isExplosionTextureHidden && isExploded"
+			:id="`calendar-day-replacement-${cellKey}`"
+			class="calendar-day-replacement"
+			:class="replacementColorClass"
+			aria-label="Calendar day replacement"
+		/>
+	</button>
 </template>

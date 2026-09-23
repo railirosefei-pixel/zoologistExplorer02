@@ -178,3 +178,11 @@ Recorded a staged recommendation in reports/acuteIssues: add focused frontend pi
 Changed only DayCellInteraction.vue so the September 1 calendar cell remains locked while its TNT texture is visible and becomes activatable when that texture is hidden; focused TNT browser tests passed and editor diagnostics reported no errors.
 2026-09-23 07:12:27 -07:00
 Centered the Daily menu Back button horizontally within the space above the Daily Menu content by updating .daily-menu-back-button alignment in src/css/input.css; npm run build succeeded.
+2026-09-23 07:27:05 -07:00
+Ran the repository Prettier formatter, which reformatted 10 files; npm run format:check passed afterward.
+2026-09-23 07:29:12 -07:00
+Moved the Daily menu Back button to the upper-right corner of the Daily menu panel using the existing dedicated CSS class; the focused menu-panel separation test passed.
+2026-09-23 07:39:02 -07:00
+Executed the plan by positioning the Daily menu Back button at the upper-right of the panel and vertically centering it between the panel top and Daily Menu heading; the live preview screenshot and geometry check confirmed alignment.
+2026-09-23 07:42:13 -07:00
+Precisely aligned the Daily menu Back button center with the midpoint between the panel top and Daily Menu heading while preserving its 16px upper-right inset; live geometry differed by 0.03px and the preview screenshot confirmed placement.

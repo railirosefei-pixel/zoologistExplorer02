@@ -89,7 +89,9 @@ function handleDailyMenuClose() {
 
 /** September 1 activation pipeline boundary. */
 function isSeptemberOneCell(cell) {
-	return currentMonth.value.monthName === "September" && cell?.isCurrentMonth && cell?.value === 1;
+	return (
+		currentMonth.value.monthName === "September" && cell?.isCurrentMonth && cell?.value === 1
+	);
 }
 
 /** Day-cell animation pipeline boundary. */
@@ -162,94 +164,79 @@ onBeforeUnmount(clearDayCellExplosion);
 </script>
 
 <template>
-  <div
-    id="calendar-panel"
-    class="calendar-panel"
-    aria-label="Calendar panel"
-    title="Calendar panel"
-    aria-live="polite"
-  >
-    <header
-      v-if="!isDailyMenuOpen"
-      id="calendar-panel-header"
-      class="calendar-panel-header"
-      aria-label="Calendar panel header"
-      title="Calendar panel header"
-    >
-      <div class="calendar-header-row">
-        <button
-          id="calendar-previous-month-button"
-          class="calendar-previous-month-button"
-          type="button"
-          aria-label="Show previous month"
-          title="Show previous month"
-          @click="handlePreviousMonthSelection"
-        >
-          Back
-        </button>
-        <h1
-          id="calendar-menu-heading"
-          class="student-menu-heading"
-        >
-          Calendar
-        </h1>
-        <button
-          id="calendar-next-month-button"
-          class="calendar-next-month-button"
-          type="button"
-          aria-label="Show next month"
-          title="Show next month"
-          @click="handleNextMonthSelection"
-        >
-          Forward
-        </button>
-      </div>
-    </header>
-    <div
-      v-if="!isDailyMenuOpen"
-      class="calendar-month-grid calendar-month-grid--single"
-    >
-      <CalendarMonthCard
-        :current-month="currentMonth"
-        :weekdays="weekdays"
-        :is-explosion-texture-hidden="isExplosionTextureHidden"
-        :is-explosion-visible="isExplosionVisible"
-        :exploded-day-cell-key="explodedDayCellKey"
-        :replacement-color-class="replacementColorClass"
-        :explosion-instance="explosionInstance"
-        :explosion-image="minecraftExplosion"
-        @day-cell-click="handleDayCellClick"
-      />
-    </div>
-    <section
-      v-else
-      id="daily-menu-panel"
-      class="daily-menu-panel"
-      role="region"
-      aria-label="Daily menu"
-      title="Daily menu"
-    >
-      <button
-        id="daily-menu-back-button"
-        class="daily-menu-back-button"
-        type="button"
-        aria-label="Back to calendar"
-        title="Back to calendar"
-        @click="handleDailyMenuClose"
-      >
-        Back
-      </button>
-      <div class="daily-menu-content">
-        <h2
-          id="daily-menu-heading"
-          class="daily-menu-heading"
-        >
-          Daily Menu
-        </h2>
-        <p class="daily-menu-date">
-          September 1, 2026
-        </p>
-      </div>
-    </section>
-  </div>
+	<div
+		id="calendar-panel"
+		class="calendar-panel"
+		aria-label="Calendar panel"
+		title="Calendar panel"
+		aria-live="polite"
+	>
+		<header
+			v-if="!isDailyMenuOpen"
+			id="calendar-panel-header"
+			class="calendar-panel-header"
+			aria-label="Calendar panel header"
+			title="Calendar panel header"
+		>
+			<div class="calendar-header-row">
+				<button
+					id="calendar-previous-month-button"
+					class="calendar-previous-month-button"
+					type="button"
+					aria-label="Show previous month"
+					title="Show previous month"
+					@click="handlePreviousMonthSelection"
+				>
+					Back
+				</button>
+				<h1 id="calendar-menu-heading" class="student-menu-heading">Calendar</h1>
+				<button
+					id="calendar-next-month-button"
+					class="calendar-next-month-button"
+					type="button"
+					aria-label="Show next month"
+					title="Show next month"
+					@click="handleNextMonthSelection"
+				>
+					Forward
+				</button>
+			</div>
+		</header>
+		<div v-if="!isDailyMenuOpen" class="calendar-month-grid calendar-month-grid--single">
+			<CalendarMonthCard
+				:current-month="currentMonth"
+				:weekdays="weekdays"
+				:is-explosion-texture-hidden="isExplosionTextureHidden"
+				:is-explosion-visible="isExplosionVisible"
+				:exploded-day-cell-key="explodedDayCellKey"
+				:replacement-color-class="replacementColorClass"
+				:explosion-instance="explosionInstance"
+				:explosion-image="minecraftExplosion"
+				@day-cell-click="handleDayCellClick"
+			/>
+		</div>
+		<section
+			v-else
+			id="daily-menu-panel"
+			class="daily-menu-panel"
+			role="region"
+			aria-label="Daily menu"
+			title="Daily menu"
+		>
+			<button
+				id="daily-menu-back-button"
+				class="daily-menu-back-button"
+				type="button"
+				aria-label="Back to calendar"
+				title="Back to calendar"
+				@click="handleDailyMenuClose"
+			>
+				Back
+			</button>
+			<div class="daily-menu-content">
+				<h2 id="daily-menu-heading" class="daily-menu-heading">Daily Menu</h2>
+				<p class="daily-menu-date">September 1, 2026</p>
+			</div>
+		</section>
+	</div>
 </template>

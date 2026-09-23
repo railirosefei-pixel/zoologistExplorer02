@@ -14,4 +14,4 @@
 
 - Only post text of any kind in reports/acuteIssues when explicitly instructed to do so. When instructed to post reports inside the acuteIssues file, do so in the following manner: Post your Hypothesis' first and enumerate them if there are more than one. Underneath each hypothesis, write the potential fixes for that hypothesis and use capitalized alphabetical enumeration for the fixes
 
-1.) Run: Playwright test and ESLint
+1.) In the Daily menu, move the back button to be in the upper-right hand corner of the daily menu container, centered between the top of the Daily Menu and the top of the Daily menu container
