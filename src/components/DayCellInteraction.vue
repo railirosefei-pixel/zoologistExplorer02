@@ -51,16 +51,8 @@ const props = defineProps({
 
 const emit = defineEmits(["day-cell-click"]);
 
-const isPreviouslyHiddenCell = computed(
-	() =>
-		props.hiddenDayCellKeys.includes(props.cellKey) &&
-		props.lastClickedDayCellKey !== props.cellKey &&
-		!props.isExploded,
-);
 const isCurrentCellReplacementVisible = computed(
-	() =>
-		props.isExploded ||
-		props.replacementVisibleDayCellKeys.includes(props.cellKey),
+	() => props.isExploded || props.replacementVisibleDayCellKeys.includes(props.cellKey),
 );
 const replacementColorClass = computed(
 	() => props.replacementColorClassesByDayCellKey[props.cellKey],
@@ -94,15 +86,18 @@ function handleDayCellClick() {
 			'calendar-day-cell--empty': !cell.isCurrentMonth,
 			'calendar-day-cell--current-month': cell.isCurrentMonth,
 			'calendar-day-cell--exploding':
-				isExploded &&
-				['textureCleared', 'ready'].includes(dayCellAnimationState),
+				isExploded && ['textureCleared', 'ready'].includes(dayCellAnimationState),
 			'calendar-day-cell--locked': isCellLocked,
 			'calendar-day-cell--texture-suppressed': isTextureSuppressed,
 		}"
 		@click="handleDayCellClick"
 	>
 		<span
-			v-if="!isPreviouslyHiddenCell && !isExploded"
+			v-if="
+				cell.isCurrentMonth &&
+				cell.value !== '' &&
+				!(isExploded && ['exploding', 'textureCleared'].includes(dayCellAnimationState))
+			"
 			class="calendar-day-cell-number"
 		>
 			{{ cell.value || "" }}

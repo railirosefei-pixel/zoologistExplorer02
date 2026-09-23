@@ -29,7 +29,9 @@ function collectVueFiles(directory) {
 }
 
 function stripCssCommentsAndStrings(source) {
-	return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""');
+	return source
+		.replace(/\/\*[\s\S]*?\*\//g, "")
+		.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""');
 }
 
 test("src/css/input.css has balanced braces and terminated comments", () => {
@@ -119,7 +121,9 @@ test("src/js/main.js relative imports resolve to files that exist on disk", () =
 	for (const importPath of relativeImportPaths) {
 		const resolvedPath = path.resolve(path.dirname(mainJsFilePath), importPath);
 		if (!fs.existsSync(resolvedPath)) {
-			findings.push(`src/js/main.js imports "${importPath}", which does not resolve to a file on disk`);
+			findings.push(
+				`src/js/main.js imports "${importPath}", which does not resolve to a file on disk`,
+			);
 		}
 	}
 

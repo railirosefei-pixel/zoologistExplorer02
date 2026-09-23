@@ -78,3 +78,34 @@ test("TNT explosion remains scoped to its clicked month and day cell", async ({ 
 	await page.getByRole("button", { name: "Show previous month" }).click();
 	await expect(clickedDay.locator(".calendar-day-cell-number")).toBeVisible();
 });
+
+test("day numbers stay fully inside the upper-left corner of each calendar box", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const info = await page
+		.locator(".calendar-day-cell--current-month .calendar-day-cell-number")
+		.first()
+		.evaluate((element) => {
+			const cell = element.closest(".calendar-day-cell");
+			const cellRect = cell.getBoundingClientRect();
+			const rect = element.getBoundingClientRect();
+			return {
+				left: rect.left - cellRect.left,
+				top: rect.top - cellRect.top,
+				right: rect.right - cellRect.left,
+				bottom: rect.bottom - cellRect.top,
+				cellWidth: cellRect.width,
+				cellHeight: cellRect.height,
+			};
+		});
+
+	expect(info.left).toBeGreaterThanOrEqual(0);
+	expect(info.top).toBeGreaterThanOrEqual(0);
+	expect(info.left).toBeLessThan(info.cellWidth * 0.4);
+	expect(info.top).toBeLessThan(info.cellHeight * 0.4);
+	expect(info.right).toBeLessThanOrEqual(info.cellWidth + 1);
+	expect(info.bottom).toBeLessThanOrEqual(info.cellHeight + 1);
+});

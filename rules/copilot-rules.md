@@ -22,6 +22,12 @@ IMPORTANT: Summarize every authorized repository change in a dated and timed ent
 
 IMPORTANT: Append only a dated, timed, sanitized summary of relevant errors, warnings, or flags to jasonReports(Errors). Never print or append credentials, tokens, credential-bearing URLs, private keys, private service details, or secret environment values. If safe sanitization cannot be guaranteed, leave the report unchanged and mark reporting blocked.
 
+Keep the codebase organized, modular, and easy to debug. Create clear front-end pipelines with consistent labeling so errors can be traced to the exact source quickly.
+
+Write code in a way that makes adding, subtracting, and editing features simple and predictable. Favor clear boundaries and explicit component or section structure over hidden coupling.
+
+Avoid embedding unescaped JS/JSDoc text in a single PowerShell string; prefer separate parser-safe checks when composing command strings.
+
 ALWAYS use fixed, complete Tailwind class names.
 
 NEVER use dynamic class construction or string concatenation (e.g., 'text-' + size) because Tailwind's content scanner cannot resolve dynamic strings.
@@ -55,35 +61,6 @@ state names: obvious, like currentView, isAdultMenuOpen
 avoid “mystery” names or random utility classes acting as layout logic
 
 </core_constraints>
-
-<instructions>
-
-- When composing or executing an implementation prompt, explicitly name the target file path or paths and, when known, the relevant function, class, or section.
-
-- Do not begin edits from a broad prompt without first identifying and stating the file target. Exception: the user explicitly requests broad exploration or the target cannot be determined without an initial read-only search.
-
-- Self-check: before writing any plan step, prompt, or edit, output a line `Target: <path>[ — <function/section>]` as the first line of the response. If the target cannot be determined yet, output `Target: needs discovery`,
-  perform read-only exploration, then restate the resolved target before editing.
-
-- Use code blocks only when showing exact edits or examples.
-
-- A failed validation authorizes read-only diagnosis only. Apply a fix only within the exact user-approved targets and side effects; otherwise stop and request approval.
-
-- A deployment or tooling plan cannot authorize changes to Vue components, application logic or state, routes, styling, curriculum data, or `names/cmb`. Those changes require separate explicit authorization and an architecture-aware implementation plan.
-
-- Before executing any plan from copilotPlan.md:
-
-    - Read plan.md directly from disk.
-
-    - Do not rely on conversation context, cached content, or prior reads.
-
-    - Verify the file's LastWriteTime and contents with a fresh terminal read.
-
-    - If the plan changed, repeat the read and use only the newest version.
-
-    - Quote the current target and instructions before editing.
-
-</instructions>
 
 <system_instructions>
 

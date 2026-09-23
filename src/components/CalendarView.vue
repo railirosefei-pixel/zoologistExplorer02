@@ -2,7 +2,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import minecraftExplosion from "../../assets/animations/minecraftExplosion.gif";
+import artBackground from "../../assets/images/backgrounds/art(Background)01.webp";
 import homePageBackground from "../../assets/images/backgrounds/vetClinicNight.webp";
+import languageArtsBackground from "../../assets/images/backgrounds/languageArts(Background)01.webp";
+import mathBackground from "../../assets/images/backgrounds/math(Background)01.webp";
+import scienceBackground from "../../assets/images/backgrounds/science(Background)01.webp";
+import socialStudiesBackground from "../../assets/images/backgrounds/socialStudies(Background)01.webp";
 import calendarPanelBackground from "../../assets/textures/minecraftDirt01.webp";
 import septemberDayTexture from "../../assets/textures/minecraftTNT.webp";
 import CalendarMonthCard from "./CalendarMonthCard.vue";
@@ -33,6 +38,7 @@ const currentMonthIndex = ref(0);
 const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
 const isDailyMenuOpen = ref(false);
 const selectedDailyMenuDateLabel = ref("");
+const selectedDailyMenuSubject = ref(null);
 const explodedDayCellKey = ref(null);
 const lastClickedDayCellKey = ref(null);
 const hiddenDayCellKeys = ref([]);
@@ -87,6 +93,11 @@ function handleNextMonthSelection() {
 /** Daily menu close pipeline boundary. */
 function handleDailyMenuClose() {
 	isDailyMenuOpen.value = false;
+	selectedDailyMenuSubject.value = null;
+}
+
+function handleDailyMenuSubjectSelection(subject) {
+	selectedDailyMenuSubject.value = subject;
 }
 
 /** Calendar-day activation pipeline boundary. */
@@ -248,19 +259,123 @@ onBeforeUnmount(clearDayCellExplosion);
 			aria-label="Daily menu"
 			title="Daily menu"
 		>
-			<button
-				id="daily-menu-back-button"
-				class="daily-menu-back-button"
-				type="button"
-				aria-label="Back to calendar"
-				title="Back to calendar"
-				@click="handleDailyMenuClose"
-			>
-				Back
-			</button>
 			<div class="daily-menu-content">
-				<h2 id="daily-menu-heading" class="daily-menu-heading">Daily Menu</h2>
+				<button
+					id="daily-menu-back-button"
+					class="daily-menu-back-button"
+					type="button"
+					aria-label="Back to calendar"
+					title="Back to calendar"
+					@click="handleDailyMenuClose"
+				>
+					Back
+				</button>
 				<p class="daily-menu-date">{{ selectedDailyMenuDateLabel }}</p>
+				<nav
+					id="daily-menu-subject-navigation"
+					class="daily-menu-subject-grid"
+					role="navigation"
+					aria-label="Daily menu subjects"
+					title="Daily menu subjects"
+				>
+					<button
+						id="daily-menu-math-button"
+						class="daily-menu-math-button"
+						type="button"
+						aria-label="Math"
+						title="Math"
+						@click="handleDailyMenuSubjectSelection('math')"
+					>
+						<img :src="mathBackground" alt="" />
+					</button>
+					<button
+						id="daily-menu-language-arts-button"
+						class="daily-menu-language-arts-button"
+						type="button"
+						aria-label="Language Arts"
+						title="Language Arts"
+						@click="handleDailyMenuSubjectSelection('language-arts')"
+					>
+						<img :src="languageArtsBackground" alt="" />
+					</button>
+					<button
+						id="daily-menu-social-studies-button"
+						class="daily-menu-social-studies-button"
+						type="button"
+						aria-label="Social Studies"
+						title="Social Studies"
+						@click="handleDailyMenuSubjectSelection('social-studies')"
+					>
+						<img :src="socialStudiesBackground" alt="" />
+					</button>
+					<button
+						id="daily-menu-science-button"
+						class="daily-menu-science-button"
+						type="button"
+						aria-label="Science"
+						title="Science"
+						@click="handleDailyMenuSubjectSelection('science')"
+					>
+						<img :src="scienceBackground" alt="" />
+					</button>
+					<button
+						id="daily-menu-art-button"
+						class="daily-menu-art-button"
+						type="button"
+						aria-label="Art"
+						title="Art"
+						@click="handleDailyMenuSubjectSelection('art')"
+					>
+						<img :src="artBackground" alt="" />
+					</button>
+				</nav>
+				<div class="daily-menu-subject-panel-stack">
+					<article
+						v-if="selectedDailyMenuSubject === 'math'"
+						id="daily-menu-math-panel"
+						class="daily-menu-subject-panel daily-menu-math-panel"
+						aria-label="Math subject panel"
+						title="Math subject panel"
+					>
+						<h2>Math</h2>
+					</article>
+					<article
+						v-if="selectedDailyMenuSubject === 'language-arts'"
+						id="daily-menu-language-arts-panel"
+						class="daily-menu-subject-panel daily-menu-language-arts-panel"
+						aria-label="Language Arts subject panel"
+						title="Language Arts subject panel"
+					>
+						<h2>Language Arts</h2>
+					</article>
+					<article
+						v-if="selectedDailyMenuSubject === 'social-studies'"
+						id="daily-menu-social-studies-panel"
+						class="daily-menu-subject-panel daily-menu-social-studies-panel"
+						aria-label="Social Studies subject panel"
+						title="Social Studies subject panel"
+					>
+						<h2>Social Studies</h2>
+					</article>
+					<article
+						v-if="selectedDailyMenuSubject === 'science'"
+						id="daily-menu-science-panel"
+						class="daily-menu-subject-panel daily-menu-science-panel"
+						aria-label="Science subject panel"
+						title="Science subject panel"
+					>
+						<h2>Science</h2>
+					</article>
+					<article
+						v-if="selectedDailyMenuSubject === 'art'"
+						id="daily-menu-art-panel"
+						class="daily-menu-subject-panel daily-menu-art-panel"
+						aria-label="Art subject panel"
+						title="Art subject panel"
+					>
+						<h2>Art</h2>
+					</article>
+				</div>
 			</div>
 		</section>
 	</div>

@@ -192,6 +192,12 @@ Kept current-month day-cell buttons styled and visible after TNT texture suppres
 Persisted square replacements when a later day click interrupts the prior explosion timer, so earlier day buttons and replacements remain visible while their TNT textures stay suppressed; live preview and full browser suite passed.
 2026-09-23 09:46:29 -07:00
 Stored each revealed calendar square's color by day-cell key instead of sharing the latest color across all replacements, and added rapid-click regression assertions; the focused September browser suite passed all 3 tests.
+2026-09-23 16:48:55 -07:00
+Added five dedicated Daily menu subject panels with selected-subject replacement behavior in src/components/CalendarView.vue, and positioned the panel stack 12px below the subject buttons in src/css/input.css; the focused menu-panel audit and production build passed.
+2026-09-23 16:49:39 -07:00
+Changed the five new subject panels to explicit labeled div regions in src/components/CalendarView.vue to avoid redundant implicit-region diagnostics; the focused menu-panel audit and production build passed again.
+2026-09-23 16:50:00 -07:00
+Changed the five subject panels to semantic article elements with accessible labels in src/components/CalendarView.vue; the focused menu-panel audit and production build passed, and no new editor diagnostics remain.
 2026-09-23 09:54:33 -07:00
 Enabled every revealed calendar day button to open the daily menu for its own selected date, including previously revealed buttons after multiple TNT textures clear; focused browser coverage passed all 4 September tests.
 2026-09-23 10:21:06 -07:00
@@ -204,3 +210,21 @@ Replaced coordinated TNT lifecycle booleans with an explicit CalendarView state 
 Removed stale unused Student menu workspace-tab styling from src/css/input.css that no longer matched the active Calendar-only navigation flow; the structure audit and Vite production build passed.
 2026-09-23 12:52:00 -07:00
 Added a focused stale/duplicate audit for src/css/input.css and src/js/main.js in tests/button-isolation.test.js to flag stale selectors, duplicate CSS rules, repeated imports, and duplicate mount calls.
+2026-09-23 14:15:17 -07:00
+Moved only the current-month day number by the replacement square's 8px inset in src/css/input.css; live browser bounds and a replacement-only screenshot confirmed the number is fully inside the colored square while leaving the parent cell and explosion unchanged.
+2026-09-23 14:18:59 -07:00
+Preserved completed calendar day numbers when later day cells are selected by updating src/components/DayCellInteraction.vue and its focused Playwright regression expectations in tests/september-day-gate.spec.js; all four focused tests passed.
+2026-09-23 14:19:30 -07:00
+Removed the obsolete isPreviouslyHiddenCell computed from src/components/DayCellInteraction.vue after restoring completed day-number rendering; focused ESLint and all four focused Playwright tests passed.
+2026-09-23 14:27:14 -07:00
+Widened the shared current-month calendar day-number box in src/css/input.css from 2.25rem to 3rem so two-digit labels remain fully visible on TNT textures and colored replacement squares; npm run build passed and live preview verification confirmed both states.
+2026-09-23 14:43:14 -07:00: Removed overridden background and color declarations from the .student-menu-calendar-tab rule in src/css/input.css; focused duplicate-declaration validation passed.
+2026-09-23 14:48:07 -07:00: Added five ordered subject tabs to src/components/StudentNavigation.vue using imported Math, Language Arts, Social Studies, Science, and Art background assets; added shared tab image styling in src/css/input.css; asset, structure, and production build checks passed.
+2026-09-23 14:50:59 -07:00: Removed visible labels from the five subject tabs in src/components/StudentNavigation.vue and made each imported background image fill its entire fixed tab in src/css/input.css; asset, structure, and production build checks passed.
+2026-09-23 15:05:50 -07:00: Removed the five subject-tab asset imports, data, buttons, and unused styles from src/components/StudentNavigation.vue and src/css/input.css; preserved the listed files in assets/; Calendar and Back navigation remain; asset, structure, and production build checks passed.
+2026-09-23 15:15:22 -07:00: Added five image-only subject buttons to the Daily menu in src/components/CalendarView.vue using the specified background assets, with uniform responsive cover styling in src/css/input.css; asset, structure, and production build checks passed.
+2026-09-23 15:17:55 -07:00 - Authorized change: added transform: translateY(12px); to .daily-menu-subject-grid > button in src/css/input.css, lowering the five daily-menu subject buttons.
+2026-09-23 15:20:47 -07:00 - Authorized change: .daily-menu-subject-grid > button in src/css/input.css was changed from translateY(12px) to translateY(24px) for the second visual attempt, lowering the row an additional 12px.
+2026-09-23 15:26:13 -07:00 - Completed plan steps: removed the visible Daily Menu heading from src/components/CalendarView.vue; moved the daily-menu date before the subject navigation; changed .daily-menu-date margin in src/css/input.css to place it between the content top and subject buttons.
+2026-09-23 15:26:46 -07:00 - Authorized cleanup: removed the now-unused .daily-menu-heading CSS rule from src/css/input.css after removing the heading markup, restoring the button-isolation audit.
+2026-09-23 15:43:13 -07:00 - Adjusted daily-menu Back button to 12px from panel top/right edges and verified live geometry in Vite preview.

@@ -196,9 +196,7 @@ test("src/css/input.css and src/js/main.js contain no stale, duplicate, or contr
 	const findings = [];
 	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
 	const mainSource = fs.readFileSync(path.join(sourceRoot, "js", "main.js"), "utf8");
-	const appSource = vueFiles
-		.map((filePath) => fs.readFileSync(filePath, "utf8"))
-		.join("\n");
+	const appSource = vueFiles.map((filePath) => fs.readFileSync(filePath, "utf8")).join("\n");
 
 	const duplicateCssSelectors = collectDuplicateCssSelectors(cssSource);
 	if (duplicateCssSelectors.length > 0) {
@@ -219,7 +217,9 @@ test("src/css/input.css and src/js/main.js contain no stale, duplicate, or contr
 	const importPaths = [...mainSource.matchAll(/import\s+.*?from\s+["']([^"']+)["']/g)].map(
 		(match) => match[1],
 	);
-	const duplicateImports = [...new Set(importPaths.filter((value, index) => importPaths.indexOf(value) !== index))];
+	const duplicateImports = [
+		...new Set(importPaths.filter((value, index) => importPaths.indexOf(value) !== index)),
+	];
 	if (duplicateImports.length > 0) {
 		findings.push(`main.js contains duplicate imports: ${duplicateImports.join(", ")}`);
 	}
