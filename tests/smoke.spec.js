@@ -36,6 +36,17 @@ test("Student button opens the full-screen menu and Back returns home", async ({
 	await expect(studentMenu).toBeHidden();
 });
 
+test("Student sidebar includes the full button set", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	await expect(page.getByRole("button", { name: "Calendar" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Rewards" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Games" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Extra Credit" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Progress" })).toBeVisible();
+});
+
 test("TNT-visible day cell is disabled until its texture has cleared", async ({ page }) => {
 	await page.clock.install();
 	await page.goto("./");

@@ -37,3 +37,10 @@ When rules overlap or conflict, follow this order: the current numbered plan ste
 ## Rule conflict gate
 
 Before continuing with any task, explicitly alert the user about any rule statements across all active rule sources that contradict one another, are redundant, or have meaningful overlap. Do not continue with the task until that rule conflict has been resolved or explicitly overridden by the current plan step and the user-approved target.
+
+## Minimal conversation output
+
+- Send one brief pre-tool notice only when tools are required.
+- Omit routine progress narration.
+- Send additional updates only for blockers, failed validation, or meaningful scope changes.
+- End successful coding tasks with `Done.`.

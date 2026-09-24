@@ -114,24 +114,108 @@ body {
 
 .student-menu-page {
 	display: flex;
-	flex-direction: column;
+	position: relative;
+	flex-direction: row;
 	min-height: 100vh;
 	background: linear-gradient(135deg, #111827 0%, #1f2937 52%, #312e81 100%);
 	color: #fff7cc;
 }
 
 .student-menu-navigation {
+	position: relative;
 	display: flex;
-	align-items: center;
+	flex: 0 0 336px;
+	flex-direction: column;
+	align-items: flex-start;
 	justify-content: flex-start;
-	gap: 0.75rem;
-	min-height: 5rem;
-	padding: 1rem 1.5rem 0;
-	border-bottom: 1px solid rgba(255, 246, 180, 0.28);
+	gap: 60px;
+	min-height: 100vh;
+	padding: 2rem 1.5rem;
+	border-right: 1px solid rgba(255, 246, 180, 0.28);
 	background: rgba(10, 15, 28, 0.78);
 }
 
+.student-submenu-panel {
+	position: fixed;
+	z-index: 10;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 336px;
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-start;
+	padding: 3rem;
+	background: rgba(17, 24, 39, 0.96);
+	color: #ffffff;
+	overflow-y: auto;
+}
+
+.student-submenu-panel-rewards {
+	background: #f9c8a3;
+	color: #5f3415;
+}
+
+.student-submenu-panel-games {
+	background: #f9eb9b;
+	color: #5c4d12;
+}
+
+.student-submenu-panel-extra-credit {
+	background: #bfe9be;
+	color: #1a4c32;
+}
+
+.student-submenu-panel-progress {
+	background: #bfdafc;
+	color: #1d3f6d;
+}
+
+.student-submenu-section {
+	width: min(100%, 48rem);
+	padding: 2rem;
+	border: 2px solid rgba(255, 248, 190, 0.7);
+	border-radius: 1rem;
+	background: rgba(255, 248, 190, 0.08);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+}
+
+.student-submenu-section h2 {
+	margin: 0 0 0.75rem;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 2rem;
+}
+
+.student-submenu-section p {
+	margin: 0;
+	font-size: 1.15rem;
+}
+
+.student-submenu-rewards {
+	background: #f9c8a3;
+	color: #5f3415;
+}
+
+.student-submenu-games {
+	background: #f9eb9b;
+	color: #5c4d12;
+}
+
+.student-submenu-extra-credit {
+	background: #bfe9be;
+	color: #1a4c32;
+}
+
+.student-submenu-progress {
+	background: #bfdafc;
+	color: #1d3f6d;
+}
+
 .student-menu-calendar-tab,
+.student-menu-rewards-tab,
+.student-menu-games-tab,
+.student-menu-extra-credit-tab,
+.student-menu-progress-tab,
 .student-menu-back-button {
 	min-height: 2.75rem;
 	padding: 0.65rem 1rem;
@@ -143,23 +227,84 @@ body {
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.56),
 		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 4px 0 rgba(67, 38, 14, 0.45);
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
 }
-.student-menu-calendar-tab {
-	position: relative;
-	margin-bottom: 0;
-	padding-bottom: 0.9rem;
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
-	background: linear-gradient(180deg, #d4f0ff 0%, #9acdf7 50%, #6d9fda 100%);
-	color: #11253d;
+
+.student-menu-calendar-tab,
+.student-menu-rewards-tab,
+.student-menu-games-tab,
+.student-menu-extra-credit-tab,
+.student-menu-progress-tab {
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border-radius: 0.875rem;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	transform: translateY(-0.15rem);
+	font-size: 1.75rem;
+	letter-spacing: 0.04em;
+}
+
+.student-menu-calendar-tab:hover,
+.student-menu-rewards-tab:hover,
+.student-menu-games-tab:hover,
+.student-menu-extra-credit-tab:hover,
+.student-menu-progress-tab:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 9px 0 rgba(67, 38, 14, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.student-menu-calendar-tab:active,
+.student-menu-rewards-tab:active,
+.student-menu-games-tab:active,
+.student-menu-extra-credit-tab:active,
+.student-menu-progress-tab:active {
+	transform: translateY(5px);
+	filter: brightness(0.98);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
+		0 2px 0 rgba(67, 38, 14, 0.5),
+		0 5px 8px rgba(15, 23, 42, 0.22);
+}
+
+.student-menu-calendar-tab {
+	background: linear-gradient(180deg, #ffd6d6 0%, #f3a6a6 100%);
+	color: #541b25;
+}
+
+.student-menu-rewards-tab {
+	background: #f9c8a3;
+	color: #5f3415;
+}
+
+.student-menu-games-tab {
+	background: #f9eb9b;
+	color: #5c4d12;
+}
+
+.student-menu-extra-credit-tab {
+	background: #bfe9be;
+	color: #1a4c32;
+}
+
+.student-menu-progress-tab {
+	background: #bfdafc;
+	color: #1d3f6d;
 }
 
 .student-menu-back-button {
-	margin-left: auto;
-	align-self: center;
+	position: absolute;
+	top: 2rem;
+	right: 1.5rem;
 	background: rgba(255, 246, 180, 0.12);
 	color: #fff7cc;
 }
@@ -167,6 +312,7 @@ body {
 .student-menu-content {
 	display: flex;
 	flex: 1;
+	min-width: 0;
 	align-items: stretch;
 	justify-content: center;
 	padding: 2rem 2rem 1rem;

@@ -4,7 +4,6 @@
 
 - Whenever a consistency check involving the investigation of stale, unused, duplicate, or contradictory code is run against the program, do not include the "assets" folder in the check. Do not remove the assets directory or anything contained within it
 
-1.) Create a panel for every one of the subject buttons throughout the program that starts 12 pixels below the subject buttons and shares a left, right, and bottom edge with the inside container that the subject buttons are contained in.  
+1.) Inside curriculumAll > quarter_01 > month_01 > week_01 > day_01, there are 4 subject folders: langArt_01, math_01, science_01, and socialStudies_01.  Inside each of those folder in each day found in quarter_01 the "block" files have been deleted.  Do you know why?
 
-2.) Each subject button should have its own panel so that when any given subject button is clicked on, the previously open subject panel is replaced by the subject panel associated with the most recently clicked subject button.
 

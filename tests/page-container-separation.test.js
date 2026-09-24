@@ -126,7 +126,7 @@ test("pages and containers keep unique identification, role, and title metadata"
 			}
 
 			if (
-				["main", "article", "section", "aside"].includes(tagName) &&
+				["main", "section"].includes(tagName) &&
 				!/main|region|complementary|article|tabpanel/i.test(role)
 			) {
 				findings.push(

@@ -260,6 +260,7 @@ onBeforeUnmount(clearDayCellExplosion);
 			title="Daily menu"
 		>
 			<div class="daily-menu-content">
+				<h2>Daily Menu</h2>
 				<button
 					id="daily-menu-back-button"
 					class="daily-menu-back-button"

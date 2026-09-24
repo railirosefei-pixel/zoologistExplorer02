@@ -38,6 +38,10 @@ Updated tests/smoke.spec.js to validate the current home shell, Student menu tra
 Adjusted the Student menu smoke assertion to compare rendered height with the viewport height after browser CSS resolved 100vh to pixels.
 2026-09-21 20:54:59 -07:00
 Removed all remaining legacy project-name references from historical change and error reports; an assets-excluded repository search found no matches.
+2026-09-24 12:17:37 -07:00
+Matched the Student Calendar button's size, shape, typography, and shared spacing behavior to the Games button while preserving Calendar colors; set the sidebar button gap to 60px in src/css/input.css.
+2026-09-24 12:17:37 -07:00
+Added the shared student-menu-nav-button class to the Calendar button in src/components/StudentNavigation.vue so the live Student sidebar applies the same full-width geometry and typography as the other navigation buttons.
 2026-09-21 20:59:28 -07:00
 Replaced the Student button's WAV click sound with a short synthesized low chime in src/App.vue; npm run build succeeded with no errors or warnings.
 2026-09-21 21:01:44 -07:00
@@ -118,6 +122,8 @@ Enlarged the individual calendar day boxes in src/css/input.css so six equal row
 Set the single-month calendar card gap to an explicit 16px bottom margin in src/css/input.css so the calendar sits 16px above the container's inside bottom edge; the production build succeeded.
 2026-09-22 14:18:00 -07:00
 Corrected the calendar spacing logic in src/css/input.css so the single-month card uses a bottom-only 16px offset instead of all-around margin math; the production build succeeded.
+2026-09-24 12:00:00 -07:00
+Added the full student sidebar button set in src/components/StudentNavigation.vue and matched the requested pastel orange, yellow, green, and blue three-stop gradients in src/css/input.css; the focused sidebar smoke test passed.
 2026-09-22 20:17:00 -07:00
 Applied the requested dirt texture from assets/textures/minecraftDirt01.webp as the calendar panel background in src/App.vue and src/css/input.css using a Vite-managed import; npm run build succeeded.
 2026-09-22 14:52:41 -07:00
@@ -178,6 +184,8 @@ Recorded a staged recommendation in reports/acuteIssues: add focused frontend pi
 Changed only DayCellInteraction.vue so the September 1 calendar cell remains locked while its TNT texture is visible and becomes activatable when that texture is hidden; focused TNT browser tests passed and editor diagnostics reported no errors.
 2026-09-23 07:12:27 -07:00
 Centered the Daily menu Back button horizontally within the space above the Daily Menu content by updating .daily-menu-back-button alignment in src/css/input.css; npm run build succeeded.
+2026-09-24 11:19:27 -07:00
+Added a 336px left-aligned Student sidebar and updated the Calendar button to 80px high with 2.5rem text, rounded corners, a pastel-red gradient, and deeper 3D depth in src/css/input.css.
 2026-09-23 07:27:05 -07:00
 Ran the repository Prettier formatter, which reformatted 10 files; npm run format:check passed afterward.
 2026-09-23 07:29:12 -07:00
@@ -196,6 +204,8 @@ Stored each revealed calendar square's color by day-cell key instead of sharing 
 Added five dedicated Daily menu subject panels with selected-subject replacement behavior in src/components/CalendarView.vue, and positioned the panel stack 12px below the subject buttons in src/css/input.css; the focused menu-panel audit and production build passed.
 2026-09-23 16:49:39 -07:00
 Changed the five new subject panels to explicit labeled div regions in src/components/CalendarView.vue to avoid redundant implicit-region diagnostics; the focused menu-panel audit and production build passed again.
+2026-09-24 13:12:00 -07:00
+Moved the student Back button out of the sidebar navigation and into the upper-right corner of the Student page shell in src/App.vue, while removing the stale sidebar trigger from src/components/StudentNavigation.vue and adjusting the shared styling in src/css/input.css; the requested page placement change is in place.
 2026-09-23 16:50:00 -07:00
 Changed the five subject panels to semantic article elements with accessible labels in src/components/CalendarView.vue; the focused menu-panel audit and production build passed, and no new editor diagnostics remain.
 2026-09-23 09:54:33 -07:00
@@ -228,3 +238,19 @@ Widened the shared current-month calendar day-number box in src/css/input.css fr
 2026-09-23 15:26:13 -07:00 - Completed plan steps: removed the visible Daily Menu heading from src/components/CalendarView.vue; moved the daily-menu date before the subject navigation; changed .daily-menu-date margin in src/css/input.css to place it between the content top and subject buttons.
 2026-09-23 15:26:46 -07:00 - Authorized cleanup: removed the now-unused .daily-menu-heading CSS rule from src/css/input.css after removing the heading markup, restoring the button-isolation audit.
 2026-09-23 15:43:13 -07:00 - Adjusted daily-menu Back button to 12px from panel top/right edges and verified live geometry in Vite preview.
+2026-09-24 12:55:21 -07:00
+Added stateful Rewards, Games, Extra Credit, and Progress submenu panels to the Student sidebar, with each panel spanning from the sidebar's right edge to the viewport edges in src/components/StudentNavigation.vue and src/css/input.css; focused Node audits and the six-test Playwright smoke suite passed.
+2026-09-24 11:34:44 -07:00
+Centered the Student Calendar button within the sidebar in src/css/input.css by applying align-self: center to .student-menu-calendar-tab; the focused structure command ran with one pre-existing CalendarView.vue role failure.
+2026-09-24 11:36:33 -07:00
+Moved the Student Back button to the upper-right corner inside the sidebar by positioning .student-menu-navigation relative and pinning .student-menu-back-button to its top-right inset in src/css/input.css.
+2026-09-24 12:23:36 -07:00
+Increased the Student sidebar navigation buttons' 3D depth and added lifted hover and pressed click states in src/css/input.css; the focused CSS integrity test passed.
+2026-09-24 12:58:32 -07:00
+Changed the Rewards, Games, Extra Credit, and Progress Student sidebar menu backgrounds from gradients to solid colors in src/css/input.css; the focused CSS and button ownership audits passed.
+2026-09-24 13:02:02 -07:00
+Updated tests/page-container-separation.test.js to accept implicit article and aside roles without requiring redundant explicit role attributes; the focused metadata audit and full structure suite passed all 11 tests.
+2026-09-24 13:03:14 -07:00
+Changed the Rewards, Games, Extra Credit, and Progress submenu panels from translucent backgrounds to opaque color-matched backgrounds in src/css/input.css; the focused CSS and button ownership audits passed all 5 tests.
+2026-09-24 13:06:54 -07:00
+Applied fixed menu-specific modifier classes in src/components/StudentNavigation.vue and opaque full-panel colors in src/css/input.css so all four Student submenu menus render solid across the viewport; structure tests passed all 11 tests and browser computed-style verification passed all four menus.

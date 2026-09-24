@@ -71,3 +71,23 @@ No new errors or warnings were reported by npm run build or live preview verific
 The focused September Playwright run reported one pre-existing failure because it expects a missing Daily Menu heading; the subject-panel structural audit and production build passed.
 2026-09-23 16:50:00 -07:00
 After the subject-panel semantic adjustment, diagnostics retained only the pre-existing daily-menu redundant-role warning and input.css contrast warning; no new panel diagnostics remained.
+2026-09-24 11:19:27 -07:00
+The focused structure test suite reported five pre-existing CalendarView.vue section-role findings; the Student sidebar and Calendar button CSS change did not introduce those findings.
+2026-09-24 11:34:44 -07:00
+The focused npm run test:structure command reported 10 passing tests and one pre-existing failure: five CalendarView.vue sections lack meaningful roles; no CSS error was reported for the Student Calendar button alignment change.
+2026-09-24 11:36:33 -07:00
+The focused npm run test:structure command reported 10 passing tests and one pre-existing failure: five CalendarView.vue sections lack meaningful roles; no CSS error was reported for the Student Back button positioning change.
+2026-09-24 12:17:37 -07:00
+The focused button ownership test reported the pre-existing shared student-menu-nav-button class across Student sidebar buttons; the focused stale/duplicate/contradictory CSS audit passed after the Calendar styling and 60px gap changes.
+2026-09-24 12:17:37 -07:00
+No new errors or warnings were reported by the focused CSS audit or live Student sidebar preview after adding the shared Calendar button class.
+2026-09-24 12:23:36 -07:00
+The test runner API did not match the long focused test name; the exact Node test command was rerun successfully with one passing test and no failures.
+2026-09-24 12:23:36 -07:00
+Editor diagnostics retained the pre-existing minimum-contrast warning for #fff7cc in src/css/input.css; no new stylesheet syntax error was reported.
+2026-09-24 12:55:21 -07:00
+The generic test-runner API did not discover the repository's Node test files; the native focused Node command passed all 3 tests, and the Playwright smoke suite passed all 6 tests.
+2026-09-24 12:58:32 -07:00
+The full npm run test:structure command reported 10 passing tests and one pre-existing CalendarView.vue page/container metadata failure; the focused CSS and button ownership audits passed all 5 tests.
+2026-09-24 13:06:54 -07:00
+No new errors or warnings were reported by the structure suite or browser verification after applying opaque full-panel submenu backgrounds.
