@@ -254,3 +254,9 @@ Updated tests/page-container-separation.test.js to accept implicit article and a
 Changed the Rewards, Games, Extra Credit, and Progress submenu panels from translucent backgrounds to opaque color-matched backgrounds in src/css/input.css; the focused CSS and button ownership audits passed all 5 tests.
 2026-09-24 13:06:54 -07:00
 Applied fixed menu-specific modifier classes in src/components/StudentNavigation.vue and opaque full-panel colors in src/css/input.css so all four Student submenu menus render solid across the viewport; structure tests passed all 11 tests and browser computed-style verification passed all four menus.
+2026-09-24 14:09:14 -07:00
+Added the Parent button beneath the Student button in src/components/HomeView.vue with unique button ownership metadata; npm run test:structure passed all 11 tests.
+2026-09-24 14:25:25 -07:00
+Implemented the Parent sidebar, Text Editor navigation, and ordered Templates and Grid buttons in src/App.vue and src/css/input.css; npm run test:structure passed all 11 tests and npm run build succeeded.
+2026-09-24 14:33:29 -07:00
+Fixed Text Editor navigation in src/App.vue by preserving the parent route state while enabling the Text Editor view; npm run test:structure passed all 11 tests and npm run build succeeded.
