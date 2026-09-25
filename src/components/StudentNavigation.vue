@@ -15,7 +15,6 @@ function handleCalendarNavigation() {
 function handleStudentMenuNavigation(menuName) {
 	activeStudentMenu.value = activeStudentMenu.value === menuName ? "" : menuName;
 }
-
 </script>
 
 <template>

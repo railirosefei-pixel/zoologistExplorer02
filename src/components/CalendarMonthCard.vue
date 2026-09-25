@@ -2,7 +2,7 @@
 <script setup>
 import DayCellInteraction from "./DayCellInteraction.vue";
 
-defineProps({
+const props = defineProps({
 	currentMonth: {
 		type: Object,
 		required: true,
@@ -46,6 +46,14 @@ defineProps({
 });
 
 defineEmits(["day-cell-click"]);
+
+function isSeptemberRestrictedDayCell(cell) {
+	if (!cell || !cell.isCurrentMonth || cell.value === "") {
+		return false;
+	}
+	const dayNumber = Number(cell.value);
+	return props.currentMonth.monthName === "September" && dayNumber >= 1 && dayNumber <= 27;
+}
 </script>
 
 <template>
@@ -82,6 +90,7 @@ defineEmits(["day-cell-click"]);
 				:replacement-color-classes-by-day-cell-key="replacementColorClassesByDayCellKey"
 				:explosion-instance="explosionInstance"
 				:explosion-image="explosionImage"
+				:is-tnt-function-disabled="isSeptemberRestrictedDayCell(cell)"
 				@day-cell-click="$emit('day-cell-click', cell)"
 			/>
 		</div>

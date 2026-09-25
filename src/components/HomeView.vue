@@ -3,7 +3,7 @@
 import { onMounted } from "vue";
 import homePageBackground from "../../assets/images/backgrounds/vetClinicNight.webp";
 
-const emit = defineEmits(["open-student-menu", "open-parent-menu"]);
+const emit = defineEmits(["open-student-menu"]);
 
 onMounted(() => {
 	document.documentElement.style.setProperty(
@@ -49,11 +49,6 @@ function handleHomeNavigation() {
 	emit("open-student-menu");
 	playAudioFeedback();
 }
-
-/** Parent navigation event pipeline boundary. */
-function handleParentNavigation() {
-	emit("open-parent-menu");
-}
 </script>
 
 <template>
@@ -84,18 +79,6 @@ function handleParentNavigation() {
 				@click="handleHomeNavigation"
 			>
 				Student
-			</button>
-			<button
-				id="parent-button"
-				class="parent-button"
-				type="button"
-				name="parent-button"
-				data-button-name="parent-button"
-				aria-label="Open parent section"
-				title="Open parent section"
-				@click="handleParentNavigation"
-			>
-				Parent
 			</button>
 		</section>
 	</main>

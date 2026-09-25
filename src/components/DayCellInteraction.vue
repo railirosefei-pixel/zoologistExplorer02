@@ -47,6 +47,10 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
+	isTntFunctionDisabled: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const emit = defineEmits(["day-cell-click"]);
@@ -58,7 +62,7 @@ const replacementColorClass = computed(
 	() => props.replacementColorClassesByDayCellKey[props.cellKey],
 );
 const isCellLocked = computed(
-	() => props.isExploded && props.dayCellAnimationState === "exploding",
+	() => props.isTntFunctionDisabled || (props.isExploded && props.dayCellAnimationState === "exploding"),
 );
 const isTextureSuppressed = computed(
 	() =>

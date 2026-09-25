@@ -82,6 +82,21 @@ test("Every revealed day opens the daily menu for its own date", async ({ page }
 	}
 });
 
+test("Story is available on weekday daily menus from September 28 onward", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await expect(page.locator("#daily-menu-panel")).toBeVisible();
+	await expect(page.getByRole("button", { name: "Story" })).toBeVisible();
+	await page.getByRole("button", { name: "Story" }).click();
+	await expect(page.locator("#daily-menu-story-panel")).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Story" })).toBeVisible();
+});
+
 test("Leaving and reopening the calendar reapplies the TNT texture", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();

@@ -8,6 +8,7 @@ import languageArtsBackground from "../../assets/images/backgrounds/languageArts
 import mathBackground from "../../assets/images/backgrounds/math(Background)01.webp";
 import scienceBackground from "../../assets/images/backgrounds/science(Background)01.webp";
 import socialStudiesBackground from "../../assets/images/backgrounds/socialStudies(Background)01.webp";
+import storyImage from "../../assets/images/backgrounds/storyImage.webp";
 import calendarPanelBackground from "../../assets/textures/minecraftDirt01.webp";
 import septemberDayTexture from "../../assets/textures/minecraftTNT.webp";
 import CalendarMonthCard from "./CalendarMonthCard.vue";
@@ -54,6 +55,85 @@ const replacementColorClassesByDayCellKey = ref({});
 const explosionInstance = ref(0);
 const explosionDurationMs = 900;
 const explosionTextureHideDelayMs = 450;
+const september28StoryTheme = "The Journey to the Watering Hole";
+const september28StoryParagraphs = [
+	'Towering above you, the giraffes stretch so high their heads seem to touch the clouds! You pause to count them: "1... 2... 3... 4..."—a complete herd of 15 giraffes. It is an amazing sight, but you keep your eyes on the quest. "My name is Raili Rose," you announce, stepping forward. "I\'ve come to help you. I overheard you whispering about your lion troubles. Tell me what you need."',
+	'"Too many troubles to count, I\'m afraid," whispers the tallest and oldest giraffe with a heavy sigh. "Lions are driving us from the land our families have lived on for generations. I don\'t know if even an explorer like you can help... but our calves haven\'t had any food or water in a day. We can\'t risk visiting the watering hole with the pride hunting us. If you can help us find water, we will be forever grateful."',
+	'Suddenly, a warm glow hums from your vest pocket. You pull out your journal as its pages flutter wildly, snapping open to an exact map of the savanna around you. Before you can blink, a bright red dot pulses right where your boots hit the dirt. A crisp red line zips out from the dot, curling off to the right before locking in place beside clean, glowing text: 1027 ft. "The dot marks where I\'m standing," you realize, tracing the glowing path. "And that red line leads straight to another watering hole!" You look up at the herd with total confidence. "I know where to go. Follow me—it\'s not too far away." With no other choice, the giraffes place their trust in you, lining up single file to match your stride across the plains.',
+];
+const september29StoryTheme = "The Journey to Acacia Grove";
+const september29StoryParagraphs = [
+	'After the herd drinks deeply from the cool, sparkling watering hole, they bow their long necks in relief and gratitude. The oldest giraffe steps forward, his deep voice filled with respect. "You saved us today, Raili Rose," he rumbles softly. "You have proven yourself to be a true explorer. But our herd faces another desperate trial: we have not eaten in a couple of days. Lions are stalking our favorite Acacia trees, waiting to ambush us. Our calves are starving. Can you guide us to food?"',
+	'"Of course I\'ll help!" you answer eagerly. Right on cue, a bright yellow glow bursts from your vest pocket. You draw out your journal as its pages flutter rapidly, snapping open to a fresh map. The familiar red dot pulses beneath your boots. In a flash, a thin red line darts across the parchment, drawing a path straight to a cluster of tiny, ink-drawn trees. "A hidden Acacia grove—safe from the lions!" you realize with a grin. "I know just where to go!" You spin toward the open plains, journal in hand. Behind you, the giraffes turn as one and follow without hesitation. You are quickly becoming the true hero of the Whispering Giraffes.',
+];
+const september30StoryTheme = "Handling the Lions with Pride";
+const september30StoryParagraphs = [
+	"Full bellies, sweet acacia leaves, and cool water. After days of exhaustion, the Whispering Giraffes were finally safe—thanks to you. While the leggy calves played tag across the clearing, the elders hummed low, rumbling stories of the old days. You couldn't help but smile. You had saved them. Then, the entire herd froze.",
+	"Dozens of long necks snapped upright. Ears swiveled toward the ridge. Every eye locked in the exact same direction, wide with terror.",
+	'"What\'s wrong?" you ask, stepping forward. "You look like you\'ve seen a ghost!"',
+	'"Worse," the oldest giraffe whispers, his voice trembling. "Lions. They tracked us through the canyon. If we run right now, some of us might escape!"',
+	'"No way!" you say, planting your feet. "This grove is perfect. You have cool water and all the food you could ever want. We have to stand our ground!"',
+	'"Stand our ground? How?" the elder dips his head. "We are only giraffes. We can\'t fight a pride of lions. We never could." Suddenly, a warm glow pulses against your ribs. You reach into your vest pocket and pull out your journal. The pages flutter open like rapid wings, snapping to a stop at a glowing illustration: the steep canyon pass you traveled through earlier today. Perched on the cliff high above the narrow canyon trail sits a massive pile of loose boulders. Like an animated clip, the ink moves across the paper. The boulders tip over the cliff\'s edge, crashing into the narrow gap below and slamming the trail completely shut.',
+	'"That\'s it!" you whisper, eyes wide. "If we hike up that winding cliff path and shove those boulders down into the canyon, it will seal the gap! The lions won\'t be able to get through!"',
+	'"Our legs are far too long and clumsy for a ledge that narrow. We\'d fall. But we can\'t lose our new home, either. I don\'t know what to do," the oldest giraffe says.',
+	'You square your shoulders, stand tall, and smile. "Leave the climbing to me," you say proudly. "We made it this far, and I\'m not quitting now!"',
+];
+const october1StoryTheme = "The Float of Crocodiles";
+const october1StoryParagraphs = [
+	'"We can\'t thank you enough, Master Explorer Raili Rose," the oldest giraffe whispers, bowing his long neck. "Our bellies are full, our herd is safe, and the lions are gone."',
+	'"I\'m just glad I could help," you say, grinning. "I\'ve learned so much about you and your herd! That\'s all the thanks I need."',
+	'The elder tilts his head toward the sunset. "How about one last cool drink before dark? Would you like a ride?"',
+	'"A ride on a giraffe? Yes, please!"',
+	'The elder bends his knobby knees like a folding crane. You grab his warm, patterned neck, swing your leg over, and settle onto his back. With a smooth sway, he rises into the air. Suddenly, you are gazing across the entire savanna from high in the air. The view is breathtakingly beautiful. The herd trots toward the watering hole. But as you reach the ridge, the giraffes come to a dead stop.',
+	'"Do you smell that?" the elder murmurs, his ears pinning back flat. A mother giraffe shivers. "Oh no... crocodiles!"',
+	'"Crocodiles?" you ask, scanning the muddy banks. "Out here?"',
+	'"They lurk in the shallows," the elder groans. "If they take over the pool, we can\'t drink. What are we going to do?"',
+	'A bright golden light flares inside your vest. You pull out your journal. The pages rustle open to a glowing map of the valley. Right over the watering hole pulses a bright red dot. From that dot, a glowing red line traces across the grassland, pointing directly to a new symbol: a carved icon of a hippopotamus. The journal has a plan.',
+	'"Follow me!" you call out from high on the elder\'s back, pointing toward the western bend. "We\'re going to get your water back!" You guide the herd through the tall grass until the earth begins to vibrate. There, lounging in the muddy riverbank, is a pod of hippos. School textbooks showed pictures, but they never prepared you for this. These beasts are massive, gray river boulders weighing thousands of pounds each.',
+	'The giraffes freeze. The hippos halt and swivel their heads. Dozens of tiny ears twitch. Heavy, dark eyes lock onto your herd.',
+	'The journal pulses again, sending a warm hum through your fingers. Suddenly, the grunts and rumbles of the hippos turn into words you can clearly understand! "Why are giraffes invading our river?" one hippo grunts to another. "The whole herd is here."',
+	'"Relax," another snorts, blowing river water from his snout. "They eat leaves. They aren\'t a threat to us." The pod mutters in a rumbling wave of voices until the largest hippo of all emerges from the deep water. He rises like an island, water cascading off his wide shoulders. He stomps up the bank, his deep growl vibrating right through your ribs.',
+	'"State your business," he rumbles. "We are peaceful creatures, and we like our quiet."',
+	'Your stomach does a flip. Your hands want to shake. But you are Master Explorer Raili Rose. You sit up straight on the giraffe\'s back, pull your shoulders back, and speak with a steady voice:',
+	'"Forgive the interruption, sir. We need your help. We escaped a pride of lions and sealed the canyon pass, but now crocodiles have invaded our watering hole. The giraffes have nowhere else to drink."',
+	'The giant hippo blinks his heavy eyelids. "The pool right downriver?"',
+	'"Yes," the giraffe elder answers softly. "We cannot fight them alone. Can you help us?"',
+	'The hippos turn and murmur together in a quick, low rumble. A moment later, the giant leader steps forward, snapping his massive jaws shut with a solid THUD.',
+	'"We can," the leader grumbles. "The savanna fears crocodiles, but we do not. The crocodiles fear us. They know we never tolerate them in our water. Lead the way, Explorer. Let\'s go have a word with these crocs."',
+];
+const october2StoryTheme = "The Towering Acacia Clinic";
+const october2StoryParagraphs = [
+	'After a day of victory celebrations, exhaustion hits you all at once. You whisper "goodnight" to your gentle giraffe friends and curl up inside a cozy rock hollow near the acacia grove.',
+	'Cough! Hack! Achoo!',
+	'You snap awake in the pitch-dark. Grabbing your lantern, you sweep the beam across the tall grass. There, shivering and sniffling on the ground, are the two youngest calves.',
+	'"We\'re sick," both calves groan at the exact same time.',
+	'"My head is pounding," one whines.',
+	'"My chest hurts," whimpers the other.',
+	'Footsteps thump against the dirt. Their mother rushes over, her long neck trembling. "My poor babies! What could have made you so sick? Seeing you suffer like this breaks my heart."',
+	'You kneel down in the grass so you are eye-to-eye with the calves. "Did you two eat anything besides sweet acacia leaves?"',
+	'"Well..." the first calf begins.',
+	'"Shut up!" his brother hiss-whispers, bumping him with his shoulder to keep him quiet.',
+	'The mother giraffe pins her ears back, but her voice stays calm and steady. "Boys. Whatever you did, tell me right now. You are not in trouble, but I can\'t help you unless I know the truth."',
+	'The first calf drops his chin to his chest. "We found some berry bushes hidden behind the rocks where Raili Rose was sleeping. They tasted bitter and sour... but we ate them anyway."',
+	'"Boys! You know you cannot eat strange plants!" The mother\'s frustration instantly melts into pure panic.',
+	'"Don\'t worry, I\'m on it," you say, lifting your lantern. "Let me inspect those bushes."',
+	'You dash behind the rock formation. Sure enough, tangled against the cliff wall is a thorny bush covered in dark, glossy berries. Suddenly, your vest pocket flares with a bright golden glow. You slide out your magical journal. The pages flutter furiously, snapping to a stop on an ultra-zoomed map of the exact ground beneath your boots.',
+	'Suddenly, a glowing red skull-and-crossbones stamps itself directly over the berry bushes. "Poisonous!", you say loudly in your own head. Then, a luminous red line traces away from the toxic bushes, weaving across the savanna until it locks onto a new icon: a carved sprig of medicinal leaves.',
+	'"Healing herbs," you whisper. "The journal has the cure!"',
+	'You sprint along the glowing trail until you reach a hidden clearing overflowing with wild herbs—velvety mint, silvery roots, and leafy green stalks. You harvest thick bundles of each kind, stuffing your explorer pack until it bulges.',
+	'Sprinting back to the grove, you find the mother curled protectively around her calves, fast asleep from exhaustion. But the little ones are still wide awake, trembling and miserable. You check the journal\'s glowing illustration, pick out the exact matching green leaves from your bag, and kneel down.',
+	'"Here, little guys," you whisper gently. "Chew on these. They are healing herbs. They will cure your stomachache."',
+	'One calf pulls his head back, his dark eyes nervous. "Are you sure? The last strange thing we ate made our bellies feel like fire."',
+	'"I know it\'s scary," you say with a warm, steady smile. "But I need you to trust me. This is medicine. It will make you feel better."',
+	'Slowly, both calves take the leafy stems from your hands. They chew silently, their faces instantly twisting into expressions of pure disgust—ears twitching, tongues curling.',
+	'You stifle a giggle. You remember having to swallow bitter medicine whenever you caught a bad cold. Medicine never tastes good, but it does the trick.',
+	'Hopeful that the young calves will recover from their sickness, you curl back up into your cozy rock hollow and quickly fall asleep.',
+	'Bright sunlight wakes you to joyful thumping. The two calves are zooming in energetic circles around your boulder, kicking their knobby legs high in a rowdy game of tag! "Raili Rose! Raili Rose!" they squeal, barreling over and talking over each other. "We feel great! Our stomachs don\'t hurt at all! In fact, we\'ve never felt better in our whole lives!"',
+	'Their mother strides over with long, graceful steps. "Calm down, boys. Raili Rose just woke up—give our Master Explorer some space."',
+	'She bows her head down to yours, her eyes shining with warmth. "Thank you, Raili Rose. You saved my children. I only wish we had a way to store these healing herbs year-round, so we always have medicine on hand for whenever curious calves get into trouble."',
+	'The journal bursts into a brilliant white-and-gold glow right in your pocket. You snap it open. This time, it isn\'t a map at all. It is an illustrated herbal field guide! Every single plant from the meadow is sketched in vivid detail, accompanied by exact notes showing which illness, fever, or sting it treats.',
+	'Whoosh. The page turns by itself. Across the fresh page is a detailed blueprint: sturdy wooden storage boxes strapped high into the sturdy branches of an acacia tree, each labeled for a different healing herb. A savanna apothecary! You grin up at the towering branches. You know exactly what to build.',
+];
 let explosionTimeoutId;
 let explosionTextureTimeoutId;
 
@@ -100,6 +180,25 @@ function handleDailyMenuSubjectSelection(subject) {
 	selectedDailyMenuSubject.value = subject;
 }
 
+function isStoryButtonAvailable() {
+	if (!selectedDailyMenuDateLabel.value) {
+		return false;
+	}
+
+	const match = selectedDailyMenuDateLabel.value.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/);
+	if (!match) {
+		return false;
+	}
+
+	const [, monthName, dayValue, yearValue] = match;
+	const monthIndex = new Date(`${monthName} 1, ${yearValue}`).getMonth();
+	const selectedDate = new Date(Number(yearValue), monthIndex, Number(dayValue));
+	const storyStartDate = new Date(2026, 8, 28);
+	const dayOfWeek = selectedDate.getDay();
+
+	return selectedDate >= storyStartDate && dayOfWeek >= 1 && dayOfWeek <= 5;
+}
+
 /** Calendar-day activation pipeline boundary. */
 function isCurrentMonthDayCell(cell) {
 	return Boolean(cell?.isCurrentMonth && cell?.value !== "");
@@ -112,9 +211,17 @@ function openDailyMenuForDayCell(cell) {
 }
 
 /** Day-cell animation pipeline boundary. */
+function isSeptemberRestrictedDayCell(cell) {
+	if (!cell || !cell.isCurrentMonth || cell.value === "") {
+		return false;
+	}
+	const dayNumber = Number(cell.value);
+	return currentMonth.value.monthName === "September" && dayNumber >= 1 && dayNumber <= 27;
+}
+
 function handleDayCellAnimation(cellIndex) {
 	const cell = currentMonth.value.cells[cellIndex];
-	if (!isCurrentMonthDayCell(cell)) {
+	if (!isCurrentMonthDayCell(cell) || isSeptemberRestrictedDayCell(cell)) {
 		return;
 	}
 	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
@@ -175,7 +282,7 @@ function clearDayCellExplosion() {
 }
 
 function handleDayCellClick(cell) {
-	if (!isCurrentMonthDayCell(cell)) {
+	if (!isCurrentMonthDayCell(cell) || isSeptemberRestrictedDayCell(cell)) {
 		return;
 	}
 
@@ -280,6 +387,17 @@ onBeforeUnmount(clearDayCellExplosion);
 					title="Daily menu subjects"
 				>
 					<button
+						v-if="isStoryButtonAvailable()"
+						id="daily-menu-story-button"
+						class="daily-menu-story-button"
+						type="button"
+						aria-label="Story"
+						title="Story"
+						@click="handleDailyMenuSubjectSelection('story')"
+					>
+						<img :src="storyImage" alt="" />
+					</button>
+					<button
 						id="daily-menu-math-button"
 						class="daily-menu-math-button"
 						type="button"
@@ -339,6 +457,46 @@ onBeforeUnmount(clearDayCellExplosion);
 						title="Math subject panel"
 					>
 						<h2>Math</h2>
+					</article>
+					<article
+						v-if="selectedDailyMenuSubject === 'story'"
+						id="daily-menu-story-panel"
+						class="daily-menu-subject-panel daily-menu-story-panel"
+						aria-label="Story subject panel"
+						title="Story subject panel"
+					>
+						<h3>Theme</h3>
+						<p v-if="selectedDailyMenuDateLabel === 'September 28, 2026'">{{ september28StoryTheme }}</p>
+						<p v-if="selectedDailyMenuDateLabel === 'September 29, 2026'">{{ september29StoryTheme }}</p>
+						<p v-if="selectedDailyMenuDateLabel === 'September 30, 2026'">{{ september30StoryTheme }}</p>
+						<p v-if="selectedDailyMenuDateLabel === 'October 1, 2026'">{{ october1StoryTheme }}</p>
+						<p v-if="selectedDailyMenuDateLabel === 'October 2, 2026'">{{ october2StoryTheme }}</p>
+						<h2>Story</h2>
+						<template v-if="selectedDailyMenuDateLabel === 'September 28, 2026'">
+							<p v-for="paragraph in september28StoryParagraphs" :key="paragraph">
+								{{ paragraph }}
+							</p>
+						</template>
+						<template v-if="selectedDailyMenuDateLabel === 'September 29, 2026'">
+							<p v-for="paragraph in september29StoryParagraphs" :key="paragraph">
+								{{ paragraph }}
+							</p>
+						</template>
+						<template v-if="selectedDailyMenuDateLabel === 'September 30, 2026'">
+							<p v-for="paragraph in september30StoryParagraphs" :key="paragraph">
+								{{ paragraph }}
+							</p>
+						</template>
+						<template v-if="selectedDailyMenuDateLabel === 'October 1, 2026'">
+							<p v-for="paragraph in october1StoryParagraphs" :key="paragraph">
+								{{ paragraph }}
+							</p>
+						</template>
+						<template v-if="selectedDailyMenuDateLabel === 'October 2, 2026'">
+							<p v-for="paragraph in october2StoryParagraphs" :key="paragraph">
+								{{ paragraph }}
+							</p>
+						</template>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'language-arts'"

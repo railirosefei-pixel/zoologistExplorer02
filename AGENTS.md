@@ -19,6 +19,23 @@
 - No speculative fix based only on a likely selector or a likely root cause.
 - No broad cleanup while the current plan step is pending.
 - No extra checks beyond the current step unless they are explicitly required by the plan or a safety gate.
+- `plan.md` is authoritative for the current implementation step.
+- Before editing, identify the exact target file, symbol or section, and the fact being verified.
+- Make the smallest change that can satisfy the current step.
+- Do not add features, refactor adjacent code, or create components unless explicitly requested.
+- Preserve `plan.md` during reverts; never use a broad restore operation when a file-specific restore is sufficient.
+
+## Required pre-edit contract
+
+- Before implementation, state the current code path, the exact defect or missing behavior, the approved files to change, and one focused validation check.
+- If the requested behavior or scope is ambiguous, stop and ask instead of inferring additional requirements.
+- Separate diagnosis from implementation; do not edit while still mapping multiple plausible code paths.
+
+## Verification contract
+
+- Validate the requested behavior directly whenever possible; compilation alone does not prove a UI or layout requirement.
+- Do not claim success from a passing build when the requested behavior has not been observed or asserted.
+- If validation is unavailable, report it as blocked or not run rather than treating it as a pass.
 
 ## Safety and verification
 

@@ -112,92 +112,6 @@ body {
 		0 4px 0 rgba(168, 68, 68, 0.35);
 }
 
-.parent-button {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 190px;
-	height: 90px;
-	margin-top: 32px;
-	padding: 0;
-	border: 1px solid rgba(57, 77, 120, 0.4);
-	border-radius: 0.8rem;
-	color: #172033;
-	font-family: "Minecraft2Bold", sans-serif;
-	font-size: 2rem;
-	font-weight: 700;
-	letter-spacing: 0.04em;
-	cursor: pointer;
-	background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 40%, #60a5fa 100%);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.85),
-		inset 0 -4px 0 rgba(37, 99, 235, 0.15),
-		0 8px 0 rgba(37, 99, 235, 0.35),
-		0 14px 18px rgba(30, 64, 175, 0.2);
-}
-
-.parent-menu-page {
-	min-height: 100vh;
-	background: #243447;
-}
-
-.parent-menu-sidebar {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	padding: 2rem 1.5rem;
-	width: 336px;
-	min-height: 100vh;
-	background: #162536;
-}
-
-.text-editor-button {
-	width: 100%;
-	min-height: 2.75rem;
-	padding: 0.75rem 1rem;
-	border: 1px solid rgba(255, 255, 255, 0.24);
-	border-radius: 0.4rem;
-	color: #ffffff;
-	font-family: "Minecraft2Bold", sans-serif;
-	font-size: 1.25rem;
-	font-weight: 700;
-	text-align: left;
-	cursor: pointer;
-	background: #2f6f8f;
-}
-
-.text-editor-menu-page {
-	min-height: 100vh;
-	background: #304b5f;
-}
-
-.text-editor-menu-sidebar {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 1rem;
-	padding: 2rem 1.5rem;
-	width: 336px;
-	min-height: 100vh;
-	background: #1f3445;
-}
-
-.templates-button,
-.grid-button {
-	width: 100%;
-	min-height: 2.75rem;
-	padding: 0.75rem 1rem;
-	border: 1px solid rgba(255, 255, 255, 0.24);
-	border-radius: 0.4rem;
-	color: #ffffff;
-	font-family: "Minecraft2Bold", sans-serif;
-	font-size: 1.25rem;
-	font-weight: 700;
-	text-align: left;
-	cursor: pointer;
-	background: #386b84;
-}
-
 .student-menu-page {
 	display: flex;
 	position: relative;
@@ -736,6 +650,9 @@ body {
 		0 4px 0 rgba(70, 44, 18, 0.35);
 	cursor: pointer;
 	overflow: hidden;
+}
+
+.daily-menu-story-button {
 }
 
 .daily-menu-subject-grid > button img {
