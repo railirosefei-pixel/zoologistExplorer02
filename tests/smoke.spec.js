@@ -36,6 +36,58 @@ test("Student button opens the full-screen menu and Back returns home", async ({
 	await expect(studentMenu).toBeHidden();
 });
 
+test("September 2026 hides Back without moving Calendar or Forward", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const calendarHeading = page.locator("#calendar-menu-heading");
+	const forwardButton = page.locator("#calendar-next-month-button");
+	const backButton = page.locator("#calendar-previous-month-button");
+	const readPosition = (element) =>
+		element.evaluate((node) => {
+			const { x, y, width, height } = node.getBoundingClientRect();
+			return { x, y, width, height };
+		});
+
+	await page.getByRole("button", { name: "Show next month" }).click();
+	const octoberHeadingPosition = await readPosition(calendarHeading);
+	const octoberForwardPosition = await readPosition(forwardButton);
+
+	await page.getByRole("button", { name: "Show previous month" }).click();
+	await expect(backButton).toHaveCount(0);
+	expect(await readPosition(calendarHeading)).toEqual(octoberHeadingPosition);
+	expect(await readPosition(forwardButton)).toEqual(octoberForwardPosition);
+});
+
+test("December 2027 hides Forward without moving Back or Calendar", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const calendarHeading = page.locator("#calendar-menu-heading");
+	const backButton = page.locator("#calendar-previous-month-button");
+	const forwardButton = page.locator("#calendar-next-month-button");
+	const monthHeading = page.locator("#calendar-month-header h2");
+	const readPosition = (element) =>
+		element.evaluate((node) => {
+			const { x, y, width, height } = node.getBoundingClientRect();
+			return { x, y, width, height };
+		});
+
+	for (let monthOffset = 0; monthOffset < 14; monthOffset += 1) {
+		await page.getByRole("button", { name: "Show next month" }).click();
+	}
+	await expect(monthHeading).toHaveText("November 2027");
+	const novemberHeadingPosition = await readPosition(calendarHeading);
+	const novemberBackPosition = await readPosition(backButton);
+
+	await page.getByRole("button", { name: "Show next month" }).click();
+	await expect(monthHeading).toHaveText("December 2027");
+	await expect(forwardButton).toHaveCount(0);
+	await expect(backButton).toBeVisible();
+	expect(await readPosition(calendarHeading)).toEqual(novemberHeadingPosition);
+	expect(await readPosition(backButton)).toEqual(novemberBackPosition);
+});
+
 test("Student sidebar includes the full button set", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();

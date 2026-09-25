@@ -2,6 +2,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref } from "vue";
 import minecraftExplosion from "../../assets/animations/minecraftExplosion.gif";
+import explosionSound from "../../assets/sounds/Explosion Dynamite 01.wav";
 import artBackground from "../../assets/images/backgrounds/art(Background)01.webp";
 import languageArtsBackground from "../../assets/images/backgrounds/languageArts(Background)01.webp";
 import mathBackground from "../../assets/images/backgrounds/math(Background)01.webp";
@@ -14,6 +15,32 @@ import CalendarMonthCard from "./CalendarMonthCard.vue";
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
+const year1TimelineStory = {
+	theme: "Expeditions into Blockland: The Obsidian Portal and the Never Ending Tales of Raili Rose",
+	paragraphs: [
+		"Deep beneath the surface of your blocky world, an adventure awaits.",
+		"You are the Great Explorer Raili Rose. You have spent hours tunneling near bedrock on the hunt for elusive diamonds to power your gear. With one final strike against the solid rock, your pickaxe breaks through into a hidden cavern. Soft moss glows along the stone walls, and clusters of redstone sparkle in the dark.",
+		"In the center of the room, resting on a smooth cobblestone pedestal, you discover an ancient, leather-bound book. You brush the dust off the cover. Stamped in faded gold letters is a single word: BESTIARY—the lost logbook of Earth’s most incredible animals. You open it. The first few pages are filled with sketches and field notes, but the rest are completely blank. A handwritten message at the top of the page reads: \"To the explorer who finds this book: The world is vast, and my journey is over. Finish what I started.\" Just as you slip the leather journal into your explorer's vest pocket, the cavern hums with energy. VOOOOOO-SHHH! A giant, swirling purple portal tears open right in front of you, surrounded by a jet black obsidian arch! As you stare at the beautiful, swirling purple colors of the obsidian portal, the colors slowly fade into moving images of animals from all over Blockland: giraffes, zebras, polar bears, penguins, monkeys, lions, hippos, and even some animals you have never even heard of before. This is the beginning of your journey...the journey of the Great Explorer Raili Rose and her quest to learn about the animals of Blockland and aid them in any way she can...",
+	],
+};
+const quarter1TimelineStory = {
+	theme: "Journey into Blockland: Safari through the Savanna",
+	paragraphs: [
+		"The swirling violet mist within the obsidian frame begins to steady. Slowly, the swirling colors clear, revealing a breathtaking view of a sunlit, golden plain. Tall giraffes stride across the grasslands, plucking sweet leaves from the highest acacia trees. Nearby, a herd of zebras grazes peacefully on fresh, green grass. Beneath the shade of a rock ledge, a lioness rests while her cubs tumble and play, and down in the river shallows, a pod of hippos splashes together in the cool water. You stare in absolute wonder. Suddenly, you feel an quickly increasing feeling of warmth against your chest. As you look down to pinpoint where this feeling is coming from, you quickly realize that your vest pocket is glowing. You reach inside and pull out the ancient Bestiary. Its leather cover hums with energy. Right before your eyes, a brilliant beam of light leaps from the pages. The glowing beam shoots straight forward, slicing through the air and anchoring directly into the center of the portal. You have no idea what awaits you on the other side. Yet as the beam pulses between your hands and the swirling gateway, one thing is certain: out there across the wild plains, creatures are in need—and this portal is calling you to help them. You take a deep breath, step up to the towering obsidian arch, and cross into the unknown...",
+	],
+};
+const month1TimelineStory = {
+	theme: "The Herbivores of the Plains",
+	paragraphs: [
+		"The Great Plant-Eaters! Adventure awaits across the sunlit savanna, where the magnificent herbivores of Blockland need a brave explorer. You will journey through the grasslands to watch giant giraffes reach the sweetest treetops, race beside zebra herds, and lead elephant families to secret watering holes. As you uncover how these amazing animals live and survive, you will use your knowledge to aid the great herbivores of the plains in any way that you can. Learn everything you can about the herbivores of the savanna, fill every blank page in your explorer journal, and prove you have what it takes to be a Master Explorer!",
+	],
+};
+const week1TimelineStory = {
+	theme: "The Whispering Giraffes",
+	paragraphs: [
+		"As you walk across the golden plains of the savanna, you notice a herd of tall giraffes gathered near a watering hole. Usually, these gentle giants stride calmly across the plains, but today they stand frozen in place, their ears twitching with worry. As you step closer, your Explorer Journal warms up in your hands and begins to glow with a soft light. Suddenly, the quiet murmurs across the grass turn into clear words...your journal is translating animal speech, and you can understand exactly what the giraffes are saying! Listening in, you hear the herd whispering anxiously. \"That pride of lions just won't budge. How will we ever get our calves to the watering hole or reach the Acacia trees on the other side? We'll starve!\"",
+	],
+};
 const calendarMonths = Array.from({ length: 16 }, (_, index) => {
 	const monthDate = new Date(2026, 8 + index, 1);
 	const monthName = monthDate.toLocaleString("en-US", { month: "long" });
@@ -162,6 +189,36 @@ const storyContentByDateLabel = {
 const selectedStoryContent = computed(
 	() => storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null,
 );
+const selectedTimelineStory = computed(() => {
+	if (activeStoryTimelineTab.value === "Year" && isStoryButtonAvailable()) {
+		return year1TimelineStory;
+	}
+	if (
+		activeStoryTimelineTab.value === "Quarter" &&
+		isStoryButtonAvailable(new Date(2026, 11, 21))
+	) {
+		return quarter1TimelineStory;
+	}
+	if (
+		activeStoryTimelineTab.value === "Month" &&
+		isStoryButtonAvailable(new Date(2026, 9, 26))
+	) {
+		return month1TimelineStory;
+	}
+	if (
+		activeStoryTimelineTab.value === "Week" &&
+		isStoryButtonAvailable(new Date(2026, 9, 5))
+	) {
+		return week1TimelineStory;
+	}
+	if (
+		activeStoryTimelineTab.value === "Day" &&
+		isStoryButtonAvailable(new Date(2026, 9, 3))
+	) {
+		return storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null;
+	}
+	return null;
+});
 const calendarPanelBackgroundImage = `url("${calendarPanelBackground}")`;
 const calendarDayImage = `url("${septemberDayTexture}")`;
 let explosionTimeoutId;
@@ -203,7 +260,7 @@ function handleStoryTimelineTabSelection(tabName) {
 	activeStoryTimelineTab.value = tabName;
 }
 
-function isStoryButtonAvailable() {
+function isStoryButtonAvailable(endDate) {
 	if (!selectedDailyMenuDateLabel.value) {
 		return false;
 	}
@@ -221,7 +278,12 @@ function isStoryButtonAvailable() {
 	const storyStartDate = new Date(2026, 8, 28);
 	const dayOfWeek = selectedDate.getDay();
 
-	return selectedDate >= storyStartDate && dayOfWeek >= 1 && dayOfWeek <= 5;
+	return (
+		selectedDate >= storyStartDate &&
+		dayOfWeek >= 1 &&
+		dayOfWeek <= 5 &&
+		(!endDate || selectedDate < endDate)
+	);
 }
 
 /** Calendar-day activation pipeline boundary. */
@@ -259,6 +321,10 @@ function handleDayCellAnimation(cellIndex) {
 	lastClickedDayCellKey.value = cellKey;
 	explodedDayCellKey.value = cellKey;
 	dayCellAnimationState.value = "exploding";
+	const explosionAudio = new Audio(explosionSound);
+	void explosionAudio.play().catch(() => {
+		// Ignore browser autoplay restrictions for the explosion effect.
+	});
 	const nextReplacementColorIndex =
 		(explosionInstance.value + currentMonthIndex.value + 1) % pastelReplacementClasses.length;
 	replacementColorClassesByDayCellKey.value = {
@@ -338,6 +404,7 @@ onBeforeUnmount(clearDayCellExplosion);
 		>
 			<div class="calendar-header-row">
 				<button
+					v-if="currentMonthIndex > 0"
 					id="calendar-previous-month-button"
 					class="calendar-previous-month-button"
 					type="button"
@@ -347,8 +414,14 @@ onBeforeUnmount(clearDayCellExplosion);
 				>
 					Back
 				</button>
+				<span
+					v-else
+					class="calendar-previous-month-button invisible"
+					aria-hidden="true"
+				></span>
 				<h1 id="calendar-menu-heading" class="student-menu-heading">Calendar</h1>
 				<button
+					v-if="currentMonthIndex < calendarMonths.length - 1"
 					id="calendar-next-month-button"
 					class="calendar-next-month-button"
 					type="button"
@@ -358,6 +431,11 @@ onBeforeUnmount(clearDayCellExplosion);
 				>
 					Forward
 				</button>
+				<span
+					v-else
+					class="calendar-next-month-button invisible"
+					aria-hidden="true"
+				></span>
 			</div>
 		</header>
 		<div v-if="!isDailyMenuOpen" class="calendar-month-grid calendar-month-grid--single">
@@ -491,6 +569,33 @@ onBeforeUnmount(clearDayCellExplosion);
 						title="Math subject panel"
 					>
 						<h2>Math</h2>
+						<button
+							id="daily-menu-math-block-1-button"
+							class="daily-menu-math-block-1-button"
+							type="button"
+							aria-label="Math Block 1"
+							title="Math Block 1"
+						>
+							Block 1
+						</button>
+						<button
+							id="daily-menu-math-block-2-button"
+							class="daily-menu-math-block-2-button"
+							type="button"
+							aria-label="Math Block 2"
+							title="Math Block 2"
+						>
+							Block 2
+						</button>
+						<button
+							id="daily-menu-math-block-3-button"
+							class="daily-menu-math-block-3-button"
+							type="button"
+							aria-label="Math Block 3"
+							title="Math Block 3"
+						>
+							Block 3
+						</button>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'story'"
@@ -540,7 +645,18 @@ onBeforeUnmount(clearDayCellExplosion);
 							>
 								<h2>{{ activeStoryTimelineTab }}</h2>
 								<h3>Theme</h3>
+								<p v-if="selectedTimelineStory">
+									{{ selectedTimelineStory.theme }}
+								</p>
 								<h2>Story</h2>
+								<template v-if="selectedTimelineStory">
+									<p
+										v-for="paragraph in selectedTimelineStory.paragraphs"
+										:key="paragraph"
+									>
+										{{ paragraph }}
+								</p>
+								</template>
 							</div>
 							<div v-else class="daily-menu-story-content">
 								<h3>Theme</h3>
@@ -567,6 +683,33 @@ onBeforeUnmount(clearDayCellExplosion);
 						title="Language Arts subject panel"
 					>
 						<h2>Language Arts</h2>
+						<button
+							id="daily-menu-language-arts-block-1-button"
+							class="daily-menu-language-arts-block-1-button"
+							type="button"
+							aria-label="Language Arts Block 1"
+							title="Language Arts Block 1"
+						>
+							Block 1
+						</button>
+						<button
+							id="daily-menu-language-arts-block-2-button"
+							class="daily-menu-language-arts-block-2-button"
+							type="button"
+							aria-label="Language Arts Block 2"
+							title="Language Arts Block 2"
+						>
+							Block 2
+						</button>
+						<button
+							id="daily-menu-language-arts-block-3-button"
+							class="daily-menu-language-arts-block-3-button"
+							type="button"
+							aria-label="Language Arts Block 3"
+							title="Language Arts Block 3"
+						>
+							Block 3
+						</button>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'social-studies'"
@@ -576,6 +719,33 @@ onBeforeUnmount(clearDayCellExplosion);
 						title="Social Studies subject panel"
 					>
 						<h2>Social Studies</h2>
+						<button
+							id="daily-menu-social-studies-block-1-button"
+							class="daily-menu-social-studies-block-1-button"
+							type="button"
+							aria-label="Social Studies Block 1"
+							title="Social Studies Block 1"
+						>
+							Block 1
+						</button>
+						<button
+							id="daily-menu-social-studies-block-2-button"
+							class="daily-menu-social-studies-block-2-button"
+							type="button"
+							aria-label="Social Studies Block 2"
+							title="Social Studies Block 2"
+						>
+							Block 2
+						</button>
+						<button
+							id="daily-menu-social-studies-block-3-button"
+							class="daily-menu-social-studies-block-3-button"
+							type="button"
+							aria-label="Social Studies Block 3"
+							title="Social Studies Block 3"
+						>
+							Block 3
+						</button>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'science'"
@@ -585,6 +755,33 @@ onBeforeUnmount(clearDayCellExplosion);
 						title="Science subject panel"
 					>
 						<h2>Science</h2>
+						<button
+							id="daily-menu-science-block-1-button"
+							class="daily-menu-science-block-1-button"
+							type="button"
+							aria-label="Science Block 1"
+							title="Science Block 1"
+						>
+							Block 1
+						</button>
+						<button
+							id="daily-menu-science-block-2-button"
+							class="daily-menu-science-block-2-button"
+							type="button"
+							aria-label="Science Block 2"
+							title="Science Block 2"
+						>
+							Block 2
+						</button>
+						<button
+							id="daily-menu-science-block-3-button"
+							class="daily-menu-science-block-3-button"
+							type="button"
+							aria-label="Science Block 3"
+							title="Science Block 3"
+						>
+							Block 3
+						</button>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'art'"

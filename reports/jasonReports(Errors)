@@ -119,3 +119,9 @@ The generic test runner did not discover the Node audit file; the repository-nat
 The first active-Story Back-button browser check exposed the existing full-panel exit handler; a dedicated timeline-only handler corrected the behavior, and the final five-tab Playwright regression plus structure suite passed with no new errors.
 2026-09-25 14:05:11 -07:00
 Editor diagnostics retain the existing redundant explicit region role on the daily-menu section in src/components/CalendarView.vue; this was outside the timeline repeat-click handler change and was not modified.
+2026-09-25 14:14:57 -07:00
+The generic test helper could not start the Playwright spec; the repository Playwright CLI ran the focused Year-tab test successfully.
+2026-09-25 14:28:20 -07:00
+The initial five-date browser test advanced the month twice and timed out on October 2; the test navigation was corrected and the final focused test passed 1/1.
+2026-09-25 15:03:00 -07:00
+The focused static audit reported two button-metadata findings, while the production build completed without errors or warnings and direct browser validation confirmed all twelve new controls and their computed gradients.

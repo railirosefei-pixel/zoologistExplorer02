@@ -117,6 +117,95 @@ test("Story opens the Year tab by default", async ({ page }) => {
 	);
 	await expect(page.locator(".daily-menu-story-menu-panel")).toBeVisible();
 	await expect(page.getByRole("heading", { name: "Year" })).toBeVisible();
+	await expect(
+		page.getByText(
+			"Expeditions into Blockland: The Obsidian Portal and the Never Ending Tales of Raili Rose",
+			{ exact: true },
+		),
+	).toBeVisible();
+	await expect(
+		page.getByText("Deep beneath the surface of your blocky world, an adventure awaits.", {
+			exact: true,
+		}),
+	).toBeVisible();
+	await page.locator("#daily-menu-story-tab-quarter").click();
+	await expect(page.getByRole("heading", { name: "Quarter" })).toBeVisible();
+	await expect(
+		page.getByText("Journey into Blockland: Safari through the Savanna", { exact: true }),
+	).toBeVisible();
+	await expect(
+		page.getByText("The swirling violet mist within the obsidian frame begins to steady.", {
+			exact: false,
+		}),
+	).toBeVisible();
+	await page.locator("#daily-menu-story-tab-month").click();
+	await expect(page.getByRole("heading", { name: "Month" })).toBeVisible();
+	await expect(page.getByText("The Herbivores of the Plains", { exact: true })).toBeVisible();
+	await expect(
+		page.getByText("The Great Plant-Eaters! Adventure awaits across the sunlit savanna", {
+			exact: false,
+		}),
+	).toBeVisible();
+	await page.locator("#daily-menu-story-tab-week").click();
+	await expect(page.getByRole("heading", { name: "Week" })).toBeVisible();
+	await expect(page.getByText("The Whispering Giraffes", { exact: true })).toBeVisible();
+	await expect(
+		page.getByText("your journal is translating animal speech", { exact: false }),
+	).toBeVisible();
+});
+
+test("Day timeline shows the matching Day 1 through Day 5 stories", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	let currentMonth = "September";
+
+	for (const day of [
+		{
+			month: "September",
+			cellId: 28,
+			theme: "The Journey to the Watering Hole",
+			story: "Towering above you, the giraffes stretch so high",
+		},
+		{
+			month: "September",
+			cellId: 29,
+			theme: "The Journey to Acacia Grove",
+			story: "After the herd drinks deeply from the cool, sparkling watering hole",
+		},
+		{
+			month: "September",
+			cellId: 30,
+			theme: "Handling the Lions with Pride",
+			story: "Full bellies, sweet acacia leaves, and cool water.",
+		},
+		{
+			month: "October",
+			cellId: 3,
+			theme: "The Float of Crocodiles",
+			story: "We can't thank you enough, Master Explorer Raili Rose",
+		},
+		{
+			month: "October",
+			cellId: 4,
+			theme: "The Towering Acacia Clinic",
+			story: "After a day of victory celebrations, exhaustion hits you all at once",
+		},
+	]) {
+		if (day.month !== currentMonth) {
+			await page.getByRole("button", { name: "Show next month" }).click();
+			currentMonth = day.month;
+		}
+		const calendarDay = page.locator(`#calendar-day-cell-${day.month}-2026-${day.cellId}`);
+		await calendarDay.click();
+		await page.waitForTimeout(500);
+		await calendarDay.click();
+		await page.getByRole("button", { name: "Story" }).click();
+		await page.locator("#daily-menu-story-tab-day").click();
+		await expect(page.getByText(day.theme, { exact: true })).toBeVisible();
+		await expect(page.getByText(day.story, { exact: false })).toBeVisible();
+		await page.locator("#daily-menu-story-back-button").click();
+		await page.getByRole("button", { name: "Back to calendar" }).click();
+	}
 });
 
 test("Selecting Story replaces the daily menu content and hides the menu text", async ({

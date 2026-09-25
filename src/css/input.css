@@ -1012,6 +1012,138 @@ body {
 	font-size: 1.25rem;
 }
 
+.daily-menu-math-block-1-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #713f12;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #713f12 0%, #a16207 100%);
+	color: #fffbea;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-math-block-2-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #ca8a04;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #ca8a04 0%, #eab308 100%);
+	color: #422006;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-math-block-3-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #facc15;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #facc15 0%, #fde047 100%);
+	color: #422006;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-language-arts-block-1-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #7f1d1d;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #7f1d1d 0%, #b91c1c 100%);
+	color: #fff5f5;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-language-arts-block-2-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #dc2626;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #dc2626 0%, #ef4444 100%);
+	color: #fff5f5;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-language-arts-block-3-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #f87171;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #f87171 0%, #fca5a5 100%);
+	color: #7f1d1d;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-social-studies-block-1-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #14532d;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #14532d 0%, #166534 100%);
+	color: #f0fdf4;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-social-studies-block-2-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #15803d;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #15803d 0%, #22c55e 100%);
+	color: #f0fdf4;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-social-studies-block-3-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #4ade80;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #4ade80 0%, #86efac 100%);
+	color: #14532d;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-science-block-1-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #1e3a8a;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
+	color: #eff6ff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-science-block-2-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #2563eb;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
+	color: #eff6ff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-science-block-3-button {
+	margin: 1rem 0.5rem 0 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #60a5fa;
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #60a5fa 0%, #93c5fd 100%);
+	color: #172554;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
 .daily-menu-subject-panel h3 {
 	margin: 0;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;

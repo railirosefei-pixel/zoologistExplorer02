@@ -218,6 +218,7 @@ Removed the Vue audit's scope-blind duplicate-name scan so valid locals with the
 Synchronized the clicked TNT day cell's replacement and number visibility with its existing exploded state in src/components/DayCellInteraction.vue, preserving layout and CSS; the two focused Playwright TNT checks passed.
 2026-09-23 12:27:50 -07:00
 Replaced coordinated TNT lifecycle booleans with an explicit CalendarView state passed through existing calendar components, preserved timer-based visual behavior, and added deterministic transition coverage; all smoke tests and the Vue audit passed.
+2026-09-25 09:00:00 -07:00 — Triggered the configured explosion sound effect on calendar TNT animations via a Vite-managed asset import and verified the asset-path audit and production build succeed.
 2026-09-23 12:35:00 -07:00
 Removed stale unused Student menu workspace-tab styling from src/css/input.css that no longer matched the active Calendar-only navigation flow; the structure audit and Vite production build passed.
 2026-09-23 12:52:00 -07:00
@@ -359,3 +360,19 @@ Split Rewards, Games, Extra Credit, and Progress tab hover and active selectors 
 Added the Day tab after Week to the Story timeline and extended regression coverage to assert tab order and the Theme and Story headings; the focused Playwright test passed 1/1.
 2026-09-25 14:05:11 -07:00
 Kept a Story timeline tab selected when the same tab is clicked again in src/components/CalendarView.vue; the focused September Story Playwright suite passed all 12 tests.
+2026-09-25 14:14:57 -07:00
+Added the Year 1 theme and story to the Year timeline in src/components/CalendarView.vue, gated by the existing weekday and September 28 start-date rule; the focused Year-tab Playwright test passed 1/1.
+2026-09-25 14:17:02 -07:00
+Added the Quarter 1 theme and story to the Quarter timeline for eligible weekdays in the first 12 weeks from September 28; the focused Quarter-tab Playwright test passed 1/1.
+2026-09-25 14:25:40 -07:00
+Added the Month 1 theme and story to the Month timeline for eligible weekdays in the first four weeks from September 28; the focused Month-tab Playwright test passed 1/1.
+2026-09-25 14:26:18 -07:00
+Added the Week 1 theme and story to the Week timeline for eligible weekdays in the first week from September 28; the focused Week-tab Playwright test passed 1/1.
+2026-09-25 14:28:20 -07:00
+Connected the Day timeline to the selected date's Day 1–Day 5 theme and story for September 28 through October 2; the focused five-date Playwright test passed 1/1.
+2026-09-25 14:34:21 -07:00
+Executed plan.md step 1 by hiding September 2026's Back button in src/components/CalendarView.vue while retaining its header grid slot; the focused Playwright test confirmed Calendar and Forward remain in their October positions and passed 1/1.
+2026-09-25 14:36:45 -07:00
+Executed plan.md step 2 by hiding December 2027's Forward button in src/components/CalendarView.vue while retaining its header grid slot; the focused Playwright test confirmed Calendar and Back remain in their November positions and passed 1/1.
+2026-09-25 15:03:00 -07:00
+Executed plan.md step 1 by adding independently identified Block 1, Block 2, and Block 3 buttons to the Math, Language Arts, Social Studies, and Science Daily menu panels in src/components/CalendarView.vue, with independently owned dark-to-lighter subject gradients in src/css/input.css. The production build and direct browser verification passed.
