@@ -185,6 +185,22 @@ body {
 .student-menu-rewards-tab {
 	background: #f9c8a3;
 	color: #5f3415;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
 }
 
 .student-submenu-panel-games {
@@ -200,6 +216,22 @@ body {
 .student-menu-games-tab {
 	background: #f9eb9b;
 	color: #5c4d12;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
 }
 
 .student-submenu-panel-extra-credit {
@@ -215,6 +247,22 @@ body {
 .student-menu-extra-credit-tab {
 	background: #bfe9be;
 	color: #1a4c32;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
 }
 
 .student-submenu-panel-progress {
@@ -230,6 +278,22 @@ body {
 .student-menu-progress-tab {
 	background: #bfdafc;
 	color: #1d3f6d;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
 }
 
 .student-menu-calendar-tab {
@@ -249,82 +313,8 @@ body {
 		transform 120ms ease,
 		box-shadow 120ms ease,
 		filter 120ms ease;
-}
-
-.student-menu-rewards-tab {
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
-}
-
-.student-menu-games-tab {
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
-}
-
-.student-menu-extra-credit-tab {
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
-}
-
-.student-menu-progress-tab {
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
+	background: linear-gradient(180deg, #ffd6d6 0%, #f3a6a6 100%);
+	color: #541b25;
 }
 
 .student-menu-back-button {
@@ -344,6 +334,8 @@ body {
 		transform 120ms ease,
 		box-shadow 120ms ease,
 		filter 120ms ease;
+	background: #282c30;
+	color: #fff7cc;
 }
 
 .student-menu-calendar-tab,
@@ -369,9 +361,36 @@ body {
 		0 16px 20px rgba(15, 23, 42, 0.32);
 }
 
-.student-menu-rewards-tab:hover,
-.student-menu-games-tab:hover,
-.student-menu-extra-credit-tab:hover,
+.student-menu-rewards-tab:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 9px 0 rgba(67, 38, 14, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.student-menu-games-tab:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 9px 0 rgba(67, 38, 14, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.student-menu-extra-credit-tab:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 9px 0 rgba(67, 38, 14, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
 .student-menu-progress-tab:hover {
 	transform: translateY(-2px);
 	filter: brightness(1.03);
@@ -392,10 +411,7 @@ body {
 		0 5px 8px rgba(15, 23, 42, 0.22);
 }
 
-.student-menu-rewards-tab:active,
-.student-menu-games-tab:active,
-.student-menu-extra-credit-tab:active,
-.student-menu-progress-tab:active {
+.student-menu-rewards-tab:active {
 	transform: translateY(5px);
 	filter: brightness(0.98);
 	box-shadow:
@@ -405,14 +421,34 @@ body {
 		0 5px 8px rgba(15, 23, 42, 0.22);
 }
 
-.student-menu-calendar-tab {
-	background: linear-gradient(180deg, #ffd6d6 0%, #f3a6a6 100%);
-	color: #541b25;
+.student-menu-games-tab:active {
+	transform: translateY(5px);
+	filter: brightness(0.98);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
+		0 2px 0 rgba(67, 38, 14, 0.5),
+		0 5px 8px rgba(15, 23, 42, 0.22);
 }
 
-.student-menu-back-button {
-	background: rgba(255, 246, 180, 0.12);
-	color: #fff7cc;
+.student-menu-extra-credit-tab:active {
+	transform: translateY(5px);
+	filter: brightness(0.98);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
+		0 2px 0 rgba(67, 38, 14, 0.5),
+		0 5px 8px rgba(15, 23, 42, 0.22);
+}
+
+.student-menu-progress-tab:active {
+	transform: translateY(5px);
+	filter: brightness(0.98);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
+		0 2px 0 rgba(67, 38, 14, 0.5),
+		0 5px 8px rgba(15, 23, 42, 0.22);
 }
 
 .student-menu-content {
@@ -465,6 +501,7 @@ body {
 	letter-spacing: 0.05em;
 	cursor: pointer;
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+	justify-self: start;
 }
 
 .calendar-next-month-button {
@@ -479,14 +516,7 @@ body {
 	letter-spacing: 0.05em;
 	cursor: pointer;
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
-}
-
-.calendar-next-month-button {
 	justify-self: end;
-}
-
-.calendar-previous-month-button {
-	justify-self: start;
 }
 
 .student-menu-heading {
@@ -547,16 +577,18 @@ body {
 .calendar-weekday-row {
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));
+	padding: 0.45rem 0.5rem 0.3rem;
+	background: rgba(58, 45, 17, 0.1);
 }
 
 .calendar-day-grid {
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));
-}
-
-.calendar-weekday-row {
-	padding: 0.45rem 0.5rem 0.3rem;
-	background: rgba(58, 45, 17, 0.1);
+	flex: 1;
+	grid-template-rows: repeat(6, minmax(0, 1fr));
+	min-height: 0;
+	gap: 0.2rem;
+	padding: 0.35rem 0.5rem 0.6rem;
 }
 
 .calendar-weekday-row span {
@@ -567,14 +599,6 @@ body {
 	color: #34210d;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-}
-
-.calendar-day-grid {
-	flex: 1;
-	grid-template-rows: repeat(6, minmax(0, 1fr));
-	min-height: 0;
-	gap: 0.2rem;
-	padding: 0.35rem 0.5rem 0.6rem;
 }
 
 .calendar-day-cell {
@@ -730,6 +754,7 @@ body {
 	position: absolute;
 	top: 12px;
 	right: 12px;
+	z-index: 2;
 	margin: 0;
 	padding: 0.55rem 1rem;
 	border: 2px solid rgba(255, 248, 190, 0.7);
@@ -945,9 +970,18 @@ body {
 	background: linear-gradient(180deg, rgba(244, 225, 174, 0.96), rgba(182, 139, 78, 0.96));
 	color: #2a1d0f;
 	z-index: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	scrollbar-gutter: stable;
 }
 
 .daily-menu-story-menu-panel h2 {
+	margin: 0 0 0.75rem;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+}
+
+.daily-menu-story-menu-panel h3 {
 	margin: 0 0 0.75rem;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1.5rem;

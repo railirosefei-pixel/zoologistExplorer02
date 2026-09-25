@@ -90,7 +90,7 @@ The generic test-runner API did not discover the repository's Node test files; t
 2026-09-24 12:58:32 -07:00
 The full npm run test:structure command reported 10 passing tests and one pre-existing CalendarView.vue page/container metadata failure; the focused CSS and button ownership audits passed all 5 tests.
 2026-09-24 13:06:54 -07:00
-No new errors or warnings were reported by the structure suite or browser verification after applying opaque full-panel submenu backgrounds.
+2026-09-25 10:44:35 -07:00 — Existing redundant region role retained; not modified.
 2026-09-24 14:09:14 -07:00
 The generic focused test runner did not discover tests/button-isolation.test.js; the repository-native npm run test:structure command passed all 11 tests.
 2026-09-24 14:25:25 -07:00
@@ -111,3 +111,11 @@ Duplicate-code remediation validation: ESLint completed with exit 0 reporting on
 Isolation-restoration validation reported no errors or warnings: structure suite passed 11/11, production build succeeded, and the focused Student sidebar Playwright checks passed 2/2.
 2026-09-25 10:44:35 -07:00
 Editor diagnostics retained the existing redundant explicit region role on the daily-menu section in CalendarView.vue; this was outside the TNT selector change and was not modified.
+2026-09-25 12:16:27 -07:00
+The generic test runner did not discover the Node audit; its native Node run passed. Initial Month regression attempts exposed an inaccessible day locator and a missing tab visibility binding; both were corrected before the focused browser test passed. Editor diagnostics retain the pre-existing redundant region role on the Daily menu section.
+2026-09-25 16:00:00 -07:00
+The generic test runner did not discover the Node audit file; the repository-native npm run test:structure command passed all 12 tests with no new errors or warnings.
+2026-09-25 16:05:00 -07:00
+The first active-Story Back-button browser check exposed the existing full-panel exit handler; a dedicated timeline-only handler corrected the behavior, and the final five-tab Playwright regression plus structure suite passed with no new errors.
+2026-09-25 14:05:11 -07:00
+Editor diagnostics retain the existing redundant explicit region role on the daily-menu section in src/components/CalendarView.vue; this was outside the timeline repeat-click handler change and was not modified.

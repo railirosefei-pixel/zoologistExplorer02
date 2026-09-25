@@ -97,7 +97,31 @@ test("Story is available on weekday daily menus from September 28 onward", async
 	await expect(page.getByRole("heading", { name: "Story" })).toBeVisible();
 });
 
-test("Selecting Story replaces the daily menu content and hides the menu text", async ({ page }) => {
+test("Story opens the Year tab by default", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+
+	await expect(page.locator("#daily-menu-story-panel")).toBeVisible();
+	await expect(page.getByRole("button", { name: "Year" })).toHaveAttribute(
+		"aria-selected",
+		"true",
+	);
+	await expect(page.locator("#daily-menu-story-tab-year")).toHaveClass(
+		/daily-menu-story-tab--active/,
+	);
+	await expect(page.locator(".daily-menu-story-menu-panel")).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Year" })).toBeVisible();
+});
+
+test("Selecting Story replaces the daily menu content and hides the menu text", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -121,7 +145,9 @@ test("Selecting Story replaces the daily menu content and hides the menu text", 
 	expect(widthDifference).toBeLessThanOrEqual(6);
 });
 
-test("Story screen keeps only one back button visible and returns one screen at a time", async ({ page }) => {
+test("Story screen keeps only one back button visible and returns one screen at a time", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -158,7 +184,9 @@ test("Story panel includes a back button that returns to the daily menu", async 
 	await expect(page.locator("#daily-menu-story-panel")).not.toBeVisible();
 });
 
-test("Story panel exposes Year, Quarter, Month, and Week tabs on the outer edge", async ({ page }) => {
+test("Story panel exposes Year, Quarter, Month, Week, and Day tabs on the outer edge", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -168,10 +196,18 @@ test("Story panel exposes Year, Quarter, Month, and Week tabs on the outer edge"
 	await septemberTwentyEight.click();
 	await page.getByRole("button", { name: "Story" }).click();
 
-	for (const tabName of ["Year", "Quarter", "Month", "Week"]) {
+	for (const tabName of ["Year", "Quarter", "Month", "Week", "Day"]) {
 		const tab = page.getByRole("button", { name: tabName });
 		await expect(tab).toBeVisible();
 	}
+
+	const tabLabels = await page.locator(".daily-menu-story-tab").allTextContents();
+	expect(tabLabels).toEqual(["Year", "Quarter", "Month", "Week", "Day"]);
+
+	await page.locator("#daily-menu-story-tab-day").click();
+	const dayPanel = page.getByRole("tabpanel", { name: "Day story menu" });
+	await expect(dayPanel.getByRole("heading", { name: "Theme" })).toBeVisible();
+	await expect(dayPanel.getByRole("heading", { name: "Story" })).toBeVisible();
 
 	const panelBox = await page.locator("#daily-menu-story-panel").boundingBox();
 	const yearTabBox = await page.getByRole("button", { name: "Year" }).boundingBox();
@@ -194,7 +230,7 @@ test("Story panel Theme header matches the Story header styling", async ({ page 
 	await page.getByRole("button", { name: "Story" }).click();
 
 	const themeHeading = page.locator("#daily-menu-story-panel h3");
-	const storyHeading = page.locator("#daily-menu-story-panel h2");
+	const storyHeading = page.locator("#daily-menu-story-panel h2", { hasText: "Story" });
 
 	await expect(themeHeading).toBeVisible();
 	await expect(storyHeading).toBeVisible();
@@ -210,7 +246,9 @@ test("Story panel Theme header matches the Story header styling", async ({ page 
 	expect(themeSize).toBe(storySize);
 });
 
-test("Story panel uses a right-aligned scrollbar when text exceeds the panel height", async ({ page }) => {
+test("Story panel uses a right-aligned scrollbar when text exceeds the panel height", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -220,17 +258,20 @@ test("Story panel uses a right-aligned scrollbar when text exceeds the panel hei
 	await septemberTwentyEight.click();
 	await page.getByRole("button", { name: "Story" }).click();
 
-	const storyPanel = page.locator("#daily-menu-story-panel");
-	await expect(storyPanel).toBeVisible();
-	await storyPanel.evaluate((element) => {
-		element.innerHTML = `
-			<h3>Theme</h3>
-			<p>Long story content.</p>
-			${Array.from({ length: 40 }, () => "<p>Story paragraph repeated to force vertical overflow in the panel to ensure the scrollbar can be used.</p>").join("")}
-		`;
+	const storyMenuPanel = page.locator(".daily-menu-story-menu-panel");
+	await expect(storyMenuPanel).toBeVisible();
+	await storyMenuPanel.evaluate((element) => {
+		element.insertAdjacentHTML(
+			"beforeend",
+			Array.from(
+				{ length: 40 },
+				() =>
+					"<p>Story paragraph repeated to force vertical overflow in the panel to ensure the scrollbar can be used.</p>",
+			).join(""),
+		);
 	});
 
-	const panelState = await storyPanel.evaluate((element) => {
+	const panelState = await storyMenuPanel.evaluate((element) => {
 		const styles = window.getComputedStyle(element);
 		return {
 			overflowY: styles.overflowY,
@@ -242,10 +283,12 @@ test("Story panel uses a right-aligned scrollbar when text exceeds the panel hei
 
 	expect(panelState.overflowY).toBe("auto");
 	expect(panelState.canScroll).toBe(true);
-	await storyPanel.evaluate((element) => {
+	await storyMenuPanel.evaluate((element) => {
 		element.scrollTop = element.scrollHeight;
 	});
-	await expect.poll(async () => await storyPanel.evaluate((element) => element.scrollTop > 0)).toBe(true);
+	await expect
+		.poll(async () => await storyMenuPanel.evaluate((element) => element.scrollTop > 0))
+		.toBe(true);
 });
 
 test("Leaving and reopening the calendar reapplies the TNT texture", async ({ page }) => {

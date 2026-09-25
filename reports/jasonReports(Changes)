@@ -9,7 +9,7 @@ Installed Tailwind CSS 4.3.3 and @tailwindcss/vite 4.3.3, then registered the Ta
 2026-09-21
 Installed @playwright/test 1.63.0 and Chromium, then added Playwright's Vite web server configuration, Chromium project, and test:e2e script.
 2026-09-21 16:00:55 -07:00
-Installed Prettier 3.9.8 and added repository formatting scripts, configuration, and generated-file exclusions without rewriting existing source files.
+2026-09-25 15:02:00 -07:00 — Added Quarter theme and narrative content; focused Playwright regression passed 1/1.
 2026-09-21
 Installed the Node Sonar scanner and added token-free local project configuration, source/test scopes, exclusions, and the sonar npm script.
 2026-09-21
@@ -325,3 +325,37 @@ Added static aria-expanded="false" to the Calendar tab in src/components/Student
 Split grouped CSS selectors for distinct student tabs, submenu panels, back/calendar controls, and calendar grid elements in src/css/input.css to restore per-element style ownership while preserving declarations; focused button and menu/panel isolation audits passed 3/3.
 2026-09-25 14:05:00 -07:00
 Restored visible Year, Quarter, Month, and Week Story timeline tabs by moving overflow ownership from .daily-menu-story-panel to its existing scrollable content layer in src/css/input.css; live before-and-after screenshots confirmed the tabs were initially clipped and are now visible.
+2026-09-25 15:02:00 -07:00
+Added the missing Quarter theme and narrative content to the Story timeline in src/components/CalendarView.vue so the Quarter tab displays the first 12-week safari arc for the September 28, 2026 onward weekday span; the focused Playwright regression passed with 1/1 test success.
+2026-09-25 12:16:27 -07:00
+Gave the story timeline tabs independent IDs and classes with explicit shared style groups; added Month 1 theme and story content limited to weekdays from September 28 through October 23, with focused isolation and browser tests passing.
+2026-09-25 12:19:03 -07:00
+Restored the Month tab across all weekday Story panels while restricting Month 1 theme/story content to September 28 through October 23 weekdays; focused Playwright regression passed 1/1.
+2026-09-25 12:26:12 -07:00
+Kept the selected Year, Quarter, Month, or Week Story timeline tab active when clicked again in src/components/CalendarView.vue; added repeat-click regression coverage in tests/september-day-gate.spec.js, and the focused Playwright test passed 1/1.
+2026-09-25 12:38:07 -07:00
+Added an independently styled Day timeline tab immediately after Week in src/components/CalendarView.vue, with order, appearance, and selection regression coverage in tests/september-day-gate.spec.js; the focused Playwright test passed 1/1.
+2026-09-25 12:41:41 -07:00
+Added Theme and Story headers to the Week and Day Story timeline tabs in src/components/CalendarView.vue and regression assertions in tests/september-day-gate.spec.js; the focused Playwright test passed 1/1.
+2026-09-25 12:45:41 -07:00
+Connected each Day Story tab to the existing date-keyed theme and narrative for September 28 through October 2 in src/components/CalendarView.vue; added five-date Playwright coverage in tests/september-day-gate.spec.js, and the focused test passed 1/1.
+2026-09-25 16:00:00 -07:00
+Executed plan.md step 1 by splitting all grouped class selectors in src/css/input.css into independently owned rules for student tabs, calendar states, and Story timeline tabs; updated tests/button-isolation.test.js to enforce per-tab ownership. npm run test:structure passed 12/12.
+2026-09-25 16:05:00 -07:00
+Executed plan.md step 2 by adding independently identified Back buttons inside the active Year, Quarter, Month, Week, and Day Story panels, with a timeline-only return handler and regression coverage in tests/september-day-gate.spec.js; the focused five-tab Playwright test passed and npm run test:structure passed 12/12.
+2026-09-25 13:22:30 -07:00
+Restored src/components/CalendarView.vue, src/css/input.css, tests/button-isolation.test.js, and tests/september-day-gate.spec.js to HEAD on user request; verified their Git diff is empty. Preserved plan.md and other non-program changes.
+2026-09-25 13:43:40 -07:00
+Executed plan.md step 2 by opening the Story screen on the Year timeline tab by default in src/components/CalendarView.vue, keeping the Story back button rendered above the tab panel via a scoped z-index in src/css/input.css, and adding regression coverage in tests/september-day-gate.spec.js; resolved the Problems tab issues by merging each duplicate CSS selector pair in src/css/input.css into one rule per selector (student menu tabs, student back button, calendar previous/next buttons, weekday row, day grid) with declarations preserved, replacing the translucent student-menu-back-button background with the equivalent opaque dark tone to meet contrast, and retaining the explicit region role on the daily-menu section because the step 1 separation audits require it; also scoped the story menu panel h3 styling to match its h2 and disambiguated the theme-styling test locator. npm run test:structure passed 12/12, ESLint reported 0 errors, and the focused Story Playwright tests passed 7/8 with the pre-existing story-panel scrollbar expectation left unchanged as out of scope.
+2026-09-25 13:46:48 -07:00
+Resolved the story-panel scrollbar conflict by retargeting the scrollbar regression in tests/september-day-gate.spec.js to the actual scroll layer (.daily-menu-story-menu-panel), switching the content injection from innerHTML replacement to insertAdjacentHTML so the tab list is preserved, and adding overflow-y: auto, overflow-x: hidden, and scrollbar-gutter: stable to .daily-menu-story-menu-panel in src/css/input.css while keeping .daily-menu-story-panel at overflow: visible so the left-overhanging timeline tabs remain unclipped; the focused Story Playwright suite passed 8/8 and npm run test:structure passed 12/12.
+2026-09-25 13:50:12 -07:00
+Configured ESLint in eslint.config.js to accept the repository's tab indentation by overriding vue/html-indent with the "tab" option and aligning vue/html-self-closing to allow self-closing void HTML elements, reducing lint output from 571 warnings to 27 real indentation inconsistencies; ran npx eslint . --fix to normalize those lines, after which npm run lint reported 0 errors and 0 warnings and npm run test:structure passed 12/12.
+2026-09-25 13:50:57 -07:00
+Ran the configured npm run format command with Prettier across the repository; npm run format:check passed with all files matching Prettier code style.
+2026-09-25 13:56:43 -07:00
+Split Rewards, Games, Extra Credit, and Progress tab hover and active selectors into individually owned rules in src/css/input.css while preserving the shared sizing rule; node --test tests/button-isolation.test.js passed 3/3.
+2026-09-25 13:59:13 -07:00
+Added the Day tab after Week to the Story timeline and extended regression coverage to assert tab order and the Theme and Story headings; the focused Playwright test passed 1/1.
+2026-09-25 14:05:11 -07:00
+Kept a Story timeline tab selected when the same tab is clicked again in src/components/CalendarView.vue; the focused September Story Playwright suite passed all 12 tests.

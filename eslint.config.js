@@ -26,6 +26,15 @@ export default [
 					varsIgnorePattern: "^_",
 				},
 			],
+			"vue/html-indent": ["warn", "tab"],
+			"vue/html-self-closing": [
+				"warn",
+				{
+					html: {
+						void: "always",
+					},
+				},
+			],
 		},
 	},
 ];

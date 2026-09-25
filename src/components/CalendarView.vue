@@ -13,7 +13,7 @@ import septemberDayTexture from "../../assets/textures/minecraftTNT.webp";
 import CalendarMonthCard from "./CalendarMonthCard.vue";
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const storyTimelineTabs = ["Year", "Quarter", "Month", "Week"];
+const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
 const calendarMonths = Array.from({ length: 16 }, (_, index) => {
 	const monthDate = new Date(2026, 8 + index, 1);
 	const monthName = monthDate.toLocaleString("en-US", { month: "long" });
@@ -59,7 +59,7 @@ const explosionTextureHideDelayMs = 450;
 const september28StoryTheme = "The Journey to the Watering Hole";
 const september28StoryParagraphs = [
 	'Towering above you, the giraffes stretch so high their heads seem to touch the clouds! You pause to count them: "1... 2... 3... 4..."—a complete herd of 15 giraffes. It is an amazing sight, but you keep your eyes on the quest. "My name is Raili Rose," you announce, stepping forward. "I\'ve come to help you. I overheard you whispering about your lion troubles. Tell me what you need."',
-	'"Too many troubles to count, I\'m afraid," whispers the tallest and oldest giraffe with a heavy sigh. "Lions are driving us from the land our families have lived on for generations. I don\'t know if even an explorer like you can help... but our calves haven\'t had any food or water in a day. We can\'t risk visiting the watering hole with the pride hunting us. If you can help us find water, we will be forever grateful."',
+	"\"Too many troubles to count, I'm afraid,\" whispers the tallest and oldest giraffe with a heavy sigh. \"Lions are driving us from the land our families have lived on for generations. I don't know if even an explorer like you can help... but our calves haven't had any food or water in a day. We can't risk visiting the watering hole with the pride hunting us. If you can help us find water, we will be forever grateful.\"",
 	'Suddenly, a warm glow hums from your vest pocket. You pull out your journal as its pages flutter wildly, snapping open to an exact map of the savanna around you. Before you can blink, a bright red dot pulses right where your boots hit the dirt. A crisp red line zips out from the dot, curling off to the right before locking in place beside clean, glowing text: 1027 ft. "The dot marks where I\'m standing," you realize, tracing the glowing path. "And that red line leads straight to another watering hole!" You look up at the herd with total confidence. "I know where to go. Follow me—it\'s not too far away." With no other choice, the giraffes place their trust in you, lining up single file to match your stride across the plains.',
 ];
 const september29StoryTheme = "The Journey to Acacia Grove";
@@ -76,7 +76,7 @@ const september30StoryParagraphs = [
 	'"No way!" you say, planting your feet. "This grove is perfect. You have cool water and all the food you could ever want. We have to stand our ground!"',
 	'"Stand our ground? How?" the elder dips his head. "We are only giraffes. We can\'t fight a pride of lions. We never could." Suddenly, a warm glow pulses against your ribs. You reach into your vest pocket and pull out your journal. The pages flutter open like rapid wings, snapping to a stop at a glowing illustration: the steep canyon pass you traveled through earlier today. Perched on the cliff high above the narrow canyon trail sits a massive pile of loose boulders. Like an animated clip, the ink moves across the paper. The boulders tip over the cliff\'s edge, crashing into the narrow gap below and slamming the trail completely shut.',
 	'"That\'s it!" you whisper, eyes wide. "If we hike up that winding cliff path and shove those boulders down into the canyon, it will seal the gap! The lions won\'t be able to get through!"',
-	'"Our legs are far too long and clumsy for a ledge that narrow. We\'d fall. But we can\'t lose our new home, either. I don\'t know what to do," the oldest giraffe says.',
+	"\"Our legs are far too long and clumsy for a ledge that narrow. We'd fall. But we can't lose our new home, either. I don't know what to do,\" the oldest giraffe says.",
 	'You square your shoulders, stand tall, and smile. "Leave the climbing to me," you say proudly. "We made it this far, and I\'m not quitting now!"',
 ];
 const october1StoryTheme = "The Float of Crocodiles";
@@ -85,28 +85,28 @@ const october1StoryParagraphs = [
 	'"I\'m just glad I could help," you say, grinning. "I\'ve learned so much about you and your herd! That\'s all the thanks I need."',
 	'The elder tilts his head toward the sunset. "How about one last cool drink before dark? Would you like a ride?"',
 	'"A ride on a giraffe? Yes, please!"',
-	'The elder bends his knobby knees like a folding crane. You grab his warm, patterned neck, swing your leg over, and settle onto his back. With a smooth sway, he rises into the air. Suddenly, you are gazing across the entire savanna from high in the air. The view is breathtakingly beautiful. The herd trots toward the watering hole. But as you reach the ridge, the giraffes come to a dead stop.',
+	"The elder bends his knobby knees like a folding crane. You grab his warm, patterned neck, swing your leg over, and settle onto his back. With a smooth sway, he rises into the air. Suddenly, you are gazing across the entire savanna from high in the air. The view is breathtakingly beautiful. The herd trots toward the watering hole. But as you reach the ridge, the giraffes come to a dead stop.",
 	'"Do you smell that?" the elder murmurs, his ears pinning back flat. A mother giraffe shivers. "Oh no... crocodiles!"',
 	'"Crocodiles?" you ask, scanning the muddy banks. "Out here?"',
 	'"They lurk in the shallows," the elder groans. "If they take over the pool, we can\'t drink. What are we going to do?"',
-	'A bright golden light flares inside your vest. You pull out your journal. The pages rustle open to a glowing map of the valley. Right over the watering hole pulses a bright red dot. From that dot, a glowing red line traces across the grassland, pointing directly to a new symbol: a carved icon of a hippopotamus. The journal has a plan.',
+	"A bright golden light flares inside your vest. You pull out your journal. The pages rustle open to a glowing map of the valley. Right over the watering hole pulses a bright red dot. From that dot, a glowing red line traces across the grassland, pointing directly to a new symbol: a carved icon of a hippopotamus. The journal has a plan.",
 	'"Follow me!" you call out from high on the elder\'s back, pointing toward the western bend. "We\'re going to get your water back!" You guide the herd through the tall grass until the earth begins to vibrate. There, lounging in the muddy riverbank, is a pod of hippos. School textbooks showed pictures, but they never prepared you for this. These beasts are massive, gray river boulders weighing thousands of pounds each.',
-	'The giraffes freeze. The hippos halt and swivel their heads. Dozens of tiny ears twitch. Heavy, dark eyes lock onto your herd.',
+	"The giraffes freeze. The hippos halt and swivel their heads. Dozens of tiny ears twitch. Heavy, dark eyes lock onto your herd.",
 	'The journal pulses again, sending a warm hum through your fingers. Suddenly, the grunts and rumbles of the hippos turn into words you can clearly understand! "Why are giraffes invading our river?" one hippo grunts to another. "The whole herd is here."',
 	'"Relax," another snorts, blowing river water from his snout. "They eat leaves. They aren\'t a threat to us." The pod mutters in a rumbling wave of voices until the largest hippo of all emerges from the deep water. He rises like an island, water cascading off his wide shoulders. He stomps up the bank, his deep growl vibrating right through your ribs.',
 	'"State your business," he rumbles. "We are peaceful creatures, and we like our quiet."',
-	'Your stomach does a flip. Your hands want to shake. But you are Master Explorer Raili Rose. You sit up straight on the giraffe\'s back, pull your shoulders back, and speak with a steady voice:',
+	"Your stomach does a flip. Your hands want to shake. But you are Master Explorer Raili Rose. You sit up straight on the giraffe's back, pull your shoulders back, and speak with a steady voice:",
 	'"Forgive the interruption, sir. We need your help. We escaped a pride of lions and sealed the canyon pass, but now crocodiles have invaded our watering hole. The giraffes have nowhere else to drink."',
 	'The giant hippo blinks his heavy eyelids. "The pool right downriver?"',
 	'"Yes," the giraffe elder answers softly. "We cannot fight them alone. Can you help us?"',
-	'The hippos turn and murmur together in a quick, low rumble. A moment later, the giant leader steps forward, snapping his massive jaws shut with a solid THUD.',
+	"The hippos turn and murmur together in a quick, low rumble. A moment later, the giant leader steps forward, snapping his massive jaws shut with a solid THUD.",
 	'"We can," the leader grumbles. "The savanna fears crocodiles, but we do not. The crocodiles fear us. They know we never tolerate them in our water. Lead the way, Explorer. Let\'s go have a word with these crocs."',
 ];
 const october2StoryTheme = "The Towering Acacia Clinic";
 const october2StoryParagraphs = [
 	'After a day of victory celebrations, exhaustion hits you all at once. You whisper "goodnight" to your gentle giraffe friends and curl up inside a cozy rock hollow near the acacia grove.',
-	'Cough! Hack! Achoo!',
-	'You snap awake in the pitch-dark. Grabbing your lantern, you sweep the beam across the tall grass. There, shivering and sniffling on the ground, are the two youngest calves.',
+	"Cough! Hack! Achoo!",
+	"You snap awake in the pitch-dark. Grabbing your lantern, you sweep the beam across the tall grass. There, shivering and sniffling on the ground, are the two youngest calves.",
 	'"We\'re sick," both calves groan at the exact same time.',
 	'"My head is pounding," one whines.',
 	'"My chest hurts," whimpers the other.',
@@ -118,22 +118,22 @@ const october2StoryParagraphs = [
 	'The first calf drops his chin to his chest. "We found some berry bushes hidden behind the rocks where Raili Rose was sleeping. They tasted bitter and sour... but we ate them anyway."',
 	'"Boys! You know you cannot eat strange plants!" The mother\'s frustration instantly melts into pure panic.',
 	'"Don\'t worry, I\'m on it," you say, lifting your lantern. "Let me inspect those bushes."',
-	'You dash behind the rock formation. Sure enough, tangled against the cliff wall is a thorny bush covered in dark, glossy berries. Suddenly, your vest pocket flares with a bright golden glow. You slide out your magical journal. The pages flutter furiously, snapping to a stop on an ultra-zoomed map of the exact ground beneath your boots.',
+	"You dash behind the rock formation. Sure enough, tangled against the cliff wall is a thorny bush covered in dark, glossy berries. Suddenly, your vest pocket flares with a bright golden glow. You slide out your magical journal. The pages flutter furiously, snapping to a stop on an ultra-zoomed map of the exact ground beneath your boots.",
 	'Suddenly, a glowing red skull-and-crossbones stamps itself directly over the berry bushes. "Poisonous!", you say loudly in your own head. Then, a luminous red line traces away from the toxic bushes, weaving across the savanna until it locks onto a new icon: a carved sprig of medicinal leaves.',
 	'"Healing herbs," you whisper. "The journal has the cure!"',
-	'You sprint along the glowing trail until you reach a hidden clearing overflowing with wild herbs—velvety mint, silvery roots, and leafy green stalks. You harvest thick bundles of each kind, stuffing your explorer pack until it bulges.',
-	'Sprinting back to the grove, you find the mother curled protectively around her calves, fast asleep from exhaustion. But the little ones are still wide awake, trembling and miserable. You check the journal\'s glowing illustration, pick out the exact matching green leaves from your bag, and kneel down.',
+	"You sprint along the glowing trail until you reach a hidden clearing overflowing with wild herbs—velvety mint, silvery roots, and leafy green stalks. You harvest thick bundles of each kind, stuffing your explorer pack until it bulges.",
+	"Sprinting back to the grove, you find the mother curled protectively around her calves, fast asleep from exhaustion. But the little ones are still wide awake, trembling and miserable. You check the journal's glowing illustration, pick out the exact matching green leaves from your bag, and kneel down.",
 	'"Here, little guys," you whisper gently. "Chew on these. They are healing herbs. They will cure your stomachache."',
 	'One calf pulls his head back, his dark eyes nervous. "Are you sure? The last strange thing we ate made our bellies feel like fire."',
 	'"I know it\'s scary," you say with a warm, steady smile. "But I need you to trust me. This is medicine. It will make you feel better."',
-	'Slowly, both calves take the leafy stems from your hands. They chew silently, their faces instantly twisting into expressions of pure disgust—ears twitching, tongues curling.',
-	'You stifle a giggle. You remember having to swallow bitter medicine whenever you caught a bad cold. Medicine never tastes good, but it does the trick.',
-	'Hopeful that the young calves will recover from their sickness, you curl back up into your cozy rock hollow and quickly fall asleep.',
+	"Slowly, both calves take the leafy stems from your hands. They chew silently, their faces instantly twisting into expressions of pure disgust—ears twitching, tongues curling.",
+	"You stifle a giggle. You remember having to swallow bitter medicine whenever you caught a bad cold. Medicine never tastes good, but it does the trick.",
+	"Hopeful that the young calves will recover from their sickness, you curl back up into your cozy rock hollow and quickly fall asleep.",
 	'Bright sunlight wakes you to joyful thumping. The two calves are zooming in energetic circles around your boulder, kicking their knobby legs high in a rowdy game of tag! "Raili Rose! Raili Rose!" they squeal, barreling over and talking over each other. "We feel great! Our stomachs don\'t hurt at all! In fact, we\'ve never felt better in our whole lives!"',
 	'Their mother strides over with long, graceful steps. "Calm down, boys. Raili Rose just woke up—give our Master Explorer some space."',
 	'She bows her head down to yours, her eyes shining with warmth. "Thank you, Raili Rose. You saved my children. I only wish we had a way to store these healing herbs year-round, so we always have medicine on hand for whenever curious calves get into trouble."',
-	'The journal bursts into a brilliant white-and-gold glow right in your pocket. You snap it open. This time, it isn\'t a map at all. It is an illustrated herbal field guide! Every single plant from the meadow is sketched in vivid detail, accompanied by exact notes showing which illness, fever, or sting it treats.',
-	'Whoosh. The page turns by itself. Across the fresh page is a detailed blueprint: sturdy wooden storage boxes strapped high into the sturdy branches of an acacia tree, each labeled for a different healing herb. A savanna apothecary! You grin up at the towering branches. You know exactly what to build.',
+	"The journal bursts into a brilliant white-and-gold glow right in your pocket. You snap it open. This time, it isn't a map at all. It is an illustrated herbal field guide! Every single plant from the meadow is sketched in vivid detail, accompanied by exact notes showing which illness, fever, or sting it treats.",
+	"Whoosh. The page turns by itself. Across the fresh page is a detailed blueprint: sturdy wooden storage boxes strapped high into the sturdy branches of an acacia tree, each labeled for a different healing herb. A savanna apothecary! You grin up at the towering branches. You know exactly what to build.",
 ];
 
 /** Story content lookup keyed by the selected daily menu date label. */
@@ -184,6 +184,10 @@ function handleDailyMenuClose() {
 
 function handleDailyMenuSubjectSelection(subject) {
 	selectedDailyMenuSubject.value = subject;
+	if (subject === "story") {
+		activeStoryTimelineTab.value = "Year";
+		return;
+	}
 	activeStoryTimelineTab.value = null;
 }
 
@@ -193,8 +197,10 @@ function handleStoryPanelBack() {
 }
 
 function handleStoryTimelineTabSelection(tabName) {
-	activeStoryTimelineTab.value =
-		activeStoryTimelineTab.value === tabName ? null : tabName;
+	if (activeStoryTimelineTab.value === tabName) {
+		return;
+	}
+	activeStoryTimelineTab.value = tabName;
 }
 
 function isStoryButtonAvailable() {
@@ -202,7 +208,9 @@ function isStoryButtonAvailable() {
 		return false;
 	}
 
-	const match = selectedDailyMenuDateLabel.value.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/);
+	const match = selectedDailyMenuDateLabel.value.match(
+		/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/,
+	);
 	if (!match) {
 		return false;
 	}
@@ -393,7 +401,9 @@ onBeforeUnmount(clearDayCellExplosion);
 				>
 					Back
 				</button>
-				<p v-if="selectedDailyMenuSubject !== 'story'" class="daily-menu-date">{{ selectedDailyMenuDateLabel }}</p>
+				<p v-if="selectedDailyMenuSubject !== 'story'" class="daily-menu-date">
+					{{ selectedDailyMenuDateLabel }}
+				</p>
 				<nav
 					v-if="selectedDailyMenuSubject !== 'story'"
 					id="daily-menu-subject-navigation"
@@ -467,7 +477,10 @@ onBeforeUnmount(clearDayCellExplosion);
 				<div
 					:class="[
 						'daily-menu-subject-panel-stack',
-						{ 'daily-menu-subject-panel-stack--story': selectedDailyMenuSubject === 'story' },
+						{
+							'daily-menu-subject-panel-stack--story':
+								selectedDailyMenuSubject === 'story',
+						},
 					]"
 				>
 					<article
@@ -494,17 +507,31 @@ onBeforeUnmount(clearDayCellExplosion);
 							>
 								<button
 									v-for="storyTab in storyTimelineTabs"
-									:key="storyTab"
 									:id="`daily-menu-story-tab-${storyTab.toLowerCase()}`"
+									:key="storyTab"
 									type="button"
 									class="daily-menu-story-tab"
-									:class="{ 'daily-menu-story-tab--active': activeStoryTimelineTab === storyTab }"
+									:class="{
+										'daily-menu-story-tab--active':
+											activeStoryTimelineTab === storyTab,
+									}"
 									:aria-selected="activeStoryTimelineTab === storyTab"
 									@click="handleStoryTimelineTabSelection(storyTab)"
 								>
 									{{ storyTab }}
 								</button>
 							</div>
+							<button
+								v-if="selectedDailyMenuSubject === 'story'"
+								id="daily-menu-story-back-button"
+								class="daily-menu-story-back-button"
+								type="button"
+								aria-label="Back to daily menu"
+								title="Back to daily menu"
+								@click="handleStoryPanelBack"
+							>
+								Back
+							</button>
 							<div
 								v-if="activeStoryTimelineTab"
 								class="daily-menu-story-menu-panel"
@@ -516,22 +543,16 @@ onBeforeUnmount(clearDayCellExplosion);
 								<h2>Story</h2>
 							</div>
 							<div v-else class="daily-menu-story-content">
-								<button
-									v-if="selectedDailyMenuSubject === 'story' && !activeStoryTimelineTab"
-									id="daily-menu-story-back-button"
-									class="daily-menu-story-back-button"
-									type="button"
-									aria-label="Back to daily menu"
-									title="Back to daily menu"
-									@click="handleStoryPanelBack"
-								>
-									Back
-								</button>
 								<h3>Theme</h3>
-								<p v-if="selectedStoryContent">{{ selectedStoryContent.theme }}</p>
+								<p v-if="selectedStoryContent">
+									{{ selectedStoryContent.theme }}
+								</p>
 								<h2>Story</h2>
 								<template v-if="selectedStoryContent">
-									<p v-for="paragraph in selectedStoryContent.paragraphs" :key="paragraph">
+									<p
+										v-for="paragraph in selectedStoryContent.paragraphs"
+										:key="paragraph"
+									>
 										{{ paragraph }}
 									</p>
 								</template>
@@ -586,10 +607,10 @@ onBeforeUnmount(clearDayCellExplosion);
 }
 
 :deep(
-		.calendar-day-cell--current-month:not(.calendar-day-cell--texture-suppressed):not(
+	.calendar-day-cell--current-month:not(.calendar-day-cell--texture-suppressed):not(
 			.calendar-day-cell--exploding
 		)
-	) {
+) {
 	background-image: v-bind(calendarDayImage);
 }
 </style>
