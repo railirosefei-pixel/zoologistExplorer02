@@ -1,16 +1,9 @@
 /** Home view for the student entry point and its background pipeline. */
 <script setup>
-import { onMounted } from "vue";
 import homePageBackground from "../../assets/images/backgrounds/vetClinicNight.webp";
 
 const emit = defineEmits(["open-student-menu"]);
-
-onMounted(() => {
-	document.documentElement.style.setProperty(
-		"--home-page-background-image",
-		`url("${homePageBackground}")`,
-	);
-});
+const homePageBackgroundImage = `url("${homePageBackground}")`;
 
 /** Audio feedback pipeline boundary for home navigation. */
 function playAudioFeedback() {
@@ -83,3 +76,9 @@ function handleHomeNavigation() {
 		</section>
 	</main>
 </template>
+
+<style scoped>
+.home-page-shell {
+	background-image: v-bind(homePageBackgroundImage);
+}
+</style>

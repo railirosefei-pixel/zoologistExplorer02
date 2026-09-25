@@ -38,22 +38,20 @@ function handleCalendarTabOpen() {
 		title="Student menu"
 		data-page-name="student-menu-page"
 	>
-		<button
-			id="student-menu-back-button"
-			class="student-menu-back-button"
-			type="button"
-			name="student-menu-back-button"
-			data-button-name="student-menu-back-button"
-			aria-label="Back to home page"
-			title="Back to home page"
-			@click="handleStudentMenuClose"
-		>
-			Back
-		</button>
-		<StudentNavigation
-			@open-calendar="handleCalendarTabOpen"
-			@close-student-menu="handleStudentMenuClose"
-		/>
+		<StudentNavigation @open-calendar="handleCalendarTabOpen">
+			<button
+				id="student-menu-back-button"
+				class="student-menu-back-button"
+				type="button"
+				name="student-menu-back-button"
+				data-button-name="student-menu-back-button"
+				aria-label="Back to home page"
+				title="Back to home page"
+				@click="handleStudentMenuClose"
+			>
+				Back
+			</button>
+		</StudentNavigation>
 
 		<section
 			id="student-menu-content"

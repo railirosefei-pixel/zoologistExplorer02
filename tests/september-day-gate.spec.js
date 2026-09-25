@@ -97,6 +97,157 @@ test("Story is available on weekday daily menus from September 28 onward", async
 	await expect(page.getByRole("heading", { name: "Story" })).toBeVisible();
 });
 
+test("Selecting Story replaces the daily menu content and hides the menu text", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+
+	await expect(page.locator("#daily-menu-story-panel")).toBeVisible();
+	await expect(page.locator("#daily-menu-subject-navigation")).not.toBeVisible();
+	await expect(page.getByRole("heading", { name: "Daily Menu" })).not.toBeVisible();
+	await expect(page.locator(".daily-menu-date")).not.toBeVisible();
+
+	const storyPanelBox = await page.locator("#daily-menu-story-panel").boundingBox();
+	const dailyContentBox = await page.locator(".daily-menu-content").boundingBox();
+	if (!storyPanelBox || !dailyContentBox) {
+		test.fail("Daily menu layout boxes were not available for story-panel validation.");
+	}
+	const widthDifference = Math.abs(storyPanelBox.width - dailyContentBox.width);
+	expect(widthDifference).toBeLessThanOrEqual(6);
+});
+
+test("Story screen keeps only one back button visible and returns one screen at a time", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+
+	await expect(page.locator("#daily-menu-back-button")).toHaveCount(0);
+	await expect(page.locator("#daily-menu-story-back-button")).toBeVisible();
+
+	await page.locator("#daily-menu-story-back-button").click();
+	await expect(page.locator("#daily-menu-subject-navigation")).toBeVisible();
+	await expect(page.locator("#daily-menu-story-panel")).not.toBeVisible();
+	await expect(page.getByRole("button", { name: "Back to calendar" })).toBeVisible();
+	await page.getByRole("button", { name: "Back to calendar" }).click();
+	await expect(page.locator("#daily-menu-panel")).not.toBeVisible();
+});
+
+test("Story panel includes a back button that returns to the daily menu", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+
+	await expect(page.locator("#daily-menu-story-back-button")).toBeVisible();
+	await page.locator("#daily-menu-story-back-button").click();
+	await expect(page.locator("#daily-menu-subject-navigation")).toBeVisible();
+	await expect(page.locator("#daily-menu-story-panel")).not.toBeVisible();
+});
+
+test("Story panel exposes Year, Quarter, Month, and Week tabs on the outer edge", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+
+	for (const tabName of ["Year", "Quarter", "Month", "Week"]) {
+		const tab = page.getByRole("button", { name: tabName });
+		await expect(tab).toBeVisible();
+	}
+
+	const panelBox = await page.locator("#daily-menu-story-panel").boundingBox();
+	const yearTabBox = await page.getByRole("button", { name: "Year" }).boundingBox();
+
+	if (!panelBox || !yearTabBox) {
+		test.fail("Story panel and tab geometry were not available for validation.");
+	}
+
+	expect(yearTabBox.x + yearTabBox.width).toBeLessThanOrEqual(panelBox.x + 4);
+});
+
+test("Story panel Theme header matches the Story header styling", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+
+	const themeHeading = page.locator("#daily-menu-story-panel h3");
+	const storyHeading = page.locator("#daily-menu-story-panel h2");
+
+	await expect(themeHeading).toBeVisible();
+	await expect(storyHeading).toBeVisible();
+
+	const [themeStyle, storyStyle, themeSize, storySize] = await Promise.all([
+		themeHeading.evaluate((element) => getComputedStyle(element).fontFamily),
+		storyHeading.evaluate((element) => getComputedStyle(element).fontFamily),
+		themeHeading.evaluate((element) => getComputedStyle(element).fontSize),
+		storyHeading.evaluate((element) => getComputedStyle(element).fontSize),
+	]);
+
+	expect(themeStyle).toBe(storyStyle);
+	expect(themeSize).toBe(storySize);
+});
+
+test("Story panel uses a right-aligned scrollbar when text exceeds the panel height", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+
+	const storyPanel = page.locator("#daily-menu-story-panel");
+	await expect(storyPanel).toBeVisible();
+	await storyPanel.evaluate((element) => {
+		element.innerHTML = `
+			<h3>Theme</h3>
+			<p>Long story content.</p>
+			${Array.from({ length: 40 }, () => "<p>Story paragraph repeated to force vertical overflow in the panel to ensure the scrollbar can be used.</p>").join("")}
+		`;
+	});
+
+	const panelState = await storyPanel.evaluate((element) => {
+		const styles = window.getComputedStyle(element);
+		return {
+			overflowY: styles.overflowY,
+			scrollHeight: element.scrollHeight,
+			clientHeight: element.clientHeight,
+			canScroll: element.scrollHeight > element.clientHeight,
+		};
+	});
+
+	expect(panelState.overflowY).toBe("auto");
+	expect(panelState.canScroll).toBe(true);
+	await storyPanel.evaluate((element) => {
+		element.scrollTop = element.scrollHeight;
+	});
+	await expect.poll(async () => await storyPanel.evaluate((element) => element.scrollTop > 0)).toBe(true);
+});
+
 test("Leaving and reopening the calendar reapplies the TNT texture", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();

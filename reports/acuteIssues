@@ -1,13 +1,1 @@
-Hypothesis 1.) The frontend is structurally organized, but its event and state pipelines are not yet verified at each handoff.
 
-A.) Add a dedicated pipeline behavior spec at tests/pipeline.spec.js instead of expanding structural audits. Verify HomeView open-student-menu -> App state -> StudentNavigation/CalendarView rendering, and close-student-menu -> home rendering.
-B.) Verify CalendarView month navigation in both directions, including wraparound across the 16-month range and clearing an active day-cell animation when the month changes.
-C.) Verify day-cell guards and timing as observable states: a valid September cell starts the explosion, the replacement appears after the transition, the animation finishes, and empty or non-September cells do nothing. Use state-based Playwright assertions with bounded timeouts instead of exact timer sleeps.
-D.) Keep each pipeline test named after one handoff or state transition so a failure identifies the owning boundary immediately. Run the focused pipeline spec, then the existing structure suite and build.
-
-Hypothesis 2.) CalendarView currently owns calendar data generation, visual-theme synchronization, month state, event translation, and animation cleanup; splitting it immediately would add wiring before a failing ownership boundary is demonstrated.
-A.) Do not refactor CalendarView before the behavior tests establish which responsibility is difficult to diagnose or change.
-B.) If the tests expose a real boundary, extract one responsibility at a time, starting with the pure calendar-month model, then theme synchronization, then day-cell animation lifecycle. Preserve the existing props and emitted events at each step.
-C.) Re-run the focused pipeline behavior test after every extraction, followed by the relevant static audit and production build. Keep assets excluded from stale, duplicate, and consistency searches.
-
-Recommendation.) The next implementation step should be the focused pipeline behavior spec. Refactoring CalendarView should follow only when that test evidence identifies a concrete ownership problem; the current structure and passing build do not justify a broad rewrite.

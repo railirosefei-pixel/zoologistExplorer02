@@ -118,6 +118,8 @@ Changed only the actual calendar month card width in src/css/input.css to create
 Changed only the individual calendar day cells in src/css/input.css to remove their fixed minimum height so they can fit the existing calendar; npm run build and the focused smoke tests passed.
 2026-09-22 13:55:28 -07:00
 Enlarged the individual calendar day boxes in src/css/input.css so six equal rows fill the existing calendar height; npm run build and the focused smoke tests passed.
+2026-09-25 08:23:52 -07:00
+Removed the empty daily-menu-story-button rule and added isolated custom-property style ownership for the story, math, language arts, social studies, science, and art subject buttons in src/css/input.css; the focused button isolation test passed.
 2026-09-22 14:11:00 -07:00
 Set the single-month calendar card gap to an explicit 16px bottom margin in src/css/input.css so the calendar sits 16px above the container's inside bottom edge; the production build succeeded.
 2026-09-22 14:18:00 -07:00
@@ -236,6 +238,8 @@ Widened the shared current-month calendar day-number box in src/css/input.css fr
 2026-09-23 15:17:55 -07:00 - Authorized change: added transform: translateY(12px); to .daily-menu-subject-grid > button in src/css/input.css, lowering the five daily-menu subject buttons.
 2026-09-23 15:20:47 -07:00 - Authorized change: .daily-menu-subject-grid > button in src/css/input.css was changed from translateY(12px) to translateY(24px) for the second visual attempt, lowering the row an additional 12px.
 2026-09-23 15:26:13 -07:00 - Completed plan steps: removed the visible Daily Menu heading from src/components/CalendarView.vue; moved the daily-menu date before the subject navigation; changed .daily-menu-date margin in src/css/input.css to place it between the content top and subject buttons.
+2026-09-25 10:44:35 -07:00 - Updated the scoped CalendarView TNT background selector to exclude texture-suppressed and completed replacement cells, preventing the TNT texture from reappearing behind colored replacements; the focused calendar Playwright spec passed 11 tests.
+2026-09-25 10:42:57 -07:00 - Updated tests/vue-audit.test.js to recognize the scoped home-* and calendar-* CSS ownership namespaces; npm run test:structure passed 11 tests.
 2026-09-23 15:26:46 -07:00 - Authorized cleanup: removed the now-unused .daily-menu-heading CSS rule from src/css/input.css after removing the heading markup, restoring the button-isolation audit.
 2026-09-23 15:43:13 -07:00 - Adjusted daily-menu Back button to 12px from panel top/right edges and verified live geometry in Vite preview.
 2026-09-25 05:20:32 -07:00 - Moved the existing Story button to the first position in the weekday Daily menu subject navigation in src/components/CalendarView.vue; the focused Story availability Playwright test passed.
@@ -287,3 +291,37 @@ Added the Theme heading and September 28 Story theme and narrative to the date-g
 Added the September 29 Story theme "The Journey to Acacia Grove" and narrative to the date-gated Story panel in src/components/CalendarView.vue; the focused Story Playwright test and production build passed with no warnings or errors.
 2026-09-25 05:58:32 -07:00
 Added the Day 3 through Day 5 Story themes and narratives for September 30 through October 2 to the date-gated Story panel in src/components/CalendarView.vue; the production build and focused Story Playwright test passed with no warnings or errors.
+2026-09-25 13:58:00 -07:00
+Moved Story content scrolling from the outer panel to its content layer in src/css/input.css so the Year, Quarter, Month, and Week tabs can extend visibly beyond the panel edge; before-and-after screenshots and live geometry confirmed all four tabs are visible and each opens its corresponding menu.
+2026-09-25 07:01:32 -07:00
+Removed the date and instructional paragraphs from the active Year, Quarter, Month, and Week story tab panel in src/components/CalendarView.vue so each tab panel retains only its matching header; the focused Story-panel Playwright test passed.
+2026-09-25 07:12:43 -07:00
+Added Theme and Story headers to the active Year, Quarter, Month, and Week story tab panels in src/components/CalendarView.vue; the focused Story-panel Playwright test passed.
+2026-09-25 07:38:17 -07:00
+Removed unnecessary duplicate code across the calendar and student navigation pipeline: deleted the duplicated September day-cell gate from src/components/CalendarView.vue and src/components/CalendarMonthCard.vue along with its is-tnt-function-disabled prop in src/components/DayCellInteraction.vue; made src/components/HomeView.vue the sole owner of the home page background variable and removed the redundant immediate-watch duplicate call; merged the previous and next month handlers into handleMonthSelectionOffset; replaced the five repeated Story theme and paragraph template blocks with a selectedStoryContent lookup; collapsed the four repeated Student submenu articles into one data-driven article in src/components/StudentNavigation.vue; merged identically declared submenu, tab, back-button, and subject-heading rules, removed the empty daily-menu-story-button rule and the always-overridden justify-self declaration in src/css/input.css; and added stable ids plus a literal type attribute to the Story timeline tab buttons. npm run test passed (lint 0 errors, structure 11/11, assets 1/1), npm run build succeeded, and the focused Playwright suites passed 15 of 16 tests with the pre-existing story-panel scrollbar expectation left unchanged as out of scope.
+2026-09-25 08:01:23 -07:00
+Restored per-element isolation in src/css/input.css and src/components/StudentNavigation.vue per the plan.md separation goal and the changesMade report: split the merged submenu color groups back into twelve standalone per-element rules (student-submenu-panel-*, student-submenu-*, student-menu-*-tab), split .daily-menu-back-button and .daily-menu-story-back-button back into standalone rules, split .daily-menu-subject-panel h2/h3 back into standalone rules, restored the .daily-menu-story-button style hook, and un-collapsed the StudentNavigation submenu back into four independently editable article blocks. Shared base rules (sidebar tab geometry, hover/active states, subject-panel chrome, grid button styles) were intentionally preserved so multi-element changes remain possible. Structure audit passed 11/11, production build succeeded, and the focused Student sidebar Playwright checks passed 2/2.
+2026-09-25 08:18:50 -07:00
+Consolidated the triplicated submenu/tab color rules in src/css/input.css into one rule per menu (rewards, games, extra-credit, progress) using grouped selectors; each menu's classes remain distinct so per-menu isolation is preserved. npm run test:structure passed 11/11.
+2026-09-25 08:26:30 -07:00
+Removed pointer-events: none from .calendar-day-cell--locked in src/css/input.css so its cursor: not-allowed declaration remains effective; the focused structure suite passed all 11 tests.
+2026-09-25 08:30:15 -07:00
+Removed the inactive grid layout from .calendar-month-grid and kept the active single-month flex layout owned by .calendar-month-grid--single in src/css/input.css; npm run test:structure passed all 11 tests.
+2026-09-25 08:35:14 -07:00
+Removed only the contradictory aspect-ratio: 1 declarations from .calendar-panel and .calendar-month-card--single in src/css/input.css; the focused CSS check confirmed both targeted declarations are absent while unrelated aspect-ratio declarations remain.
+2026-09-25 09:31 -07:00
+Removed the unused close-student-menu event declaration from src/components/StudentNavigation.vue and its listener from src/App.vue; the Back button remains the sole close path. Focused ESLint validation passed with no diagnostics.
+2026-09-25 09:52:00 -07:00
+Moved the App-owned Student Back button into the StudentNavigation layout through a default slot and removed its page-relative absolute offsets in src/css/input.css, keeping the control visually attached to the left navigation column; focused button-isolation and Vue-audit tests passed 6/6.
+2026-09-25 00:00:00 -07:00
+Centralized the shared student navigation width on .student-menu-page so .student-menu-navigation and .student-submenu-panel use one explicit layout contract; the focused menu/panel separation audit passed.
+2026-09-25 10:35:01 -07:00
+Centralized the HomeView container width in a shell-scoped CSS custom property so .home-page-shell background sizing and .home-page-container width share one layout contract; the focused structure suite passed 11/11.
+2026-09-25 10:37:11 -07:00
+Moved HomeView and CalendarView background images from global document root CSS-variable mutations into component-scoped Vue CSS bindings, and removed the matching global background-image variable consumers from src/css/input.css; targeted diagnostics reported only existing contrast/redundant-role issues, and a scoped search found no remaining old root mutation or image variable references under src.
+2026-09-25 10:39:19 -07:00
+Added static aria-expanded="false" to the Calendar tab in src/components/StudentNavigation.vue so its ARIA contract matches sibling navigation buttons without creating shared expansion state; targeted editor diagnostics for StudentNavigation.vue reported no errors.
+2026-09-25 14:00:00 -07:00
+Split grouped CSS selectors for distinct student tabs, submenu panels, back/calendar controls, and calendar grid elements in src/css/input.css to restore per-element style ownership while preserving declarations; focused button and menu/panel isolation audits passed 3/3.
+2026-09-25 14:05:00 -07:00
+Restored visible Year, Quarter, Month, and Week Story timeline tabs by moving overflow ownership from .daily-menu-story-panel to its existing scrollable content layer in src/css/input.css; live before-and-after screenshots confirmed the tabs were initially clipped and are now visible.

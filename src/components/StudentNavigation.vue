@@ -2,7 +2,7 @@
 <script setup>
 import { ref } from "vue";
 
-const emit = defineEmits(["open-calendar", "close-student-menu"]);
+const emit = defineEmits(["open-calendar"]);
 const activeStudentMenu = ref("");
 
 /** Student-menu navigation pipeline boundary for the calendar tab. */
@@ -34,6 +34,7 @@ function handleStudentMenuNavigation(menuName) {
 			data-button-name="calendar-tab"
 			aria-label="Open Calendar tab"
 			title="Open Calendar tab"
+			aria-expanded="false"
 			@click="handleCalendarNavigation"
 		>
 			Calendar
@@ -90,6 +91,7 @@ function handleStudentMenuNavigation(menuName) {
 		>
 			Progress
 		</button>
+		<slot />
 
 		<aside
 			v-if="activeStudentMenu"

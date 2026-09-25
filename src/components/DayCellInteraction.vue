@@ -47,10 +47,6 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
-	isTntFunctionDisabled: {
-		type: Boolean,
-		default: false,
-	},
 });
 
 const emit = defineEmits(["day-cell-click"]);
@@ -62,7 +58,7 @@ const replacementColorClass = computed(
 	() => props.replacementColorClassesByDayCellKey[props.cellKey],
 );
 const isCellLocked = computed(
-	() => props.isTntFunctionDisabled || (props.isExploded && props.dayCellAnimationState === "exploding"),
+	() => props.isExploded && props.dayCellAnimationState === "exploding",
 );
 const isTextureSuppressed = computed(
 	() =>
@@ -85,7 +81,6 @@ function handleDayCellClick() {
 		class="calendar-day-cell"
 		type="button"
 		:disabled="isCellLocked"
-		:aria-disabled="isCellLocked"
 		:class="{
 			'calendar-day-cell--empty': !cell.isCurrentMonth,
 			'calendar-day-cell--current-month': cell.isCurrentMonth,

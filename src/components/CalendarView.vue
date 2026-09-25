@@ -1,9 +1,8 @@
 /** Calendar view state, month navigation, theme sync, and day-cell timing pipeline. */
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import minecraftExplosion from "../../assets/animations/minecraftExplosion.gif";
 import artBackground from "../../assets/images/backgrounds/art(Background)01.webp";
-import homePageBackground from "../../assets/images/backgrounds/vetClinicNight.webp";
 import languageArtsBackground from "../../assets/images/backgrounds/languageArts(Background)01.webp";
 import mathBackground from "../../assets/images/backgrounds/math(Background)01.webp";
 import scienceBackground from "../../assets/images/backgrounds/science(Background)01.webp";
@@ -14,6 +13,7 @@ import septemberDayTexture from "../../assets/textures/minecraftTNT.webp";
 import CalendarMonthCard from "./CalendarMonthCard.vue";
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const storyTimelineTabs = ["Year", "Quarter", "Month", "Week"];
 const calendarMonths = Array.from({ length: 16 }, (_, index) => {
 	const monthDate = new Date(2026, 8 + index, 1);
 	const monthName = monthDate.toLocaleString("en-US", { month: "long" });
@@ -40,6 +40,7 @@ const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
 const isDailyMenuOpen = ref(false);
 const selectedDailyMenuDateLabel = ref("");
 const selectedDailyMenuSubject = ref(null);
+const activeStoryTimelineTab = ref(null);
 const explodedDayCellKey = ref(null);
 const lastClickedDayCellKey = ref(null);
 const hiddenDayCellKeys = ref([]);
@@ -134,50 +135,66 @@ const october2StoryParagraphs = [
 	'The journal bursts into a brilliant white-and-gold glow right in your pocket. You snap it open. This time, it isn\'t a map at all. It is an illustrated herbal field guide! Every single plant from the meadow is sketched in vivid detail, accompanied by exact notes showing which illness, fever, or sting it treats.',
 	'Whoosh. The page turns by itself. Across the fresh page is a detailed blueprint: sturdy wooden storage boxes strapped high into the sturdy branches of an acacia tree, each labeled for a different healing herb. A savanna apothecary! You grin up at the towering branches. You know exactly what to build.',
 ];
+
+/** Story content lookup keyed by the selected daily menu date label. */
+const storyContentByDateLabel = {
+	"September 28, 2026": {
+		theme: september28StoryTheme,
+		paragraphs: september28StoryParagraphs,
+	},
+	"September 29, 2026": {
+		theme: september29StoryTheme,
+		paragraphs: september29StoryParagraphs,
+	},
+	"September 30, 2026": {
+		theme: september30StoryTheme,
+		paragraphs: september30StoryParagraphs,
+	},
+	"October 1, 2026": {
+		theme: october1StoryTheme,
+		paragraphs: october1StoryParagraphs,
+	},
+	"October 2, 2026": {
+		theme: october2StoryTheme,
+		paragraphs: october2StoryParagraphs,
+	},
+};
+const selectedStoryContent = computed(
+	() => storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null,
+);
+const calendarPanelBackgroundImage = `url("${calendarPanelBackground}")`;
+const calendarDayImage = `url("${septemberDayTexture}")`;
 let explosionTimeoutId;
 let explosionTextureTimeoutId;
 
-function syncVisualTheme() {
-	document.documentElement.style.setProperty(
-		"--home-page-background-image",
-		`url("${homePageBackground}")`,
-	);
-	document.documentElement.style.setProperty(
-		"--calendar-panel-background-image",
-		`url("${calendarPanelBackground}")`,
-	);
-	document.documentElement.style.setProperty(
-		"--calendar-day-image",
-		`url("${septemberDayTexture}")`,
-	);
-}
-
-watch(currentMonth, syncVisualTheme, { immediate: true });
-onMounted(syncVisualTheme);
-
-/** Calendar-month selection pipeline boundary for the previous month. */
-function handlePreviousMonthSelection() {
+/** Calendar-month selection pipeline boundary for stepping one month in either direction. */
+function handleMonthSelectionOffset(monthOffset) {
 	isDailyMenuOpen.value = false;
 	clearDayCellExplosion();
 	currentMonthIndex.value =
-		(currentMonthIndex.value - 1 + calendarMonths.length) % calendarMonths.length;
-}
-
-/** Calendar-month selection pipeline boundary for the next month. */
-function handleNextMonthSelection() {
-	isDailyMenuOpen.value = false;
-	clearDayCellExplosion();
-	currentMonthIndex.value = (currentMonthIndex.value + 1) % calendarMonths.length;
+		(currentMonthIndex.value + monthOffset + calendarMonths.length) % calendarMonths.length;
 }
 
 /** Daily menu close pipeline boundary. */
 function handleDailyMenuClose() {
 	isDailyMenuOpen.value = false;
 	selectedDailyMenuSubject.value = null;
+	activeStoryTimelineTab.value = null;
 }
 
 function handleDailyMenuSubjectSelection(subject) {
 	selectedDailyMenuSubject.value = subject;
+	activeStoryTimelineTab.value = null;
+}
+
+function handleStoryPanelBack() {
+	selectedDailyMenuSubject.value = null;
+	activeStoryTimelineTab.value = null;
+}
+
+function handleStoryTimelineTabSelection(tabName) {
+	activeStoryTimelineTab.value =
+		activeStoryTimelineTab.value === tabName ? null : tabName;
 }
 
 function isStoryButtonAvailable() {
@@ -211,17 +228,9 @@ function openDailyMenuForDayCell(cell) {
 }
 
 /** Day-cell animation pipeline boundary. */
-function isSeptemberRestrictedDayCell(cell) {
-	if (!cell || !cell.isCurrentMonth || cell.value === "") {
-		return false;
-	}
-	const dayNumber = Number(cell.value);
-	return currentMonth.value.monthName === "September" && dayNumber >= 1 && dayNumber <= 27;
-}
-
 function handleDayCellAnimation(cellIndex) {
 	const cell = currentMonth.value.cells[cellIndex];
-	if (!isCurrentMonthDayCell(cell) || isSeptemberRestrictedDayCell(cell)) {
+	if (!isCurrentMonthDayCell(cell)) {
 		return;
 	}
 	const cellKey = `${currentMonth.value.id}-${cellIndex}`;
@@ -282,7 +291,7 @@ function clearDayCellExplosion() {
 }
 
 function handleDayCellClick(cell) {
-	if (!isCurrentMonthDayCell(cell) || isSeptemberRestrictedDayCell(cell)) {
+	if (!isCurrentMonthDayCell(cell)) {
 		return;
 	}
 
@@ -326,7 +335,7 @@ onBeforeUnmount(clearDayCellExplosion);
 					type="button"
 					aria-label="Show previous month"
 					title="Show previous month"
-					@click="handlePreviousMonthSelection"
+					@click="handleMonthSelectionOffset(-1)"
 				>
 					Back
 				</button>
@@ -337,7 +346,7 @@ onBeforeUnmount(clearDayCellExplosion);
 					type="button"
 					aria-label="Show next month"
 					title="Show next month"
-					@click="handleNextMonthSelection"
+					@click="handleMonthSelectionOffset(1)"
 				>
 					Forward
 				</button>
@@ -366,9 +375,15 @@ onBeforeUnmount(clearDayCellExplosion);
 			aria-label="Daily menu"
 			title="Daily menu"
 		>
-			<div class="daily-menu-content">
-				<h2>Daily Menu</h2>
+			<div
+				:class="[
+					'daily-menu-content',
+					{ 'daily-menu-content--story': selectedDailyMenuSubject === 'story' },
+				]"
+			>
+				<h2 v-if="selectedDailyMenuSubject !== 'story'">Daily Menu</h2>
 				<button
+					v-if="selectedDailyMenuSubject !== 'story'"
 					id="daily-menu-back-button"
 					class="daily-menu-back-button"
 					type="button"
@@ -378,8 +393,9 @@ onBeforeUnmount(clearDayCellExplosion);
 				>
 					Back
 				</button>
-				<p class="daily-menu-date">{{ selectedDailyMenuDateLabel }}</p>
+				<p v-if="selectedDailyMenuSubject !== 'story'" class="daily-menu-date">{{ selectedDailyMenuDateLabel }}</p>
 				<nav
+					v-if="selectedDailyMenuSubject !== 'story'"
 					id="daily-menu-subject-navigation"
 					class="daily-menu-subject-grid"
 					role="navigation"
@@ -448,7 +464,12 @@ onBeforeUnmount(clearDayCellExplosion);
 						<img :src="artBackground" alt="" />
 					</button>
 				</nav>
-				<div class="daily-menu-subject-panel-stack">
+				<div
+					:class="[
+						'daily-menu-subject-panel-stack',
+						{ 'daily-menu-subject-panel-stack--story': selectedDailyMenuSubject === 'story' },
+					]"
+				>
 					<article
 						v-if="selectedDailyMenuSubject === 'math'"
 						id="daily-menu-math-panel"
@@ -465,38 +486,57 @@ onBeforeUnmount(clearDayCellExplosion);
 						aria-label="Story subject panel"
 						title="Story subject panel"
 					>
-						<h3>Theme</h3>
-						<p v-if="selectedDailyMenuDateLabel === 'September 28, 2026'">{{ september28StoryTheme }}</p>
-						<p v-if="selectedDailyMenuDateLabel === 'September 29, 2026'">{{ september29StoryTheme }}</p>
-						<p v-if="selectedDailyMenuDateLabel === 'September 30, 2026'">{{ september30StoryTheme }}</p>
-						<p v-if="selectedDailyMenuDateLabel === 'October 1, 2026'">{{ october1StoryTheme }}</p>
-						<p v-if="selectedDailyMenuDateLabel === 'October 2, 2026'">{{ october2StoryTheme }}</p>
-						<h2>Story</h2>
-						<template v-if="selectedDailyMenuDateLabel === 'September 28, 2026'">
-							<p v-for="paragraph in september28StoryParagraphs" :key="paragraph">
-								{{ paragraph }}
-							</p>
-						</template>
-						<template v-if="selectedDailyMenuDateLabel === 'September 29, 2026'">
-							<p v-for="paragraph in september29StoryParagraphs" :key="paragraph">
-								{{ paragraph }}
-							</p>
-						</template>
-						<template v-if="selectedDailyMenuDateLabel === 'September 30, 2026'">
-							<p v-for="paragraph in september30StoryParagraphs" :key="paragraph">
-								{{ paragraph }}
-							</p>
-						</template>
-						<template v-if="selectedDailyMenuDateLabel === 'October 1, 2026'">
-							<p v-for="paragraph in october1StoryParagraphs" :key="paragraph">
-								{{ paragraph }}
-							</p>
-						</template>
-						<template v-if="selectedDailyMenuDateLabel === 'October 2, 2026'">
-							<p v-for="paragraph in october2StoryParagraphs" :key="paragraph">
-								{{ paragraph }}
-							</p>
-						</template>
+						<div class="daily-menu-story-panel-shell">
+							<div
+								class="daily-menu-story-tab-list"
+								role="tablist"
+								aria-label="Story timeline navigation"
+							>
+								<button
+									v-for="storyTab in storyTimelineTabs"
+									:key="storyTab"
+									:id="`daily-menu-story-tab-${storyTab.toLowerCase()}`"
+									type="button"
+									class="daily-menu-story-tab"
+									:class="{ 'daily-menu-story-tab--active': activeStoryTimelineTab === storyTab }"
+									:aria-selected="activeStoryTimelineTab === storyTab"
+									@click="handleStoryTimelineTabSelection(storyTab)"
+								>
+									{{ storyTab }}
+								</button>
+							</div>
+							<div
+								v-if="activeStoryTimelineTab"
+								class="daily-menu-story-menu-panel"
+								role="tabpanel"
+								:aria-label="`${activeStoryTimelineTab} story menu`"
+							>
+								<h2>{{ activeStoryTimelineTab }}</h2>
+								<h3>Theme</h3>
+								<h2>Story</h2>
+							</div>
+							<div v-else class="daily-menu-story-content">
+								<button
+									v-if="selectedDailyMenuSubject === 'story' && !activeStoryTimelineTab"
+									id="daily-menu-story-back-button"
+									class="daily-menu-story-back-button"
+									type="button"
+									aria-label="Back to daily menu"
+									title="Back to daily menu"
+									@click="handleStoryPanelBack"
+								>
+									Back
+								</button>
+								<h3>Theme</h3>
+								<p v-if="selectedStoryContent">{{ selectedStoryContent.theme }}</p>
+								<h2>Story</h2>
+								<template v-if="selectedStoryContent">
+									<p v-for="paragraph in selectedStoryContent.paragraphs" :key="paragraph">
+										{{ paragraph }}
+									</p>
+								</template>
+							</div>
+						</div>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'language-arts'"
@@ -539,3 +579,17 @@ onBeforeUnmount(clearDayCellExplosion);
 		</section>
 	</div>
 </template>
+
+<style scoped>
+.calendar-panel {
+	background-image: v-bind(calendarPanelBackgroundImage);
+}
+
+:deep(
+		.calendar-day-cell--current-month:not(.calendar-day-cell--texture-suppressed):not(
+			.calendar-day-cell--exploding
+		)
+	) {
+	background-image: v-bind(calendarDayImage);
+}
+</style>

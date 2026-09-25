@@ -103,3 +103,11 @@ ESLint completed with exit 0 but reported existing Vue formatting and markup war
 No errors or warnings were reported by the focused asset-path audit or production build for the Story image replacement.
 2026-09-25 05:49:22 -07:00
 No errors or warnings were reported by the focused September 28 Story test or production build.
+2026-09-25 13:58:00 -07:00
+Live browser validation reported the existing Vue warning that property "button" was accessed during CalendarView rendering but is not defined; the Story tab visibility change did not modify that code path.
+2026-09-25 07:38:17 -07:00
+Duplicate-code remediation validation: ESLint completed with exit 0 reporting only the existing tab-indentation style warnings; the two baseline audit failures (Story timeline tab button missing a stable id and September-gate strings in CalendarView.vue) were resolved by this change, and the previously reported undefined "button" property warning was fixed by the literal type attribute; one pre-existing Playwright expectation for panel-level story scrollbar overflow remains failing against the current content-layer scrolling design and was not modified.
+2026-09-25 08:01:23 -07:00
+Isolation-restoration validation reported no errors or warnings: structure suite passed 11/11, production build succeeded, and the focused Student sidebar Playwright checks passed 2/2.
+2026-09-25 10:44:35 -07:00
+Editor diagnostics retained the existing redundant explicit region role on the daily-menu section in CalendarView.vue; this was outside the TNT selector change and was not modified.

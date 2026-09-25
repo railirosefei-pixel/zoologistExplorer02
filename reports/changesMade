@@ -1,0 +1,34 @@
+Write Your Reports Below
+
+## 2026-09-25 — Contradictory code audit (input.css, main.js, all .vue files)
+
+Scope: src/css/input.css, src/js/main.js, src/App.vue, src/components/HomeView.vue, src/components/StudentNavigation.vue, src/components/CalendarView.vue, src/components/CalendarMonthCard.vue, src/components/DayCellInteraction.vue. Assets folder excluded per plan. Findings only; no code changed.
+
+### Contradictions within a single file
+
+1. input.css — `.daily-menu-back-button` and `.daily-menu-story-back-button` are byte-identical duplicated rules (same position, padding, border, gradient, font, shadow). Editing one button's style requires editing both, which contradicts the single-target-change goal.
+2. input.css — Submenu/tab color rules are triplicated: `.student-submenu-panel-rewards` / `.student-submenu-rewards` / `.student-menu-rewards-tab` (and the same pattern for games, extra-credit, progress) repeat identical `background`/`color` declarations. One color change must be made in three places.
+3. input.css — `.daily-menu-story-button {}` is an empty rule (dead code), while `.daily-menu-math-button`, `.daily-menu-language-arts-button`, `.daily-menu-social-studies-button`, `.daily-menu-science-button`, `.daily-menu-art-button` have no rules at all; all six buttons rely on the shared `.daily-menu-subject-grid > button` selector, so per-button isolation is impossible without new rules.
+4. input.css — `.calendar-day-cell--locked` sets `cursor: not-allowed` and `pointer-events: none` together; `pointer-events: none` makes the cursor declaration unreachable (contradictory pair).
+5. input.css — `.calendar-month-grid` base rule is `display: grid` with `grid-template-columns: repeat(auto-fit, minmax(230px, 1fr))`, but `.calendar-month-grid--single` overrides to `display: flex` while still setting `grid-template-columns: 1fr` (meaningless under flex). Only the `--single` variant is ever used, so the base grid rule is dead/contradictory.
+6. input.css — `.calendar-panel` and `.calendar-month-card--single` each declare `aspect-ratio: 1` together with explicit `width` and `height`; the explicit dimensions override the aspect ratio, making the declaration contradictory/dead.
+7. CalendarView.vue — `isStoryButtonAvailable()` returns true for every weekday from 2026-09-28 onward, but `storyContentByDateLabel` only has entries for Sept 28–Oct 2. The button appears for dates whose `selectedStoryContent` is null, so the story panel renders empty "Theme"/"Story" headings — availability and content contradict each other.
+8. CalendarView.vue — In the story panel, the `activeStoryTimelineTab` branch renders `<h3>Theme</h3><h2>Story</h2>` with no content, duplicating the headings of the `v-else` content branch without data (placeholder contradicts the populated branch).
+
+### Contradictions between two or more files
+
+9. App.vue vs StudentNavigation.vue — `StudentNavigation.vue` declares the `close-student-menu` emit but never emits it; the only close path is the `student-menu-back-button` in App.vue. Dead emit contradicts the declared contract.
+10. App.vue vs input.css — `.student-menu-back-button` is `position: absolute; top: 2rem; right: 1.5rem` inside `.student-menu-page`, placing the Back button over the content area on the right, while `.student-menu-navigation` owns the left column; the back control is visually detached from the navigation it belongs to.
+11. CalendarView.vue vs input.css — `.daily-menu-back-button` (Back to calendar) is positioned `top: 12px; right: 12px` relative to `.daily-menu-content`, and `.daily-menu-story-back-button` (Back to daily menu) is positioned identically relative to `.daily-menu-story-content`. In story view both buttons occupy the same corner of overlapping containers, producing stacked/contradictory Back controls at the same visual position with different targets.
+12. StudentNavigation.vue vs input.css — `.student-submenu-panel` is `position: fixed; left: 336px` while `.student-menu-navigation` is `flex: 0 0 336px`; the panel's offset hard-codes the nav width. Changing the nav width in one place breaks the panel position in the other (shared magic number contradicts isolation).
+13. HomeView.vue vs input.css — `.home-page-shell` uses `background-size: calc(100% - 275px) 100%` hard-coding the `.home-page-container` width of `275px`; same shared-magic-number coupling as finding 12.
+14. HomeView.vue vs CalendarView.vue — both components mutate global `:root` CSS variables (`--home-page-background-image`, `--calendar-panel-background-image`, `--calendar-day-image`) via `document.documentElement.style.setProperty`. Component-scoped changes write to global scope, contradicting the per-component isolation goal; unmount order can leave stale global variables.
+15. StudentNavigation.vue — the Calendar tab lacks the `:aria-expanded` attribute that all four other tabs have (inconsistent ARIA contract between sibling buttons).
+
+### Non-contradictory notes
+
+- main.js contains no contradictory code; single mount point, single CSS import, consistent with the one-root/one-CSS-entry rules.
+
+
+
+

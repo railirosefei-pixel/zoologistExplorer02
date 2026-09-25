@@ -28,16 +28,16 @@ body {
 }
 
 .home-page-shell {
+	--home-page-container-width: 275px;
 	display: flex;
 	align-items: flex-start;
 	justify-content: flex-start;
 	min-height: 100vh;
 	padding: 0;
 	overflow: hidden;
-	background-image: var(--home-page-background-image);
 	background-position: right center;
 	background-repeat: no-repeat;
-	background-size: calc(100% - 275px) 100%;
+	background-size: calc(100% - var(--home-page-container-width)) 100%;
 }
 
 .home-page-container {
@@ -45,7 +45,7 @@ body {
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
-	width: 275px;
+	width: var(--home-page-container-width);
 	min-height: 100vh;
 	border-top: 2px solid rgba(255, 248, 190, 0.7);
 	border-bottom: 2px solid rgba(255, 248, 190, 0.7);
@@ -113,6 +113,7 @@ body {
 }
 
 .student-menu-page {
+	--student-menu-navigation-width: 336px;
 	display: flex;
 	position: relative;
 	flex-direction: row;
@@ -124,7 +125,7 @@ body {
 .student-menu-navigation {
 	position: relative;
 	display: flex;
-	flex: 0 0 336px;
+	flex: 0 0 var(--student-menu-navigation-width);
 	flex-direction: column;
 	align-items: flex-start;
 	justify-content: flex-start;
@@ -141,7 +142,7 @@ body {
 	top: 0;
 	right: 0;
 	bottom: 0;
-	left: 336px;
+	left: var(--student-menu-navigation-width);
 	display: flex;
 	align-items: flex-start;
 	justify-content: flex-start;
@@ -149,26 +150,6 @@ body {
 	background: rgba(17, 24, 39, 0.96);
 	color: #ffffff;
 	overflow-y: auto;
-}
-
-.student-submenu-panel-rewards {
-	background: #f9c8a3;
-	color: #5f3415;
-}
-
-.student-submenu-panel-games {
-	background: #f9eb9b;
-	color: #5c4d12;
-}
-
-.student-submenu-panel-extra-credit {
-	background: #bfe9be;
-	color: #1a4c32;
-}
-
-.student-submenu-panel-progress {
-	background: #bfdafc;
-	color: #1d3f6d;
 }
 
 .student-submenu-section {
@@ -191,9 +172,24 @@ body {
 	font-size: 1.15rem;
 }
 
+.student-submenu-panel-rewards {
+	background: #f9c8a3;
+	color: #5f3415;
+}
+
 .student-submenu-rewards {
 	background: #f9c8a3;
 	color: #5f3415;
+}
+
+.student-menu-rewards-tab {
+	background: #f9c8a3;
+	color: #5f3415;
+}
+
+.student-submenu-panel-games {
+	background: #f9eb9b;
+	color: #5c4d12;
 }
 
 .student-submenu-games {
@@ -201,9 +197,29 @@ body {
 	color: #5c4d12;
 }
 
+.student-menu-games-tab {
+	background: #f9eb9b;
+	color: #5c4d12;
+}
+
+.student-submenu-panel-extra-credit {
+	background: #bfe9be;
+	color: #1a4c32;
+}
+
 .student-submenu-extra-credit {
 	background: #bfe9be;
 	color: #1a4c32;
+}
+
+.student-menu-extra-credit-tab {
+	background: #bfe9be;
+	color: #1a4c32;
+}
+
+.student-submenu-panel-progress {
+	background: #bfdafc;
+	color: #1d3f6d;
 }
 
 .student-submenu-progress {
@@ -211,11 +227,106 @@ body {
 	color: #1d3f6d;
 }
 
-.student-menu-calendar-tab,
-.student-menu-rewards-tab,
-.student-menu-games-tab,
-.student-menu-extra-credit-tab,
-.student-menu-progress-tab,
+.student-menu-progress-tab {
+	background: #bfdafc;
+	color: #1d3f6d;
+}
+
+.student-menu-calendar-tab {
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.student-menu-rewards-tab {
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.student-menu-games-tab {
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.student-menu-extra-credit-tab {
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.student-menu-progress-tab {
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
 .student-menu-back-button {
 	min-height: 2.75rem;
 	padding: 0.65rem 1rem;
@@ -248,7 +359,16 @@ body {
 	letter-spacing: 0.04em;
 }
 
-.student-menu-calendar-tab:hover,
+.student-menu-calendar-tab:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 9px 0 rgba(67, 38, 14, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
 .student-menu-rewards-tab:hover,
 .student-menu-games-tab:hover,
 .student-menu-extra-credit-tab:hover,
@@ -262,7 +382,16 @@ body {
 		0 16px 20px rgba(15, 23, 42, 0.32);
 }
 
-.student-menu-calendar-tab:active,
+.student-menu-calendar-tab:active {
+	transform: translateY(5px);
+	filter: brightness(0.98);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
+		0 2px 0 rgba(67, 38, 14, 0.5),
+		0 5px 8px rgba(15, 23, 42, 0.22);
+}
+
 .student-menu-rewards-tab:active,
 .student-menu-games-tab:active,
 .student-menu-extra-credit-tab:active,
@@ -281,30 +410,7 @@ body {
 	color: #541b25;
 }
 
-.student-menu-rewards-tab {
-	background: #f9c8a3;
-	color: #5f3415;
-}
-
-.student-menu-games-tab {
-	background: #f9eb9b;
-	color: #5c4d12;
-}
-
-.student-menu-extra-credit-tab {
-	background: #bfe9be;
-	color: #1a4c32;
-}
-
-.student-menu-progress-tab {
-	background: #bfdafc;
-	color: #1d3f6d;
-}
-
 .student-menu-back-button {
-	position: absolute;
-	top: 2rem;
-	right: 1.5rem;
 	background: rgba(255, 246, 180, 0.12);
 	color: #fff7cc;
 }
@@ -324,12 +430,10 @@ body {
 	flex-direction: column;
 	width: min(calc(100vh - 8rem), 100%);
 	height: min(calc(100vh - 8rem), 100%);
-	aspect-ratio: 1;
 	min-width: 0;
 	min-height: 0;
 	border: 4px solid rgba(255, 248, 190, 0.7);
 	border-radius: 1.25rem;
-	background-image: var(--calendar-panel-background-image);
 	background-position: center;
 	background-repeat: repeat;
 	background-size: cover;
@@ -349,9 +453,21 @@ body {
 	gap: 0.75rem;
 }
 
-.calendar-previous-month-button,
+.calendar-previous-month-button {
+	min-width: 7.5rem;
+	padding: 0.6rem 1rem;
+	border: 2px solid rgba(255, 248, 190, 0.7);
+	border-radius: 0.7rem;
+	background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 56%, #60a5fa 100%);
+	color: #16293f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
 .calendar-next-month-button {
-	justify-self: center;
 	min-width: 7.5rem;
 	padding: 0.6rem 1rem;
 	border: 2px solid rgba(255, 248, 190, 0.7);
@@ -383,19 +499,14 @@ body {
 }
 
 .calendar-month-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-	gap: 1rem;
-	padding: 0 1.25rem 1.25rem;
+	flex: 1;
+	min-height: 0;
 }
 
 .calendar-month-grid--single {
 	display: flex;
-	flex: 1;
 	align-items: stretch;
 	justify-content: center;
-	grid-template-columns: 1fr;
-	min-height: 0;
 	padding: 0.5rem 1.25rem 16px;
 }
 
@@ -414,7 +525,6 @@ body {
 	--calendar-gap: 16px;
 	width: calc(100% - (var(--calendar-gap) * 2));
 	height: calc(100% - var(--calendar-gap));
-	aspect-ratio: 1;
 	max-width: none;
 	margin: 0 var(--calendar-gap);
 }
@@ -434,7 +544,11 @@ body {
 	text-align: center;
 }
 
-.calendar-weekday-row,
+.calendar-weekday-row {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
 .calendar-day-grid {
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -505,7 +619,6 @@ body {
 }
 
 .calendar-day-cell--current-month {
-	background-image: var(--calendar-day-image);
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
@@ -522,7 +635,6 @@ body {
 
 .calendar-day-cell--locked {
 	cursor: not-allowed;
-	pointer-events: none;
 }
 
 .calendar-day-replacement {
@@ -614,6 +726,23 @@ body {
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
 }
 
+.daily-menu-story-back-button {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	margin: 0;
+	padding: 0.55rem 1rem;
+	border: 2px solid rgba(255, 248, 190, 0.7);
+	border-radius: 0.7rem;
+	background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 56%, #60a5fa 100%);
+	color: #16293f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.82rem;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
 .daily-menu-content {
 	position: relative;
 	display: flex;
@@ -630,6 +759,14 @@ body {
 		0 8px 0 rgba(70, 44, 18, 0.35);
 }
 
+.daily-menu-content--story {
+	height: 100%;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+}
+
 .daily-menu-subject-grid {
 	display: grid;
 	grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -642,17 +779,50 @@ body {
 	aspect-ratio: 16 / 9;
 	min-width: 0;
 	padding: 0;
-	border: 3px solid rgba(255, 248, 190, 0.82);
+	border: 3px solid var(--daily-menu-button-border-color);
 	border-radius: 0.7rem;
-	background: #2a1d0f;
+	background: var(--daily-menu-button-background);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.45),
-		0 4px 0 rgba(70, 44, 18, 0.35);
+		0 4px 0 var(--daily-menu-button-shadow-color);
 	cursor: pointer;
 	overflow: hidden;
 }
 
 .daily-menu-story-button {
+	--daily-menu-button-background: #2a1d0f;
+	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
+	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
+}
+
+.daily-menu-math-button {
+	--daily-menu-button-background: #2a1d0f;
+	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
+	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
+}
+
+.daily-menu-language-arts-button {
+	--daily-menu-button-background: #2a1d0f;
+	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
+	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
+}
+
+.daily-menu-social-studies-button {
+	--daily-menu-button-background: #2a1d0f;
+	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
+	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
+}
+
+.daily-menu-science-button {
+	--daily-menu-button-background: #2a1d0f;
+	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
+	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
+}
+
+.daily-menu-art-button {
+	--daily-menu-button-background: #2a1d0f;
+	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
+	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
 }
 
 .daily-menu-subject-grid > button img {
@@ -675,6 +845,14 @@ body {
 	min-height: 0;
 }
 
+.daily-menu-subject-panel-stack--story {
+	width: 100%;
+	height: 100%;
+	flex: 1;
+	margin: 0;
+	min-height: 0;
+}
+
 .daily-menu-subject-panel {
 	flex: 1;
 	min-height: 12rem;
@@ -688,7 +866,119 @@ body {
 	color: #2a1d0f;
 }
 
+.daily-menu-story-panel {
+	position: relative;
+	width: 100%;
+	max-width: none;
+	height: 100%;
+	flex: 1;
+	min-height: 0;
+	margin: 0;
+	padding-right: 0.4rem;
+	overflow: visible;
+	scrollbar-gutter: stable;
+	border-radius: 0;
+	border-left: 0;
+	border-right: 0;
+	border-top: 0;
+	border-bottom: 0;
+}
+
+.daily-menu-story-panel-shell {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+}
+
+.daily-menu-story-content {
+	position: relative;
+	height: 100%;
+	padding-right: 0.4rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+	scrollbar-gutter: stable;
+}
+
+.daily-menu-story-tab-list {
+	position: absolute;
+	top: 1rem;
+	left: -3.4rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	z-index: 2;
+}
+
+.daily-menu-story-tab {
+	width: 2.1rem;
+	height: 5.1rem;
+	padding: 0.2rem 0.2rem;
+	border: 2px solid rgba(255, 248, 190, 0.75);
+	border-radius: 0.6rem 0 0 0.6rem;
+	background: linear-gradient(180deg, #d9b982 0%, #b78042 100%);
+	color: #2a1d0f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.8rem;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.5),
+		0 4px 0 rgba(62, 42, 24, 0.4);
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+	transform: rotate(180deg);
+}
+
+.daily-menu-story-tab--active {
+	background: linear-gradient(180deg, #f6d59a 0%, #d7a763 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.7),
+		0 4px 0 rgba(62, 42, 24, 0.5);
+}
+
+.daily-menu-story-menu-panel {
+	position: absolute;
+	inset: 0;
+	padding: 1rem 1rem 1.2rem 3.25rem;
+	border-radius: 0;
+	background: linear-gradient(180deg, rgba(244, 225, 174, 0.96), rgba(182, 139, 78, 0.96));
+	color: #2a1d0f;
+	z-index: 1;
+}
+
+.daily-menu-story-menu-panel h2 {
+	margin: 0 0 0.75rem;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+}
+
+.daily-menu-story-menu-panel p {
+	margin: 0 0 0.6rem;
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+.daily-menu-story-content::-webkit-scrollbar {
+	width: 0.7rem;
+}
+
+.daily-menu-story-content::-webkit-scrollbar-track {
+	background: rgba(54, 34, 16, 0.15);
+}
+
+.daily-menu-story-content::-webkit-scrollbar-thumb {
+	background: rgba(54, 34, 16, 0.55);
+	border-radius: 999px;
+}
+
 .daily-menu-subject-panel h2 {
+	margin: 0;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.25rem;
+}
+
+.daily-menu-subject-panel h3 {
 	margin: 0;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1.25rem;

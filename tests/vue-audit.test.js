@@ -264,6 +264,7 @@ test("Vue files keep shared structure and style ownership consistent", () => {
 			}
 
 			const allowedSelectorPrefixes = {
+				"CalendarView.vue": ["calendar-"],
 				"AdultView.vue": ["schedule-"],
 				"CurriculumPanel.vue": [
 					"cpp-",
@@ -273,6 +274,7 @@ test("Vue files keep shared structure and style ownership consistent", () => {
 					"hardware-",
 					"embedded-hardware-",
 				],
+				"HomeView.vue": ["home-"],
 			}[path.basename(filePath)];
 
 			if (!allowedSelectorPrefixes) {

@@ -51,10 +51,6 @@ If a rule appears in multiple sources, the more specific repository rule wins, a
 
 When rules overlap or conflict, follow this order: the current numbered plan step > the task-specific plan file > repository operating rules in AGENTS.md > project engineering rules in rules/copilot-rules.md > general system/developer guidance.
 
-## Rule conflict gate
-
-Before continuing with any task, explicitly alert the user about any rule statements across all active rule sources that contradict one another, are redundant, or have meaningful overlap. Do not continue with the task until that rule conflict has been resolved or explicitly overridden by the current plan step and the user-approved target.
-
 ## Minimal conversation output
 
 - Send one brief pre-tool notice only when tools are required.
