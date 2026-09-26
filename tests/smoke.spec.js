@@ -99,12 +99,39 @@ test("Student sidebar includes the full button set", async ({ page }) => {
 	await expect(page.getByRole("button", { name: "Progress" })).toBeVisible();
 });
 
+test("Rewards button opens full-screen rewards page", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Open Rewards tab" }).click();
+
+	const rewardsPage = page.locator("#rewards-page");
+	await expect(rewardsPage).toBeVisible();
+	await expect(page.locator("#student-menu-page")).toBeHidden();
+	await expect(rewardsPage.locator("#rewards-page-heading")).toHaveText("Rewards");
+
+	const backgroundImage = await rewardsPage.evaluate(
+		(element) => getComputedStyle(element).backgroundImage,
+	);
+	expect(backgroundImage).toMatch(/rewardsBackground[^)]*\.webp/);
+
+	const pageSize = await rewardsPage.evaluate((element) => {
+		const { width, height } = element.getBoundingClientRect();
+		return { width, height };
+	});
+	const viewportSize = page.viewportSize();
+	expect(pageSize.width).toBeGreaterThanOrEqual(viewportSize.width);
+	expect(pageSize.height).toBeGreaterThanOrEqual(viewportSize.height);
+
+	await page.getByRole("button", { name: "Back to student menu" }).click();
+	await expect(page.locator("#student-menu-page")).toBeVisible();
+	await expect(page.locator("#calendar-menu-heading")).toBeVisible();
+});
+
 test("Student sidebar navigation always selects its destination", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
 	const destinations = [
-		{ button: "Rewards", panel: "#rewards-menu" },
 		{ button: "Games", panel: "#games-menu" },
 		{ button: "Extra Credit", panel: "#extra-credit-menu" },
 		{ button: "Progress", panel: "#progress-menu" },

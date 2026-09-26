@@ -138,3 +138,17 @@ Editor diagnostics still flag pre-existing redundant region-role markup in the c
 The page-container separation test failed because src/components/CalendarView.vue contains an article without a title attribute. The other planned tests passed; no warnings were reported.
 2026-09-25 17:16:09 -07:00
 The initial September gate assertion was stale because it expected Daily Menu text removed by this step; after updating that expectation, the focused September suite passed all 13 tests with no new errors or warnings.
+2026-09-25 20:52:07 -07:00
+Editor diagnostics continue to report two pre-existing issues outside this change: a redundant region role in src/components/CalendarView.vue and a text-contrast warning in src/css/input.css; the focused subject-panel audit passed 4/4.
+2026-09-25 21:41:35 -07:00
+The focused September test initially timed out because its new block locator requested button role while the existing controls expose tab role; the locator was corrected and the suite then passed 14/14. Pre-existing editor diagnostics remain unchanged.
+2026-09-25 22:01:47 -07:00
+Initial browser checks confirmed the centering defect: September 29 and September 30 Math panels computed text-align as start. After the date-specific centering updates, the focused September suite passed 16/16; no new warnings were reported.
+2026-09-25 22:05:17 -07:00
+No new errors or warnings were reported by the focused September day-gate suite after removing forced clicks on disabled calendar cells; all 16 tests passed.
+2026-09-25 22:45:16 -07:00
+The focused October 1 alignment test initially timed out because its navigation closed the daily menu between subjects; the test was corrected and its rerun passed 1/1.
+2026-09-26 05:07:09 -07:00
+Editor diagnostics reported a pre-existing redundant role="region" on #student-menu-content in src/App.vue; it was not changed by the Rewards update. The focused Rewards Playwright test, asset audit, and production build completed without additional reported errors or warnings.
+2026-09-26 05:18:19 -07:00
+The Rewards asset-path audit passed 1/1 and the production build succeeded with no warnings or errors related to rewardsMenu02.webp.

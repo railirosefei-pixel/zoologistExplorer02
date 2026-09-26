@@ -1033,6 +1033,30 @@ body {
 	color: #2a1d0f;
 }
 
+.daily-menu-subject-panel-stack--september-28
+	.daily-menu-subject-panel:not(.daily-menu-story-panel) {
+	text-align: center;
+}
+
+.daily-menu-subject-panel-stack--september-29
+	.daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--september-30
+	.daily-menu-subject-panel:not(.daily-menu-story-panel) {
+	text-align: center;
+}
+
+.daily-menu-subject-panel-stack--october-1
+	.daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-2
+	.daily-menu-subject-panel:not(.daily-menu-story-panel) {
+	text-align: center;
+}
+
+.daily-menu-explorer-name {
+	display: inline-block;
+	font-size: 1.25rem;
+}
+
 .daily-menu-subject-panel-message p:last-child {
 	margin-bottom: 0;
 }

@@ -10,6 +10,7 @@ Installed Tailwind CSS 4.3.3 and @tailwindcss/vite 4.3.3, then registered the Ta
 Installed @playwright/test 1.63.0 and Chromium, then added Playwright's Vite web server configuration, Chromium project, and test:e2e script.
 2026-09-21 16:00:55 -07:00
 2026-09-25 15:02:00 -07:00 — Added Quarter theme and narrative content; focused Playwright regression passed 1/1.
+2026-09-25 18:15:00 -07:00 — Restricted daily-menu explorer text to September 28 and September 29 only, preserving the approved date-specific copy while removing it from all other calendar dates; focused Playwright regression for the September gate passed.
 2026-09-21
 Installed the Node Sonar scanner and added token-free local project configuration, source/test scopes, exclusions, and the sonar npm script.
 2026-09-21
@@ -338,7 +339,6 @@ Added an independently styled Day timeline tab immediately after Week in src/com
 Added Theme and Story headers to the Week and Day Story timeline tabs in src/components/CalendarView.vue and regression assertions in tests/september-day-gate.spec.js; the focused Playwright test passed 1/1.
 2026-09-25 12:45:41 -07:00
 Connected each Day Story tab to the existing date-keyed theme and narrative for September 28 through October 2 in src/components/CalendarView.vue; added five-date Playwright coverage in tests/september-day-gate.spec.js, and the focused test passed 1/1.
-2026-09-25 16:00:00 -07:00
 Executed plan.md step 1 by splitting all grouped class selectors in src/css/input.css into independently owned rules for student tabs, calendar states, and Story timeline tabs; updated tests/button-isolation.test.js to enforce per-tab ownership. npm run test:structure passed 12/12.
 2026-09-25 16:05:00 -07:00
 Executed plan.md step 2 by adding independently identified Back buttons inside the active Year, Quarter, Month, Week, and Day Story panels, with a timeline-only return handler and regression coverage in tests/september-day-gate.spec.js; the focused five-tab Playwright test passed and npm run test:structure passed 12/12.
@@ -358,6 +358,7 @@ Split Rewards, Games, Extra Credit, and Progress tab hover and active selectors 
 Added the Day tab after Week to the Story timeline and extended regression coverage to assert tab order and the Theme and Story headings; the focused Playwright test passed 1/1.
 2026-09-25 14:05:11 -07:00
 2026-09-25 17:45:00 -07:00 — Updated the Math panel Block tab styling to a six-shade pastel-yellow progression from Block 1 through Block 3; npm run build succeeded.
+2026-09-26 05:07:09 -07:00 — Added a full-screen Rewards destination using the imported rewards background, root-level navigation, and a return button in src/App.vue, src/components/StudentNavigation.vue, and src/components/RewardsView.vue; updated tests/smoke.spec.js. The focused Playwright test passed 1/1, npm run test:assets passed 1/1, and npm run build succeeded.
 Kept a Story timeline tab selected when the same tab is clicked again in src/components/CalendarView.vue; the focused September Story Playwright suite passed all 12 tests.
 2026-09-25 14:14:57 -07:00
 Added the Year 1 theme and story to the Year timeline in src/components/CalendarView.vue, gated by the existing weekday and September 28 start-date rule; the focused Year-tab Playwright test passed 1/1.
@@ -411,3 +412,28 @@ Removed daily-menu content for September 1-27 in src/components/CalendarView.vue
 
 2026-09-25 19:25:15 -07:00
 Executed plan.md step 1A by rendering each subject's explorer message inside the selected Block panel in src/components/CalendarView.vue so Blocks 1-3 and repeated Block 1 clicks no longer show an empty panel; executed step 2 by gating the explorer copy to September 28, 2026 only, leaving September 29 - October 2 blocks empty. npm run build succeeded, the five structure test files passed 14/14, and direct browser verification confirmed populated September 28 blocks and empty September 29 blocks.
+2026-09-25 - Added September 28 subject-panel text centering and increased matching Explorer Raili labels by 4px in src/components/CalendarView.vue and src/css/input.css; npm run build succeeded and the focused September 28 Playwright test passed 1/1.
+2026-09-25 20:12:58 -07:00
+Executed plan.md step 1 by adding the requested September 29 Math Explorer Raili message to the subject panel and all three selected Math Block panels in src/components/CalendarView.vue; the focused September day-gate Playwright suite passed 13/13.
+2026-09-25 20:52:07 -07:00
+Executed the current plan step by centering text inside the September 29 Math, Language Arts, Social Studies, and Science subject block panels through a date-scoped class in src/components/CalendarView.vue and src/css/input.css; the focused subject-panel audit passed 4/4.
+2026-09-25 21:41:35 -07:00
+Executed the September 30 subject-panel copy plan for Math, Language Arts, Social Studies, and Science in src/components/CalendarView.vue; corrected the focused test's block-control locator to use the existing tab role; the September day-gate Playwright suite passed 14/14.
+2026-09-25 22:39:41 -07:00
+Added the October 1, 2026 Explorer Raili messages for Math, Language Arts, Social Studies, and Science in src/components/CalendarView.vue and focused Playwright coverage for all three block panels per subject in tests/september-day-gate.spec.js; each of the four focused Playwright tests passed.
+2026-09-25 22:01:47 -07:00
+Centered text in all non-story subject panels for September 29 and September 30 in src/components/CalendarView.vue and src/css/input.css; added browser regressions for initial panels and selected blocks. The focused September day-gate Playwright suite passed 16/16.
+2026-09-25 22:05:17 -07:00
+Removed forced Playwright clicks on intentionally disabled September 1-27 calendar cells and clarified the test name; the focused September day-gate suite passed 16/16.
+2026-09-25 22:45:16 -07:00
+Centered text in all three block panels for Math, Language Arts, Social Studies, and Science on October 1, 2026 with date-specific daily-menu styling in src/components/CalendarView.vue and src/css/input.css; added Playwright coverage for all 12 panels in tests/september-day-gate.spec.js, and the focused test passed 1/1.
+2026-09-26 05:18:19 -07:00
+Changed the Rewards screen background import in src/components/RewardsView.vue to assets/images/backgrounds/rewardsMenu02.webp; the asset-path audit passed and the production build included the image.
+2026-09-26 05:21:16 -07:00
+Added the centered Minecraft chest image to src/components/RewardsView.vue using a Vite-managed asset import and scoped positioning; npm run test:assets passed 1/1 and npm run build succeeded. Playwright was not run because its server and output effects require separate authorization.
+2026-09-26 05:25:04 -07:00
+Increased the centered Minecraft chest image in src/components/RewardsView.vue by 30% using a scoped transform; editor diagnostics reported no errors.
+2026-09-26 05:33:04 -07:00
+Added the minecraftChest02.webp hover source to src/components/RewardsView.vue. Both chest assets were verified at 2734x1536, so no resize was needed; editor diagnostics reported no errors.
+2026-09-26 05:39:44 -07:00
+Updated RewardsView.vue so clicking the hovered chest shows minecraftChest03.webp until pointer leave restores minecraftChest01.webp. Both chest02 and chest03 were verified at 2734x1536, so no resize was needed; npm run test:assets passed 1/1 and npm run build succeeded.

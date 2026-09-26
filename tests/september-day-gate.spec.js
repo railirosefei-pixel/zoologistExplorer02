@@ -1,6 +1,210 @@
 import { test, expect } from "@playwright/test";
 
-test("September 1 through 27 day cells stay decorative and make no click action", async ({
+test("Explorer text is available for the September 28 through 30 block panels", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	const septemberTwentyNine = page.locator("#calendar-day-cell-September-2026-29");
+	const septemberThirty = page.locator("#calendar-day-cell-September-2026-30");
+
+	for (const day of [septemberTwentyEight, septemberTwentyNine]) {
+		await day.click();
+		await page.waitForTimeout(500);
+		await day.click();
+		await page.getByRole("button", { name: "Math" }).click();
+		await expect(page.locator("#daily-menu-math-panel .daily-menu-subject-panel-message")).toBeVisible();
+		await expect(page.getByText("Explorer Raili!", { exact: true })).toBeVisible();
+		await page.getByRole("button", { name: "Back to calendar" }).click();
+	}
+
+	await septemberThirty.click();
+	await page.waitForTimeout(500);
+	await septemberThirty.click();
+	for (const subject of ["Math", "Language Arts", "Social Studies", "Science"]) {
+		await page.getByRole("button", { name: subject }).click();
+		for (const blockNumber of [1, 2, 3]) {
+			await page.getByRole("tab", { name: `${subject} Block ${blockNumber}` }).click();
+			await expect(
+				page.locator(
+					`#daily-menu-${subject.toLowerCase().replaceAll(" ", "-")}-block-${blockNumber}-panel .daily-menu-subject-panel-message`,
+				),
+			).toBeVisible();
+			await expect(page.getByText("Explorer Raili!", { exact: true })).toBeVisible();
+		}
+	}
+});
+
+test("October 1 Math Explorer text appears in all three block panels", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-3");
+	await octoberFirst.click();
+	await page.waitForTimeout(500);
+	await octoberFirst.click();
+	await page.getByRole("button", { name: "Math" }).click();
+
+	for (const blockNumber of [1, 2, 3]) {
+		await page.getByRole("tab", { name: `Math Block ${blockNumber}` }).click();
+		const panel = page.locator(`#daily-menu-math-block-${blockNumber}-panel`);
+		await expect(panel).toContainText("Explorer Raili!");
+		await expect(panel).toContainText(
+			"Amazing job, blocking the lion’s path!  You really saved the day, but now it appears that the crocodiles are blocking the Whispering Giraffe Family’s path to their new found watering hold.  We can’t let that happen!  Continue your journey by completing the daily Quests and we will make our way to the hippos so they can help us save the giraffes",
+		);
+	}
+});
+
+test("October 1 Language Arts Explorer text appears in all three block panels", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-3");
+	await octoberFirst.click();
+	await page.waitForTimeout(500);
+	await octoberFirst.click();
+	await page.getByRole("button", { name: "Language Arts" }).click();
+
+	for (const blockNumber of [1, 2, 3]) {
+		await page.getByRole("tab", { name: `Language Arts Block ${blockNumber}` }).click();
+		const panel = page.locator(`#daily-menu-language-arts-block-${blockNumber}-panel`);
+		await expect(panel).toContainText("Explorer Raili!");
+		await expect(panel).toContainText(
+			"Absolutely remarkable! Keep going, Explorer Raili.  I can already see that you’re about to do it, again!  The hippos will help, I just know they will.  The journal hasn’t led you wrong, yet!  Stay strong!",
+		);
+	}
+});
+
+test("October 1 Social Studies Explorer text appears in all three block panels", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-3");
+	await octoberFirst.click();
+	await page.waitForTimeout(500);
+	await octoberFirst.click();
+	await page.getByRole("button", { name: "Social Studies" }).click();
+
+	for (const blockNumber of [1, 2, 3]) {
+		await page.getByRole("tab", { name: `Social Studies Block ${blockNumber}` }).click();
+		const panel = page.locator(`#daily-menu-social-studies-block-${blockNumber}-panel`);
+		await expect(panel).toContainText("Explorer Raili!");
+		await expect(panel).toContainText(
+			"Stunning!  You did it again.  I can’t wait to see how far you can go.  The Whispering Giraffe Family is counting on you and you haven’t let them down, yet.  Your Quests await you!",
+		);
+	}
+});
+
+test("October 1 Science Explorer text appears in all three block panels", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-3");
+	await octoberFirst.click();
+	await page.waitForTimeout(500);
+	await octoberFirst.click();
+	await page.getByRole("button", { name: "Science" }).click();
+
+	for (const blockNumber of [1, 2, 3]) {
+		await page.getByRole("tab", { name: `Science Block ${blockNumber}` }).click();
+		const panel = page.locator(`#daily-menu-science-block-${blockNumber}-panel`);
+		await expect(panel).toContainText("Explorer Raili!");
+		await expect(panel).toContainText(
+			"Unbelievable!  I never doubted you for second.  You’ve made it so far and I just know that if you keep doing your best, you’ll win every time!  Just a little farther to go and those crocodiles are sure to leave",
+		);
+	}
+});
+
+test("October 2 Explorer text appears in all subject block panels", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberSecond = page.locator("#calendar-day-cell-October-2026-4");
+	await octoberSecond.click();
+	await page.waitForTimeout(500);
+	await octoberSecond.click();
+
+	for (const [subject, label] of [
+		["math", "Math"],
+		["language-arts", "Language Arts"],
+		["social-studies", "Social Studies"],
+		["science", "Science"],
+	]) {
+		await page.getByRole("button", { name: label }).click();
+		for (const blockNumber of [1, 2, 3]) {
+			await page.getByRole("tab", { name: `${label} Block ${blockNumber}` }).click();
+			const panel = page.locator(`#daily-menu-${subject}-block-${blockNumber}-panel`);
+			await expect(panel).toContainText("Explorer Raili!");
+		}
+	}
+});
+
+test("October 1 subject block panels stay centered", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-3");
+	await octoberFirst.click();
+	await page.waitForTimeout(500);
+	await octoberFirst.click();
+
+	for (const [subject, label] of [
+		["math", "Math"],
+		["language-arts", "Language Arts"],
+		["social-studies", "Social Studies"],
+		["science", "Science"],
+	]) {
+		await page.locator(`#daily-menu-${subject}-button`).click();
+
+		for (const blockNumber of [1, 2, 3]) {
+			await page.locator(`#daily-menu-${subject}-block-${blockNumber}-button`).click();
+			const panel = page.locator(`#daily-menu-${subject}-block-${blockNumber}-panel`);
+			await expect(panel).toHaveCSS("text-align", "center");
+			await expect(panel.locator(".daily-menu-subject-panel-message")).toHaveCSS(
+				"text-align",
+				"center",
+			);
+		}
+	}
+});
+
+test("October 2 subject block panels stay centered", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberSecond = page.locator("#calendar-day-cell-October-2026-4");
+	await octoberSecond.click();
+	await page.waitForTimeout(500);
+	await octoberSecond.click();
+
+	for (const [subject, label] of [
+		["math", "Math"],
+		["language-arts", "Language Arts"],
+		["social-studies", "Social Studies"],
+		["science", "Science"],
+	]) {
+		await page.locator(`#daily-menu-${subject}-button`).click();
+
+		for (const blockNumber of [1, 2, 3]) {
+			await page.locator(`#daily-menu-${subject}-block-${blockNumber}-button`).click();
+			const panel = page.locator(`#daily-menu-${subject}-block-${blockNumber}-panel`);
+			await expect(panel).toHaveCSS("text-align", "center");
+			await expect(panel.locator(".daily-menu-subject-panel-message")).toHaveCSS(
+				"text-align",
+				"center",
+			);
+		}
+	}
+});
+
+test("September 1 through 27 day cells stay decorative and disabled", async ({
 	page,
 }) => {
 	await page.goto("./");
@@ -13,13 +217,55 @@ test("September 1 through 27 day cells stay decorative and make no click action"
 	await expect(septemberOne).toBeDisabled();
 	await expect(septemberTwentySeven).toBeDisabled();
 
-	await septemberOne.click({ force: true });
-	await septemberTwentySeven.click({ force: true });
-
 	await expect(page.locator("#daily-menu-panel")).toHaveCount(0);
 	await expect(page.locator(".daily-menu-content")).toHaveCount(0);
 	await expect(septemberOne).toHaveCSS("background-image", /url\(".*minecraftTNT/);
 	await expect(septemberTwentySeven).toHaveCSS("background-image", /url\(".*minecraftTNT/);
+});
+
+test("September 29 subject menu text is centered before and after selecting a block", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyNine = page.locator("#calendar-day-cell-September-2026-29");
+	await septemberTwentyNine.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyNine.click();
+	await page.locator("#daily-menu-math-button").click();
+
+	await expect(page.locator("#daily-menu-math-panel")).toHaveCSS("text-align", "center");
+	await page.locator("#daily-menu-math-block-1-button").click();
+	await expect(page.locator("#daily-menu-math-block-1-panel")).toHaveCSS(
+		"text-align",
+		"center",
+	);
+});
+
+test("September 30 subject menu text is centered before and after selecting each block", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberThirty = page.locator("#calendar-day-cell-September-2026-30");
+	await septemberThirty.click();
+	await page.waitForTimeout(500);
+	await septemberThirty.click();
+
+	for (const subject of ["math", "language-arts", "social-studies", "science"]) {
+		await page.locator(`#daily-menu-${subject}-button`).click();
+		await expect(page.locator(`#daily-menu-${subject}-panel`)).toHaveCSS(
+			"text-align",
+			"center",
+		);
+		await page.locator(`#daily-menu-${subject}-block-1-button`).click();
+		await expect(page.locator(`#daily-menu-${subject}-block-1-panel`)).toHaveCSS(
+			"text-align",
+			"center",
+		);
+	}
 });
 
 test("Rapid later clicks preserve earlier square replacements and hide TNT textures", async ({

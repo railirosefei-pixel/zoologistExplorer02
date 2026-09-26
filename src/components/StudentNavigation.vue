@@ -2,13 +2,18 @@
 <script setup>
 import { ref } from "vue";
 
-const emit = defineEmits(["open-calendar"]);
+const emit = defineEmits(["open-calendar", "open-rewards"]);
 const activeStudentMenu = ref("");
 
 /** Student-menu navigation pipeline boundary for the calendar tab. */
 function handleCalendarNavigation() {
 	activeStudentMenu.value = "";
 	emit("open-calendar");
+}
+
+/** Rewards-page navigation pipeline boundary. */
+function handleRewardsNavigation() {
+	emit("open-rewards");
 }
 
 /** Student sidebar submenu pipeline boundary. */
@@ -47,8 +52,7 @@ function handleStudentMenuNavigation(menuName) {
 			data-button-name="rewards-tab"
 			aria-label="Open Rewards tab"
 			title="Open Rewards tab"
-			:aria-expanded="activeStudentMenu === 'rewards'"
-			@click="handleStudentMenuNavigation('rewards')"
+			@click="handleRewardsNavigation"
 		>
 			Rewards
 		</button>

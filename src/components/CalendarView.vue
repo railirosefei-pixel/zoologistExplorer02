@@ -252,27 +252,99 @@ const explorerCopyBySubject = {
 		"Let’s use science to continure our Quest of saving the Whispering Giraffe Family, by leading them to water",
 	],
 };
+const allowedExplorerCopyDates = new Set([
+	"September 28, 2026",
+	"September 29, 2026",
+	"September 30, 2026",
+	"October 1, 2026",
+	"October 2, 2026",
+]);
+const explorerCopyByDateAndSubject = {
+	"September 29, 2026": {
+		math: [
+			"Explorer Raili!",
+			"You did so much yesterday to bring the Whispering Giraffe Family to a new water hole, but there’s still much to do.  Complete the Quests today to help them find their way to food!",
+		],
+	},
+	"October 1, 2026": {
+		math: [
+			"Explorer Raili!",
+			"Amazing job, blocking the lion’s path!  You really saved the day, but now it appears that the crocodiles are blocking the Whispering Giraffe Family’s path to their new found watering hold.  We can’t let that happen!  Continue your journey by completing the daily Quests and we will make our way to the hippos so they can help us save the giraffes",
+		],
+		"language-arts": [
+			"Explorer Raili!",
+			"Absolutely remarkable! Keep going, Explorer Raili.  I can already see that you’re about to do it, again!  The hippos will help, I just know they will.  The journal hasn’t led you wrong, yet!  Stay strong!",
+		],
+		"social-studies": [
+			"Explorer Raili!",
+			"Stunning!  You did it again.  I can’t wait to see how far you can go.  The Whispering Giraffe Family is counting on you and you haven’t let them down, yet.  Your Quests await you!",
+		],
+		science: [
+			"Explorer Raili!",
+			"Unbelievable!  I never doubted you for second.  You’ve made it so far and I just know that if you keep doing your best, you’ll win every time!  Just a little farther to go and those crocodiles are sure to leave",
+		],
+	},
+	"October 2, 2026": {
+		math: [
+			"Explorer Raili!",
+			"You’ve brought the Whispering Giraffe Family to water and food.  You’ve blockaded the lions from getting to their new home, and even made friends with the hippos who helped you push the crocodiles out of their watering hole.  You’re a hero and loved by the giraffes.  But now the young giraffe calves are sick.  Luckily, the journal has given you a hint.  One last task.  Complete your journey and save the giraffe calves!",
+		],
+		"language-arts": [
+			"Explorer Raili!",
+			"You’ve done it again!  I knew you would.  You’re so smart and you look so adorable in that explorer’s outfit.  We are getting close, complete the Quests and be the savior of the giraffe family.",
+		],
+		"social-studies": [
+			"Explorer Raili!",
+			"Stunning!  You did it again.  I can’t wait to see how far you can go.  The Whispering Giraffe Family is counting on you and you haven’t let them down, yet.  Your Quests await you!",
+		],
+		science: [
+			"Explorer Raili!",
+			"You’ve done it!  You got the herbs and saved the baby giraffes.  You are the best kid who every lived!  Every day, you have dedicated so much time to saving the Whispering Giraffes and did amazing things.  I can’t wait to see how far you go!  Congratulations!!!",
+		],
+	},
+	"September 30, 2026": {
+		math: [
+			"Explorer Raili!",
+			"You brought the Whispering Giraffe Family to water and to a whole new grove of Acacia trees while avoiding the pride of lions",
+			"You are remarkable!  But our journey with the giraffe family isn’t over.  The lions have sniffed us out and we need to block their path so that they can’t get to you or to the giraffes",
+			"Continue completing your Quests and the lions are sure to be kept away",
+		],
+		"language-arts": [
+			"Explorer Raili!",
+			"Incredible work!  The Whispering Giraffes trust you and they know that you will keep them safe.  You are absolutely doing your best and you have never made Assistant Daddy more proud!  You are absolutely the hero of the Whispering Giraffe Family!  But there’s still more to do.  More Quests to complete to defeat the lions, once and for all.  Keep going.  You are doing so so well!",
+		],
+		"social-studies": [
+			"Explorer Raili!",
+			"Stunning!  You did it again.  You’re so close to the finish line.  Don’t give up!",
+		],
+		science: [
+			"Explorer Raili!",
+			"Unbelievable!",
+			"Unbelievable!  Again, you have accomplished every task, so far.  Those lions are no match for you!  Just a little farther.  You’re almost there!",
+		],
+	},
+};
+function getExplorerCopy(subject) {
+	const selectedDateLabel = selectedDailyMenuDateLabel.value;
+	if (!allowedExplorerCopyDates.has(selectedDateLabel)) {
+		return null;
+	}
+
+	return (
+		explorerCopyByDateAndSubject[selectedDateLabel]?.[subject] ??
+		explorerCopyBySubject[subject]
+	);
+}
 function isExplorerCopyActive(subject) {
 	if (!selectedDailyMenuDateLabel.value) {
 		return false;
 	}
 
-	const match = selectedDailyMenuDateLabel.value.match(
-		/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/,
-	);
-	if (!match) {
+	if (!allowedExplorerCopyDates.has(selectedDailyMenuDateLabel.value)) {
 		return false;
 	}
 
-	const [, monthName, dayValue, yearValue] = match;
-	const monthIndex = new Date(`${monthName} 1, ${yearValue}`).getMonth();
-	const selectedDate = new Date(Number(yearValue), monthIndex, Number(dayValue));
-	const startDate = new Date(2026, 8, 28);
-
-	return (
-		selectedDate.getTime() === startDate.getTime() &&
-		Boolean(explorerCopyBySubject[subject])
-	);
+	return Boolean(getExplorerCopy(subject));
 }
 const selectedTimelineStory = computed(() => {
 	if (activeStoryTimelineTab.value === "Year" && isStoryButtonAvailable()) {
@@ -654,6 +726,16 @@ onBeforeUnmount(clearDayCellExplosion);
 						{
 							'daily-menu-subject-panel-stack--story':
 								selectedDailyMenuSubject === 'story',
+							'daily-menu-subject-panel-stack--september-28':
+								selectedDailyMenuDateLabel === 'September 28, 2026',
+							'daily-menu-subject-panel-stack--september-29':
+								selectedDailyMenuDateLabel === 'September 29, 2026',
+							'daily-menu-subject-panel-stack--september-30':
+								selectedDailyMenuDateLabel === 'September 30, 2026',
+							'daily-menu-subject-panel-stack--october-1':
+								selectedDailyMenuDateLabel === 'October 1, 2026',
+							'daily-menu-subject-panel-stack--october-2':
+								selectedDailyMenuDateLabel === 'October 2, 2026',
 						},
 					]"
 				>
@@ -689,10 +771,12 @@ onBeforeUnmount(clearDayCellExplosion);
 							class="daily-menu-subject-panel-message"
 						>
 							<p
-								v-for="line in explorerCopyBySubject[selectedDailyMenuSubject]"
+								v-for="line in getExplorerCopy(selectedDailyMenuSubject)"
 								:key="line"
 							>
-								{{ line }}
+								<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
+									{{ line }}
+								</span>
 							</p>
 						</div>
 					</article>
@@ -709,8 +793,10 @@ onBeforeUnmount(clearDayCellExplosion);
 							v-if="isExplorerCopyActive('math')"
 							class="daily-menu-subject-panel-message"
 						>
-							<p v-for="line in explorerCopyBySubject.math" :key="line">
-								{{ line }}
+							<p v-for="line in getExplorerCopy('math')" :key="line">
+								<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
+									{{ line }}
+								</span>
 							</p>
 						</div>
 						<div
@@ -850,7 +936,9 @@ onBeforeUnmount(clearDayCellExplosion);
 							class="daily-menu-subject-panel-message"
 						>
 							<p v-for="line in explorerCopyBySubject['language-arts']" :key="line">
-								{{ line }}
+									<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
+										{{ line }}
+									</span>
 							</p>
 						</div>
 						<div
@@ -912,7 +1000,9 @@ onBeforeUnmount(clearDayCellExplosion);
 							class="daily-menu-subject-panel-message"
 						>
 							<p v-for="line in explorerCopyBySubject['social-studies']" :key="line">
-								{{ line }}
+									<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
+										{{ line }}
+									</span>
 							</p>
 						</div>
 						<div
@@ -974,7 +1064,9 @@ onBeforeUnmount(clearDayCellExplosion);
 							class="daily-menu-subject-panel-message"
 						>
 							<p v-for="line in explorerCopyBySubject.science" :key="line">
-								{{ line }}
+									<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
+										{{ line }}
+									</span>
 							</p>
 						</div>
 						<div
