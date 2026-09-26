@@ -1,66 +1,25 @@
 import { test, expect } from "@playwright/test";
 
-test("September 1 uses a gated explosion before opening the daily menu", async ({ page }) => {
-	await page.goto("./");
-	await page.getByRole("button", { name: "Open student section" }).click();
-
-	const septemberOne = page.locator("#calendar-day-cell-September-2026-1");
-	await expect(septemberOne).toBeVisible();
-	await septemberOne.click();
-
-	await expect(septemberOne).toBeDisabled();
-	await page.waitForTimeout(1200);
-	await expect(septemberOne).toBeEnabled();
-	await septemberOne.click();
-
-	await expect(page.locator("#daily-menu-panel")).toBeVisible();
-	await expect(page.getByRole("heading", { name: /Daily Menu/i })).toBeVisible();
-});
-
-test("Each subject Block keeps its tabs visible beside an empty matching panel", async ({
+test("September 1 through 27 day cells stay decorative and make no click action", async ({
 	page,
 }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
 	const septemberOne = page.locator("#calendar-day-cell-September-2026-1");
-	await septemberOne.click();
-	await page.waitForTimeout(1200);
-	await septemberOne.click();
+	const septemberTwentySeven = page.locator("#calendar-day-cell-September-2026-27");
 
-	for (const [subject, label] of [
-		["math", "Math"],
-		["language-arts", "Language Arts"],
-		["social-studies", "Social Studies"],
-		["science", "Science"],
-	]) {
-		const subjectPanel = page.locator(`#daily-menu-${subject}-panel`);
-		await page.getByRole("button", { name: label, exact: true }).click();
-		await expect(subjectPanel).toBeVisible();
-		const subjectBox = await subjectPanel.boundingBox();
-		await page.locator(`#daily-menu-${subject}-block-1-button`).click();
-		for (const blockNumber of [1, 2, 3]) {
-			await page.locator(`#daily-menu-${subject}-block-${blockNumber}-button`).click();
-			const blockPanel = page.locator(`#daily-menu-${subject}-block-${blockNumber}-panel`);
-			await expect(subjectPanel).toHaveCount(0);
-			await expect(blockPanel).toBeVisible();
-			await expect(blockPanel).toBeEmpty();
-			await expect(page.locator("#daily-menu-block-back-button")).toHaveCount(0);
-			for (const visibleBlock of [1, 2, 3]) {
-				const tab = page.locator(`#daily-menu-${subject}-block-${visibleBlock}-button`);
-				await expect(tab).toBeVisible();
-				await expect(tab).toHaveAttribute(
-					"aria-selected",
-					String(visibleBlock === blockNumber),
-				);
-			}
-			const blockBox = await blockPanel.boundingBox();
-			expect(blockBox.width).toBeCloseTo(subjectBox.width, 0);
-			expect(blockBox.height).toBeCloseTo(subjectBox.height, 0);
-		}
-		await page.getByRole("button", { name: "Back to calendar" }).click();
-		await septemberOne.click();
-	}
+	await expect(septemberOne).toBeVisible();
+	await expect(septemberOne).toBeDisabled();
+	await expect(septemberTwentySeven).toBeDisabled();
+
+	await septemberOne.click({ force: true });
+	await septemberTwentySeven.click({ force: true });
+
+	await expect(page.locator("#daily-menu-panel")).toHaveCount(0);
+	await expect(page.locator(".daily-menu-content")).toHaveCount(0);
+	await expect(septemberOne).toHaveCSS("background-image", /url\(".*minecraftTNT/);
+	await expect(septemberTwentySeven).toHaveCSS("background-image", /url\(".*minecraftTNT/);
 });
 
 test("Rapid later clicks preserve earlier square replacements and hide TNT textures", async ({
@@ -69,64 +28,41 @@ test("Rapid later clicks preserve earlier square replacements and hide TNT textu
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberOne = page.locator("#calendar-day-cell-September-2026-1");
-	const septemberTwo = page.locator("#calendar-day-cell-September-2026-2");
-	const septemberThree = page.locator("#calendar-day-cell-September-2026-3");
-	const septemberOneReplacement = page.locator("#calendar-day-replacement-September-2026-1");
-	const septemberTwoReplacement = page.locator("#calendar-day-replacement-September-2026-2");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	const septemberTwentyNine = page.locator("#calendar-day-cell-September-2026-29");
+	const septemberThirty = page.locator("#calendar-day-cell-September-2026-30");
+	const septemberTwentyEightReplacement = page.locator(
+		"#calendar-day-replacement-September-2026-28",
+	);
+	const septemberTwentyNineReplacement = page.locator(
+		"#calendar-day-replacement-September-2026-29",
+	);
 
-	await septemberOne.click();
+	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
-	await expect(septemberOneReplacement).toBeVisible();
-	await expect(septemberOneReplacement).toHaveClass(/calendar-day-replacement--blue/);
-	await expect(septemberOne).toHaveCSS("background-image", "none");
+	await expect(septemberTwentyEightReplacement).toBeVisible();
+	await expect(septemberTwentyEightReplacement).toHaveClass(/calendar-day-replacement--blue/);
+	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
 
-	await septemberTwo.click();
+	await septemberTwentyNine.click();
 	await page.waitForTimeout(250);
-	await expect(septemberOne).toBeVisible();
-	await expect(septemberOneReplacement).toBeVisible();
-	await expect(septemberOneReplacement).toHaveClass(/calendar-day-replacement--blue/);
-	await expect(septemberOne.locator(".calendar-day-cell-number")).toHaveText("1");
-	await expect(septemberOne).toHaveCSS("background-image", "none");
+	await expect(septemberTwentyEight).toBeVisible();
+	await expect(septemberTwentyEightReplacement).toBeVisible();
+	await expect(septemberTwentyEightReplacement).toHaveClass(/calendar-day-replacement--blue/);
+	await expect(septemberTwentyEight.locator(".calendar-day-cell-number")).toHaveText("28");
+	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
 
-	await septemberThree.click();
+	await septemberThirty.click();
 	await page.waitForTimeout(250);
-	await expect(septemberTwo).toBeVisible();
-	await expect(septemberTwoReplacement).toBeVisible();
-	await expect(septemberOneReplacement).toHaveClass(/calendar-day-replacement--blue/);
-	await expect(septemberTwoReplacement).toHaveClass(/calendar-day-replacement--yellow/);
-	await expect(septemberTwo.locator(".calendar-day-cell-number")).toHaveText("2");
-	await expect(septemberOne).toHaveCSS("background-image", "none");
-	await expect(septemberTwo).toHaveCSS("background-image", "none");
+	await expect(septemberTwentyNine).toBeVisible();
+	await expect(septemberTwentyNineReplacement).toBeVisible();
+	await expect(septemberTwentyEightReplacement).toHaveClass(/calendar-day-replacement--blue/);
+	await expect(septemberTwentyNineReplacement).toHaveClass(/calendar-day-replacement--yellow/);
+	await expect(septemberTwentyNine.locator(".calendar-day-cell-number")).toHaveText("29");
+	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
+	await expect(septemberTwentyNine).toHaveCSS("background-image", "none");
 });
 
-test("Every revealed day opens the daily menu for its own date", async ({ page }) => {
-	await page.goto("./");
-	await page.getByRole("button", { name: "Open student section" }).click();
-
-	const septemberOne = page.locator("#calendar-day-cell-September-2026-1");
-	const septemberTwo = page.locator("#calendar-day-cell-September-2026-2");
-	const septemberThree = page.locator("#calendar-day-cell-September-2026-3");
-	const dailyMenuDate = page.locator(".daily-menu-date");
-
-	await septemberOne.click();
-	await page.waitForTimeout(500);
-	await septemberTwo.click();
-	await page.waitForTimeout(500);
-	await septemberThree.click();
-	await page.waitForTimeout(500);
-
-	for (const [dayCell, expectedDate] of [
-		[septemberOne, "September 1, 2026"],
-		[septemberTwo, "September 2, 2026"],
-		[septemberThree, "September 3, 2026"],
-	]) {
-		await dayCell.click();
-		await expect(page.locator("#daily-menu-panel")).toBeVisible();
-		await expect(dailyMenuDate).toHaveText(expectedDate);
-		await page.getByRole("button", { name: "Back to calendar" }).click();
-	}
-});
 
 test("Story is available on weekday daily menus from September 28 onward", async ({ page }) => {
 	await page.goto("./");
@@ -450,15 +386,15 @@ test("Leaving and reopening the calendar reapplies the TNT texture", async ({ pa
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberOne = page.locator("#calendar-day-cell-September-2026-1");
-	await septemberOne.click();
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
-	await expect(septemberOne).toHaveCSS("background-image", "none");
+	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
 
 	await page.getByRole("button", { name: "Back to home page" }).click();
 	await expect(page.locator("#home-page-shell")).toBeVisible();
 
 	await page.getByRole("button", { name: "Open student section" }).click();
-	const reopenedSeptemberOne = page.locator("#calendar-day-cell-September-2026-1");
-	await expect(reopenedSeptemberOne).toHaveCSS("background-image", /url\(".*minecraftTNT/);
+	const reopenedSeptemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await expect(reopenedSeptemberTwentyEight).toHaveCSS("background-image", /url\(".*minecraftTNT/);
 });

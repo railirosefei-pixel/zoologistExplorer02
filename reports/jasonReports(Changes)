@@ -406,3 +406,8 @@ Added a dynamic title to the conditional Block panel article in src/components/C
 
 2026-09-25 17:04:05 -07:00
 Ran npm run format, which formatted src/components/CalendarView.vue; npm run format:check passed for all files.
+2026-09-25 17:16:09 -07:00
+Removed daily-menu content for September 1-27 in src/components/CalendarView.vue while preserving the TNT texture, explosion animation, and colored replacement squares; updated the September gate tests, and the full focused suite passed 13 tests.
+
+2026-09-25 19:25:15 -07:00
+Executed plan.md step 1A by rendering each subject's explorer message inside the selected Block panel in src/components/CalendarView.vue so Blocks 1-3 and repeated Block 1 clicks no longer show an empty panel; executed step 2 by gating the explorer copy to September 28, 2026 only, leaving September 29 - October 2 blocks empty. npm run build succeeded, the five structure test files passed 14/14, and direct browser verification confirmed populated September 28 blocks and empty September 29 blocks.

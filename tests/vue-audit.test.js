@@ -205,6 +205,31 @@ test("Calendar day-cell behaviors are not restricted to September", () => {
 	);
 });
 
+test("Calendar subject panels include the required explorer copy for the specified dates", () => {
+	const calendarViewSource = fs.readFileSync(
+		path.join(sourceRoot, "components", "CalendarView.vue"),
+		"utf8",
+	);
+
+	const requiredPhrases = [
+		"Explorer Raili!",
+		"You are so brave to help the Whispering Giraffes find their way to a new watering hole!",
+		"Amazing Work!  You did your best and it shows!",
+		"You’ve come so far and Assistant Daddy is sooooo proud of you!",
+		"Incredible! You’re unstoppable!",
+		"September 28, 2026",
+		"October 2, 2026",
+	];
+
+	const missingPhrases = requiredPhrases.filter((phrase) => !calendarViewSource.includes(phrase));
+
+	assert.deepEqual(
+		missingPhrases,
+		[],
+		`CalendarView is missing required explorer copy:\n${missingPhrases.join("\n")}`,
+	);
+});
+
 test("Vue files keep shared structure and style ownership consistent", () => {
 	const findings = [];
 	const globalStylesheetPath = path.join(sourceRoot, "css", "input.css");

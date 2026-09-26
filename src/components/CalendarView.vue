@@ -69,6 +69,17 @@ const selectedDailyMenuDateLabel = ref("");
 const selectedDailyMenuSubject = ref(null);
 const selectedDailyMenuBlock = ref(null);
 const activeStoryTimelineTab = ref(null);
+const hasDailyMenuContent = computed(() => {
+	const septemberDateMatch = selectedDailyMenuDateLabel.value.match(
+		/^September\s+(\d{1,2}),\s+2026$/,
+	);
+	if (!septemberDateMatch) {
+		return true;
+	}
+
+	const dayNumber = Number(septemberDateMatch[1]);
+	return dayNumber < 1 || dayNumber > 27;
+});
 const blockSubjectLabels = {
 	math: "Math",
 	"language-arts": "Language Arts",
@@ -218,6 +229,51 @@ const storyContentByDateLabel = {
 const selectedStoryContent = computed(
 	() => storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null,
 );
+const explorerCopyBySubject = {
+	math: [
+		"Explorer Raili!",
+		"You are so brave to help the Whispering Giraffes find their way to a new watering hole!",
+		"Complete all the Quests below and you will be well on your way to being the hero that we all know you are!",
+	],
+	"language-arts": [
+		"Explorer Raili!",
+		"Amazing Work!  You did your best and it shows!",
+		"Keep going and complete the Quests below to continue to help the Whispering Giraffe Family find water and avoid the hungry lions!",
+	],
+	"social-studies": [
+		"Explorer Raili!",
+		"You’ve come so far and Assistant Daddy is sooooo proud of you!",
+		"Continue your journey!  Do your best and you will soon succeed.",
+		"Use your map skills to avert the danger that the lions pose!",
+	],
+	science: [
+		"Explorer Raili!",
+		"Incredible! You’re unstoppable!",
+		"Let’s use science to continure our Quest of saving the Whispering Giraffe Family, by leading them to water",
+	],
+};
+function isExplorerCopyActive(subject) {
+	if (!selectedDailyMenuDateLabel.value) {
+		return false;
+	}
+
+	const match = selectedDailyMenuDateLabel.value.match(
+		/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/,
+	);
+	if (!match) {
+		return false;
+	}
+
+	const [, monthName, dayValue, yearValue] = match;
+	const monthIndex = new Date(`${monthName} 1, ${yearValue}`).getMonth();
+	const selectedDate = new Date(Number(yearValue), monthIndex, Number(dayValue));
+	const startDate = new Date(2026, 8, 28);
+
+	return (
+		selectedDate.getTime() === startDate.getTime() &&
+		Boolean(explorerCopyBySubject[subject])
+	);
+}
 const selectedTimelineStory = computed(() => {
 	if (activeStoryTimelineTab.value === "Year" && isStoryButtonAvailable()) {
 		return year1TimelineStory;
@@ -398,8 +454,17 @@ function clearDayCellExplosion() {
 	dayCellAnimationState.value = "idle";
 }
 
+function isDecorativeSeptemberDayCell(cell) {
+	if (!isCurrentMonthDayCell(cell) || currentMonth.value.monthName !== "September") {
+		return false;
+	}
+
+	const dayNumber = Number(cell.value);
+	return dayNumber >= 1 && dayNumber <= 27;
+}
+
 function handleDayCellClick(cell) {
-	if (!isCurrentMonthDayCell(cell)) {
+	if (!isCurrentMonthDayCell(cell) || isDecorativeSeptemberDayCell(cell)) {
 		return;
 	}
 
@@ -492,6 +557,7 @@ onBeforeUnmount(clearDayCellExplosion);
 			title="Daily menu"
 		>
 			<div
+				v-if="hasDailyMenuContent"
 				:class="[
 					'daily-menu-content',
 					{ 'daily-menu-content--story': selectedDailyMenuSubject === 'story' },
@@ -617,7 +683,19 @@ onBeforeUnmount(clearDayCellExplosion);
 						class="daily-menu-subject-panel daily-menu-block-panel"
 						:aria-label="`${selectedDailyMenuSubject} Block ${selectedDailyMenuBlock} panel`"
 						:title="`${selectedDailyMenuSubject} Block ${selectedDailyMenuBlock} panel`"
-					></article>
+					>
+						<div
+							v-if="isExplorerCopyActive(selectedDailyMenuSubject)"
+							class="daily-menu-subject-panel-message"
+						>
+							<p
+								v-for="line in explorerCopyBySubject[selectedDailyMenuSubject]"
+								:key="line"
+							>
+								{{ line }}
+							</p>
+						</div>
+					</article>
 					<article
 						v-if="
 							selectedDailyMenuSubject === 'math' && selectedDailyMenuBlock === null
@@ -627,6 +705,14 @@ onBeforeUnmount(clearDayCellExplosion);
 						aria-label="Math subject panel"
 						title="Math subject panel"
 					>
+						<div
+							v-if="isExplorerCopyActive('math')"
+							class="daily-menu-subject-panel-message"
+						>
+							<p v-for="line in explorerCopyBySubject.math" :key="line">
+								{{ line }}
+							</p>
+						</div>
 						<div
 							class="daily-menu-subject-tab-list"
 							role="tablist"
@@ -760,6 +846,14 @@ onBeforeUnmount(clearDayCellExplosion);
 						title="Language Arts subject panel"
 					>
 						<div
+							v-if="isExplorerCopyActive('language-arts')"
+							class="daily-menu-subject-panel-message"
+						>
+							<p v-for="line in explorerCopyBySubject['language-arts']" :key="line">
+								{{ line }}
+							</p>
+						</div>
+						<div
 							class="daily-menu-subject-tab-list"
 							role="tablist"
 							aria-label="Language Arts block navigation"
@@ -814,6 +908,14 @@ onBeforeUnmount(clearDayCellExplosion);
 						title="Social Studies subject panel"
 					>
 						<div
+							v-if="isExplorerCopyActive('social-studies')"
+							class="daily-menu-subject-panel-message"
+						>
+							<p v-for="line in explorerCopyBySubject['social-studies']" :key="line">
+								{{ line }}
+							</p>
+						</div>
+						<div
 							class="daily-menu-subject-tab-list"
 							role="tablist"
 							aria-label="Social Studies block navigation"
@@ -867,6 +969,14 @@ onBeforeUnmount(clearDayCellExplosion);
 						aria-label="Science subject panel"
 						title="Science subject panel"
 					>
+						<div
+							v-if="isExplorerCopyActive('science')"
+							class="daily-menu-subject-panel-message"
+						>
+							<p v-for="line in explorerCopyBySubject.science" :key="line">
+								{{ line }}
+							</p>
+						</div>
 						<div
 							class="daily-menu-subject-tab-list"
 							role="tablist"

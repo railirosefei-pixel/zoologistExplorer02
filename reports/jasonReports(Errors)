@@ -136,3 +136,5 @@ Editor diagnostics still flag pre-existing redundant region-role markup in the c
 
 2026-09-25 16:59:09 -07:00
 The page-container separation test failed because src/components/CalendarView.vue contains an article without a title attribute. The other planned tests passed; no warnings were reported.
+2026-09-25 17:16:09 -07:00
+The initial September gate assertion was stale because it expected Daily Menu text removed by this step; after updating that expectation, the focused September suite passed all 13 tests with no new errors or warnings.
