@@ -7,6 +7,7 @@ import CalendarView from "./components/CalendarView.vue";
 
 const isStudentMenuOpen = ref(false);
 const activeStudentTab = ref("calendar");
+const calendarViewRef = ref(null);
 
 /** Home navigation pipeline boundary. */
 function handleStudentMenuOpen() {
@@ -23,6 +24,7 @@ function handleStudentMenuClose() {
 /** Student-menu tab navigation pipeline boundary. */
 function handleCalendarTabOpen() {
 	activeStudentTab.value = "calendar";
+	calendarViewRef.value?.resetToCalendar();
 }
 </script>
 
@@ -61,7 +63,7 @@ function handleCalendarTabOpen() {
 			title="Student menu content"
 			data-container-name="student-menu-content"
 		>
-			<CalendarView v-if="activeStudentTab === 'calendar'" />
+			<CalendarView v-if="activeStudentTab === 'calendar'" ref="calendarViewRef" />
 		</section>
 	</main>
 </template>

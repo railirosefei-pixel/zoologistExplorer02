@@ -13,7 +13,7 @@ function handleCalendarNavigation() {
 
 /** Student sidebar submenu pipeline boundary. */
 function handleStudentMenuNavigation(menuName) {
-	activeStudentMenu.value = activeStudentMenu.value === menuName ? "" : menuName;
+	activeStudentMenu.value = menuName;
 }
 </script>
 

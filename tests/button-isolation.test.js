@@ -35,10 +35,19 @@ function collectAttributeValues(source, attributeName) {
 	return [...source.matchAll(pattern)].map((match) => match[2]);
 }
 
+function collectBoundAttributeValues(source, attributeName) {
+	const escapedAttributeName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const pattern = new RegExp(`:${escapedAttributeName}\\s*=\\s*(["'])(.*?)\\1`, "gs");
+	return [...source.matchAll(pattern)].map((match) => match[2]);
+}
+
 function collectButtonRecords(source, filePath) {
 	return collectOpeningTags(source, "button").map((openingTag) => ({
 		filePath,
-		id: collectAttributeValues(openingTag, "id")[0] ?? "",
+		id:
+			collectAttributeValues(openingTag, "id")[0] ??
+			collectBoundAttributeValues(openingTag, "id")[0] ??
+			"",
 		classes: collectAttributeValues(openingTag, "class")[0]?.split(/\s+/).filter(Boolean) ?? [],
 		clickHandler: collectAttributeValues(openingTag, "@click")[0] ?? "",
 	}));
@@ -198,6 +207,35 @@ test("student menu tabs use the same size and shape as the calendar tab", () => 
 		/\.student-menu-calendar-tab,\s*\.student-menu-rewards-tab,\s*\.student-menu-games-tab,\s*\.student-menu-extra-credit-tab,\s*\.student-menu-progress-tab\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0\.9rem\s+1rem;[^}]*border-radius:\s*0\.875rem;[^}]*font-family:\s*"Minecraft2Bold"[^}]*font-size:\s*1\.75rem;/s;
 
 	assert.match(cssSource, sharedSelectorPattern, "shared sizing selector group is missing");
+});
+
+test("daily-menu subject panels render block controls in a tab rail", () => {
+	const componentSource = fs.readFileSync(
+		path.join(projectRoot, "src", "components", "CalendarView.vue"),
+		"utf8",
+	);
+	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
+
+	assert.match(
+		componentSource,
+		/<div\s+class="daily-menu-subject-tab-list"[^>]*role="tablist"[^>]*>/,
+		"The subject panel should include a tablist for block controls",
+	);
+	assert.match(
+		componentSource,
+		/id="daily-menu-math-panel"[\s\S]*?daily-menu-subject-tab-list[\s\S]*?daily-menu-math-block-1-button/,
+		"Math panel should place the block tabs inside the panel",
+	);
+	assert.match(
+		cssSource,
+		/\.daily-menu-subject-tab-list\s*\{[^}]*position:\s*absolute;[^}]*top:\s*calc\(-2\.8rem\s*-\s*3px\);[^}]*left:\s*50%;[^}]*flex-direction:\s*row;[^}]*transform:\s*translateX\(-50%\);/s,
+		"Block controls should use a centered horizontal top tab rail",
+	);
+	assert.match(
+		cssSource,
+		/\.daily-menu-subject-tab-list > button\s*\{[^}]*border-radius:\s*0\.6rem\s+0\.6rem\s+0\s+0;/s,
+		"Block tabs should keep their flat lower edge flush with the panel top",
+	);
 });
 
 test("src/css/input.css and src/js/main.js contain no stale, duplicate, or contradictory app logic", () => {

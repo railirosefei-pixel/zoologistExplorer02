@@ -17,6 +17,52 @@ test("September 1 uses a gated explosion before opening the daily menu", async (
 	await expect(page.getByRole("heading", { name: /Daily Menu/i })).toBeVisible();
 });
 
+test("Each subject Block keeps its tabs visible beside an empty matching panel", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberOne = page.locator("#calendar-day-cell-September-2026-1");
+	await septemberOne.click();
+	await page.waitForTimeout(1200);
+	await septemberOne.click();
+
+	for (const [subject, label] of [
+		["math", "Math"],
+		["language-arts", "Language Arts"],
+		["social-studies", "Social Studies"],
+		["science", "Science"],
+	]) {
+		const subjectPanel = page.locator(`#daily-menu-${subject}-panel`);
+		await page.getByRole("button", { name: label, exact: true }).click();
+		await expect(subjectPanel).toBeVisible();
+		const subjectBox = await subjectPanel.boundingBox();
+		await page.locator(`#daily-menu-${subject}-block-1-button`).click();
+		for (const blockNumber of [1, 2, 3]) {
+			await page.locator(`#daily-menu-${subject}-block-${blockNumber}-button`).click();
+			const blockPanel = page.locator(`#daily-menu-${subject}-block-${blockNumber}-panel`);
+			await expect(subjectPanel).toHaveCount(0);
+			await expect(blockPanel).toBeVisible();
+			await expect(blockPanel).toBeEmpty();
+			await expect(page.locator("#daily-menu-block-back-button")).toHaveCount(0);
+			for (const visibleBlock of [1, 2, 3]) {
+				const tab = page.locator(`#daily-menu-${subject}-block-${visibleBlock}-button`);
+				await expect(tab).toBeVisible();
+				await expect(tab).toHaveAttribute(
+					"aria-selected",
+					String(visibleBlock === blockNumber),
+				);
+			}
+			const blockBox = await blockPanel.boundingBox();
+			expect(blockBox.width).toBeCloseTo(subjectBox.width, 0);
+			expect(blockBox.height).toBeCloseTo(subjectBox.height, 0);
+		}
+		await page.getByRole("button", { name: "Back to calendar" }).click();
+		await septemberOne.click();
+	}
+});
+
 test("Rapid later clicks preserve earlier square replacements and hide TNT textures", async ({
 	page,
 }) => {
@@ -152,6 +198,26 @@ test("Story opens the Year tab by default", async ({ page }) => {
 	await expect(
 		page.getByText("your journal is translating animal speech", { exact: false }),
 	).toBeVisible();
+});
+
+test("Calendar button returns from a nested Story menu", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+	await page.getByRole("button", { name: "Story" }).click();
+	await expect(page.locator("#daily-menu-story-panel")).toBeVisible();
+	await page.locator("#daily-menu-story-tab-week").click();
+	await expect(page.getByRole("heading", { name: "Week" })).toBeVisible();
+
+	await page.locator("#calendar-tab").click();
+
+	await expect(page.locator("#daily-menu-panel")).toHaveCount(0);
+	await expect(page.locator("#daily-menu-story-panel")).toHaveCount(0);
+	await expect(septemberTwentyEight).toBeVisible();
 });
 
 test("Day timeline shows the matching Day 1 through Day 5 stories", async ({ page }) => {

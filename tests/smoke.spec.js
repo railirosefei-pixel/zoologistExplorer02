@@ -99,6 +99,33 @@ test("Student sidebar includes the full button set", async ({ page }) => {
 	await expect(page.getByRole("button", { name: "Progress" })).toBeVisible();
 });
 
+test("Student sidebar navigation always selects its destination", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const destinations = [
+		{ button: "Rewards", panel: "#rewards-menu" },
+		{ button: "Games", panel: "#games-menu" },
+		{ button: "Extra Credit", panel: "#extra-credit-menu" },
+		{ button: "Progress", panel: "#progress-menu" },
+	];
+
+	for (const destination of destinations) {
+		const button = page.getByRole("button", { name: destination.button });
+		await button.click();
+		await expect(page.locator(destination.panel)).toBeVisible();
+		await button.click();
+		await expect(page.locator(destination.panel)).toBeVisible();
+	}
+
+	const calendarButton = page.getByRole("button", { name: "Calendar" });
+	await calendarButton.click();
+	await expect(page.locator("#calendar-menu-heading")).toBeVisible();
+	await expect(page.locator("#student-submenu-panel")).toHaveCount(0);
+	await calendarButton.click();
+	await expect(page.locator("#calendar-menu-heading")).toBeVisible();
+});
+
 test("TNT-visible day cell is disabled until its texture has cleared", async ({ page }) => {
 	await page.clock.install();
 	await page.goto("./");

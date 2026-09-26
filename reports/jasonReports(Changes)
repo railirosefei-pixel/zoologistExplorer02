@@ -258,8 +258,6 @@ Changed the Rewards, Games, Extra Credit, and Progress Student sidebar menu back
 Updated tests/page-container-separation.test.js to accept implicit article and aside roles without requiring redundant explicit role attributes; the focused metadata audit and full structure suite passed all 11 tests.
 2026-09-24 13:03:14 -07:00
 Changed the Rewards, Games, Extra Credit, and Progress submenu panels from translucent backgrounds to opaque color-matched backgrounds in src/css/input.css; the focused CSS and button ownership audits passed all 5 tests.
-2026-09-24 13:06:54 -07:00
-Applied fixed menu-specific modifier classes in src/components/StudentNavigation.vue and opaque full-panel colors in src/css/input.css so all four Student submenu menus render solid across the viewport; structure tests passed all 11 tests and browser computed-style verification passed all four menus.
 2026-09-24 14:09:14 -07:00
 Added the Parent button beneath the Student button in src/components/HomeView.vue with unique button ownership metadata; npm run test:structure passed all 11 tests.
 2026-09-24 14:25:25 -07:00
@@ -359,6 +357,7 @@ Split Rewards, Games, Extra Credit, and Progress tab hover and active selectors 
 2026-09-25 13:59:13 -07:00
 Added the Day tab after Week to the Story timeline and extended regression coverage to assert tab order and the Theme and Story headings; the focused Playwright test passed 1/1.
 2026-09-25 14:05:11 -07:00
+2026-09-25 17:45:00 -07:00 — Updated the Math panel Block tab styling to a six-shade pastel-yellow progression from Block 1 through Block 3; npm run build succeeded.
 Kept a Story timeline tab selected when the same tab is clicked again in src/components/CalendarView.vue; the focused September Story Playwright suite passed all 12 tests.
 2026-09-25 14:14:57 -07:00
 Added the Year 1 theme and story to the Year timeline in src/components/CalendarView.vue, gated by the existing weekday and September 28 start-date rule; the focused Year-tab Playwright test passed 1/1.
@@ -376,3 +375,34 @@ Executed plan.md step 1 by hiding September 2026's Back button in src/components
 Executed plan.md step 2 by hiding December 2027's Forward button in src/components/CalendarView.vue while retaining its header grid slot; the focused Playwright test confirmed Calendar and Back remain in their November positions and passed 1/1.
 2026-09-25 15:03:00 -07:00
 Executed plan.md step 1 by adding independently identified Block 1, Block 2, and Block 3 buttons to the Math, Language Arts, Social Studies, and Science Daily menu panels in src/components/CalendarView.vue, with independently owned dark-to-lighter subject gradients in src/css/input.css. The production build and direct browser verification passed.
+2026-09-25 15:41:00 -07:00
+Executed plan.md step 1 by converting existing subject Block controls into vertical tab rails and validating the production build.
+2026-09-25 15:43:35 -07:00
+Executed plan.md step 2 by anchoring the existing Math, Language Arts, Social Studies, and Science Block tab rails to the bottom of their subject panels; browser verification confirmed a 16px bottom offset and vertical tab order.
+
+2026-09-25 16:59:09 -07:00
+Executed the planned individual test runs: seven passed and page-container separation failed on an article missing a title attribute; recorded the finding in reports/acuteIssues and reports/jasonReports(Errors).
+2026-09-25 15:45:37 -07:00
+Executed the updated plan.md step 1 by anchoring the existing subject Block tab rails at the top of their panels; the production build completed without errors or warnings.
+2026-09-25 15:46:17 -07:00
+Executed the updated plan.md step 2 by relocating the existing subject Block tab rails to the bottom of their panels; direct browser verification confirmed a 16px bottom offset, vertical writing mode, and ordered tabs.
+2026-09-25 15:52:04 -07:00
+Centered the horizontal Block tab rails across the top of each subject panel; direct September 28 browser verification confirmed centered alignment and a flush panel-top edge.
+2026-09-25 16:11:04 -07:00
+Reordered the existing previous-month button attributes in src/components/CalendarView.vue so source-based ownership audits read its stable ID, class, and button type before the unchanged v-if condition; npm run test:structure passed all 13 tests.
+2026-09-25 16:17:07 -07:00
+Wired the existing Math, Language Arts, Social Studies, and Science Block tabs to empty same-size replacement panels with Back navigation, reset Block state on close or month change, and added a focused Playwright regression test. Editor diagnostics found no new errors; Playwright was not run because separate authorization for its server and output effects was not available.
+2026-09-25 16:19:43 -07:00
+After authorization, the focused Block-panel Playwright test passed 1/1, covering all twelve Block tabs, matching panel dimensions, Back navigation, and Back-only contents.
+2026-09-25 16:26:01 -07:00
+Executed updated plan steps in order: removed only the Block-panel Back control and handler, then kept the three subject-colored Block tabs available beside each empty replacement panel. Updated the focused browser test; separate authorized runs for steps 1 and 2 each passed 1/1 across the four subjects.
+2026-09-25 16:50:51 -07:00
+Updated Student sidebar navigation so each click selects its destination instead of toggling the active menu closed; added regression coverage for repeated destination clicks and Calendar return navigation. Focused Playwright test passed 1/1.
+2026-09-25 16:54:15 -07:00
+Connected the Calendar navigation click to CalendarView's nested-menu reset, restoring the calendar from deep Daily Menu/Story views while preserving current calendar state; the focused Playwright regression passed 1/1.
+
+2026-09-25 17:01:21 -07:00
+Added a dynamic title to the conditional Block panel article in src/components/CalendarView.vue, matching its accessible label; node --test tests/page-container-separation.test.js passed.
+
+2026-09-25 17:04:05 -07:00
+Ran npm run format, which formatted src/components/CalendarView.vue; npm run format:check passed for all files.

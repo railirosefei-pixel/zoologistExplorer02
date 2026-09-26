@@ -125,3 +125,14 @@ The generic test helper could not start the Playwright spec; the repository Play
 The initial five-date browser test advanced the month twice and timed out on October 2; the test navigation was corrected and the final focused test passed 1/1.
 2026-09-25 15:03:00 -07:00
 The focused static audit reported two button-metadata findings, while the production build completed without errors or warnings and direct browser validation confirmed all twelve new controls and their computed gradients.
+2026-09-25 15:43:35 -07:00
+The focused button-isolation audit failed on an existing CalendarView button metadata finding unrelated to the Block tab rail; direct browser validation confirmed the requested rail layout.
+2026-09-25 16:17:22 -07:00
+Editor diagnostics still flag a pre-existing redundant region role on the daily-menu section. The new Block-panel Playwright regression test was not run because its server and output side effects require separate authorization; layout and interaction remain unverified at runtime.
+2026-09-25 16:19:43 -07:00
+The initial focused browser test timed out because an existing Math Block tab intercepted a click on the Language Arts subject button. The test was adjusted to navigate through the calendar between subjects; the final focused run passed 1/1. The subject-button overlap was not changed by this step.
+2026-09-25 16:26:01 -07:00
+Editor diagnostics still flag pre-existing redundant region-role markup in the calendar view and an existing text-contrast warning in the subject-tab stylesheet. Neither warning was introduced by the Block-tab changes; both focused browser checks passed.
+
+2026-09-25 16:59:09 -07:00
+The page-container separation test failed because src/components/CalendarView.vue contains an article without a title attribute. The other planned tests passed; no warnings were reported.

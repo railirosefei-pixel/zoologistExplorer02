@@ -1,4 +1,4 @@
-/** Calendar view state, month navigation, theme sync, and day-cell timing pipeline. */
+﻿/** Calendar view state, month navigation, theme sync, and day-cell timing pipeline. */
 <script setup>
 import { computed, onBeforeUnmount, ref } from "vue";
 import minecraftExplosion from "../../assets/animations/minecraftExplosion.gif";
@@ -20,7 +20,7 @@ const year1TimelineStory = {
 	paragraphs: [
 		"Deep beneath the surface of your blocky world, an adventure awaits.",
 		"You are the Great Explorer Raili Rose. You have spent hours tunneling near bedrock on the hunt for elusive diamonds to power your gear. With one final strike against the solid rock, your pickaxe breaks through into a hidden cavern. Soft moss glows along the stone walls, and clusters of redstone sparkle in the dark.",
-		"In the center of the room, resting on a smooth cobblestone pedestal, you discover an ancient, leather-bound book. You brush the dust off the cover. Stamped in faded gold letters is a single word: BESTIARY—the lost logbook of Earth’s most incredible animals. You open it. The first few pages are filled with sketches and field notes, but the rest are completely blank. A handwritten message at the top of the page reads: \"To the explorer who finds this book: The world is vast, and my journey is over. Finish what I started.\" Just as you slip the leather journal into your explorer's vest pocket, the cavern hums with energy. VOOOOOO-SHHH! A giant, swirling purple portal tears open right in front of you, surrounded by a jet black obsidian arch! As you stare at the beautiful, swirling purple colors of the obsidian portal, the colors slowly fade into moving images of animals from all over Blockland: giraffes, zebras, polar bears, penguins, monkeys, lions, hippos, and even some animals you have never even heard of before. This is the beginning of your journey...the journey of the Great Explorer Raili Rose and her quest to learn about the animals of Blockland and aid them in any way she can...",
+		'In the center of the room, resting on a smooth cobblestone pedestal, you discover an ancient, leather-bound book. You brush the dust off the cover. Stamped in faded gold letters is a single word: BESTIARY—the lost logbook of Earth’s most incredible animals. You open it. The first few pages are filled with sketches and field notes, but the rest are completely blank. A handwritten message at the top of the page reads: "To the explorer who finds this book: The world is vast, and my journey is over. Finish what I started." Just as you slip the leather journal into your explorer\'s vest pocket, the cavern hums with energy. VOOOOOO-SHHH! A giant, swirling purple portal tears open right in front of you, surrounded by a jet black obsidian arch! As you stare at the beautiful, swirling purple colors of the obsidian portal, the colors slowly fade into moving images of animals from all over Blockland: giraffes, zebras, polar bears, penguins, monkeys, lions, hippos, and even some animals you have never even heard of before. This is the beginning of your journey...the journey of the Great Explorer Raili Rose and her quest to learn about the animals of Blockland and aid them in any way she can...',
 	],
 };
 const quarter1TimelineStory = {
@@ -67,7 +67,36 @@ const currentMonth = computed(() => calendarMonths[currentMonthIndex.value]);
 const isDailyMenuOpen = ref(false);
 const selectedDailyMenuDateLabel = ref("");
 const selectedDailyMenuSubject = ref(null);
+const selectedDailyMenuBlock = ref(null);
 const activeStoryTimelineTab = ref(null);
+const blockSubjectLabels = {
+	math: "Math",
+	"language-arts": "Language Arts",
+	"social-studies": "Social Studies",
+	science: "Science",
+};
+const blockButtonClasses = {
+	math: [
+		"daily-menu-math-block-1-button",
+		"daily-menu-math-block-2-button",
+		"daily-menu-math-block-3-button",
+	],
+	"language-arts": [
+		"daily-menu-language-arts-block-1-button",
+		"daily-menu-language-arts-block-2-button",
+		"daily-menu-language-arts-block-3-button",
+	],
+	"social-studies": [
+		"daily-menu-social-studies-block-1-button",
+		"daily-menu-social-studies-block-2-button",
+		"daily-menu-social-studies-block-3-button",
+	],
+	science: [
+		"daily-menu-science-block-1-button",
+		"daily-menu-science-block-2-button",
+		"daily-menu-science-block-3-button",
+	],
+};
 const explodedDayCellKey = ref(null);
 const lastClickedDayCellKey = ref(null);
 const hiddenDayCellKeys = ref([]);
@@ -199,22 +228,13 @@ const selectedTimelineStory = computed(() => {
 	) {
 		return quarter1TimelineStory;
 	}
-	if (
-		activeStoryTimelineTab.value === "Month" &&
-		isStoryButtonAvailable(new Date(2026, 9, 26))
-	) {
+	if (activeStoryTimelineTab.value === "Month" && isStoryButtonAvailable(new Date(2026, 9, 26))) {
 		return month1TimelineStory;
 	}
-	if (
-		activeStoryTimelineTab.value === "Week" &&
-		isStoryButtonAvailable(new Date(2026, 9, 5))
-	) {
+	if (activeStoryTimelineTab.value === "Week" && isStoryButtonAvailable(new Date(2026, 9, 5))) {
 		return week1TimelineStory;
 	}
-	if (
-		activeStoryTimelineTab.value === "Day" &&
-		isStoryButtonAvailable(new Date(2026, 9, 3))
-	) {
+	if (activeStoryTimelineTab.value === "Day" && isStoryButtonAvailable(new Date(2026, 9, 3))) {
 		return storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null;
 	}
 	return null;
@@ -227,6 +247,7 @@ let explosionTextureTimeoutId;
 /** Calendar-month selection pipeline boundary for stepping one month in either direction. */
 function handleMonthSelectionOffset(monthOffset) {
 	isDailyMenuOpen.value = false;
+	selectedDailyMenuBlock.value = null;
 	clearDayCellExplosion();
 	currentMonthIndex.value =
 		(currentMonthIndex.value + monthOffset + calendarMonths.length) % calendarMonths.length;
@@ -236,11 +257,20 @@ function handleMonthSelectionOffset(monthOffset) {
 function handleDailyMenuClose() {
 	isDailyMenuOpen.value = false;
 	selectedDailyMenuSubject.value = null;
+	selectedDailyMenuBlock.value = null;
 	activeStoryTimelineTab.value = null;
 }
 
+/** Calendar navigation reset pipeline boundary. */
+function resetToCalendar() {
+	handleDailyMenuClose();
+}
+
+defineExpose({ resetToCalendar });
+
 function handleDailyMenuSubjectSelection(subject) {
 	selectedDailyMenuSubject.value = subject;
+	selectedDailyMenuBlock.value = null;
 	if (subject === "story") {
 		activeStoryTimelineTab.value = "Year";
 		return;
@@ -251,6 +281,10 @@ function handleDailyMenuSubjectSelection(subject) {
 function handleStoryPanelBack() {
 	selectedDailyMenuSubject.value = null;
 	activeStoryTimelineTab.value = null;
+}
+
+function handleBlockSelection(blockNumber) {
+	selectedDailyMenuBlock.value = blockNumber;
 }
 
 function handleStoryTimelineTabSelection(tabName) {
@@ -404,10 +438,10 @@ onBeforeUnmount(clearDayCellExplosion);
 		>
 			<div class="calendar-header-row">
 				<button
-					v-if="currentMonthIndex > 0"
 					id="calendar-previous-month-button"
 					class="calendar-previous-month-button"
 					type="button"
+					v-if="currentMonthIndex > 0"
 					aria-label="Show previous month"
 					title="Show previous month"
 					@click="handleMonthSelectionOffset(-1)"
@@ -431,11 +465,7 @@ onBeforeUnmount(clearDayCellExplosion);
 				>
 					Forward
 				</button>
-				<span
-					v-else
-					class="calendar-next-month-button invisible"
-					aria-hidden="true"
-				></span>
+				<span v-else class="calendar-next-month-button invisible" aria-hidden="true"></span>
 			</div>
 		</header>
 		<div v-if="!isDailyMenuOpen" class="calendar-month-grid calendar-month-grid--single">
@@ -561,41 +591,85 @@ onBeforeUnmount(clearDayCellExplosion);
 						},
 					]"
 				>
+					<div
+						v-if="selectedDailyMenuBlock !== null"
+						class="daily-menu-subject-tab-list"
+						role="tablist"
+						:aria-label="`${blockSubjectLabels[selectedDailyMenuSubject]} block navigation`"
+					>
+						<button
+							v-for="blockNumber in [1, 2, 3]"
+							:id="`daily-menu-${selectedDailyMenuSubject}-block-${blockNumber}-button`"
+							:key="blockNumber"
+							:class="blockButtonClasses[selectedDailyMenuSubject][blockNumber - 1]"
+							type="button"
+							role="tab"
+							:aria-label="`${blockSubjectLabels[selectedDailyMenuSubject]} Block ${blockNumber}`"
+							:aria-selected="selectedDailyMenuBlock === blockNumber"
+							@click="handleBlockSelection(blockNumber)"
+						>
+							Block {{ blockNumber }}
+						</button>
+					</div>
 					<article
-						v-if="selectedDailyMenuSubject === 'math'"
+						v-if="selectedDailyMenuBlock !== null"
+						:id="`daily-menu-${selectedDailyMenuSubject}-block-${selectedDailyMenuBlock}-panel`"
+						class="daily-menu-subject-panel daily-menu-block-panel"
+						:aria-label="`${selectedDailyMenuSubject} Block ${selectedDailyMenuBlock} panel`"
+						:title="`${selectedDailyMenuSubject} Block ${selectedDailyMenuBlock} panel`"
+					></article>
+					<article
+						v-if="
+							selectedDailyMenuSubject === 'math' && selectedDailyMenuBlock === null
+						"
 						id="daily-menu-math-panel"
 						class="daily-menu-subject-panel daily-menu-math-panel"
 						aria-label="Math subject panel"
 						title="Math subject panel"
 					>
+						<div
+							class="daily-menu-subject-tab-list"
+							role="tablist"
+							aria-label="Math block navigation"
+						>
+							<button
+								id="daily-menu-math-block-1-button"
+								class="daily-menu-math-block-1-button"
+								type="button"
+								role="tab"
+								aria-label="Math Block 1"
+								title="Math Block 1"
+								aria-selected="false"
+								@click="handleBlockSelection(1)"
+							>
+								Block 1
+							</button>
+							<button
+								id="daily-menu-math-block-2-button"
+								class="daily-menu-math-block-2-button"
+								type="button"
+								role="tab"
+								aria-label="Math Block 2"
+								title="Math Block 2"
+								aria-selected="false"
+								@click="handleBlockSelection(2)"
+							>
+								Block 2
+							</button>
+							<button
+								id="daily-menu-math-block-3-button"
+								class="daily-menu-math-block-3-button"
+								type="button"
+								role="tab"
+								aria-label="Math Block 3"
+								title="Math Block 3"
+								aria-selected="false"
+								@click="handleBlockSelection(3)"
+							>
+								Block 3
+							</button>
+						</div>
 						<h2>Math</h2>
-						<button
-							id="daily-menu-math-block-1-button"
-							class="daily-menu-math-block-1-button"
-							type="button"
-							aria-label="Math Block 1"
-							title="Math Block 1"
-						>
-							Block 1
-						</button>
-						<button
-							id="daily-menu-math-block-2-button"
-							class="daily-menu-math-block-2-button"
-							type="button"
-							aria-label="Math Block 2"
-							title="Math Block 2"
-						>
-							Block 2
-						</button>
-						<button
-							id="daily-menu-math-block-3-button"
-							class="daily-menu-math-block-3-button"
-							type="button"
-							aria-label="Math Block 3"
-							title="Math Block 3"
-						>
-							Block 3
-						</button>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'story'"
@@ -612,7 +686,7 @@ onBeforeUnmount(clearDayCellExplosion);
 							>
 								<button
 									v-for="storyTab in storyTimelineTabs"
-									:id="`daily-menu-story-tab-${storyTab.toLowerCase()}`"
+									:id="'daily-menu-story-tab-' + storyTab.toLowerCase()"
 									:key="storyTab"
 									type="button"
 									class="daily-menu-story-tab"
@@ -655,7 +729,7 @@ onBeforeUnmount(clearDayCellExplosion);
 										:key="paragraph"
 									>
 										{{ paragraph }}
-								</p>
+									</p>
 								</template>
 							</div>
 							<div v-else class="daily-menu-story-content">
@@ -676,112 +750,166 @@ onBeforeUnmount(clearDayCellExplosion);
 						</div>
 					</article>
 					<article
-						v-if="selectedDailyMenuSubject === 'language-arts'"
+						v-if="
+							selectedDailyMenuSubject === 'language-arts' &&
+							selectedDailyMenuBlock === null
+						"
 						id="daily-menu-language-arts-panel"
 						class="daily-menu-subject-panel daily-menu-language-arts-panel"
 						aria-label="Language Arts subject panel"
 						title="Language Arts subject panel"
 					>
+						<div
+							class="daily-menu-subject-tab-list"
+							role="tablist"
+							aria-label="Language Arts block navigation"
+						>
+							<button
+								id="daily-menu-language-arts-block-1-button"
+								class="daily-menu-language-arts-block-1-button"
+								type="button"
+								role="tab"
+								aria-label="Language Arts Block 1"
+								title="Language Arts Block 1"
+								aria-selected="false"
+								@click="handleBlockSelection(1)"
+							>
+								Block 1
+							</button>
+							<button
+								id="daily-menu-language-arts-block-2-button"
+								class="daily-menu-language-arts-block-2-button"
+								type="button"
+								role="tab"
+								aria-label="Language Arts Block 2"
+								title="Language Arts Block 2"
+								aria-selected="false"
+								@click="handleBlockSelection(2)"
+							>
+								Block 2
+							</button>
+							<button
+								id="daily-menu-language-arts-block-3-button"
+								class="daily-menu-language-arts-block-3-button"
+								type="button"
+								role="tab"
+								aria-label="Language Arts Block 3"
+								title="Language Arts Block 3"
+								aria-selected="false"
+								@click="handleBlockSelection(3)"
+							>
+								Block 3
+							</button>
+						</div>
 						<h2>Language Arts</h2>
-						<button
-							id="daily-menu-language-arts-block-1-button"
-							class="daily-menu-language-arts-block-1-button"
-							type="button"
-							aria-label="Language Arts Block 1"
-							title="Language Arts Block 1"
-						>
-							Block 1
-						</button>
-						<button
-							id="daily-menu-language-arts-block-2-button"
-							class="daily-menu-language-arts-block-2-button"
-							type="button"
-							aria-label="Language Arts Block 2"
-							title="Language Arts Block 2"
-						>
-							Block 2
-						</button>
-						<button
-							id="daily-menu-language-arts-block-3-button"
-							class="daily-menu-language-arts-block-3-button"
-							type="button"
-							aria-label="Language Arts Block 3"
-							title="Language Arts Block 3"
-						>
-							Block 3
-						</button>
 					</article>
 					<article
-						v-if="selectedDailyMenuSubject === 'social-studies'"
+						v-if="
+							selectedDailyMenuSubject === 'social-studies' &&
+							selectedDailyMenuBlock === null
+						"
 						id="daily-menu-social-studies-panel"
 						class="daily-menu-subject-panel daily-menu-social-studies-panel"
 						aria-label="Social Studies subject panel"
 						title="Social Studies subject panel"
 					>
+						<div
+							class="daily-menu-subject-tab-list"
+							role="tablist"
+							aria-label="Social Studies block navigation"
+						>
+							<button
+								id="daily-menu-social-studies-block-1-button"
+								class="daily-menu-social-studies-block-1-button"
+								type="button"
+								role="tab"
+								aria-label="Social Studies Block 1"
+								title="Social Studies Block 1"
+								aria-selected="false"
+								@click="handleBlockSelection(1)"
+							>
+								Block 1
+							</button>
+							<button
+								id="daily-menu-social-studies-block-2-button"
+								class="daily-menu-social-studies-block-2-button"
+								type="button"
+								role="tab"
+								aria-label="Social Studies Block 2"
+								title="Social Studies Block 2"
+								aria-selected="false"
+								@click="handleBlockSelection(2)"
+							>
+								Block 2
+							</button>
+							<button
+								id="daily-menu-social-studies-block-3-button"
+								class="daily-menu-social-studies-block-3-button"
+								type="button"
+								role="tab"
+								aria-label="Social Studies Block 3"
+								title="Social Studies Block 3"
+								aria-selected="false"
+								@click="handleBlockSelection(3)"
+							>
+								Block 3
+							</button>
+						</div>
 						<h2>Social Studies</h2>
-						<button
-							id="daily-menu-social-studies-block-1-button"
-							class="daily-menu-social-studies-block-1-button"
-							type="button"
-							aria-label="Social Studies Block 1"
-							title="Social Studies Block 1"
-						>
-							Block 1
-						</button>
-						<button
-							id="daily-menu-social-studies-block-2-button"
-							class="daily-menu-social-studies-block-2-button"
-							type="button"
-							aria-label="Social Studies Block 2"
-							title="Social Studies Block 2"
-						>
-							Block 2
-						</button>
-						<button
-							id="daily-menu-social-studies-block-3-button"
-							class="daily-menu-social-studies-block-3-button"
-							type="button"
-							aria-label="Social Studies Block 3"
-							title="Social Studies Block 3"
-						>
-							Block 3
-						</button>
 					</article>
 					<article
-						v-if="selectedDailyMenuSubject === 'science'"
+						v-if="
+							selectedDailyMenuSubject === 'science' &&
+							selectedDailyMenuBlock === null
+						"
 						id="daily-menu-science-panel"
 						class="daily-menu-subject-panel daily-menu-science-panel"
 						aria-label="Science subject panel"
 						title="Science subject panel"
 					>
+						<div
+							class="daily-menu-subject-tab-list"
+							role="tablist"
+							aria-label="Science block navigation"
+						>
+							<button
+								id="daily-menu-science-block-1-button"
+								class="daily-menu-science-block-1-button"
+								type="button"
+								role="tab"
+								aria-label="Science Block 1"
+								title="Science Block 1"
+								aria-selected="false"
+								@click="handleBlockSelection(1)"
+							>
+								Block 1
+							</button>
+							<button
+								id="daily-menu-science-block-2-button"
+								class="daily-menu-science-block-2-button"
+								type="button"
+								role="tab"
+								aria-label="Science Block 2"
+								title="Science Block 2"
+								aria-selected="false"
+								@click="handleBlockSelection(2)"
+							>
+								Block 2
+							</button>
+							<button
+								id="daily-menu-science-block-3-button"
+								class="daily-menu-science-block-3-button"
+								type="button"
+								role="tab"
+								aria-label="Science Block 3"
+								title="Science Block 3"
+								aria-selected="false"
+								@click="handleBlockSelection(3)"
+							>
+								Block 3
+							</button>
+						</div>
 						<h2>Science</h2>
-						<button
-							id="daily-menu-science-block-1-button"
-							class="daily-menu-science-block-1-button"
-							type="button"
-							aria-label="Science Block 1"
-							title="Science Block 1"
-						>
-							Block 1
-						</button>
-						<button
-							id="daily-menu-science-block-2-button"
-							class="daily-menu-science-block-2-button"
-							type="button"
-							aria-label="Science Block 2"
-							title="Science Block 2"
-						>
-							Block 2
-						</button>
-						<button
-							id="daily-menu-science-block-3-button"
-							class="daily-menu-science-block-3-button"
-							type="button"
-							aria-label="Science Block 3"
-							title="Science Block 3"
-						>
-							Block 3
-						</button>
 					</article>
 					<article
 						v-if="selectedDailyMenuSubject === 'art'"

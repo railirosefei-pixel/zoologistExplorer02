@@ -1,1 +1,5 @@
+Report stuff here
+
+2026-09-25 16:59:09 -07:00
+Validation error: `node --test tests/page-container-separation.test.js` failed because `src/components/CalendarView.vue` contains an `<article>` without a `title` attribute. The other seven planned test files passed; no warnings were reported.
 
