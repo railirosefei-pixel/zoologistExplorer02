@@ -300,6 +300,7 @@ test("Vue files keep shared structure and style ownership consistent", () => {
 					"embedded-hardware-",
 				],
 				"HomeView.vue": ["home-"],
+				"RewardsView.vue": ["rewards-"],
 			}[path.basename(filePath)];
 
 			if (!allowedSelectorPrefixes) {

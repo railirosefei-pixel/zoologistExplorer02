@@ -1,9 +1,11 @@
 /** Navigation controls for the student workspace. */
 <script setup>
 import { ref } from "vue";
+import progressMenuBackground from "../../assets/images/backgrounds/grasslands(Day)01Final.webp";
 
 const emit = defineEmits(["open-calendar", "open-rewards"]);
 const activeStudentMenu = ref("");
+const progressMenuBackgroundImage = `url("${progressMenuBackground}")`;
 
 /** Student-menu navigation pipeline boundary for the calendar tab. */
 function handleCalendarNavigation() {
@@ -154,3 +156,12 @@ function handleStudentMenuNavigation(menuName) {
 		</aside>
 	</nav>
 </template>
+
+<style scoped>
+.student-submenu-progress {
+	background-image: v-bind(progressMenuBackgroundImage);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+</style>

@@ -112,7 +112,7 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 	const backgroundImage = await rewardsPage.evaluate(
 		(element) => getComputedStyle(element).backgroundImage,
 	);
-	expect(backgroundImage).toMatch(/rewardsBackground[^)]*\.webp/);
+	expect(backgroundImage).toMatch(/rewardsMenu02[^)]*\.webp/);
 
 	const pageSize = await rewardsPage.evaluate((element) => {
 		const { width, height } = element.getBoundingClientRect();
@@ -121,6 +121,47 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 	const viewportSize = page.viewportSize();
 	expect(pageSize.width).toBeGreaterThanOrEqual(viewportSize.width);
 	expect(pageSize.height).toBeGreaterThanOrEqual(viewportSize.height);
+
+	const rewardChestButton = page.getByRole("button", { name: "Open reward chest" });
+	const rewardChestImage = rewardChestButton.locator(".rewards-page-chest");
+	await expect(rewardChestImage).toHaveAttribute("src", /minecraftChest01[^/]*\.webp/);
+
+	await rewardChestButton.hover();
+	await expect(rewardChestImage).toHaveAttribute("src", /minecraftChest02[^/]*\.webp/);
+
+	await rewardChestButton.click();
+	await expect(rewardChestImage).toHaveAttribute("src", /minecraftChest03[^/]*\.webp/);
+
+	const rewardJournal = rewardsPage.locator(".rewards-page-journal");
+	await expect(rewardJournal).toBeVisible();
+	expect(
+		await rewardJournal.evaluate((element) => getComputedStyle(element).animationName),
+	).toMatch(/^rewards-journal-emerge(?:-[\w-]+)?$/);
+
+	await rewardJournal.dispatchEvent("animationend");
+	const rewardBookAnimation = rewardsPage.locator(".rewards-page-book-animation");
+	await expect(rewardBookAnimation).toBeVisible();
+	await expect(rewardBookAnimation).toHaveAttribute("src", /bookOpening[^/]*\.mp4/);
+	await expect(rewardBookAnimation).toHaveJSProperty("muted", true);
+	await expect
+		.poll(() => rewardBookAnimation.evaluate((element) => element.readyState))
+		.toBeGreaterThanOrEqual(1);
+
+	await rewardBookAnimation.evaluate((element) => {
+		element.currentTime = element.duration;
+		element.dispatchEvent(new Event("ended"));
+	});
+
+	const rewardBookStage = rewardsPage.locator(".rewards-page-book-stage");
+	await expect(rewardBookStage).toHaveClass(/rewards-page-book-stage--settled/);
+	await expect(rewardBookAnimation).toBeVisible();
+	await expect
+		.poll(async () => {
+			const bookBounds = await rewardBookAnimation.boundingBox();
+			const chestBounds = await rewardChestButton.boundingBox();
+			return bookBounds.x + bookBounds.width / 2 - (chestBounds.x + chestBounds.width / 2);
+		})
+		.toBeLessThan(0);
 
 	await page.getByRole("button", { name: "Back to student menu" }).click();
 	await expect(page.locator("#student-menu-page")).toBeVisible();

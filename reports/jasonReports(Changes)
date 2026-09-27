@@ -437,3 +437,9 @@ Increased the centered Minecraft chest image in src/components/RewardsView.vue b
 Added the minecraftChest02.webp hover source to src/components/RewardsView.vue. Both chest assets were verified at 2734x1536, so no resize was needed; editor diagnostics reported no errors.
 2026-09-26 05:39:44 -07:00
 Updated RewardsView.vue so clicking the hovered chest shows minecraftChest03.webp until pointer leave restores minecraftChest01.webp. Both chest02 and chest03 were verified at 2734x1536, so no resize was needed; npm run test:assets passed 1/1 and npm run build succeeded.
+2026-09-26 09:43:27 -07:00
+Executed plan.md step 1 by keeping minecraftChest03.webp open after the minecraftChest02.webp click, spinning journal01.webp from the chest into a shared book-size stage, playing bookOpening.mp4, and retaining its final frame to the left of the chest. Added semantic chest controls, a no-dialogue caption track, focused Rewards browser coverage, and Rewards scoped-style audit ownership. Editor diagnostics reported no errors; the structure audit passed 14/14, the asset audit passed 1/1, the production build succeeded without warnings, and the focused Playwright test passed 1/1.
+2026-09-26 10:54:26 -07:00
+Executed plan.md step 1 by replacing only the Rewards journal animation import from bookOpening.mp4 to Sequence03.mp4 while preserving the existing playback, transition, timing, and final-frame behavior. Editor diagnostics reported no errors, the asset-path audit passed 1/1, and the production build succeeded without relevant warnings.
+2026-09-26 19:25:45 -07:00
+Applied the requested grasslands(Day)01Final.webp background to the Progress menu in src/components/StudentNavigation.vue through a Vite-managed asset import; the asset-path audit passed 1/1 and the production build succeeded.
