@@ -1,8 +1,8 @@
-/** Home view for the student entry point and its background pipeline. */
+/** Home view for the student and parent entry points and its background pipeline. */
 <script setup>
 import homePageBackground from "../../assets/images/backgrounds/vetClinicNight.webp";
 
-const emit = defineEmits(["open-student-menu"]);
+const emit = defineEmits(["open-student-menu", "open-parent-menu"]);
 const homePageBackgroundImage = `url("${homePageBackground}")`;
 
 /** Audio feedback pipeline boundary for home navigation. */
@@ -42,6 +42,12 @@ function handleHomeNavigation() {
 	emit("open-student-menu");
 	playAudioFeedback();
 }
+
+/** Parent-menu navigation event pipeline boundary. */
+function handleParentNavigation() {
+	emit("open-parent-menu");
+	playAudioFeedback();
+}
 </script>
 
 <template>
@@ -72,6 +78,18 @@ function handleHomeNavigation() {
 				@click="handleHomeNavigation"
 			>
 				Student
+			</button>
+			<button
+				id="parent-button"
+				class="parent-button"
+				type="button"
+				name="parent-button"
+				data-button-name="parent-button"
+				aria-label="Open parent section"
+				title="Open parent section"
+				@click="handleParentNavigation"
+			>
+				Parent
 			</button>
 		</section>
 	</main>

@@ -12,6 +12,7 @@ import storyImage from "../../assets/images/backgrounds/storyImage.webp";
 import calendarPanelBackground from "../../assets/textures/minecraftDirt01.webp";
 import septemberDayTexture from "../../assets/textures/minecraftTNT.webp";
 import CalendarMonthCard from "./CalendarMonthCard.vue";
+import { blockCompletionStore } from "../js/blockCompletionState.js";
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
@@ -85,6 +86,7 @@ const blockSubjectLabels = {
 	"language-arts": "Language Arts",
 	"social-studies": "Social Studies",
 	science: "Science",
+	art: "Art",
 };
 const blockButtonClasses = {
 	math: [
@@ -107,7 +109,26 @@ const blockButtonClasses = {
 		"daily-menu-science-block-2-button",
 		"daily-menu-science-block-3-button",
 	],
+	art: [
+		"daily-menu-art-block-1-button",
+		"daily-menu-art-block-2-button",
+		"daily-menu-art-block-3-button",
+	],
 };
+const confettiPalette = [
+	"#fef08a",
+	"#f9a8d4",
+	"#7dd3fc",
+	"#86efac",
+	"#fbbf24",
+	"#c4b5fd",
+];
+const confettiBurstPieces = Array.from({ length: 32 }, (_, index) => ({
+	id: `confetti-piece-${index}`,
+	color: confettiPalette[index % confettiPalette.length],
+}));
+const confettiVisible = ref(false);
+let confettiTimeoutId;
 const explodedDayCellKey = ref(null);
 const lastClickedDayCellKey = ref(null);
 const hiddenDayCellKeys = ref([]);
@@ -398,7 +419,7 @@ defineExpose({ resetToCalendar });
 
 function handleDailyMenuSubjectSelection(subject) {
 	selectedDailyMenuSubject.value = subject;
-	selectedDailyMenuBlock.value = null;
+	selectedDailyMenuBlock.value = subject === "story" ? null : 1;
 	if (subject === "story") {
 		activeStoryTimelineTab.value = "Year";
 		return;
@@ -413,6 +434,38 @@ function handleStoryPanelBack() {
 
 function handleBlockSelection(blockNumber) {
 	selectedDailyMenuBlock.value = blockNumber;
+}
+
+function isBlockComplete(subject, blockNumber) {
+	return blockCompletionStore.isBlockCompleteForDate(
+		selectedDailyMenuDateLabel.value,
+		subject,
+		blockNumber,
+	);
+}
+
+function triggerConfettiBurst() {
+	confettiVisible.value = true;
+	if (confettiTimeoutId) {
+		window.clearTimeout(confettiTimeoutId);
+	}
+	confettiTimeoutId = window.setTimeout(() => {
+		confettiVisible.value = false;
+		confettiTimeoutId = undefined;
+	}, 2200);
+}
+
+function handleBlockComplete(subject, blockNumber) {
+	if (!subject || !blockNumber || isBlockComplete(subject, blockNumber)) {
+		return;
+	}
+
+	blockCompletionStore.markBlockComplete(
+		selectedDailyMenuDateLabel.value,
+		subject,
+		blockNumber,
+	);
+	triggerConfettiBurst();
 }
 
 function handleStoryTimelineTabSelection(tabName) {
@@ -555,10 +608,61 @@ function handleDayCellClick(cell) {
 	handleDayCellAnimation(cellIndex);
 }
 
-onBeforeUnmount(clearDayCellExplosion);
+onBeforeUnmount(() => {
+	clearDayCellExplosion();
+	if (confettiTimeoutId) {
+		window.clearTimeout(confettiTimeoutId);
+		confettiTimeoutId = undefined;
+	}
+});
 </script>
 
 <template>
+	<div
+		v-if="confettiVisible"
+		class="daily-menu-confetti-overlay"
+		aria-hidden="true"
+	>
+		<span
+			v-for="piece in confettiBurstPieces"
+			:key="piece.id"
+			:class="[
+				'daily-menu-confetti-piece',
+				{ 'daily-menu-confetti-piece--0': piece.id === 'confetti-piece-0' },
+				{ 'daily-menu-confetti-piece--1': piece.id === 'confetti-piece-1' },
+				{ 'daily-menu-confetti-piece--2': piece.id === 'confetti-piece-2' },
+				{ 'daily-menu-confetti-piece--3': piece.id === 'confetti-piece-3' },
+				{ 'daily-menu-confetti-piece--4': piece.id === 'confetti-piece-4' },
+				{ 'daily-menu-confetti-piece--5': piece.id === 'confetti-piece-5' },
+				{ 'daily-menu-confetti-piece--6': piece.id === 'confetti-piece-6' },
+				{ 'daily-menu-confetti-piece--7': piece.id === 'confetti-piece-7' },
+				{ 'daily-menu-confetti-piece--8': piece.id === 'confetti-piece-8' },
+				{ 'daily-menu-confetti-piece--9': piece.id === 'confetti-piece-9' },
+				{ 'daily-menu-confetti-piece--10': piece.id === 'confetti-piece-10' },
+				{ 'daily-menu-confetti-piece--11': piece.id === 'confetti-piece-11' },
+				{ 'daily-menu-confetti-piece--12': piece.id === 'confetti-piece-12' },
+				{ 'daily-menu-confetti-piece--13': piece.id === 'confetti-piece-13' },
+				{ 'daily-menu-confetti-piece--14': piece.id === 'confetti-piece-14' },
+				{ 'daily-menu-confetti-piece--15': piece.id === 'confetti-piece-15' },
+				{ 'daily-menu-confetti-piece--16': piece.id === 'confetti-piece-16' },
+				{ 'daily-menu-confetti-piece--17': piece.id === 'confetti-piece-17' },
+				{ 'daily-menu-confetti-piece--18': piece.id === 'confetti-piece-18' },
+				{ 'daily-menu-confetti-piece--19': piece.id === 'confetti-piece-19' },
+				{ 'daily-menu-confetti-piece--20': piece.id === 'confetti-piece-20' },
+				{ 'daily-menu-confetti-piece--21': piece.id === 'confetti-piece-21' },
+				{ 'daily-menu-confetti-piece--22': piece.id === 'confetti-piece-22' },
+				{ 'daily-menu-confetti-piece--23': piece.id === 'confetti-piece-23' },
+				{ 'daily-menu-confetti-piece--24': piece.id === 'confetti-piece-24' },
+				{ 'daily-menu-confetti-piece--25': piece.id === 'confetti-piece-25' },
+				{ 'daily-menu-confetti-piece--26': piece.id === 'confetti-piece-26' },
+				{ 'daily-menu-confetti-piece--27': piece.id === 'confetti-piece-27' },
+				{ 'daily-menu-confetti-piece--28': piece.id === 'confetti-piece-28' },
+				{ 'daily-menu-confetti-piece--29': piece.id === 'confetti-piece-29' },
+				{ 'daily-menu-confetti-piece--30': piece.id === 'confetti-piece-30' },
+				{ 'daily-menu-confetti-piece--31': piece.id === 'confetti-piece-31' },
+			]"
+		/>
+	</div>
 	<div
 		id="calendar-panel"
 		class="calendar-panel"
@@ -766,6 +870,26 @@ onBeforeUnmount(clearDayCellExplosion);
 						:aria-label="`${selectedDailyMenuSubject} Block ${selectedDailyMenuBlock} panel`"
 						:title="`${selectedDailyMenuSubject} Block ${selectedDailyMenuBlock} panel`"
 					>
+						<button
+							:id="`daily-menu-${selectedDailyMenuSubject}-block-${selectedDailyMenuBlock}-complete-button`"
+							type="button"
+							class="daily-menu-block-complete-button"
+							:class="{
+								'daily-menu-block-complete-button--complete': isBlockComplete(
+									selectedDailyMenuSubject,
+									selectedDailyMenuBlock,
+								),
+							}"
+							:aria-label="`Complete ${blockSubjectLabels[selectedDailyMenuSubject]} Block ${selectedDailyMenuBlock}`"
+							:aria-pressed="isBlockComplete(selectedDailyMenuSubject, selectedDailyMenuBlock)"
+							@click.stop="handleBlockComplete(selectedDailyMenuSubject, selectedDailyMenuBlock)"
+						>
+							{{
+								isBlockComplete(selectedDailyMenuSubject, selectedDailyMenuBlock)
+									? "Completed"
+									: "Complete"
+							}}
+						</button>
 						<div
 							v-if="isExplorerCopyActive(selectedDailyMenuSubject)"
 							class="daily-menu-subject-panel-message"
@@ -1112,15 +1236,6 @@ onBeforeUnmount(clearDayCellExplosion);
 							</button>
 						</div>
 						<h2>Science</h2>
-					</article>
-					<article
-						v-if="selectedDailyMenuSubject === 'art'"
-						id="daily-menu-art-panel"
-						class="daily-menu-subject-panel daily-menu-art-panel"
-						aria-label="Art subject panel"
-						title="Art subject panel"
-					>
-						<h2>Art</h2>
 					</article>
 				</div>
 			</div>

@@ -277,11 +277,6 @@ body {
 	color: #1d3f6d;
 }
 
-.student-submenu-progress {
-	background: #bfdafc;
-	color: #1d3f6d;
-}
-
 .student-menu-progress-tab {
 	background: #bfdafc;
 	color: #1d3f6d;
@@ -775,6 +770,128 @@ body {
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
 }
 
+.daily-menu-confetti-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 50;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.daily-menu-confetti-piece {
+	position: absolute;
+	top: -12%;
+	left: calc(var(--confetti-left) * 1%);
+	width: 0.5rem;
+	height: 1.1rem;
+	border-radius: 0.2rem;
+	opacity: 0;
+	animation-name: daily-menu-confetti-burst;
+	animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+	animation-fill-mode: forwards;
+	box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+}
+
+.daily-menu-confetti-piece--0 { --confetti-left: 7; --confetti-x: -40px; --confetti-rotate: 40deg; animation-delay: 0s; animation-duration: 1.2s; background: #fef08a; }
+.daily-menu-confetti-piece--1 { --confetti-left: 18; --confetti-x: 16px; --confetti-rotate: 90deg; animation-delay: 0.08s; animation-duration: 1.38s; background: #f9a8d4; }
+.daily-menu-confetti-piece--2 { --confetti-left: 29; --confetti-x: -10px; --confetti-rotate: 140deg; animation-delay: 0.16s; animation-duration: 1.26s; background: #7dd3fc; }
+.daily-menu-confetti-piece--3 { --confetti-left: 37; --confetti-x: 30px; --confetti-rotate: 190deg; animation-delay: 0.24s; animation-duration: 1.32s; background: #86efac; }
+.daily-menu-confetti-piece--4 { --confetti-left: 46; --confetti-x: -24px; --confetti-rotate: 250deg; animation-delay: 0.32s; animation-duration: 1.44s; background: #fbbf24; }
+.daily-menu-confetti-piece--5 { --confetti-left: 58; --confetti-x: 24px; --confetti-rotate: 300deg; animation-delay: 0.4s; animation-duration: 1.4s; background: #c4b5fd; }
+.daily-menu-confetti-piece--6 { --confetti-left: 66; --confetti-x: -18px; --confetti-rotate: 80deg; animation-delay: 0.48s; animation-duration: 1.3s; background: #fef08a; }
+.daily-menu-confetti-piece--7 { --confetti-left: 72; --confetti-x: 18px; --confetti-rotate: 210deg; animation-delay: 0.56s; animation-duration: 1.5s; background: #f9a8d4; }
+.daily-menu-confetti-piece--8 { --confetti-left: 80; --confetti-x: -22px; --confetti-rotate: 120deg; animation-delay: 0.64s; animation-duration: 1.42s; background: #7dd3fc; }
+.daily-menu-confetti-piece--9 { --confetti-left: 89; --confetti-x: 32px; --confetti-rotate: 340deg; animation-delay: 0.72s; animation-duration: 1.48s; background: #86efac; }
+.daily-menu-confetti-piece--10 { --confetti-left: 13; --confetti-x: 42px; --confetti-rotate: 60deg; animation-delay: 0.1s; animation-duration: 1.36s; background: #fbbf24; }
+.daily-menu-confetti-piece--11 { --confetti-left: 25; --confetti-x: -30px; --confetti-rotate: 182deg; animation-delay: 0.18s; animation-duration: 1.28s; background: #c4b5fd; }
+.daily-menu-confetti-piece--12 { --confetti-left: 41; --confetti-x: 18px; --confetti-rotate: 220deg; animation-delay: 0.26s; animation-duration: 1.45s; background: #fef08a; }
+.daily-menu-confetti-piece--13 { --confetti-left: 54; --confetti-x: -12px; --confetti-rotate: 110deg; animation-delay: 0.34s; animation-duration: 1.38s; background: #f9a8d4; }
+.daily-menu-confetti-piece--14 { --confetti-left: 68; --confetti-x: 28px; --confetti-rotate: 320deg; animation-delay: 0.42s; animation-duration: 1.52s; background: #7dd3fc; }
+.daily-menu-confetti-piece--15 { --confetti-left: 83; --confetti-x: -26px; --confetti-rotate: 144deg; animation-delay: 0.5s; animation-duration: 1.33s; background: #86efac; }
+.daily-menu-confetti-piece--16 { --confetti-left: 9; --confetti-x: 20px; --confetti-rotate: 260deg; animation-delay: 0.08s; animation-duration: 1.35s; background: #fbbf24; }
+.daily-menu-confetti-piece--17 { --confetti-left: 22; --confetti-x: -14px; --confetti-rotate: 50deg; animation-delay: 0.16s; animation-duration: 1.31s; background: #c4b5fd; }
+.daily-menu-confetti-piece--18 { --confetti-left: 33; --confetti-x: 18px; --confetti-rotate: 168deg; animation-delay: 0.24s; animation-duration: 1.54s; background: #fef08a; }
+.daily-menu-confetti-piece--19 { --confetti-left: 48; --confetti-x: -24px; --confetti-rotate: 212deg; animation-delay: 0.32s; animation-duration: 1.44s; background: #f9a8d4; }
+.daily-menu-confetti-piece--20 { --confetti-left: 62; --confetti-x: 24px; --confetti-rotate: 96deg; animation-delay: 0.4s; animation-duration: 1.46s; background: #7dd3fc; }
+.daily-menu-confetti-piece--21 { --confetti-left: 74; --confetti-x: -20px; --confetti-rotate: 290deg; animation-delay: 0.48s; animation-duration: 1.28s; background: #86efac; }
+.daily-menu-confetti-piece--22 { --confetti-left: 86; --confetti-x: 32px; --confetti-rotate: 130deg; animation-delay: 0.56s; animation-duration: 1.49s; background: #fbbf24; }
+.daily-menu-confetti-piece--23 { --confetti-left: 14; --confetti-x: -36px; --confetti-rotate: 36deg; animation-delay: 0.14s; animation-duration: 1.22s; background: #c4b5fd; }
+.daily-menu-confetti-piece--24 { --confetti-left: 30; --confetti-x: 30px; --confetti-rotate: 228deg; animation-delay: 0.22s; animation-duration: 1.41s; background: #fef08a; }
+.daily-menu-confetti-piece--25 { --confetti-left: 52; --confetti-x: -18px; --confetti-rotate: 72deg; animation-delay: 0.3s; animation-duration: 1.39s; background: #f9a8d4; }
+.daily-menu-confetti-piece--26 { --confetti-left: 71; --confetti-x: 20px; --confetti-rotate: 270deg; animation-delay: 0.38s; animation-duration: 1.57s; background: #7dd3fc; }
+.daily-menu-confetti-piece--27 { --confetti-left: 88; --confetti-x: -28px; --confetti-rotate: 150deg; animation-delay: 0.46s; animation-duration: 1.34s; background: #86efac; }
+.daily-menu-confetti-piece--28 { --confetti-left: 19; --confetti-x: 34px; --confetti-rotate: 312deg; animation-delay: 0.12s; animation-duration: 1.43s; background: #fbbf24; }
+.daily-menu-confetti-piece--29 { --confetti-left: 45; --confetti-x: -16px; --confetti-rotate: 64deg; animation-delay: 0.2s; animation-duration: 1.36s; background: #c4b5fd; }
+.daily-menu-confetti-piece--30 { --confetti-left: 60; --confetti-x: 26px; --confetti-rotate: 176deg; animation-delay: 0.28s; animation-duration: 1.52s; background: #fef08a; }
+.daily-menu-confetti-piece--31 { --confetti-left: 78; --confetti-x: -22px; --confetti-rotate: 248deg; animation-delay: 0.36s; animation-duration: 1.47s; background: #f9a8d4; }
+
+@keyframes daily-menu-confetti-burst {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 0, 0) rotate(0deg) scale(0.8);
+	}
+	10% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translate3d(var(--confetti-x), 110vh, 0) rotate(var(--confetti-rotate));
+	}
+}
+
+.daily-menu-block-complete-button {
+	position: absolute;
+	bottom: 0.85rem;
+	right: 0.85rem;
+	z-index: 2;
+	margin: 0;
+	padding: 0.7rem 1.2rem;
+	border: 2px solid rgba(122, 86, 18, 0.5);
+	border-radius: 9999px;
+	background: linear-gradient(180deg, #fff7b8 0%, #f8e99a 100%);
+	color: #513d12;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.78rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.9),
+		inset 0 -5px 0 rgba(162, 121, 30, 0.28),
+		0 8px 0 rgba(160, 125, 36, 0.38),
+		0 10px 18px rgba(75, 48, 10, 0.24);
+	transition:
+		transform 160ms ease,
+		box-shadow 160ms ease,
+		filter 160ms ease,
+		background 160ms ease;
+}
+
+.daily-menu-block-complete-button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.03);
+}
+
+.daily-menu-block-complete-button:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.8),
+		inset 0 -3px 0 rgba(162, 121, 30, 0.2),
+		0 4px 0 rgba(160, 125, 36, 0.38);
+}
+
+.daily-menu-block-complete-button--complete {
+	background: linear-gradient(180deg, #7efc9b 0%, #2dd35a 100%);
+	border-color: rgba(17, 116, 50, 0.6);
+	color: #0b4d22;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.9),
+		inset 0 -5px 0 rgba(13, 90, 38, 0.2),
+		0 0 0 3px rgba(16, 185, 129, 0.18),
+		0 0 18px rgba(34, 197, 94, 0.8),
+		0 10px 18px rgba(14, 68, 33, 0.22);
+}
+
 .daily-menu-content {
 	position: relative;
 	display: flex;
@@ -1196,6 +1313,460 @@ body {
 	color: #14532d;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
+}
+
+.parent-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 190px;
+	height: 90px;
+	margin-top: 24px;
+	padding: 0;
+	border: 1px solid rgba(120, 48, 48, 0.4);
+	border-radius: 0.8rem;
+	color: #24131a;
+	font-family: "Minecraft2Bold", sans-serif;
+	font-size: 2rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+	background: linear-gradient(180deg, #ffdcbd 0%, #ffb57a 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.85),
+		inset 0 -4px 0 rgba(124, 60, 60, 0.15),
+		0 8px 0 rgba(168, 68, 68, 0.35),
+		0 14px 18px rgba(106, 61, 61, 0.2);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.parent-button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.02);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.9),
+		inset 0 -4px 0 rgba(124, 60, 60, 0.15),
+		0 9px 0 rgba(168, 68, 68, 0.4),
+		0 16px 18px rgba(106, 61, 61, 0.24);
+}
+
+.parent-button:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.78),
+		inset 0 -2px 0 rgba(124, 60, 60, 0.15),
+		0 4px 0 rgba(168, 68, 68, 0.35);
+}
+
+.parent-screen {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #241610 0%, #3d2413 52%, #5c3a17 100%);
+	color: #ffedd6;
+}
+
+.parent-screen-tab-rail {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 1rem;
+	width: 100%;
+	padding: 1.5rem 2rem;
+	border-bottom: 1px solid rgba(255, 226, 190, 0.35);
+	background: rgba(18, 10, 5, 0.55);
+}
+
+.student-edits-tab {
+	padding: 0.9rem 1.75rem;
+	border: 1px solid rgba(120, 48, 48, 0.4);
+	border-radius: 0.875rem;
+	background: linear-gradient(180deg, #ffdcbd 0%, #ffb57a 100%);
+	color: #4a2410;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.7),
+		inset 0 -4px 0 rgba(124, 72, 32, 0.18),
+		0 7px 0 rgba(120, 66, 24, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.student-edits-tab:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.78),
+		inset 0 -4px 0 rgba(124, 72, 32, 0.18),
+		0 9px 0 rgba(120, 66, 24, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.student-edits-tab:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.62),
+		inset 0 -2px 0 rgba(124, 72, 32, 0.18),
+		0 3px 0 rgba(120, 66, 24, 0.55);
+}
+
+.parent-screen-back-button,
+.student-edits-screen-back-button,
+.progress-game-screen-back-button,
+.explorer-positions-screen-back-button {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: 6rem;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	background: #282c30;
+	color: #fff7cc;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
+		0 7px 0 rgba(67, 38, 14, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.student-edits-screen-home-button,
+.progress-game-screen-home-button,
+.explorer-positions-screen-home-button {
+	position: absolute;
+	top: 12px;
+	right: calc(6rem + 24px);
+	width: 6rem;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	background: #234d2c;
+	color: #eaffe9;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(19, 60, 28, 0.3),
+		0 7px 0 rgba(14, 44, 22, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.student-edits-screen {
+	position: relative;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #1b2735 0%, #25384a 52%, #31506b 100%);
+	color: #e9f4ff;
+}
+
+.student-edits-sidebar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 336px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: 1.5rem;
+	padding: 2rem 1.5rem;
+	border-right: 1px solid rgba(214, 235, 255, 0.3);
+	background: rgba(9, 16, 24, 0.85);
+}
+
+.progress-game-button {
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.875rem;
+	background: linear-gradient(180deg, #cfe4ff 0%, #93c5fd 100%);
+	color: #16293f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(30, 64, 120, 0.25),
+		0 7px 0 rgba(23, 47, 86, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.progress-game-button:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(30, 64, 120, 0.25),
+		0 9px 0 rgba(23, 47, 86, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.progress-game-button:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(30, 64, 120, 0.25),
+		0 3px 0 rgba(23, 47, 86, 0.55);
+}
+
+.block-edits-button {
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.875rem;
+	background: linear-gradient(180deg, #d8f3dc 0%, #b7e4c7 100%);
+	color: #1e3d24;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(45, 106, 79, 0.25),
+		0 7px 0 rgba(27, 67, 50, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.block-edits-button:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(45, 106, 79, 0.25),
+		0 9px 0 rgba(27, 67, 50, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.block-edits-button:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(45, 106, 79, 0.25),
+		0 3px 0 rgba(27, 67, 50, 0.55);
+}
+
+.block-edits-panel {
+	position: fixed;
+	top: 0;
+	left: 336px;
+	bottom: 0;
+	width: 380px;
+	overflow-y: auto;
+	padding: 2rem 1.5rem;
+	border-right: 1px solid rgba(214, 255, 226, 0.3);
+	background: rgba(9, 24, 16, 0.88);
+	color: #e6ffec;
+}
+
+.block-edits-panel-heading {
+	margin: 0 0 0.25rem;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: 0.04em;
+}
+
+.block-edits-panel-date {
+	margin: 0 0 1.5rem;
+	font-size: 0.95rem;
+	color: #bfe8cc;
+}
+
+.block-edits-subject-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+.block-edits-subject-section {
+	border: 1px solid rgba(190, 242, 205, 0.28);
+	border-radius: 0.875rem;
+	padding: 1rem;
+	background: rgba(16, 40, 26, 0.55);
+}
+
+.block-edits-subject-heading {
+	margin: 0 0 0.75rem;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.05rem;
+	letter-spacing: 0.04em;
+}
+
+.block-edits-block-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+}
+
+.block-edits-block-complete-control {
+	padding: 0.55rem 1rem;
+	border: 2px solid rgba(122, 86, 18, 0.5);
+	border-radius: 9999px;
+	background: linear-gradient(180deg, #fff7b8 0%, #f8e99a 100%);
+	color: #513d12;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.78rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.9),
+		inset 0 -4px 0 rgba(162, 121, 30, 0.28),
+		0 6px 0 rgba(160, 125, 36, 0.38);
+	transition:
+		transform 160ms ease,
+		box-shadow 160ms ease,
+		filter 160ms ease,
+		background 160ms ease;
+}
+
+.block-edits-block-complete-control:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.03);
+}
+
+.block-edits-block-complete-control:active {
+	transform: translateY(3px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.8),
+		inset 0 -2px 0 rgba(162, 121, 30, 0.2),
+		0 3px 0 rgba(160, 125, 36, 0.38);
+}
+
+.block-edits-block-complete-control--complete {
+	background: linear-gradient(180deg, #7efc9b 0%, #2dd35a 100%);
+	border-color: rgba(17, 116, 50, 0.6);
+	color: #0b4d22;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.9),
+		inset 0 -4px 0 rgba(13, 90, 38, 0.2),
+		0 0 0 3px rgba(16, 185, 129, 0.18),
+		0 0 14px rgba(34, 197, 94, 0.8);
+}
+
+.progress-game-screen {
+	position: relative;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #14261a 0%, #1e3d27 52%, #2c5a38 100%);
+	color: #e6ffec;
+}
+
+.progress-game-sidebar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 336px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: 1.5rem;
+	padding: 2rem 1.5rem;
+	border-right: 1px solid rgba(220, 255, 226, 0.3);
+	background: rgba(6, 18, 10, 0.85);
+}
+
+.explorer-positions-button {
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.875rem;
+	background: linear-gradient(180deg, #d9f7c8 0%, #9bdc7e 100%);
+	color: #1e3d14;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(46, 96, 30, 0.25),
+		0 7px 0 rgba(30, 66, 20, 0.55),
+		0 12px 16px rgba(15, 23, 42, 0.28);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.explorer-positions-button:hover {
+	transform: translateY(-2px);
+	filter: brightness(1.03);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.66),
+		inset 0 -4px 0 rgba(46, 96, 30, 0.25),
+		0 9px 0 rgba(30, 66, 20, 0.6),
+		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.explorer-positions-button:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(46, 96, 30, 0.25),
+		0 3px 0 rgba(30, 66, 20, 0.55);
+}
+
+.explorer-positions-screen {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	background: linear-gradient(135deg, #221a2e 0%, #352647 52%, #4b3266 100%);
+	color: #f3eaff;
+}
+
+.explorer-positions-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 100vh;
+	padding: 3rem;
+}
+
+.explorer-positions-heading {
+	margin: 0;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: clamp(2rem, 5vw, 4rem);
+	letter-spacing: 0.06em;
+	text-shadow: 4px 4px 0 rgba(40, 24, 62, 0.7);
 }
 
 .daily-menu-science-block-1-button {

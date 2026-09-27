@@ -144,6 +144,32 @@ test("October 2 Explorer text appears in all subject block panels", async ({ pag
 	}
 });
 
+test("October 2 subject menus open on Block 1 by default", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberSecond = page.locator("#calendar-day-cell-October-2026-4");
+	await octoberSecond.click();
+	await page.waitForTimeout(500);
+	await octoberSecond.click();
+
+	for (const [subject, label] of [
+		["math", "Math"],
+		["language-arts", "Language Arts"],
+		["social-studies", "Social Studies"],
+		["science", "Science"],
+		["art", "Art"],
+	]) {
+		await page.locator(`#daily-menu-${subject}-button`).click();
+		await expect(page.getByRole("tab", { name: `${label} Block 1` })).toHaveAttribute(
+			"aria-selected",
+			"true",
+		);
+		await expect(page.locator(`#daily-menu-${subject}-block-1-panel`)).toBeVisible();
+	}
+});
+
 test("October 1 subject block panels stay centered", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
@@ -154,7 +180,7 @@ test("October 1 subject block panels stay centered", async ({ page }) => {
 	await page.waitForTimeout(500);
 	await octoberFirst.click();
 
-	for (const [subject, label] of [
+	for (const [subject] of [
 		["math", "Math"],
 		["language-arts", "Language Arts"],
 		["social-studies", "Social Studies"],
@@ -184,7 +210,7 @@ test("October 2 subject block panels stay centered", async ({ page }) => {
 	await page.waitForTimeout(500);
 	await octoberSecond.click();
 
-	for (const [subject, label] of [
+	for (const [subject] of [
 		["math", "Math"],
 		["language-arts", "Language Arts"],
 		["social-studies", "Social Studies"],

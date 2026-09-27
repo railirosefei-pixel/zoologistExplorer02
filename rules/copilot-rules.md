@@ -18,10 +18,6 @@ IMPORTANT: “Remove” means take something away, and only then if you explicit
 
 IMPORTANT: Never assume a prior asset is disposable or should be overwritten.
 
-IMPORTANT: Summarize every authorized repository change in a dated and timed entry appended to jasonReports(Changes), but only after safely verifying the append point and rechecking it for concurrent changes. If safe appending cannot be guaranteed, leave the report unchanged and mark reporting blocked. The report append does not require a recursive report entry.
-
-IMPORTANT: Append only a dated, timed, sanitized summary of relevant errors, warnings, or flags to jasonReports(Errors). Never print or append credentials, tokens, credential-bearing URLs, private keys, private service details, or secret environment values. If safe sanitization cannot be guaranteed, leave the report unchanged and mark reporting blocked.
-
 Keep the codebase organized, modular, and easy to debug. Create clear front-end pipelines with consistent labeling so errors can be traced to the exact source quickly.
 
 Write code in a way that makes adding, subtracting, and editing features simple and predictable. Favor clear boundaries and explicit component or section structure over hidden coupling.

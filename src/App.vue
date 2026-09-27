@@ -1,14 +1,19 @@
-/** Root shell for home and student navigation state. */
+/** Root shell for home, student, and parent navigation state. */
 <script setup>
 import { ref } from "vue";
 import HomeView from "./components/HomeView.vue";
 import StudentNavigation from "./components/StudentNavigation.vue";
 import CalendarView from "./components/CalendarView.vue";
 import RewardsView from "./components/RewardsView.vue";
+import ParentView from "./components/ParentView.vue";
+import StudentEditsView from "./components/StudentEditsView.vue";
+import ProgressGameView from "./components/ProgressGameView.vue";
+import ExplorerPositionsView from "./components/ExplorerPositionsView.vue";
 
 const isStudentMenuOpen = ref(false);
 const isRewardsPageOpen = ref(false);
 const activeStudentTab = ref("calendar");
+const activeParentScreen = ref("");
 const calendarViewRef = ref(null);
 
 /** Home navigation pipeline boundary. */
@@ -42,12 +47,84 @@ function handleCalendarTabOpen() {
 	activeStudentTab.value = "calendar";
 	calendarViewRef.value?.resetToCalendar();
 }
+
+/** Parent-menu navigation pipeline boundary. */
+function handleParentMenuOpen() {
+	activeParentScreen.value = "parent";
+}
+
+/** Parent-screen exit pipeline boundary. */
+function handleParentScreenClose() {
+	activeParentScreen.value = "";
+}
+
+/** Student Edits screen navigation pipeline boundary. */
+function handleStudentEditsOpen() {
+	activeParentScreen.value = "student-edits";
+}
+
+/** Student Edits screen exit pipeline boundary. */
+function handleStudentEditsClose() {
+	activeParentScreen.value = "parent";
+}
+
+/** Progress Game screen navigation pipeline boundary. */
+function handleProgressGameOpen() {
+	activeParentScreen.value = "progress-game";
+}
+
+/** Progress Game screen exit pipeline boundary. */
+function handleProgressGameClose() {
+	activeParentScreen.value = "student-edits";
+}
+
+/** Explorer Positions screen navigation pipeline boundary. */
+function handleExplorerPositionsOpen() {
+	activeParentScreen.value = "explorer-positions";
+}
+
+/** Explorer Positions screen exit pipeline boundary. */
+function handleExplorerPositionsClose() {
+	activeParentScreen.value = "progress-game";
+}
+
+/** Parent-chain home-return pipeline boundary. */
+function handleParentChainHome() {
+	activeParentScreen.value = "";
+}
 </script>
 
 <template>
 	<HomeView
-		v-if="!isStudentMenuOpen && !isRewardsPageOpen"
+		v-if="!isStudentMenuOpen && !isRewardsPageOpen && !activeParentScreen"
 		@open-student-menu="handleStudentMenuOpen"
+		@open-parent-menu="handleParentMenuOpen"
+	/>
+
+	<ParentView
+		v-else-if="activeParentScreen === 'parent'"
+		@open-student-edits="handleStudentEditsOpen"
+		@back-to-home="handleParentScreenClose"
+	/>
+
+	<StudentEditsView
+		v-else-if="activeParentScreen === 'student-edits'"
+		@open-progress-game="handleProgressGameOpen"
+		@back-to-parent="handleStudentEditsClose"
+		@go-home="handleParentChainHome"
+	/>
+
+	<ProgressGameView
+		v-else-if="activeParentScreen === 'progress-game'"
+		@open-explorer-positions="handleExplorerPositionsOpen"
+		@back-to-student-edits="handleProgressGameClose"
+		@go-home="handleParentChainHome"
+	/>
+
+	<ExplorerPositionsView
+		v-else-if="activeParentScreen === 'explorer-positions'"
+		@back-to-progress-game="handleExplorerPositionsClose"
+		@go-home="handleParentChainHome"
 	/>
 
 	<main

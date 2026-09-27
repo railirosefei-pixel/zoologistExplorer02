@@ -1,11 +1,16 @@
 /** Navigation controls for the student workspace. */
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import progressMenuBackground from "../../assets/images/backgrounds/grasslands(Day)01Final.webp";
+import railiFront from "../../assets/images/characters/railiFront.webp";
+import ProgressXpBar from "./ProgressXpBar.vue";
+import { blockCompletionStore } from "../js/blockCompletionState.js";
 
 const emit = defineEmits(["open-calendar", "open-rewards"]);
 const activeStudentMenu = ref("");
 const progressMenuBackgroundImage = `url("${progressMenuBackground}")`;
+const totalXp = blockCompletionStore.totalXp;
+const level = computed(() => blockCompletionStore.state.level);
 
 /** Student-menu navigation pipeline boundary for the calendar tab. */
 function handleCalendarNavigation() {
@@ -143,22 +148,31 @@ function handleStudentMenuNavigation(menuName) {
 				<h2>Extra Credit</h2>
 				<p>Explore optional challenges and activities.</p>
 			</article>
-			<article
+			<div
 				v-if="activeStudentMenu === 'progress'"
-				id="progress-menu"
-				class="student-submenu-section student-submenu-progress"
-				aria-label="Progress menu"
-				title="Progress menu"
+				class="student-progress-xp-bar-slot"
 			>
-				<h2>Progress</h2>
-				<p>Review your learning progress and milestones.</p>
-			</article>
+				<ProgressXpBar :xp="totalXp" :level="level" />
+			</div>
+			<img
+				v-if="activeStudentMenu === 'progress'"
+				class="pointer-events-none absolute bottom-0 right-0 h-96 w-auto max-w-[45vw] object-contain"
+				:src="railiFront"
+				alt="Raili"
+			/>
 		</aside>
 	</nav>
 </template>
 
 <style scoped>
-.student-submenu-progress {
+/* Centers the XP bar horizontally at the top of the Student Progress menu. */
+.student-progress-xp-bar-slot {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+.student-submenu-panel-progress {
 	background-image: v-bind(progressMenuBackgroundImage);
 	background-position: center;
 	background-repeat: no-repeat;

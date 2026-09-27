@@ -2,10 +2,11 @@
 
 ## Mandatory plan obedience
 
-- Read the current plan from disk before taking any action.
+- Read the current plan from disk before taking any action while in agent mode. In ask mode or plan mode, follow the instructions given in the chat box.
 - Follow the plan in numbered order; do not skip ahead or infer the next step.
 - If a step's precondition is not satisfied, stop and do not edit.
 - Treat the current numbered step as the only authorized action until it is completed.
+- If the active step is already complete, stop and report that fact; do not repeat it or infer follow-up work.
 
 ## Required state before any edit
 

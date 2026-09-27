@@ -238,6 +238,35 @@ test("daily-menu subject panels render block controls in a tab rail", () => {
 	);
 });
 
+test("daily menu block panels include complete controls and confetti effects", () => {
+	const componentSource = fs.readFileSync(
+		path.join(projectRoot, "src", "components", "CalendarView.vue"),
+		"utf8",
+	);
+	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
+
+	assert.match(
+		componentSource,
+		/class="daily-menu-block-complete-button"/,
+		"Each block panel should include a complete button",
+	);
+	assert.match(
+		componentSource,
+		/handleBlockComplete|daily-menu-confetti-overlay/,
+		"Block completion should trigger a confetti overlay behavior",
+	);
+	assert.match(
+		cssSource,
+		/\.daily-menu-block-complete-button\s*\{[^}]*border-radius:\s*9999px;[^}]*background:\s*linear-gradient\(180deg,\s*#fff7b8\s*0%,\s*#f8e99a\s*100%\);/s,
+		"Complete buttons should be oval and pastel yellow",
+	);
+	assert.match(
+		cssSource,
+		/\.daily-menu-block-complete-button--complete\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*#7efc9b\s*0%,\s*#2dd35a\s*100%\);[^}]*box-shadow:[^}]*0\s+0\s+18px\s*rgba\(34,\s*197,\s*94,\s*0\.8\)/s,
+		"Completed buttons should glow green with confirmed state styling",
+	);
+});
+
 test("src/css/input.css and src/js/main.js contain no stale, duplicate, or contradictory app logic", () => {
 	const findings = [];
 	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
