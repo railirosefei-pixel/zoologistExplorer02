@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-test("Explorer text is available for the September 28 through 30 block panels", async ({ page }) => {
+test("Explorer text is available for the September 28 through 30 block panels", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -13,7 +15,9 @@ test("Explorer text is available for the September 28 through 30 block panels", 
 		await page.waitForTimeout(500);
 		await day.click();
 		await page.getByRole("button", { name: "Math" }).click();
-		await expect(page.locator("#daily-menu-math-panel .daily-menu-subject-panel-message")).toBeVisible();
+		await expect(
+			page.locator("#daily-menu-math-block-1-panel .daily-menu-subject-panel-message"),
+		).toBeVisible();
 		await expect(page.getByText("Explorer Raili!", { exact: true })).toBeVisible();
 		await page.getByRole("button", { name: "Back to calendar" }).click();
 	}
@@ -56,7 +60,9 @@ test("October 1 Math Explorer text appears in all three block panels", async ({ 
 	}
 });
 
-test("October 1 Language Arts Explorer text appears in all three block panels", async ({ page }) => {
+test("October 1 Language Arts Explorer text appears in all three block panels", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Show next month" }).click();
@@ -77,7 +83,9 @@ test("October 1 Language Arts Explorer text appears in all three block panels", 
 	}
 });
 
-test("October 1 Social Studies Explorer text appears in all three block panels", async ({ page }) => {
+test("October 1 Social Studies Explorer text appears in all three block panels", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Show next month" }).click();
@@ -230,9 +238,7 @@ test("October 2 subject block panels stay centered", async ({ page }) => {
 	}
 });
 
-test("September 1 through 27 day cells stay decorative and disabled", async ({
-	page,
-}) => {
+test("September 1 through 27 day cells stay decorative and disabled", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -261,12 +267,9 @@ test("September 29 subject menu text is centered before and after selecting a bl
 	await septemberTwentyNine.click();
 	await page.locator("#daily-menu-math-button").click();
 
-	await expect(page.locator("#daily-menu-math-panel")).toHaveCSS("text-align", "center");
-	await page.locator("#daily-menu-math-block-1-button").click();
-	await expect(page.locator("#daily-menu-math-block-1-panel")).toHaveCSS(
-		"text-align",
-		"center",
-	);
+	await expect(page.locator("#daily-menu-math-block-1-panel")).toHaveCSS("text-align", "center");
+	await page.locator("#daily-menu-math-block-2-button").click();
+	await expect(page.locator("#daily-menu-math-block-2-panel")).toHaveCSS("text-align", "center");
 });
 
 test("September 30 subject menu text is centered before and after selecting each block", async ({
@@ -282,12 +285,12 @@ test("September 30 subject menu text is centered before and after selecting each
 
 	for (const subject of ["math", "language-arts", "social-studies", "science"]) {
 		await page.locator(`#daily-menu-${subject}-button`).click();
-		await expect(page.locator(`#daily-menu-${subject}-panel`)).toHaveCSS(
+		await expect(page.locator(`#daily-menu-${subject}-block-1-panel`)).toHaveCSS(
 			"text-align",
 			"center",
 		);
-		await page.locator(`#daily-menu-${subject}-block-1-button`).click();
-		await expect(page.locator(`#daily-menu-${subject}-block-1-panel`)).toHaveCSS(
+		await page.locator(`#daily-menu-${subject}-block-2-button`).click();
+		await expect(page.locator(`#daily-menu-${subject}-block-2-panel`)).toHaveCSS(
 			"text-align",
 			"center",
 		);
@@ -334,7 +337,6 @@ test("Rapid later clicks preserve earlier square replacements and hide TNT textu
 	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
 	await expect(septemberTwentyNine).toHaveCSS("background-image", "none");
 });
-
 
 test("Story is available on weekday daily menus from September 28 onward", async ({ page }) => {
 	await page.goto("./");
@@ -668,5 +670,8 @@ test("Leaving and reopening the calendar reapplies the TNT texture", async ({ pa
 
 	await page.getByRole("button", { name: "Open student section" }).click();
 	const reopenedSeptemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
-	await expect(reopenedSeptemberTwentyEight).toHaveCSS("background-image", /url\(".*minecraftTNT/);
+	await expect(reopenedSeptemberTwentyEight).toHaveCSS(
+		"background-image",
+		/url\(".*minecraftTNT/,
+	);
 });

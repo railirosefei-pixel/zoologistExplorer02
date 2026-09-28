@@ -115,14 +115,7 @@ const blockButtonClasses = {
 		"daily-menu-art-block-3-button",
 	],
 };
-const confettiPalette = [
-	"#fef08a",
-	"#f9a8d4",
-	"#7dd3fc",
-	"#86efac",
-	"#fbbf24",
-	"#c4b5fd",
-];
+const confettiPalette = ["#fef08a", "#f9a8d4", "#7dd3fc", "#86efac", "#fbbf24", "#c4b5fd"];
 const confettiBurstPieces = Array.from({ length: 32 }, (_, index) => ({
 	id: `confetti-piece-${index}`,
 	color: confettiPalette[index % confettiPalette.length],
@@ -352,8 +345,7 @@ function getExplorerCopy(subject) {
 	}
 
 	return (
-		explorerCopyByDateAndSubject[selectedDateLabel]?.[subject] ??
-		explorerCopyBySubject[subject]
+		explorerCopyByDateAndSubject[selectedDateLabel]?.[subject] ?? explorerCopyBySubject[subject]
 	);
 }
 function isExplorerCopyActive(subject) {
@@ -460,11 +452,7 @@ function handleBlockComplete(subject, blockNumber) {
 		return;
 	}
 
-	blockCompletionStore.markBlockComplete(
-		selectedDailyMenuDateLabel.value,
-		subject,
-		blockNumber,
-	);
+	blockCompletionStore.markBlockComplete(selectedDailyMenuDateLabel.value, subject, blockNumber);
 	triggerConfettiBurst();
 }
 
@@ -618,11 +606,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div
-		v-if="confettiVisible"
-		class="daily-menu-confetti-overlay"
-		aria-hidden="true"
-	>
+	<div v-if="confettiVisible" class="daily-menu-confetti-overlay" aria-hidden="true">
 		<span
 			v-for="piece in confettiBurstPieces"
 			:key="piece.id"
@@ -881,8 +865,15 @@ onBeforeUnmount(() => {
 								),
 							}"
 							:aria-label="`Complete ${blockSubjectLabels[selectedDailyMenuSubject]} Block ${selectedDailyMenuBlock}`"
-							:aria-pressed="isBlockComplete(selectedDailyMenuSubject, selectedDailyMenuBlock)"
-							@click.stop="handleBlockComplete(selectedDailyMenuSubject, selectedDailyMenuBlock)"
+							:aria-pressed="
+								isBlockComplete(selectedDailyMenuSubject, selectedDailyMenuBlock)
+							"
+							@click.stop="
+								handleBlockComplete(
+									selectedDailyMenuSubject,
+									selectedDailyMenuBlock,
+								)
+							"
 						>
 							{{
 								isBlockComplete(selectedDailyMenuSubject, selectedDailyMenuBlock)
@@ -898,7 +889,12 @@ onBeforeUnmount(() => {
 								v-for="line in getExplorerCopy(selectedDailyMenuSubject)"
 								:key="line"
 							>
-								<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
+								<span
+									:class="{
+										'daily-menu-explorer-name':
+											line.startsWith('Explorer Raili'),
+									}"
+								>
 									{{ line }}
 								</span>
 							</p>
@@ -918,7 +914,12 @@ onBeforeUnmount(() => {
 							class="daily-menu-subject-panel-message"
 						>
 							<p v-for="line in getExplorerCopy('math')" :key="line">
-								<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
+								<span
+									:class="{
+										'daily-menu-explorer-name':
+											line.startsWith('Explorer Raili'),
+									}"
+								>
 									{{ line }}
 								</span>
 							</p>
@@ -1060,9 +1061,14 @@ onBeforeUnmount(() => {
 							class="daily-menu-subject-panel-message"
 						>
 							<p v-for="line in explorerCopyBySubject['language-arts']" :key="line">
-									<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
-										{{ line }}
-									</span>
+								<span
+									:class="{
+										'daily-menu-explorer-name':
+											line.startsWith('Explorer Raili'),
+									}"
+								>
+									{{ line }}
+								</span>
 							</p>
 						</div>
 						<div
@@ -1124,9 +1130,14 @@ onBeforeUnmount(() => {
 							class="daily-menu-subject-panel-message"
 						>
 							<p v-for="line in explorerCopyBySubject['social-studies']" :key="line">
-									<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
-										{{ line }}
-									</span>
+								<span
+									:class="{
+										'daily-menu-explorer-name':
+											line.startsWith('Explorer Raili'),
+									}"
+								>
+									{{ line }}
+								</span>
 							</p>
 						</div>
 						<div
@@ -1188,9 +1199,14 @@ onBeforeUnmount(() => {
 							class="daily-menu-subject-panel-message"
 						>
 							<p v-for="line in explorerCopyBySubject.science" :key="line">
-									<span :class="{ 'daily-menu-explorer-name': line.startsWith('Explorer Raili') }">
-										{{ line }}
-									</span>
+								<span
+									:class="{
+										'daily-menu-explorer-name':
+											line.startsWith('Explorer Raili'),
+									}"
+								>
+									{{ line }}
+								</span>
 							</p>
 						</div>
 						<div

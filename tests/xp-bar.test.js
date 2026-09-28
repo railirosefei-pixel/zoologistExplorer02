@@ -16,27 +16,15 @@ test("ProgressXpBar.vue exists with 14 segments of 20 XP and no inline styles", 
 	assert.match(source, /XP_PER_SEGMENT = 20/, "each segment must require 20 XP");
 	assert.match(source, /width: 672px/, "bar must be exactly 672px long");
 	assert.match(source, /Level/, "bar must display the word Level");
-	assert.doesNotMatch(
-		source,
-		/style="/,
-		"template must not use inline style attributes",
-	);
-	assert.match(
-		source,
-		/<style scoped>/,
-		"XP bar styling must live in a scoped style block",
-	);
+	assert.doesNotMatch(source, /style="/, "template must not use inline style attributes");
+	assert.match(source, /<style scoped>/, "XP bar styling must live in a scoped style block");
 });
 
 test("blockCompletionState.js derives capped totalXp and a permanent level", () => {
 	const source = readSource("src/js/blockCompletionState.js");
 	assert.match(source, /totalXp/, "store must expose totalXp");
 	assert.match(source, /XP_LEVEL_CAP = 240/, "XP must be capped at 240");
-	assert.match(
-		source,
-		/Math\.max\(state\.level/,
-		"level must never decrease",
-	);
+	assert.match(source, /Math\.max\(state\.level/, "level must never decrease");
 });
 
 test("StudentNavigation.vue renders ProgressXpBar in the Student Progress menu", () => {

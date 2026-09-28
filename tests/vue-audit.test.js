@@ -301,9 +301,9 @@ test("Vue files keep shared structure and style ownership consistent", () => {
 				],
 				"HomeView.vue": ["home-"],
 				"RewardsView.vue": ["rewards-"],
-			"ProgressXpBar.vue": ["progress-xp-bar-"],
-			"StudentNavigation.vue": ["student-"],
-		}[path.basename(filePath)];
+				"ProgressXpBar.vue": ["progress-xp-bar-"],
+				"StudentNavigation.vue": ["student-"],
+			}[path.basename(filePath)];
 
 			if (!allowedSelectorPrefixes) {
 				findings.push(

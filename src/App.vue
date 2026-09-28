@@ -7,7 +7,7 @@ import CalendarView from "./components/CalendarView.vue";
 import RewardsView from "./components/RewardsView.vue";
 import ParentView from "./components/ParentView.vue";
 import StudentEditsView from "./components/StudentEditsView.vue";
-import ProgressGameView from "./components/ProgressGameView.vue";
+import CurriculumGameView from "./components/CurriculumGameView.vue";
 import ExplorerPositionsView from "./components/ExplorerPositionsView.vue";
 
 const isStudentMenuOpen = ref(false);
@@ -68,13 +68,13 @@ function handleStudentEditsClose() {
 	activeParentScreen.value = "parent";
 }
 
-/** Progress Game screen navigation pipeline boundary. */
-function handleProgressGameOpen() {
-	activeParentScreen.value = "progress-game";
+/** Curriculum Game screen navigation pipeline boundary. */
+function handleCurriculumGameOpen() {
+	activeParentScreen.value = "curriculum-game";
 }
 
-/** Progress Game screen exit pipeline boundary. */
-function handleProgressGameClose() {
+/** Curriculum Game screen exit pipeline boundary. */
+function handleCurriculumGameClose() {
 	activeParentScreen.value = "student-edits";
 }
 
@@ -85,7 +85,7 @@ function handleExplorerPositionsOpen() {
 
 /** Explorer Positions screen exit pipeline boundary. */
 function handleExplorerPositionsClose() {
-	activeParentScreen.value = "progress-game";
+	activeParentScreen.value = "curriculum-game";
 }
 
 /** Parent-chain home-return pipeline boundary. */
@@ -109,21 +109,21 @@ function handleParentChainHome() {
 
 	<StudentEditsView
 		v-else-if="activeParentScreen === 'student-edits'"
-		@open-progress-game="handleProgressGameOpen"
+		@open-curriculum-game="handleCurriculumGameOpen"
 		@back-to-parent="handleStudentEditsClose"
 		@go-home="handleParentChainHome"
 	/>
 
-	<ProgressGameView
-		v-else-if="activeParentScreen === 'progress-game'"
+	<CurriculumGameView
+		v-else-if="activeParentScreen === 'curriculum-game'"
 		@open-explorer-positions="handleExplorerPositionsOpen"
-		@back-to-student-edits="handleProgressGameClose"
+		@back-to-student-edits="handleCurriculumGameClose"
 		@go-home="handleParentChainHome"
 	/>
 
 	<ExplorerPositionsView
 		v-else-if="activeParentScreen === 'explorer-positions'"
-		@back-to-progress-game="handleExplorerPositionsClose"
+		@back-to-curriculum-game="handleExplorerPositionsClose"
 		@go-home="handleParentChainHome"
 	/>
 

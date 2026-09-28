@@ -5,29 +5,29 @@ function handleExplorerPositionsOpen() {
 	emit("open-explorer-positions");
 }
 
-function handleProgressGameScreenClose() {
+function handleCurriculumGameScreenClose() {
 	emit("back-to-student-edits");
 }
 
-function handleProgressGameScreenHome() {
+function handleCurriculumGameScreenHome() {
 	emit("go-home");
 }
 </script>
 
 <template>
 	<main
-		id="progress-game-screen"
-		class="progress-game-screen"
+		id="curriculum-game-screen"
+		class="curriculum-game-screen"
 		role="main"
-		aria-label="Progress Game screen"
-		title="Progress Game screen"
+		aria-label="Curriculum Game screen"
+		title="Curriculum Game screen"
 	>
 		<aside
-			id="progress-game-sidebar"
-			class="progress-game-sidebar"
+			id="curriculum-game-sidebar"
+			class="curriculum-game-sidebar"
 			role="complementary"
-			aria-label="Progress Game sidebar"
-			title="Progress Game sidebar"
+			aria-label="Curriculum Game sidebar"
+			title="Curriculum Game sidebar"
 		>
 			<button
 				id="explorer-positions-button"
@@ -43,26 +43,26 @@ function handleProgressGameScreenHome() {
 			</button>
 		</aside>
 		<button
-			id="progress-game-screen-home-button"
-			class="progress-game-screen-home-button"
+			id="curriculum-game-screen-home-button"
+			class="curriculum-game-screen-home-button"
 			type="button"
-			name="progress-game-screen-home-button"
-			data-button-name="progress-game-screen-home-button"
+			name="curriculum-game-screen-home-button"
+			data-button-name="curriculum-game-screen-home-button"
 			aria-label="Return home"
 			title="Return home"
-			@click="handleProgressGameScreenHome"
+			@click="handleCurriculumGameScreenHome"
 		>
 			Home
 		</button>
 		<button
-			id="progress-game-screen-back-button"
-			class="progress-game-screen-back-button"
+			id="curriculum-game-screen-back-button"
+			class="curriculum-game-screen-back-button"
 			type="button"
-			name="progress-game-screen-back-button"
-			data-button-name="progress-game-screen-back-button"
+			name="curriculum-game-screen-back-button"
+			data-button-name="curriculum-game-screen-back-button"
 			aria-label="Back to student edits"
 			title="Back to student edits"
-			@click="handleProgressGameScreenClose"
+			@click="handleCurriculumGameScreenClose"
 		>
 			Back
 		</button>

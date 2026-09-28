@@ -1,8 +1,8 @@
 <script setup>
-const emit = defineEmits(["back-to-progress-game", "go-home"]);
+const emit = defineEmits(["back-to-curriculum-game", "go-home"]);
 
 function handleExplorerPositionsScreenClose() {
-	emit("back-to-progress-game");
+	emit("back-to-curriculum-game");
 }
 
 function handleExplorerPositionsScreenHome() {
@@ -45,8 +45,8 @@ function handleExplorerPositionsScreenHome() {
 			type="button"
 			name="explorer-positions-screen-back-button"
 			data-button-name="explorer-positions-screen-back-button"
-			aria-label="Back to Progress Game"
-			title="Back to Progress Game"
+			aria-label="Back to Curriculum Game"
+			title="Back to Curriculum Game"
 			@click="handleExplorerPositionsScreenClose"
 		>
 			Back

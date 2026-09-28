@@ -109,7 +109,6 @@ function handleStudentMenuNavigation(menuName) {
 			id="student-submenu-panel"
 			class="student-submenu-panel"
 			:class="{
-				'student-submenu-panel-rewards': activeStudentMenu === 'rewards',
 				'student-submenu-panel-games': activeStudentMenu === 'games',
 				'student-submenu-panel-extra-credit': activeStudentMenu === 'extra-credit',
 				'student-submenu-panel-progress': activeStudentMenu === 'progress',
@@ -118,16 +117,6 @@ function handleStudentMenuNavigation(menuName) {
 			title="Student submenu panel"
 			data-container-name="student-submenu-panel"
 		>
-			<article
-				v-if="activeStudentMenu === 'rewards'"
-				id="rewards-menu"
-				class="student-submenu-section student-submenu-rewards"
-				aria-label="Rewards menu"
-				title="Rewards menu"
-			>
-				<h2>Rewards</h2>
-				<p>Choose a reward for your learning progress.</p>
-			</article>
 			<article
 				v-if="activeStudentMenu === 'games'"
 				id="games-menu"
@@ -148,10 +137,7 @@ function handleStudentMenuNavigation(menuName) {
 				<h2>Extra Credit</h2>
 				<p>Explore optional challenges and activities.</p>
 			</article>
-			<div
-				v-if="activeStudentMenu === 'progress'"
-				class="student-progress-xp-bar-slot"
-			>
+			<div v-if="activeStudentMenu === 'progress'" class="student-progress-xp-bar-slot">
 				<ProgressXpBar :xp="totalXp" :level="level" />
 			</div>
 			<img

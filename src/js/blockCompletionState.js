@@ -22,13 +22,11 @@ const state = reactive({
  * XP derived from completed blocks: +20 per completed block, -20 per
  * un-activation, and hard-capped at 240 so it can never pass the cap.
  */
-const totalXp = computed(
-	() =>
-		Math.min(
-			XP_LEVEL_CAP,
-			Object.values(state.completedBlockKeys).filter(Boolean).length *
-				XP_PER_COMPLETED_BLOCK,
-		),
+const totalXp = computed(() =>
+	Math.min(
+		XP_LEVEL_CAP,
+		Object.values(state.completedBlockKeys).filter(Boolean).length * XP_PER_COMPLETED_BLOCK,
+	),
 );
 
 /** Level rises at each 240 XP milestone and never decreases. */

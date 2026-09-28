@@ -86,7 +86,13 @@ function handleRewardBookAnimationEnded() {
 		>
 			<img
 				class="rewards-page-chest"
-				:src="isRewardChestClicked ? rewardChestClicked : isRewardChestHovered ? rewardChestHover : rewardChest"
+				:src="
+					isRewardChestClicked
+						? rewardChestClicked
+						: isRewardChestHovered
+							? rewardChestHover
+							: rewardChest
+				"
 				alt=""
 			/>
 		</button>
@@ -172,7 +178,10 @@ function handleRewardBookAnimationEnded() {
 	width: min(64vw, 42rem);
 	aspect-ratio: 16 / 9;
 	transform: translate(-50%, -50%);
-	transition: left 700ms ease, top 700ms ease, width 700ms ease;
+	transition:
+		left 700ms ease,
+		top 700ms ease,
+		width 700ms ease;
 	pointer-events: none;
 	z-index: 3;
 }

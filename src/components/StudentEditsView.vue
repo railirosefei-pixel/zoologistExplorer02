@@ -1,13 +1,13 @@
 <script setup>
 /**
- * Parent > Student Edits screen. Hosts the Progress Game and Block Edits
+ * Parent > Student Edits screen. Hosts the Curriculum Game and Block Edits
  * sidebar controls plus the Block Edits day panel, which mirrors the
  * completion state of the Student daily-menu blocks for the active day only.
  */
 import { computed, ref } from "vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 
-const emit = defineEmits(["open-progress-game", "back-to-parent", "go-home"]);
+const emit = defineEmits(["open-curriculum-game", "back-to-parent", "go-home"]);
 const isBlockEditsOpen = ref(false);
 
 /** Block subjects shown per day, mirroring the Student daily-menu blocks. */
@@ -31,8 +31,8 @@ function blockEditsIsComplete(subjectKey, blockNumber) {
 	);
 }
 
-function handleProgressGameNavigation() {
-	emit("open-progress-game");
+function handleCurriculumGameNavigation() {
+	emit("open-curriculum-game");
 }
 
 function handleBlockEditsToggle() {
@@ -74,16 +74,16 @@ function handleStudentEditsScreenHome() {
 			title="Student Edits sidebar"
 		>
 			<button
-				id="progress-game-button"
-				class="progress-game-button"
+				id="curriculum-game-button"
+				class="curriculum-game-button"
 				type="button"
-				name="progress-game-button"
-				data-button-name="progress-game-button"
-				aria-label="Open Progress Game"
-				title="Open Progress Game"
-				@click="handleProgressGameNavigation"
+				name="curriculum-game-button"
+				data-button-name="curriculum-game-button"
+				aria-label="Open Curriculum Game"
+				title="Open Curriculum Game"
+				@click="handleCurriculumGameNavigation"
 			>
-				Progress Game
+				Curriculum Game
 			</button>
 			<button
 				id="block-edits-button"
@@ -126,10 +126,8 @@ function handleStudentEditsScreenHome() {
 							:key="blockNumber"
 							class="block-edits-block-complete-control"
 							:class="{
-								'block-edits-block-complete-control--complete': blockEditsIsComplete(
-									subject.key,
-									blockNumber,
-								),
+								'block-edits-block-complete-control--complete':
+									blockEditsIsComplete(subject.key, blockNumber),
 							}"
 							type="button"
 							:name="`block-edits-panel-${subject.key}-block-${blockNumber}-complete-control`"

@@ -85,7 +85,6 @@ function handleDayCellClick() {
 <template>
 	<button
 		:id="cellId"
-		:key="cellKey"
 		class="calendar-day-cell"
 		type="button"
 		:disabled="isCellLocked || isDecorativeSeptemberGateCell"

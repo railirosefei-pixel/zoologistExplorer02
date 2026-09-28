@@ -179,97 +179,16 @@ body {
 	font-size: 1.15rem;
 }
 
-.student-submenu-panel-rewards {
-	background: #f9c8a3;
-	color: #5f3415;
-}
-
-.student-submenu-rewards {
-	background: #f9c8a3;
-	color: #5f3415;
-}
-
-.student-menu-rewards-tab {
-	background: #f9c8a3;
-	color: #5f3415;
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
-}
-
-.student-submenu-panel-games {
-	background: #f9eb9b;
-	color: #5c4d12;
-}
-
+.student-submenu-panel-games,
 .student-submenu-games {
 	background: #f9eb9b;
 	color: #5c4d12;
 }
 
-.student-menu-games-tab {
-	background: #f9eb9b;
-	color: #5c4d12;
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
-}
-
-.student-submenu-panel-extra-credit {
-	background: #bfe9be;
-	color: #1a4c32;
-}
-
+.student-submenu-panel-extra-credit,
 .student-submenu-extra-credit {
 	background: #bfe9be;
 	color: #1a4c32;
-}
-
-.student-menu-extra-credit-tab {
-	background: #bfe9be;
-	color: #1a4c32;
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
 }
 
 .student-submenu-panel-progress {
@@ -277,48 +196,11 @@ body {
 	color: #1d3f6d;
 }
 
-.student-menu-progress-tab {
-	background: #bfdafc;
-	color: #1d3f6d;
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
-}
-
-.student-menu-calendar-tab {
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 7px 0 rgba(67, 38, 14, 0.55),
-		0 12px 16px rgba(15, 23, 42, 0.28);
-	transition:
-		transform 120ms ease,
-		box-shadow 120ms ease,
-		filter 120ms ease;
-	background: linear-gradient(180deg, #ffd6d6 0%, #f3a6a6 100%);
-	color: #541b25;
-}
-
+.student-menu-calendar-tab,
+.student-menu-rewards-tab,
+.student-menu-games-tab,
+.student-menu-extra-credit-tab,
+.student-menu-progress-tab,
 .student-menu-back-button {
 	min-height: 2.75rem;
 	padding: 0.65rem 1rem;
@@ -336,6 +218,34 @@ body {
 		transform 120ms ease,
 		box-shadow 120ms ease,
 		filter 120ms ease;
+}
+
+.student-menu-rewards-tab {
+	background: #f9c8a3;
+	color: #5f3415;
+}
+
+.student-menu-games-tab {
+	background: #f9eb9b;
+	color: #5c4d12;
+}
+
+.student-menu-extra-credit-tab {
+	background: #bfe9be;
+	color: #1a4c32;
+}
+
+.student-menu-progress-tab {
+	background: #bfdafc;
+	color: #1d3f6d;
+}
+
+.student-menu-calendar-tab {
+	background: linear-gradient(180deg, #ffd6d6 0%, #f3a6a6 100%);
+	color: #541b25;
+}
+
+.student-menu-back-button {
 	background: #282c30;
 	color: #fff7cc;
 }
@@ -353,46 +263,10 @@ body {
 	letter-spacing: 0.04em;
 }
 
-.student-menu-calendar-tab:hover {
-	transform: translateY(-2px);
-	filter: brightness(1.03);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.66),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 9px 0 rgba(67, 38, 14, 0.6),
-		0 16px 20px rgba(15, 23, 42, 0.32);
-}
-
-.student-menu-rewards-tab:hover {
-	transform: translateY(-2px);
-	filter: brightness(1.03);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.66),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 9px 0 rgba(67, 38, 14, 0.6),
-		0 16px 20px rgba(15, 23, 42, 0.32);
-}
-
-.student-menu-games-tab:hover {
-	transform: translateY(-2px);
-	filter: brightness(1.03);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.66),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 9px 0 rgba(67, 38, 14, 0.6),
-		0 16px 20px rgba(15, 23, 42, 0.32);
-}
-
-.student-menu-extra-credit-tab:hover {
-	transform: translateY(-2px);
-	filter: brightness(1.03);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.66),
-		inset 0 -4px 0 rgba(111, 74, 19, 0.25),
-		0 9px 0 rgba(67, 38, 14, 0.6),
-		0 16px 20px rgba(15, 23, 42, 0.32);
-}
-
+.student-menu-calendar-tab:hover,
+.student-menu-rewards-tab:hover,
+.student-menu-games-tab:hover,
+.student-menu-extra-credit-tab:hover,
 .student-menu-progress-tab:hover {
 	transform: translateY(-2px);
 	filter: brightness(1.03);
@@ -403,46 +277,10 @@ body {
 		0 16px 20px rgba(15, 23, 42, 0.32);
 }
 
-.student-menu-calendar-tab:active {
-	transform: translateY(5px);
-	filter: brightness(0.98);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.48),
-		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
-		0 2px 0 rgba(67, 38, 14, 0.5),
-		0 5px 8px rgba(15, 23, 42, 0.22);
-}
-
-.student-menu-rewards-tab:active {
-	transform: translateY(5px);
-	filter: brightness(0.98);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.48),
-		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
-		0 2px 0 rgba(67, 38, 14, 0.5),
-		0 5px 8px rgba(15, 23, 42, 0.22);
-}
-
-.student-menu-games-tab:active {
-	transform: translateY(5px);
-	filter: brightness(0.98);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.48),
-		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
-		0 2px 0 rgba(67, 38, 14, 0.5),
-		0 5px 8px rgba(15, 23, 42, 0.22);
-}
-
-.student-menu-extra-credit-tab:active {
-	transform: translateY(5px);
-	filter: brightness(0.98);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.48),
-		inset 0 -2px 0 rgba(111, 74, 19, 0.25),
-		0 2px 0 rgba(67, 38, 14, 0.5),
-		0 5px 8px rgba(15, 23, 42, 0.22);
-}
-
+.student-menu-calendar-tab:active,
+.student-menu-rewards-tab:active,
+.student-menu-games-tab:active,
+.student-menu-extra-credit-tab:active,
 .student-menu-progress-tab:active {
 	transform: translateY(5px);
 	filter: brightness(0.98);
@@ -491,21 +329,7 @@ body {
 	gap: 0.75rem;
 }
 
-.calendar-previous-month-button {
-	min-width: 7.5rem;
-	padding: 0.6rem 1rem;
-	border: 2px solid rgba(255, 248, 190, 0.7);
-	border-radius: 0.7rem;
-	background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 56%, #60a5fa 100%);
-	color: #16293f;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.9rem;
-	letter-spacing: 0.05em;
-	cursor: pointer;
-	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
-	justify-self: start;
-}
-
+.calendar-previous-month-button,
 .calendar-next-month-button {
 	min-width: 7.5rem;
 	padding: 0.6rem 1rem;
@@ -518,6 +342,13 @@ body {
 	letter-spacing: 0.05em;
 	cursor: pointer;
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
+.calendar-previous-month-button {
+	justify-self: start;
+}
+
+.calendar-next-month-button {
 	justify-self: end;
 }
 
@@ -735,7 +566,8 @@ body {
 	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.22);
 }
 
-.daily-menu-back-button {
+.daily-menu-back-button,
+.daily-menu-story-back-button {
 	position: absolute;
 	top: 12px;
 	right: 12px;
@@ -753,21 +585,7 @@ body {
 }
 
 .daily-menu-story-back-button {
-	position: absolute;
-	top: 12px;
-	right: 12px;
 	z-index: 2;
-	margin: 0;
-	padding: 0.55rem 1rem;
-	border: 2px solid rgba(255, 248, 190, 0.7);
-	border-radius: 0.7rem;
-	background: linear-gradient(180deg, #dbeafe 0%, #93c5fd 56%, #60a5fa 100%);
-	color: #16293f;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.82rem;
-	letter-spacing: 0.05em;
-	cursor: pointer;
-	box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
 }
 
 .daily-menu-confetti-overlay {
@@ -792,38 +610,262 @@ body {
 	box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
 }
 
-.daily-menu-confetti-piece--0 { --confetti-left: 7; --confetti-x: -40px; --confetti-rotate: 40deg; animation-delay: 0s; animation-duration: 1.2s; background: #fef08a; }
-.daily-menu-confetti-piece--1 { --confetti-left: 18; --confetti-x: 16px; --confetti-rotate: 90deg; animation-delay: 0.08s; animation-duration: 1.38s; background: #f9a8d4; }
-.daily-menu-confetti-piece--2 { --confetti-left: 29; --confetti-x: -10px; --confetti-rotate: 140deg; animation-delay: 0.16s; animation-duration: 1.26s; background: #7dd3fc; }
-.daily-menu-confetti-piece--3 { --confetti-left: 37; --confetti-x: 30px; --confetti-rotate: 190deg; animation-delay: 0.24s; animation-duration: 1.32s; background: #86efac; }
-.daily-menu-confetti-piece--4 { --confetti-left: 46; --confetti-x: -24px; --confetti-rotate: 250deg; animation-delay: 0.32s; animation-duration: 1.44s; background: #fbbf24; }
-.daily-menu-confetti-piece--5 { --confetti-left: 58; --confetti-x: 24px; --confetti-rotate: 300deg; animation-delay: 0.4s; animation-duration: 1.4s; background: #c4b5fd; }
-.daily-menu-confetti-piece--6 { --confetti-left: 66; --confetti-x: -18px; --confetti-rotate: 80deg; animation-delay: 0.48s; animation-duration: 1.3s; background: #fef08a; }
-.daily-menu-confetti-piece--7 { --confetti-left: 72; --confetti-x: 18px; --confetti-rotate: 210deg; animation-delay: 0.56s; animation-duration: 1.5s; background: #f9a8d4; }
-.daily-menu-confetti-piece--8 { --confetti-left: 80; --confetti-x: -22px; --confetti-rotate: 120deg; animation-delay: 0.64s; animation-duration: 1.42s; background: #7dd3fc; }
-.daily-menu-confetti-piece--9 { --confetti-left: 89; --confetti-x: 32px; --confetti-rotate: 340deg; animation-delay: 0.72s; animation-duration: 1.48s; background: #86efac; }
-.daily-menu-confetti-piece--10 { --confetti-left: 13; --confetti-x: 42px; --confetti-rotate: 60deg; animation-delay: 0.1s; animation-duration: 1.36s; background: #fbbf24; }
-.daily-menu-confetti-piece--11 { --confetti-left: 25; --confetti-x: -30px; --confetti-rotate: 182deg; animation-delay: 0.18s; animation-duration: 1.28s; background: #c4b5fd; }
-.daily-menu-confetti-piece--12 { --confetti-left: 41; --confetti-x: 18px; --confetti-rotate: 220deg; animation-delay: 0.26s; animation-duration: 1.45s; background: #fef08a; }
-.daily-menu-confetti-piece--13 { --confetti-left: 54; --confetti-x: -12px; --confetti-rotate: 110deg; animation-delay: 0.34s; animation-duration: 1.38s; background: #f9a8d4; }
-.daily-menu-confetti-piece--14 { --confetti-left: 68; --confetti-x: 28px; --confetti-rotate: 320deg; animation-delay: 0.42s; animation-duration: 1.52s; background: #7dd3fc; }
-.daily-menu-confetti-piece--15 { --confetti-left: 83; --confetti-x: -26px; --confetti-rotate: 144deg; animation-delay: 0.5s; animation-duration: 1.33s; background: #86efac; }
-.daily-menu-confetti-piece--16 { --confetti-left: 9; --confetti-x: 20px; --confetti-rotate: 260deg; animation-delay: 0.08s; animation-duration: 1.35s; background: #fbbf24; }
-.daily-menu-confetti-piece--17 { --confetti-left: 22; --confetti-x: -14px; --confetti-rotate: 50deg; animation-delay: 0.16s; animation-duration: 1.31s; background: #c4b5fd; }
-.daily-menu-confetti-piece--18 { --confetti-left: 33; --confetti-x: 18px; --confetti-rotate: 168deg; animation-delay: 0.24s; animation-duration: 1.54s; background: #fef08a; }
-.daily-menu-confetti-piece--19 { --confetti-left: 48; --confetti-x: -24px; --confetti-rotate: 212deg; animation-delay: 0.32s; animation-duration: 1.44s; background: #f9a8d4; }
-.daily-menu-confetti-piece--20 { --confetti-left: 62; --confetti-x: 24px; --confetti-rotate: 96deg; animation-delay: 0.4s; animation-duration: 1.46s; background: #7dd3fc; }
-.daily-menu-confetti-piece--21 { --confetti-left: 74; --confetti-x: -20px; --confetti-rotate: 290deg; animation-delay: 0.48s; animation-duration: 1.28s; background: #86efac; }
-.daily-menu-confetti-piece--22 { --confetti-left: 86; --confetti-x: 32px; --confetti-rotate: 130deg; animation-delay: 0.56s; animation-duration: 1.49s; background: #fbbf24; }
-.daily-menu-confetti-piece--23 { --confetti-left: 14; --confetti-x: -36px; --confetti-rotate: 36deg; animation-delay: 0.14s; animation-duration: 1.22s; background: #c4b5fd; }
-.daily-menu-confetti-piece--24 { --confetti-left: 30; --confetti-x: 30px; --confetti-rotate: 228deg; animation-delay: 0.22s; animation-duration: 1.41s; background: #fef08a; }
-.daily-menu-confetti-piece--25 { --confetti-left: 52; --confetti-x: -18px; --confetti-rotate: 72deg; animation-delay: 0.3s; animation-duration: 1.39s; background: #f9a8d4; }
-.daily-menu-confetti-piece--26 { --confetti-left: 71; --confetti-x: 20px; --confetti-rotate: 270deg; animation-delay: 0.38s; animation-duration: 1.57s; background: #7dd3fc; }
-.daily-menu-confetti-piece--27 { --confetti-left: 88; --confetti-x: -28px; --confetti-rotate: 150deg; animation-delay: 0.46s; animation-duration: 1.34s; background: #86efac; }
-.daily-menu-confetti-piece--28 { --confetti-left: 19; --confetti-x: 34px; --confetti-rotate: 312deg; animation-delay: 0.12s; animation-duration: 1.43s; background: #fbbf24; }
-.daily-menu-confetti-piece--29 { --confetti-left: 45; --confetti-x: -16px; --confetti-rotate: 64deg; animation-delay: 0.2s; animation-duration: 1.36s; background: #c4b5fd; }
-.daily-menu-confetti-piece--30 { --confetti-left: 60; --confetti-x: 26px; --confetti-rotate: 176deg; animation-delay: 0.28s; animation-duration: 1.52s; background: #fef08a; }
-.daily-menu-confetti-piece--31 { --confetti-left: 78; --confetti-x: -22px; --confetti-rotate: 248deg; animation-delay: 0.36s; animation-duration: 1.47s; background: #f9a8d4; }
+.daily-menu-confetti-piece--0 {
+	--confetti-left: 7;
+	--confetti-x: -40px;
+	--confetti-rotate: 40deg;
+	animation-delay: 0s;
+	animation-duration: 1.2s;
+	background: #fef08a;
+}
+.daily-menu-confetti-piece--1 {
+	--confetti-left: 18;
+	--confetti-x: 16px;
+	--confetti-rotate: 90deg;
+	animation-delay: 0.08s;
+	animation-duration: 1.38s;
+	background: #f9a8d4;
+}
+.daily-menu-confetti-piece--2 {
+	--confetti-left: 29;
+	--confetti-x: -10px;
+	--confetti-rotate: 140deg;
+	animation-delay: 0.16s;
+	animation-duration: 1.26s;
+	background: #7dd3fc;
+}
+.daily-menu-confetti-piece--3 {
+	--confetti-left: 37;
+	--confetti-x: 30px;
+	--confetti-rotate: 190deg;
+	animation-delay: 0.24s;
+	animation-duration: 1.32s;
+	background: #86efac;
+}
+.daily-menu-confetti-piece--4 {
+	--confetti-left: 46;
+	--confetti-x: -24px;
+	--confetti-rotate: 250deg;
+	animation-delay: 0.32s;
+	animation-duration: 1.44s;
+	background: #fbbf24;
+}
+.daily-menu-confetti-piece--5 {
+	--confetti-left: 58;
+	--confetti-x: 24px;
+	--confetti-rotate: 300deg;
+	animation-delay: 0.4s;
+	animation-duration: 1.4s;
+	background: #c4b5fd;
+}
+.daily-menu-confetti-piece--6 {
+	--confetti-left: 66;
+	--confetti-x: -18px;
+	--confetti-rotate: 80deg;
+	animation-delay: 0.48s;
+	animation-duration: 1.3s;
+	background: #fef08a;
+}
+.daily-menu-confetti-piece--7 {
+	--confetti-left: 72;
+	--confetti-x: 18px;
+	--confetti-rotate: 210deg;
+	animation-delay: 0.56s;
+	animation-duration: 1.5s;
+	background: #f9a8d4;
+}
+.daily-menu-confetti-piece--8 {
+	--confetti-left: 80;
+	--confetti-x: -22px;
+	--confetti-rotate: 120deg;
+	animation-delay: 0.64s;
+	animation-duration: 1.42s;
+	background: #7dd3fc;
+}
+.daily-menu-confetti-piece--9 {
+	--confetti-left: 89;
+	--confetti-x: 32px;
+	--confetti-rotate: 340deg;
+	animation-delay: 0.72s;
+	animation-duration: 1.48s;
+	background: #86efac;
+}
+.daily-menu-confetti-piece--10 {
+	--confetti-left: 13;
+	--confetti-x: 42px;
+	--confetti-rotate: 60deg;
+	animation-delay: 0.1s;
+	animation-duration: 1.36s;
+	background: #fbbf24;
+}
+.daily-menu-confetti-piece--11 {
+	--confetti-left: 25;
+	--confetti-x: -30px;
+	--confetti-rotate: 182deg;
+	animation-delay: 0.18s;
+	animation-duration: 1.28s;
+	background: #c4b5fd;
+}
+.daily-menu-confetti-piece--12 {
+	--confetti-left: 41;
+	--confetti-x: 18px;
+	--confetti-rotate: 220deg;
+	animation-delay: 0.26s;
+	animation-duration: 1.45s;
+	background: #fef08a;
+}
+.daily-menu-confetti-piece--13 {
+	--confetti-left: 54;
+	--confetti-x: -12px;
+	--confetti-rotate: 110deg;
+	animation-delay: 0.34s;
+	animation-duration: 1.38s;
+	background: #f9a8d4;
+}
+.daily-menu-confetti-piece--14 {
+	--confetti-left: 68;
+	--confetti-x: 28px;
+	--confetti-rotate: 320deg;
+	animation-delay: 0.42s;
+	animation-duration: 1.52s;
+	background: #7dd3fc;
+}
+.daily-menu-confetti-piece--15 {
+	--confetti-left: 83;
+	--confetti-x: -26px;
+	--confetti-rotate: 144deg;
+	animation-delay: 0.5s;
+	animation-duration: 1.33s;
+	background: #86efac;
+}
+.daily-menu-confetti-piece--16 {
+	--confetti-left: 9;
+	--confetti-x: 20px;
+	--confetti-rotate: 260deg;
+	animation-delay: 0.08s;
+	animation-duration: 1.35s;
+	background: #fbbf24;
+}
+.daily-menu-confetti-piece--17 {
+	--confetti-left: 22;
+	--confetti-x: -14px;
+	--confetti-rotate: 50deg;
+	animation-delay: 0.16s;
+	animation-duration: 1.31s;
+	background: #c4b5fd;
+}
+.daily-menu-confetti-piece--18 {
+	--confetti-left: 33;
+	--confetti-x: 18px;
+	--confetti-rotate: 168deg;
+	animation-delay: 0.24s;
+	animation-duration: 1.54s;
+	background: #fef08a;
+}
+.daily-menu-confetti-piece--19 {
+	--confetti-left: 48;
+	--confetti-x: -24px;
+	--confetti-rotate: 212deg;
+	animation-delay: 0.32s;
+	animation-duration: 1.44s;
+	background: #f9a8d4;
+}
+.daily-menu-confetti-piece--20 {
+	--confetti-left: 62;
+	--confetti-x: 24px;
+	--confetti-rotate: 96deg;
+	animation-delay: 0.4s;
+	animation-duration: 1.46s;
+	background: #7dd3fc;
+}
+.daily-menu-confetti-piece--21 {
+	--confetti-left: 74;
+	--confetti-x: -20px;
+	--confetti-rotate: 290deg;
+	animation-delay: 0.48s;
+	animation-duration: 1.28s;
+	background: #86efac;
+}
+.daily-menu-confetti-piece--22 {
+	--confetti-left: 86;
+	--confetti-x: 32px;
+	--confetti-rotate: 130deg;
+	animation-delay: 0.56s;
+	animation-duration: 1.49s;
+	background: #fbbf24;
+}
+.daily-menu-confetti-piece--23 {
+	--confetti-left: 14;
+	--confetti-x: -36px;
+	--confetti-rotate: 36deg;
+	animation-delay: 0.14s;
+	animation-duration: 1.22s;
+	background: #c4b5fd;
+}
+.daily-menu-confetti-piece--24 {
+	--confetti-left: 30;
+	--confetti-x: 30px;
+	--confetti-rotate: 228deg;
+	animation-delay: 0.22s;
+	animation-duration: 1.41s;
+	background: #fef08a;
+}
+.daily-menu-confetti-piece--25 {
+	--confetti-left: 52;
+	--confetti-x: -18px;
+	--confetti-rotate: 72deg;
+	animation-delay: 0.3s;
+	animation-duration: 1.39s;
+	background: #f9a8d4;
+}
+.daily-menu-confetti-piece--26 {
+	--confetti-left: 71;
+	--confetti-x: 20px;
+	--confetti-rotate: 270deg;
+	animation-delay: 0.38s;
+	animation-duration: 1.57s;
+	background: #7dd3fc;
+}
+.daily-menu-confetti-piece--27 {
+	--confetti-left: 88;
+	--confetti-x: -28px;
+	--confetti-rotate: 150deg;
+	animation-delay: 0.46s;
+	animation-duration: 1.34s;
+	background: #86efac;
+}
+.daily-menu-confetti-piece--28 {
+	--confetti-left: 19;
+	--confetti-x: 34px;
+	--confetti-rotate: 312deg;
+	animation-delay: 0.12s;
+	animation-duration: 1.43s;
+	background: #fbbf24;
+}
+.daily-menu-confetti-piece--29 {
+	--confetti-left: 45;
+	--confetti-x: -16px;
+	--confetti-rotate: 64deg;
+	animation-delay: 0.2s;
+	animation-duration: 1.36s;
+	background: #c4b5fd;
+}
+.daily-menu-confetti-piece--30 {
+	--confetti-left: 60;
+	--confetti-x: 26px;
+	--confetti-rotate: 176deg;
+	animation-delay: 0.28s;
+	animation-duration: 1.52s;
+	background: #fef08a;
+}
+.daily-menu-confetti-piece--31 {
+	--confetti-left: 78;
+	--confetti-x: -22px;
+	--confetti-rotate: 248deg;
+	animation-delay: 0.36s;
+	animation-duration: 1.47s;
+	background: #f9a8d4;
+}
 
 @keyframes daily-menu-confetti-burst {
 	0% {
@@ -938,36 +980,11 @@ body {
 	overflow: hidden;
 }
 
-.daily-menu-story-button {
-	--daily-menu-button-background: #2a1d0f;
-	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
-	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
-}
-
-.daily-menu-math-button {
-	--daily-menu-button-background: #2a1d0f;
-	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
-	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
-}
-
-.daily-menu-language-arts-button {
-	--daily-menu-button-background: #2a1d0f;
-	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
-	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
-}
-
-.daily-menu-social-studies-button {
-	--daily-menu-button-background: #2a1d0f;
-	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
-	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
-}
-
-.daily-menu-science-button {
-	--daily-menu-button-background: #2a1d0f;
-	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
-	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
-}
-
+.daily-menu-story-button,
+.daily-menu-math-button,
+.daily-menu-language-arts-button,
+.daily-menu-social-studies-button,
+.daily-menu-science-button,
 .daily-menu-art-button {
 	--daily-menu-button-background: #2a1d0f;
 	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
@@ -1101,12 +1118,7 @@ body {
 	scrollbar-gutter: stable;
 }
 
-.daily-menu-story-menu-panel h2 {
-	margin: 0 0 0.75rem;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1.5rem;
-}
-
+.daily-menu-story-menu-panel h2,
 .daily-menu-story-menu-panel h3 {
 	margin: 0 0 0.75rem;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
@@ -1151,21 +1163,13 @@ body {
 }
 
 .daily-menu-subject-panel-stack--september-28
-	.daily-menu-subject-panel:not(.daily-menu-story-panel) {
-	text-align: center;
-}
-
+	.daily-menu-subject-panel:not(.daily-menu-story-panel),
 .daily-menu-subject-panel-stack--september-29
 	.daily-menu-subject-panel:not(.daily-menu-story-panel),
 .daily-menu-subject-panel-stack--september-30
-	.daily-menu-subject-panel:not(.daily-menu-story-panel) {
-	text-align: center;
-}
-
-.daily-menu-subject-panel-stack--october-1
 	.daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-2
-	.daily-menu-subject-panel:not(.daily-menu-story-panel) {
+.daily-menu-subject-panel-stack--october-1 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-2 .daily-menu-subject-panel:not(.daily-menu-story-panel) {
 	text-align: center;
 }
 
@@ -1178,7 +1182,8 @@ body {
 	margin-bottom: 0;
 }
 
-.daily-menu-subject-panel h2 {
+.daily-menu-subject-panel h2,
+.daily-menu-subject-panel h3 {
 	margin: 0;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1.25rem;
@@ -1425,7 +1430,7 @@ body {
 
 .parent-screen-back-button,
 .student-edits-screen-back-button,
-.progress-game-screen-back-button,
+.curriculum-game-screen-back-button,
 .explorer-positions-screen-back-button {
 	position: absolute;
 	top: 12px;
@@ -1452,7 +1457,7 @@ body {
 }
 
 .student-edits-screen-home-button,
-.progress-game-screen-home-button,
+.curriculum-game-screen-home-button,
 .explorer-positions-screen-home-button {
 	position: absolute;
 	top: 12px;
@@ -1485,7 +1490,8 @@ body {
 	color: #e9f4ff;
 }
 
-.student-edits-sidebar {
+.student-edits-sidebar,
+.curriculum-game-sidebar {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -1497,11 +1503,14 @@ body {
 	justify-content: flex-start;
 	gap: 1.5rem;
 	padding: 2rem 1.5rem;
+}
+
+.student-edits-sidebar {
 	border-right: 1px solid rgba(214, 235, 255, 0.3);
 	background: rgba(9, 16, 24, 0.85);
 }
 
-.progress-game-button {
+.curriculum-game-button {
 	width: 100%;
 	padding: 0.9rem 1rem;
 	border: 1px solid rgba(255, 248, 190, 0.65);
@@ -1523,7 +1532,7 @@ body {
 		filter 120ms ease;
 }
 
-.progress-game-button:hover {
+.curriculum-game-button:hover {
 	transform: translateY(-2px);
 	filter: brightness(1.03);
 	box-shadow:
@@ -1533,7 +1542,7 @@ body {
 		0 16px 20px rgba(15, 23, 42, 0.32);
 }
 
-.progress-game-button:active {
+.curriculum-game-button:active {
 	transform: translateY(4px);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.48),
@@ -1679,25 +1688,14 @@ body {
 		0 0 14px rgba(34, 197, 94, 0.8);
 }
 
-.progress-game-screen {
+.curriculum-game-screen {
 	position: relative;
 	min-height: 100vh;
 	background: linear-gradient(135deg, #14261a 0%, #1e3d27 52%, #2c5a38 100%);
 	color: #e6ffec;
 }
 
-.progress-game-sidebar {
-	position: fixed;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	width: 336px;
-	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	justify-content: flex-start;
-	gap: 1.5rem;
-	padding: 2rem 1.5rem;
+.curriculum-game-sidebar {
 	border-right: 1px solid rgba(220, 255, 226, 0.3);
 	background: rgba(6, 18, 10, 0.85);
 }
@@ -1800,12 +1798,6 @@ body {
 	color: #172554;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
-}
-
-.daily-menu-subject-panel h3 {
-	margin: 0;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1.25rem;
 }
 
 @media (max-width: 48rem) {
