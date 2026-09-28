@@ -1,8 +1,12 @@
 <script setup>
-const emit = defineEmits(["open-explorer-positions", "back-to-student-edits", "go-home"]);
+defineProps({
+	explorerPositionsModeActive: { type: Boolean, default: false },
+});
 
-function handleExplorerPositionsOpen() {
-	emit("open-explorer-positions");
+const emit = defineEmits(["toggle-explorer-positions-mode", "back-to-student-edits", "go-home"]);
+
+function handleExplorerPositionsToggle() {
+	emit("toggle-explorer-positions-mode");
 }
 
 function handleCurriculumGameScreenClose() {
@@ -32,12 +36,14 @@ function handleCurriculumGameScreenHome() {
 			<button
 				id="explorer-positions-button"
 				class="explorer-positions-button"
+				:class="{ 'explorer-positions-button--engaged': explorerPositionsModeActive }"
 				type="button"
 				name="explorer-positions-button"
 				data-button-name="explorer-positions-button"
-				aria-label="Open Explorer Positions"
-				title="Open Explorer Positions"
-				@click="handleExplorerPositionsOpen"
+				aria-label="Toggle Explorer Positions"
+				title="Toggle Explorer Positions"
+				:aria-pressed="explorerPositionsModeActive"
+				@click="handleExplorerPositionsToggle"
 			>
 				Explorer Positions
 			</button>

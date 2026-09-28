@@ -6,145 +6,182 @@
 
 1.) Make the following plan so that an ai agent with significantly less reasoning capablility can easily implement the changes as written.  Make absolutely certain that the plan is written in a way and broken up into enough phases and small enough steps that the risk of the agent making a mistake or missing something is heavily mitigated.  Make absolutely certain that the plan uses file targeting for each individual step when applicable.  Do not simply write a rule or goal which contains all the files that need to be targeted across the board.  Output the plan, starting at line 25 in plan.md.  Once you have written the plan, read through it again and make absolutely certain that the rule involving everything being separated as far as being identified in the code for styling, position, functionality, behavior of any kind, etc ... to make it simple and easy to debug and edit that code.  Make sure to include any useful tests and any points where they may specifically be useful where they will not be run automatically as according to any rule that copilot would automatically follow.  Be precise.  If you find after reading through the plan that it needs editing to be in compliance with the instructions I've dictated in this step then rewrite it to be in compliance and read through the plan again after you've replaced the other plan starting at line 25, and make sure it's in compliance again and follow this circle until you are satisfied that all the rules I've dictated in this step have been completely honored
 
-- Goals:  
+- Goal
 
-    - Remove the screen associated with the Explorer Positions button.  The button will not have a screen associated with it
+    - I want to add a function to the "Explorer Positions" button.  
 
-    - Add the following functionality to the Explorer Positions button:
+    - When the "Explorer Positions" button is clicked on, in addition to the appearance and functionality of the "Resize" button in the "Progress" screen, I want another button to appear as well that is labeled: "Move"
 
-        - When clicked, I want the Explorer Positions button to turn bright green and to stay depressed until it is clicked on a second time
+        - Give the "Move" button the same exact size, shape, depth, font style, and font size as the "Resize" button, only make the "Move" button a bright blue color.
 
-        - When clicked, the Explorer Positions button should do the following:
+        - When the "Move" button is clicked have it depress and don't let it undepress until it is clicked on a 2nd time
 
-            - Open a container inside the Student > Progress screen on the bottom that contains a button labeled "Resize"
-
-                - Make the "Resize" button 116 pixels wide and 40 pixels high.  Make it oval, bright green, and 3D with shadowing.  When the Resize button is clicked on make sure that it stays depressed until it is clicked on a 2nd time
-
-                - When the "Resize" button is clicked on, give me the ability to resize the following asset: "C:\zoologistExplorer02\assets\images\characters\railiFront.webp" by forming a rectangle around it and giving me the resize option when I hover the mouse over one of the rectangle's 4 corners.  When I click and drag on one of the corners of the rectangle, I should be able to resize the character to be bigger or smaller as I please, but the asset's ratio of dimensions should remain the same.
+        - When the "Move" button is depressed I want the ability to move the following asset: C:\zoologistExplorer02\assets\images\characters\railiFront.webp around the "Progress" screen simply by clicking anywhere on the asset and dragging it around.  When I let go of the left mouse button after I have been dragging the asset, have the asset stay where it is until or unless I click and drag it, again.
 
 ---
 
-# IMPLEMENTATION PLAN (DO NOT START UNTIL INSTRUCTED)
+# Implementation Plan: "Move" button for Raili on the Student Progress screen
 
-## Locked decisions (from user, 2026-09-27)
+## Context map (read-only facts, already verified)
 
-- Keep the Explorer Positions button in the Parent > Curriculum Game sidebar (`CurriculumGameView.vue`); its effect appears in Student > Progress.
-- The bottom container in Student > Progress appears ONLY while Explorer Positions mode is toggled ON.
-- Resized Raili height persists in localStorage across sessions.
-- Approved exception: ONE CSS custom property `--student-raili-height` updated via JS `setProperty` (no other dynamic styling). The `var()` must be consumed in `src/css/input.css` (required by tests/css-js-integrity.test.js).
+- The "Progress" screen is the Student > Progress tab submenu panel (`student-submenu-panel` with class `student-submenu-panel-progress`) inside `src/components/StudentNavigation.vue`.
+- The "Explorer Positions" mode is a global boolean `isExplorerPositionsModeActive` owned by `src/App.vue`, passed into `src/components/StudentNavigation.vue` as the prop `explorerPositionsModeActive`. It is toggled from `src/components/CurriculumGameView.vue`. No changes are needed in `App.vue` or `CurriculumGameView.vue`.
+- The "Resize" button (`#student-progress-resize-button`) lives inside the dock `#student-progress-resize-dock`, which renders only when `activeStudentMenu === 'progress' && explorerPositionsModeActive`. The dock is `position: fixed` at bottom-center, so the new "Move" button placed inside the same dock automatically appears next to "Resize".
+- The Raili asset is the `<img>` with class `student-progress-raili-image` (imported as `railiFront`), wrapped in the frame `#student-progress-raili-frame` (class `student-progress-raili-frame`, absolutely positioned at bottom-right of the Progress panel).
+- Existing Raili resize uses CSS custom properties set via `style.setProperty()` (no inline style attributes in the template) and persists to `localStorage`. The Move feature must follow this exact same pattern.
+- Separation rule for this plan: every new element gets its OWN unique id, class names, CSS rule blocks, handler functions, and storage keys. Do NOT reuse, share, or merge selectors/handlers with the existing Resize feature, even where the code looks similar. Duplicate-looking code on distinct named elements is intentional isolation.
 
-## Authoritative codebase facts (verified 2026-09-27)
+## Exact files this plan touches (and only these)
 
-- Explorer Positions button: `src/components/CurriculumGameView.vue` lines 35-44, emit `open-explorer-positions`, handler `handleExplorerPositionsOpen` lines 3-5. Styles `.explorer-positions-button` in `src/css/input.css` lines 1703-1741.
-- Screen to remove: `src/components/ExplorerPositionsView.vue` (whole file). Imported/rendered only in `src/App.vue` (import line 11, render lines 124-127, handlers lines 81-89). CSS to remove: `.explorer-positions-screen`, `.explorer-positions-placeholder`, `.explorer-positions-heading` (input.css ~1743-1769), and remove `.explorer-positions-screen-back-button` / `.explorer-positions-screen-home-button` from the two shared selector lists (~1434 and ~1461).
-- Student > Progress screen + Raili image: `src/components/StudentNavigation.vue` lines 128-145 inside `<aside id="student-submenu-panel">`. Raili import line 5. img currently: `class="pointer-events-none absolute bottom-0 right-0 h-96 w-auto max-w-[45vw] object-contain"`.
-- View state lives in `src/App.vue` refs (`activeParentScreen`, `isStudentMenuOpen`). CurriculumGameView and StudentNavigation are never mounted simultaneously (v-else-if chain), so the toggle state must live in App.vue and pass down as props.
-- Test constraints:
-    - tests/button-isolation.test.js: every `<button>` needs unique static id, unique static class, simple-identifier `@click`. Two buttons may NOT share a static class. (Resize corner handles must therefore be `<div>`, not `<button>`.)
-    - tests/page-container-separation.test.js: `<main|section|aside|article|header|footer>` tags need id, class, role, aria-label, title. Use `<div>` for the dock to stay out of scope, but give it full metadata anyway.
-    - tests/vue-audit.test.js: scoped `<style>` selectors per file must match allowedSelectorPrefixes (StudentNavigation.vue = `student-`). This plan adds NO scoped styles; ALL new CSS goes into input.css.
-    - tests/css-js-integrity.test.js: any `setProperty("--x", ...)` in a .vue file must have a matching `var(--x)` in input.css; any `var(--x)` in input.css needs a CSS declaration or JS setProperty. So input.css must both declare `--student-raili-height` default AND consume it with `var()`.
-    - No existing test references Explorer Positions (verified by grep).
-- `npm test` = lint + test:structure + test:assets. test:structure lists test files explicitly in package.json; a new test file must be added there.
-- Never touch `dist/` (regenerated by `npm run build`, a gated action).
-- Do not include `assets/` in any stale/duplicate/consistency check; never remove anything in assets/.
+1. `src/components/StudentNavigation.vue` — script state + handlers, template markup.
+2. `src/css/input.css` — new CSS rule blocks, plus one property added to the existing `.student-progress-raili-frame` rule.
+3. `tests/explorer-positions-mode.test.js` — one new test block.
 
-## PHASE 1 — Remove the Explorer Positions screen, convert button to toggle
+Do NOT edit: `src/App.vue`, `src/components/CurriculumGameView.vue`, `tests/vue-audit.test.js` (no new `<style>`-block selectors are added to any `.vue` file; all new styles go in `input.css`), the `assets/` folder, or `dist/`.
 
-Target files: src/App.vue, src/components/CurriculumGameView.vue, src/components/ExplorerPositionsView.vue, src/css/input.css
+---
 
-1. `src/App.vue`:
-    - Delete import of ExplorerPositionsView (line 11).
-    - Delete the `<ExplorerPositionsView ... />` template block (lines 124-127).
-    - Delete handlers `handleExplorerPositionsOpen` (lines 81-84) and `handleExplorerPositionsClose` (lines 87-89). Keep `handleParentChainHome`.
-    - Add `const isExplorerPositionsModeActive = ref(false);` near the other refs (lines 13-17).
-    - Add handler: `function handleExplorerPositionsToggle() { isExplorerPositionsModeActive.value = !isExplorerPositionsModeActive.value; }` with JSDoc comment `/** Explorer Positions mode toggle pipeline boundary. */`.
-    - On `<CurriculumGameView>` (lines 115-120): replace `@open-explorer-positions="handleExplorerPositionsOpen"` with `@toggle-explorer-positions-mode="handleExplorerPositionsToggle"` and add prop `:explorer-positions-mode-active="isExplorerPositionsModeActive"`.
-    - On `<StudentNavigation>`: add prop `:explorer-positions-mode-active="isExplorerPositionsModeActive"`.
-2. `src/components/CurriculumGameView.vue`:
-    - Change `defineEmits(["open-explorer-positions", ...])` to `defineEmits(["toggle-explorer-positions-mode", "back-to-student-edits", "go-home"])`.
-    - Add props: `defineProps({ explorerPositionsModeActive: { type: Boolean, default: false } });`
-    - Rename `handleExplorerPositionsOpen` to `handleExplorerPositionsToggle`, emitting `"toggle-explorer-positions-mode"`.
-    - On `#explorer-positions-button`: update @click to the renamed handler; add `:class="{ 'explorer-positions-button--engaged': explorerPositionsModeActive }"` and `:aria-pressed="explorerPositionsModeActive"`.
-    - Keep static class `explorer-positions-button` unchanged (button-isolation test).
-3. Delete file `src/components/ExplorerPositionsView.vue`.
-4. `src/css/input.css`:
-    - Delete rules `.explorer-positions-screen`, `.explorer-positions-placeholder`, `.explorer-positions-heading` (~lines 1743-1769).
-    - In the shared back-button selector list (~line 1434), remove `,\n.explorer-positions-screen-back-button`. In the shared home-button list (~line 1461), remove `.explorer-positions-screen-home-button`.
-    - Add NEW rule `.explorer-positions-button--engaged` directly after `.explorer-positions-button:active` (~line 1741): bright green gradient `linear-gradient(180deg, #7efc9b 0%, #2dd35a 100%)`, `color: #0b4d22`, `border-color: rgba(17, 116, 50, 0.6)`, depressed transform `translateY(4px)`, reduced shadow stack `inset 0 2px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(13,90,38,0.25), 0 3px 0 rgba(20,83,45,0.55), 0 0 14px rgba(34,197,94,0.6)`.
-    - Do NOT modify `.explorer-positions-button`, its `:hover`, or `:active` (separation rule).
-5. Validate Phase 1: run `npm run lint` and `npm run test:structure`. Both must pass. (ExplorerPositionsView.vue was in no test registry, so deletion is safe.)
+## Phase A — Script state and handlers in `src/components/StudentNavigation.vue`
 
-## PHASE 2 — Resize dock + Resize button in Student > Progress
+### Step A1 — Add Move mode reactive state
+File: `src/components/StudentNavigation.vue`, `<script setup>` section.
+- Immediately after the existing line `const isResizeModeActive = ref(false);` (currently line 15), add a new line: `const isMoveModeActive = ref(false);`
+- Immediately after the existing line `const RAILI_HEIGHT_STORAGE_KEY = "ze2.studentProgress.railiHeightPx";`, add two new constants:
+  - `const RAILI_OFFSET_X_STORAGE_KEY = "ze2.studentProgress.railiOffsetXPx";`
+  - `const RAILI_OFFSET_Y_STORAGE_KEY = "ze2.studentProgress.railiOffsetYPx";`
+- Immediately after the existing line `let railiDragActive = false;`, add five new module-level drag variables (mirroring the resize drag variables, but move-specific):
+  - `let railiMoveStartX = 0;`
+  - `let railiMoveStartY = 0;`
+  - `let railiMoveStartOffsetX = 0;`
+  - `let railiMoveStartOffsetY = 0;`
+  - `let railiMoveActive = false;`
+- Also add `const railiFrameRef = ref(null);` immediately after the existing line `const railiImageRef = ref(null);` (the frame element needs a template ref so its CSS variables can be set).
 
-Target files: src/components/StudentNavigation.vue, src/css/input.css
+### Step A2 — Add the Move toggle handler
+File: `src/components/StudentNavigation.vue`, `<script setup>` section.
+- Immediately after the existing `handleResizeToggle` function, add a new function with a JSDoc boundary comment matching the file's existing style:
+  - JSDoc: `/** Move mode toggle pipeline boundary. */`
+  - Function `handleMoveToggle()` that sets `isMoveModeActive.value = !isMoveModeActive.value;` (first click engages and stays engaged, second click disengages — identical toggle pattern to Resize).
 
-6. `src/components/StudentNavigation.vue` script:
-    - Extend the vue import to include `watch` and `onMounted` (onMounted is used in Phase 3 — add now).
-    - Add `const props = defineProps({ explorerPositionsModeActive: { type: Boolean, default: false } });` (keep `props` referenced; it is used by the watch below).
-    - Add `const isResizeModeActive = ref(false);`
-    - Add `function handleResizeToggle() { isResizeModeActive.value = !isResizeModeActive.value; }` with JSDoc.
-    - Add watchers: `watch(() => props.explorerPositionsModeActive, (active) => { if (!active) { isResizeModeActive.value = false; } });` and `watch(activeStudentMenu, (menu) => { if (menu !== "progress") { isResizeModeActive.value = false; } });`
-7. `src/components/StudentNavigation.vue` template — inside `<aside id="student-submenu-panel">`, immediately AFTER the Raili `<img>` (after line 145), add:
-    - `<div v-if="activeStudentMenu === 'progress' && explorerPositionsModeActive" id="student-progress-resize-dock" class="student-progress-resize-dock" role="region" aria-label="Resize tools" title="Resize tools" data-container-name="student-progress-resize-dock">` containing one button:
-    - `<button id="student-progress-resize-button" class="student-progress-resize-button" :class="{ 'student-progress-resize-button--engaged': isResizeModeActive }" type="button" name="student-progress-resize-button" data-button-name="student-progress-resize-button" aria-label="Toggle Raili resize mode" title="Toggle Raili resize mode" :aria-pressed="isResizeModeActive" @click="handleResizeToggle">Resize</button>`
-8. `src/css/input.css` — append new rules at end of file (each selector distinct; do not merge with existing selectors):
-    - `.student-progress-resize-dock`: `position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 30; display: flex; align-items: center; justify-content: center; padding: 0.75rem 1.25rem; border: 1px solid rgba(190, 242, 205, 0.4); border-radius: 1rem; background: rgba(9, 24, 16, 0.9); box-shadow: 0 10px 18px rgba(15, 23, 42, 0.35);`
-    - `.student-progress-resize-button`: exactly `width: 116px; height: 40px;` — oval `border-radius: 9999px;` — bright green `background: linear-gradient(180deg, #b6ff5c 0%, #7ee21f 45%, #4fa30a 100%); color: #123d05;` — 3D `border: 1px solid rgba(46, 96, 30, 0.6); box-shadow: inset 0 2px 0 rgba(255,255,255,0.75), inset 0 -4px 0 rgba(46,96,30,0.3), 0 6px 0 rgba(30,66,20,0.55), 0 10px 14px rgba(15,23,42,0.3);` — `font: inherit; font-weight: 700; cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;`
-    - `.student-progress-resize-button:hover`: `transform: translateY(-1px); filter: brightness(1.04);` + slightly raised shadow.
-    - `.student-progress-resize-button:active` and `.student-progress-resize-button--engaged`: depressed `transform: translateY(4px); box-shadow: inset 0 2px 0 rgba(255,255,255,0.6), inset 0 -2px 0 rgba(46,96,30,0.25), 0 2px 0 rgba(30,66,20,0.55), 0 0 12px rgba(126,226,31,0.6);` (two separate rules; do not combine selectors — separation rule).
-9. Validate Phase 2: `npm run lint`, `npm run test:structure`. Manual (dev server): Explorer Positions button turns bright green + stays depressed on first click, releases on second; dock appears at bottom-center of Student > Progress only while mode ON; Resize button is 116x40 oval bright-green 3D and stays depressed until second click.
+### Step A3 — Add Move drag handlers
+File: `src/components/StudentNavigation.vue`, `<script setup>` section, immediately after the existing `handleRailiResizeEnd` function. Add three new functions, each with a JSDoc comment:
+1. `/** Apply a Raili position offset and store it in CSS variables on the frame. */`
+   `applyRailiOffset(offsetXPx, offsetYPx)` — calls `railiFrameRef.value?.style.setProperty("--student-raili-offset-x", ...)` and `...setProperty("--student-raili-offset-y", ...)` with the values formatted as pixel strings.
+2. `/** Begin dragging the Raili frame in Move mode. */`
+   `handleRailiMoveStart(event)` — does nothing unless `isMoveModeActive.value` is true; does nothing if `event.target !== event.currentTarget` (this guard prevents the resize handles, which are children of the frame, from starting a move drag); otherwise records `event.clientX/clientY` into `railiMoveStartX/railiMoveStartY`, reads the frame's current rendered translate via `getComputedStyle` or by tracking the last applied offsets in `railiMoveStartOffsetX/railiMoveStartOffsetY`, sets `railiMoveActive = true`, and calls `event.currentTarget.setPointerCapture(event.pointerId)` (same capture pattern as `handleRailiResizeStart`).
+3. `/** Move the Raili frame while the pointer moves. */`
+   `handleRailiMoveMove(event)` — returns early unless `railiMoveActive`; computes `railiMoveStartOffsetX + (event.clientX - railiMoveStartX)` and the Y equivalent, then calls `applyRailiOffset(...)` with both values.
+4. `/** Finish dragging the Raili frame and persist the position. */`
+   `handleRailiMoveEnd()` — returns early unless `railiMoveActive`; writes the final integer offsets to `localStorage` under `RAILI_OFFSET_X_STORAGE_KEY` and `RAILI_OFFSET_Y_STORAGE_KEY` (same persistence pattern as `handleRailiResizeEnd`); sets `railiMoveActive = false`.
 
-## PHASE 3 — Raili resize frame, corner handles, drag logic, persistence
+### Step A4 — Auto-disengage Move mode alongside Resize mode
+File: `src/components/StudentNavigation.vue`, `<script setup>` section.
+- In the existing `watch(() => props.explorerPositionsModeActive, ...)` block, inside the `if (!active)` branch, add `isMoveModeActive.value = false;` on its own line directly below the existing `isResizeModeActive.value = false;`.
+- In the existing `watch(activeStudentMenu, ...)` block, inside the `if (menu !== "progress")` branch, add `isMoveModeActive.value = false;` on its own line directly below the existing `isResizeModeActive.value = false;`.
+- In the existing `onMounted(...)` block: (a) inside the final `if (!props.explorerPositionsModeActive)` branch add `isMoveModeActive.value = false;` below the resize line; (b) after the stored-height restore block, add a new block that parses `RAILI_OFFSET_X_STORAGE_KEY` and `RAILI_OFFSET_Y_STORAGE_KEY` with `Number.parseFloat` and, if both are finite, calls `applyRailiOffset(storedX, storedY)` (same guard pattern as the stored-height restore).
 
-Target files: src/components/StudentNavigation.vue, src/css/input.css
+---
 
-10. `src/components/StudentNavigation.vue` template — wrap the Raili `<img>` in a frame and add handles:
-    - Replace the current `<img ...alt="Raili" />` (lines 139-145) with:
-      `<div v-if="activeStudentMenu === 'progress'" id="student-progress-raili-frame" class="student-progress-raili-frame" :class="{ 'student-progress-raili-frame--resize-active': isResizeModeActive }" data-container-name="student-progress-raili-frame">`
-      inside it the img: `<img ref="railiImageRef" class="student-progress-raili-image" :src="railiFront" alt="Raili" />`
-      then 4 handle divs (NOT buttons — button-isolation test): each `v-if="isResizeModeActive"`, e.g.
-      `<div v-if="isResizeModeActive" id="student-progress-raili-resize-handle-nw" class="student-progress-raili-resize-handle student-progress-raili-resize-handle--nw" role="presentation" aria-hidden="true" @pointerdown="handleRailiResizeStart('nw', $event)" @pointermove="handleRailiResizeMove('nw', $event)" @pointerup="handleRailiResizeEnd" @pointercancel="handleRailiResizeEnd"></div>`
-      and identical handles for `ne`, `sw`, `se` (unique id per handle; same two shared classes are fine on divs).
-11. `src/components/StudentNavigation.vue` script — add:
-    - `const railiImageRef = ref(null);`
-    - Drag state (plain lets, not reactive): `let railiDragStartY = 0; let railiDragStartHeightPx = 0; let railiDragActive = false;`
-    - Constant: `const RAILI_HEIGHT_STORAGE_KEY = "ze2.studentProgress.railiHeightPx";`
-    - `applyRailiHeight(heightPx)`: clamps to `Math.min(Math.max(heightPx, 96), window.innerHeight * 0.8)` then `railiImageRef.value?.style.setProperty("--student-raili-height", \`${clamped}px\`);` (literal string `"--student-raili-height"` is REQUIRED for css-js-integrity test).
-    - `handleRailiResizeStart(corner, event)`: set `railiDragActive = true`; `railiDragStartY = event.clientY`; `railiDragStartHeightPx = railiImageRef.value?.getBoundingClientRect().height ?? 384`; `event.currentTarget.setPointerCapture(event.pointerId)`.
-    - `handleRailiResizeMove(corner, event)`: if not `railiDragActive` return; sign = (corner === "nw" || corner === "ne") ? -1 : 1; `applyRailiHeight(railiDragStartHeightPx + sign * (event.clientY - railiDragStartY));` — vertical-axis drag only; aspect ratio preserved automatically because image width stays `auto`.
-    - `handleRailiResizeEnd()`: if `railiDragActive`, persist current clamped height: `localStorage.setItem(RAILI_HEIGHT_STORAGE_KEY, String(Math.round(railiImageRef.value?.getBoundingClientRect().height ?? 0)))`; set `railiDragActive = false`.
-    - `onMounted(() => { const stored = Number.parseFloat(localStorage.getItem(RAILI_HEIGHT_STORAGE_KEY) ?? ""); if (Number.isFinite(stored) && stored > 0) { applyRailiHeight(stored); } });`
-    - All functions get one-line JSDoc (repo convention).
-12. `src/css/input.css` — append (all new, distinct selectors):
-    - `.student-progress-raili-frame`: `position: absolute; bottom: 0; right: 0; pointer-events: none;` (matches the image's current anchoring inside the fixed aside).
-    - `.student-progress-raili-frame--resize-active`: `outline: 2px dashed #7ee21f; outline-offset: 4px;` (this is the visible rectangle).
-    - `.student-progress-raili-image`: `--student-raili-height: 24rem; display: block; height: var(--student-raili-height); width: auto; max-width: 45vw; object-fit: contain; pointer-events: none;` (declaration + var() in input.css satisfies css-js-integrity both directions; 24rem = current h-96).
-    - `.student-progress-raili-resize-handle`: `position: absolute; width: 16px; height: 16px; border-radius: 9999px; background: linear-gradient(180deg, #b6ff5c 0%, #4fa30a 100%); border: 2px solid #123d05; box-shadow: 0 2px 4px rgba(15,23,42,0.4); pointer-events: auto; touch-action: none; z-index: 40;`
-    - 4 separate corner rules (do NOT combine): `.student-progress-raili-resize-handle--nw { top: -8px; left: -8px; cursor: nwse-resize; }`, `--ne { top: -8px; right: -8px; cursor: nesw-resize; }`, `--sw { bottom: -8px; left: -8px; cursor: nesw-resize; }`, `--se { bottom: -8px; right: -8px; cursor: nwse-resize; }`.
-13. Validate Phase 3: `npm run lint`, `npm run test:structure` (css-js-integrity now validates the setProperty/var wiring). Manual: with both buttons engaged, dashed rectangle appears around Raili; dragging any corner grows/shrinks her with constant aspect ratio; rectangle + handles vanish when Resize is toggled off; size survives page reload.
+## Phase B — Template markup in `src/components/StudentNavigation.vue` (depends on Phase A)
 
-## PHASE 4 — Regression test + full gate
+### Step B1 — Wire the Raili frame for Move dragging
+File: `src/components/StudentNavigation.vue`, `<template>` section, the element `<div id="student-progress-raili-frame" ...>`.
+- Add `ref="railiFrameRef"` to the element.
+- Extend its `:class` binding so it also applies `'student-progress-raili-frame--move-active': isMoveModeActive` (keep the existing resize entry untouched; two separate keys in the same object).
+- Add four event attributes to the frame element, mirroring the resize-handle pattern:
+  - `@pointerdown="handleRailiMoveStart"`
+  - `@pointermove="handleRailiMoveMove"`
+  - `@pointerup="handleRailiMoveEnd"`
+  - `@pointercancel="handleRailiMoveEnd"`
+- Do NOT change the `<img>` element, the resize handles, or any other element.
 
-Target files: tests/explorer-positions-mode.test.js (NEW), package.json
+### Step B2 — Add the "Move" button to the dock
+File: `src/components/StudentNavigation.vue`, `<template>` section, inside `<div id="student-progress-resize-dock" ...>`.
+- Immediately AFTER the existing `<button id="student-progress-resize-button" ...>Resize</button>` closing tag, add a brand-new button element with this exact attribute set (copy the Resize button's structure attribute-for-attribute, changing only the values listed):
+  - `id="student-progress-move-button"`
+  - `class="student-progress-move-button"`
+  - `type="button"`
+  - `name="student-progress-move-button"`
+  - `data-button-name="student-progress-move-button"`
+  - `aria-label="Toggle Raili move mode"`
+  - `title="Toggle Raili move mode"`
+  - `:aria-pressed="isMoveModeActive"`
+  - `:class="{ 'student-progress-move-button--engaged': isMoveModeActive }"`
+  - `@click="handleMoveToggle"`
+  - Button text content: `Move`
+- Because the button lives inside the existing dock (which already has `v-if="activeStudentMenu === 'progress' && explorerPositionsModeActive"`), it appears only when Explorer Positions mode is active on the Progress screen — no extra `v-if` is needed. Do NOT add one.
 
-14. Create `tests/explorer-positions-mode.test.js` (node:test + fs text assertions, mirroring tests/xp-bar.test.js style). Assert:
-    - `src/components/ExplorerPositionsView.vue` does NOT exist; App.vue contains no `ExplorerPositionsView` reference.
-    - CurriculumGameView.vue contains `toggle-explorer-positions-mode` emit and `explorer-positions-button--engaged` binding.
-    - App.vue contains `isExplorerPositionsModeActive` and passes `:explorer-positions-mode-active` to both CurriculumGameView and StudentNavigation.
-    - StudentNavigation.vue contains `student-progress-resize-dock`, `student-progress-resize-button`, the 4 handle ids, `setProperty("--student-raili-height"`, and the localStorage key.
-    - input.css contains `.explorer-positions-button--engaged`, `.student-progress-resize-button` with `width: 116px` and `height: 40px`, `var(--student-raili-height)`, and does NOT contain `.explorer-positions-screen`.
-15. `package.json`: append `tests/explorer-positions-mode.test.js` to the `test:structure` script's file list.
-16. Full gate: run `npm test` (lint + structure + assets). If authorized, run `npm run build` as the final production check (regenerates dist/; gated action — disclose before running).
-17. Optional manual e2e (not automated): Playwright smoke (`npm run test:e2e`) only if the user authorizes it — no existing spec covers this feature.
+---
 
-## Explicit exclusions
+## Phase C — Styling in `src/css/input.css` (depends on nothing; parallel with Phases A/B)
 
-- No keyboard/ARIA resize interaction on handles (mouse/pointer only, per request).
-- No changes to `assets/`; railiFront.webp stays in place, imported as today.
-- No edits in `dist/`; no consistency sweep of stale code beyond the exact Explorer Positions screen removal listed above.
-- No scoped `<style>` additions anywhere; all new CSS is global in input.css.
-- Explorer Positions button position/size/typography unchanged; only the new --engaged state is added.
+All selectors below are NEW and unique to the Move feature. Do not merge them with the resize selectors. All values for size, shape, depth, and font are copied from the `.student-progress-resize-button` family so the two buttons match exactly except for color.
+
+### Step C1 — Enable offset positioning on the Raili frame
+File: `src/css/input.css`, the existing `.student-progress-raili-frame { ... }` rule (currently around line 1826).
+- Add ONE new declaration inside that existing rule: `transform: translate(var(--student-raili-offset-x, 0px), var(--student-raili-offset-y, 0px));`
+- Do not change any other declaration in that rule. (This rule belongs to the frame element itself, so adding a frame-owned property here is allowed and keeps position logic in one place.)
+
+### Step C2 — Move-active frame indicator
+File: `src/css/input.css`, immediately after the existing `.student-progress-raili-frame--resize-active { ... }` rule.
+- Add a new rule `.student-progress-raili-frame--move-active` with: `pointer-events: auto;` (the base frame has `pointer-events: none`, so this is what enables clicking/dragging the asset), `touch-action: none;`, `cursor: grab;`, and `outline: 2px dashed #38bdf8; outline-offset: 4px;` (bright-blue dashed outline so the user can see Move mode is armed — the blue counterpart of the resize green dashed outline).
+
+### Step C3 — `.student-progress-move-button` base rule
+File: `src/css/input.css`, immediately after the existing `.student-progress-resize-button--engaged { ... }` rule block.
+- Add `.student-progress-move-button` with declarations copied exactly from `.student-progress-resize-button`, changing ONLY the color values:
+  - Same geometry/shape/font: `width: 116px; height: 40px; border-radius: 9999px; font: inherit; font-weight: 700; cursor: pointer;` and the same `transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;`
+  - Same depth: keep the four-layer `box-shadow` structure (inset top highlight, inset bottom shade, 6px ground shadow, soft ambient shadow) with identical offsets/blur, recoloring the shadow tints from green (`rgba(46, 96, 30, ...)` / `rgba(30, 66, 20, ...)`) to blue (`rgba(30, 90, 160, ...)` / `rgba(15, 55, 120, ...)`).
+  - Bright blue face: `border: 1px solid rgba(30, 90, 160, 0.6);` and `background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 45%, #1d6ff2 100%);` with `color: #0b2a5b;`.
+
+### Step C4 — `.student-progress-move-button:hover`
+- Copy `.student-progress-resize-button:hover` declaration-for-declaration (`transform: translateY(-1px); filter: brightness(1.04);` and the same raised box-shadow structure), recoloring shadow tints to the same blues used in Step C3.
+
+### Step C5 — `.student-progress-move-button:active`
+- Copy `.student-progress-resize-button:active` declaration-for-declaration (`transform: translateY(4px);` and the same pressed box-shadow structure), recoloring tints to blue and replacing the green glow `rgba(126, 226, 31, 0.6)` with a blue glow `rgba(56, 189, 248, 0.6)`.
+
+### Step C6 — `.student-progress-move-button--engaged`
+- Copy `.student-progress-resize-button--engaged` declaration-for-declaration (the held-down `translateY(4px)` pressed look), recoloring tints to blue and using the blue glow from Step C5. This is what keeps the button visually depressed after the first click until the second click.
+
+---
+
+## Phase D — Structural test (depends on Phases A–C)
+
+### Step D1 — Extend `tests/explorer-positions-mode.test.js`
+File: `tests/explorer-positions-mode.test.js`.
+- Add ONE new `test(...)` block after the existing test, named `"Move mode button and Raili drag wiring are present"`. Use the file's existing `readSource` helper. Assertions:
+  - In `src/components/StudentNavigation.vue` source: matches `student-progress-move-button`, `student-progress-move-button--engaged`, `isMoveModeActive`, `handleMoveToggle`, `handleRailiMoveStart`, `handleRailiMoveMove`, `handleRailiMoveEnd`, `student-progress-raili-frame--move-active`, `railiFrameRef`, `--student-raili-offset-x`, `--student-raili-offset-y`, `ze2\.studentProgress\.railiOffsetXPx`, `ze2\.studentProgress\.railiOffsetYPx`.
+  - In `src/css/input.css` source: matches `\.student-progress-move-button`, `\.student-progress-move-button--engaged`, `\.student-progress-raili-frame--move-active`, `var\(--student-raili-offset-x`, and `#38bdf8`.
+  - Negative isolation assertion: `assert.doesNotMatch(studentSource, /class="student-progress-resize-button"[^>]*>\s*Move/)` — the Move button must not reuse the Resize button's class.
+- Do NOT modify the existing test block. Do NOT add this file to `package.json` — it is already included in the `test:structure` script.
+
+### Step D2 — Run the structural suite
+- Run `npm run test:structure`. It must pass. If it fails, fix only the failing assertion's target file from Phases A–C; do not loosen the test to make it pass.
+
+---
+
+## Phase E — Focused verification (depends on Phase D)
+
+1. `npm run test:structure` — must pass (covers the new test plus vue-audit, css-js-integrity, and button-isolation, which guard the separation rules).
+2. Asset check: the railiFront.webp path is not changed, so `npm run test:assets` and `npm run build` are not required by the asset rule. Record them as `not run (not required — no asset path change)`.
+3. Manual behavior check (report each as pass/fail; do not claim from build output):
+   - Open Student > Progress with Explorer Positions OFF: no dock buttons appear.
+   - Toggle Explorer Positions ON: dock shows both "Resize" (green) and "Move" (bright blue), identical size/shape/font.
+   - Click "Move" once: button stays visually depressed; Raili frame shows a blue dashed outline.
+   - Drag Raili with the left mouse button; release: Raili stays at the drop position.
+   - Click "Move" again: button undepresses; dragging no longer moves Raili; Raili remains where it was dropped.
+   - Reload the page with Explorer Positions ON: Raili restores to the last dropped position (localStorage persistence).
+   - Toggle Explorer Positions OFF then ON: Move mode starts disengaged.
+
+## Explicitly out of scope
+
+- No changes to the Resize feature's behavior, selectors, or handlers.
+- No new components, no new files besides the plan content.
+- No changes in `assets/`, `dist/`, `App.vue`, `CurriculumGameView.vue`, or `package.json`.
+- No deduplication/merging of the new Move selectors or handlers with the Resize ones.
+
+    
+
+
 
 
 

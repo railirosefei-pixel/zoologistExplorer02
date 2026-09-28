@@ -1,16 +1,26 @@
 /** Navigation controls for the student workspace. */
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import progressMenuBackground from "../../assets/images/backgrounds/grasslands(Day)01Final.webp";
 import railiFront from "../../assets/images/characters/railiFront.webp";
 import ProgressXpBar from "./ProgressXpBar.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 
+const props = defineProps({
+	explorerPositionsModeActive: { type: Boolean, default: false },
+});
+
 const emit = defineEmits(["open-calendar", "open-rewards"]);
 const activeStudentMenu = ref("");
+const isResizeModeActive = ref(false);
+const railiImageRef = ref(null);
 const progressMenuBackgroundImage = `url("${progressMenuBackground}")`;
 const totalXp = blockCompletionStore.totalXp;
 const level = computed(() => blockCompletionStore.state.level);
+const RAILI_HEIGHT_STORAGE_KEY = "ze2.studentProgress.railiHeightPx";
+let railiDragStartY = 0;
+let railiDragStartHeightPx = 0;
+let railiDragActive = false;
 
 /** Student-menu navigation pipeline boundary for the calendar tab. */
 function handleCalendarNavigation() {
@@ -27,6 +37,74 @@ function handleRewardsNavigation() {
 function handleStudentMenuNavigation(menuName) {
 	activeStudentMenu.value = menuName;
 }
+
+/** Resize mode toggle pipeline boundary. */
+function handleResizeToggle() {
+	isResizeModeActive.value = !isResizeModeActive.value;
+}
+
+/** Apply a clamped Raili height and store it in the CSS variable. */
+function applyRailiHeight(heightPx) {
+	const clampedHeight = Math.min(Math.max(heightPx, 96), window.innerHeight * 0.8);
+	railiImageRef.value?.style.setProperty("--student-raili-height", `${clampedHeight}px`);
+}
+
+/** Begin dragging a Raili resize handle. */
+function handleRailiResizeStart(corner, event) {
+	void corner;
+	railiDragActive = true;
+	railiDragStartY = event.clientY;
+	railiDragStartHeightPx = railiImageRef.value?.getBoundingClientRect().height ?? 384;
+	event.currentTarget.setPointerCapture(event.pointerId);
+}
+
+/** Resize Raili height while the pointer moves. */
+function handleRailiResizeMove(corner, event) {
+	if (!railiDragActive) {
+		return;
+	}
+
+	const sign = corner === "nw" || corner === "ne" ? -1 : 1;
+	const nextHeight = railiDragStartHeightPx + sign * (event.clientY - railiDragStartY);
+	applyRailiHeight(nextHeight);
+}
+
+/** Finish dragging a Raili resize handle and persist the result. */
+function handleRailiResizeEnd() {
+	if (!railiDragActive) {
+		return;
+	}
+
+	const persistedHeight = Math.round(railiImageRef.value?.getBoundingClientRect().height ?? 0);
+	localStorage.setItem(RAILI_HEIGHT_STORAGE_KEY, String(persistedHeight));
+	railiDragActive = false;
+}
+
+watch(
+	() => props.explorerPositionsModeActive,
+	(active) => {
+		if (!active) {
+			isResizeModeActive.value = false;
+		}
+	},
+);
+
+watch(activeStudentMenu, (menu) => {
+	if (menu !== "progress") {
+		isResizeModeActive.value = false;
+	}
+});
+
+onMounted(() => {
+	const storedHeight = Number.parseFloat(localStorage.getItem(RAILI_HEIGHT_STORAGE_KEY) ?? "");
+	if (Number.isFinite(storedHeight) && storedHeight > 0) {
+		applyRailiHeight(storedHeight);
+	}
+
+	if (!props.explorerPositionsModeActive) {
+		isResizeModeActive.value = false;
+	}
+});
 </script>
 
 <template>
@@ -140,12 +218,88 @@ function handleStudentMenuNavigation(menuName) {
 			<div v-if="activeStudentMenu === 'progress'" class="student-progress-xp-bar-slot">
 				<ProgressXpBar :xp="totalXp" :level="level" />
 			</div>
-			<img
+			<div
 				v-if="activeStudentMenu === 'progress'"
-				class="pointer-events-none absolute bottom-0 right-0 h-96 w-auto max-w-[45vw] object-contain"
-				:src="railiFront"
-				alt="Raili"
-			/>
+				id="student-progress-raili-frame"
+				class="student-progress-raili-frame"
+				:class="{ 'student-progress-raili-frame--resize-active': isResizeModeActive }"
+				data-container-name="student-progress-raili-frame"
+			>
+				<img
+					ref="railiImageRef"
+					class="student-progress-raili-image"
+					:src="railiFront"
+					alt="Raili"
+				/>
+				<div
+					v-if="isResizeModeActive"
+					id="student-progress-raili-resize-handle-nw"
+					class="student-progress-raili-resize-handle student-progress-raili-resize-handle--nw"
+					role="presentation"
+					aria-hidden="true"
+					@pointerdown="handleRailiResizeStart('nw', $event)"
+					@pointermove="handleRailiResizeMove('nw', $event)"
+					@pointerup="handleRailiResizeEnd"
+					@pointercancel="handleRailiResizeEnd"
+				></div>
+				<div
+					v-if="isResizeModeActive"
+					id="student-progress-raili-resize-handle-ne"
+					class="student-progress-raili-resize-handle student-progress-raili-resize-handle--ne"
+					role="presentation"
+					aria-hidden="true"
+					@pointerdown="handleRailiResizeStart('ne', $event)"
+					@pointermove="handleRailiResizeMove('ne', $event)"
+					@pointerup="handleRailiResizeEnd"
+					@pointercancel="handleRailiResizeEnd"
+				></div>
+				<div
+					v-if="isResizeModeActive"
+					id="student-progress-raili-resize-handle-sw"
+					class="student-progress-raili-resize-handle student-progress-raili-resize-handle--sw"
+					role="presentation"
+					aria-hidden="true"
+					@pointerdown="handleRailiResizeStart('sw', $event)"
+					@pointermove="handleRailiResizeMove('sw', $event)"
+					@pointerup="handleRailiResizeEnd"
+					@pointercancel="handleRailiResizeEnd"
+				></div>
+				<div
+					v-if="isResizeModeActive"
+					id="student-progress-raili-resize-handle-se"
+					class="student-progress-raili-resize-handle student-progress-raili-resize-handle--se"
+					role="presentation"
+					aria-hidden="true"
+					@pointerdown="handleRailiResizeStart('se', $event)"
+					@pointermove="handleRailiResizeMove('se', $event)"
+					@pointerup="handleRailiResizeEnd"
+					@pointercancel="handleRailiResizeEnd"
+				></div>
+			</div>
+			<div
+				v-if="activeStudentMenu === 'progress' && explorerPositionsModeActive"
+				id="student-progress-resize-dock"
+				class="student-progress-resize-dock"
+				role="region"
+				aria-label="Resize tools"
+				title="Resize tools"
+				data-container-name="student-progress-resize-dock"
+			>
+				<button
+					id="student-progress-resize-button"
+					class="student-progress-resize-button"
+					type="button"
+					name="student-progress-resize-button"
+					data-button-name="student-progress-resize-button"
+					aria-label="Toggle Raili resize mode"
+					title="Toggle Raili resize mode"
+					:aria-pressed="isResizeModeActive"
+					:class="{ 'student-progress-resize-button--engaged': isResizeModeActive }"
+					@click="handleResizeToggle"
+				>
+					Resize
+				</button>
+			</div>
 		</aside>
 	</nav>
 </template>

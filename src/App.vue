@@ -8,12 +8,12 @@ import RewardsView from "./components/RewardsView.vue";
 import ParentView from "./components/ParentView.vue";
 import StudentEditsView from "./components/StudentEditsView.vue";
 import CurriculumGameView from "./components/CurriculumGameView.vue";
-import ExplorerPositionsView from "./components/ExplorerPositionsView.vue";
 
 const isStudentMenuOpen = ref(false);
 const isRewardsPageOpen = ref(false);
 const activeStudentTab = ref("calendar");
 const activeParentScreen = ref("");
+const isExplorerPositionsModeActive = ref(false);
 const calendarViewRef = ref(null);
 
 /** Home navigation pipeline boundary. */
@@ -78,14 +78,9 @@ function handleCurriculumGameClose() {
 	activeParentScreen.value = "student-edits";
 }
 
-/** Explorer Positions screen navigation pipeline boundary. */
-function handleExplorerPositionsOpen() {
-	activeParentScreen.value = "explorer-positions";
-}
-
-/** Explorer Positions screen exit pipeline boundary. */
-function handleExplorerPositionsClose() {
-	activeParentScreen.value = "curriculum-game";
+/** Explorer Positions mode toggle pipeline boundary. */
+function handleExplorerPositionsToggle() {
+	isExplorerPositionsModeActive.value = !isExplorerPositionsModeActive.value;
 }
 
 /** Parent-chain home-return pipeline boundary. */
@@ -116,14 +111,9 @@ function handleParentChainHome() {
 
 	<CurriculumGameView
 		v-else-if="activeParentScreen === 'curriculum-game'"
-		@open-explorer-positions="handleExplorerPositionsOpen"
+		:explorer-positions-mode-active="isExplorerPositionsModeActive"
+		@toggle-explorer-positions-mode="handleExplorerPositionsToggle"
 		@back-to-student-edits="handleCurriculumGameClose"
-		@go-home="handleParentChainHome"
-	/>
-
-	<ExplorerPositionsView
-		v-else-if="activeParentScreen === 'explorer-positions'"
-		@back-to-curriculum-game="handleExplorerPositionsClose"
 		@go-home="handleParentChainHome"
 	/>
 
@@ -137,6 +127,7 @@ function handleParentChainHome() {
 		data-page-name="student-menu-page"
 	>
 		<StudentNavigation
+			:explorer-positions-mode-active="isExplorerPositionsModeActive"
 			@open-calendar="handleCalendarTabOpen"
 			@open-rewards="handleRewardsPageOpen"
 		>
