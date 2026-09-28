@@ -49,3 +49,31 @@ test("Explorer Positions mode removal and Raili resize behavior are wired as req
 	assert.match(cssSource, /var\(--student-raili-height\)/);
 	assert.doesNotMatch(cssSource, /\.explorer-positions-screen/);
 });
+
+test("Move mode button and Raili drag wiring are present", () => {
+	const studentSource = readSource("src/components/StudentNavigation.vue");
+	assert.match(studentSource, /student-progress-move-button/);
+	assert.match(studentSource, /student-progress-move-button--engaged/);
+	assert.match(studentSource, /isMoveModeActive/);
+	assert.match(studentSource, /handleMoveToggle/);
+	assert.match(studentSource, /handleRailiMoveStart/);
+	assert.match(studentSource, /handleRailiMoveMove/);
+	assert.match(studentSource, /handleRailiMoveEnd/);
+	assert.match(studentSource, /student-progress-raili-frame--move-active/);
+	assert.match(studentSource, /railiFrameRef/);
+	assert.match(studentSource, /--student-raili-offset-x/);
+	assert.match(studentSource, /--student-raili-offset-y/);
+	assert.match(studentSource, /ze2\.studentProgress\.railiOffsetXPx/);
+	assert.match(studentSource, /ze2\.studentProgress\.railiOffsetYPx/);
+
+	const cssSource = readSource("src/css/input.css");
+	assert.match(cssSource, /\.student-progress-move-button/);
+	assert.match(cssSource, /\.student-progress-move-button--engaged/);
+	assert.match(cssSource, /\.student-progress-raili-frame--move-active/);
+	assert.match(cssSource, /var\(--student-raili-offset-x/);
+	assert.match(cssSource, /#38bdf8/);
+	assert.doesNotMatch(
+		studentSource,
+		/class="student-progress-resize-button"[^>]*>\s*Move/,
+	);
+});

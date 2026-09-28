@@ -13,14 +13,23 @@ const props = defineProps({
 const emit = defineEmits(["open-calendar", "open-rewards"]);
 const activeStudentMenu = ref("");
 const isResizeModeActive = ref(false);
+const isMoveModeActive = ref(false);
 const railiImageRef = ref(null);
+const railiFrameRef = ref(null);
 const progressMenuBackgroundImage = `url("${progressMenuBackground}")`;
 const totalXp = blockCompletionStore.totalXp;
 const level = computed(() => blockCompletionStore.state.level);
 const RAILI_HEIGHT_STORAGE_KEY = "ze2.studentProgress.railiHeightPx";
+const RAILI_OFFSET_X_STORAGE_KEY = "ze2.studentProgress.railiOffsetXPx";
+const RAILI_OFFSET_Y_STORAGE_KEY = "ze2.studentProgress.railiOffsetYPx";
 let railiDragStartY = 0;
 let railiDragStartHeightPx = 0;
 let railiDragActive = false;
+let railiMoveStartX = 0;
+let railiMoveStartY = 0;
+let railiMoveStartOffsetX = 0;
+let railiMoveStartOffsetY = 0;
+let railiMoveActive = false;
 
 /** Student-menu navigation pipeline boundary for the calendar tab. */
 function handleCalendarNavigation() {
@@ -41,6 +50,11 @@ function handleStudentMenuNavigation(menuName) {
 /** Resize mode toggle pipeline boundary. */
 function handleResizeToggle() {
 	isResizeModeActive.value = !isResizeModeActive.value;
+}
+
+/** Move mode toggle pipeline boundary. */
+function handleMoveToggle() {
+	isMoveModeActive.value = !isMoveModeActive.value;
 }
 
 /** Apply a clamped Raili height and store it in the CSS variable. */
@@ -80,11 +94,65 @@ function handleRailiResizeEnd() {
 	railiDragActive = false;
 }
 
+/** Apply a Raili position offset and store it in CSS variables on the frame. */
+function applyRailiOffset(offsetXPx, offsetYPx) {
+	railiFrameRef.value?.style.setProperty("--student-raili-offset-x", `${offsetXPx}px`);
+	railiFrameRef.value?.style.setProperty("--student-raili-offset-y", `${offsetYPx}px`);
+}
+
+/** Begin dragging the Raili frame in Move mode. */
+function handleRailiMoveStart(event) {
+	if (!isMoveModeActive.value || event.target !== event.currentTarget) {
+		return;
+	}
+
+	railiMoveStartX = event.clientX;
+	railiMoveStartY = event.clientY;
+	railiMoveStartOffsetX = Number.parseFloat(
+		railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "",
+	) || 0;
+	railiMoveStartOffsetY = Number.parseFloat(
+		railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "",
+	) || 0;
+	railiMoveActive = true;
+	event.currentTarget.setPointerCapture(event.pointerId);
+}
+
+/** Move the Raili frame while the pointer moves. */
+function handleRailiMoveMove(event) {
+	if (!railiMoveActive) {
+		return;
+	}
+
+	applyRailiOffset(
+		railiMoveStartOffsetX + (event.clientX - railiMoveStartX),
+		railiMoveStartOffsetY + (event.clientY - railiMoveStartY),
+	);
+}
+
+/** Finish dragging the Raili frame and persist the position. */
+function handleRailiMoveEnd() {
+	if (!railiMoveActive) {
+		return;
+	}
+
+	const persistedOffsetX = Math.round(
+		Number.parseFloat(railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "0"),
+	);
+	const persistedOffsetY = Math.round(
+		Number.parseFloat(railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "0"),
+	);
+	localStorage.setItem(RAILI_OFFSET_X_STORAGE_KEY, String(persistedOffsetX));
+	localStorage.setItem(RAILI_OFFSET_Y_STORAGE_KEY, String(persistedOffsetY));
+	railiMoveActive = false;
+}
+
 watch(
 	() => props.explorerPositionsModeActive,
 	(active) => {
 		if (!active) {
 			isResizeModeActive.value = false;
+			isMoveModeActive.value = false;
 		}
 	},
 );
@@ -92,17 +160,31 @@ watch(
 watch(activeStudentMenu, (menu) => {
 	if (menu !== "progress") {
 		isResizeModeActive.value = false;
+		isMoveModeActive.value = false;
+		return;
 	}
-});
+
+	const storedOffsetX = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_X_STORAGE_KEY) ?? "");
+	const storedOffsetY = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_Y_STORAGE_KEY) ?? "");
+	if (Number.isFinite(storedOffsetX) && Number.isFinite(storedOffsetY)) {
+		applyRailiOffset(storedOffsetX, storedOffsetY);
+	}
+}, { flush: "post" });
 
 onMounted(() => {
 	const storedHeight = Number.parseFloat(localStorage.getItem(RAILI_HEIGHT_STORAGE_KEY) ?? "");
 	if (Number.isFinite(storedHeight) && storedHeight > 0) {
 		applyRailiHeight(storedHeight);
 	}
+	const storedOffsetX = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_X_STORAGE_KEY) ?? "");
+	const storedOffsetY = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_Y_STORAGE_KEY) ?? "");
+	if (Number.isFinite(storedOffsetX) && Number.isFinite(storedOffsetY)) {
+		applyRailiOffset(storedOffsetX, storedOffsetY);
+	}
 
 	if (!props.explorerPositionsModeActive) {
 		isResizeModeActive.value = false;
+		isMoveModeActive.value = false;
 	}
 });
 </script>
@@ -222,8 +304,16 @@ onMounted(() => {
 				v-if="activeStudentMenu === 'progress'"
 				id="student-progress-raili-frame"
 				class="student-progress-raili-frame"
-				:class="{ 'student-progress-raili-frame--resize-active': isResizeModeActive }"
+				ref="railiFrameRef"
+				:class="{
+					'student-progress-raili-frame--resize-active': isResizeModeActive,
+					'student-progress-raili-frame--move-active': isMoveModeActive,
+				}"
 				data-container-name="student-progress-raili-frame"
+				@pointerdown="handleRailiMoveStart"
+				@pointermove="handleRailiMoveMove"
+				@pointerup="handleRailiMoveEnd"
+				@pointercancel="handleRailiMoveEnd"
 			>
 				<img
 					ref="railiImageRef"
@@ -298,6 +388,20 @@ onMounted(() => {
 					@click="handleResizeToggle"
 				>
 					Resize
+				</button>
+				<button
+					id="student-progress-move-button"
+					class="student-progress-move-button"
+					type="button"
+					name="student-progress-move-button"
+					data-button-name="student-progress-move-button"
+					aria-label="Toggle Raili move mode"
+					title="Toggle Raili move mode"
+					:aria-pressed="isMoveModeActive"
+					:class="{ 'student-progress-move-button--engaged': isMoveModeActive }"
+					@click="handleMoveToggle"
+				>
+					Move
 				</button>
 			</div>
 		</aside>
