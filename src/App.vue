@@ -153,9 +153,15 @@ function handleParentChainHome() {
 			title="Student menu content"
 			data-container-name="student-menu-content"
 		>
-			<CalendarView v-if="activeStudentTab === 'calendar'" ref="calendarViewRef" />
+			<CalendarView
+				v-if="activeStudentTab === 'calendar'"
+				ref="calendarViewRef"
+			/>
 		</section>
 	</main>
 
-	<RewardsView v-else @back-to-student-menu="handleRewardsPageClose" />
+	<RewardsView
+		v-else
+		@back-to-student-menu="handleRewardsPageClose"
+	/>
 </template>

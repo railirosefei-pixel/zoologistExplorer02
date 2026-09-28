@@ -36,6 +36,24 @@ test("Student button opens the full-screen menu and Back returns home", async ({
 	await expect(studentMenu).toBeHidden();
 });
 
+test("Parent Block Edits shows a Monday through Friday weekly panel set", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.getByRole("button", { name: "Open Block Edits" }).click();
+
+	const panels = page.locator(".block-edits-panel");
+	await expect(panels).toHaveCount(5);
+	const panelCount = await panels.count();
+	expect(panelCount).toBe(5);
+
+	const uniqueDates = await page
+		.locator(".block-edits-panel-date")
+		.evaluateAll((elements) => elements.map((element) => element.textContent.trim()));
+	expect(uniqueDates).toHaveLength(5);
+	expect(uniqueDates.every((date) => date.length > 0)).toBeTruthy();
+});
+
 test("September 2026 hides Back without moving Calendar or Forward", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();

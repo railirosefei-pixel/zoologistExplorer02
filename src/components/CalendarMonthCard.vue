@@ -64,8 +64,14 @@ defineEmits(["day-cell-click"]);
 		>
 			<h2>{{ currentMonth.monthName }} {{ currentMonth.year }}</h2>
 		</header>
-		<div class="calendar-weekday-row" aria-hidden="true">
-			<span v-for="day in weekdays" :key="`${currentMonth.id}-${day}`">{{ day }}</span>
+		<div
+			class="calendar-weekday-row"
+			aria-hidden="true"
+		>
+			<span
+				v-for="day in weekdays"
+				:key="`${currentMonth.id}-${day}`"
+			>{{ day }}</span>
 		</div>
 		<div class="calendar-day-grid">
 			<DayCellInteraction

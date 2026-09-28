@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-test("Raili resize commit persists across reload and commit button does not scale", async ({ page }) => {
+test("Raili resize commit persists across reload and commit button does not scale", async ({
+	page,
+}) => {
 	await page.setViewportSize({ width: 1600, height: 1000 });
 	await page.goto("/");
 
@@ -37,7 +39,11 @@ test("Raili resize commit persists across reload and commit button does not scal
 	const handleBox = await handle.boundingBox();
 	await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
 	await page.mouse.down();
-	await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2 - 120, { steps: 5 });
+	await page.mouse.move(
+		handleBox.x + handleBox.width / 2,
+		handleBox.y + handleBox.height / 2 - 120,
+		{ steps: 5 },
+	);
 	await page.mouse.up();
 
 	const imgHeightAfter = (await img.boundingBox()).height;
@@ -50,7 +56,9 @@ test("Raili resize commit persists across reload and commit button does not scal
 
 	// Commit
 	await commitButton.click();
-	const stored = await page.evaluate(() => localStorage.getItem("ze2.studentProgress.railiHeightPx"));
+	const stored = await page.evaluate(() =>
+		localStorage.getItem("ze2.studentProgress.railiHeightPx"),
+	);
 	expect(Number(stored)).toBeGreaterThan(0);
 	expect(Number(stored)).toBeCloseTo(Math.round(imgHeightAfter), -1);
 

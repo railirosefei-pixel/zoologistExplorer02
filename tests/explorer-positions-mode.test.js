@@ -86,10 +86,7 @@ test("Move mode button and Raili drag wiring are present", () => {
 	assert.match(cssSource, /\.student-progress-raili-frame--move-active/);
 	assert.match(cssSource, /var\(--student-raili-offset-x/);
 	assert.match(cssSource, /#38bdf8/);
-	assert.doesNotMatch(
-		studentSource,
-		/class="student-progress-resize-button"[^>]*>\s*Move/,
-	);
+	assert.doesNotMatch(studentSource, /class="student-progress-resize-button"[^>]*>\s*Move/);
 });
 
 test("Save/Commit/Test wiring and bonus XP are present in the Student Progress feature", () => {
@@ -111,8 +108,14 @@ test("Save/Commit/Test wiring and bonus XP are present in the Student Progress f
 	}
 
 	const cssSource = readSource("src/css/input.css");
-	assert.match(cssSource, /\.student-progress-save-grid\s*\{[^}]*repeat\(3, 60px\)[^}]*gap:\s*16px/s);
-	assert.match(cssSource, /\.student-progress-save-button\s*\{[^}]*width:\s*116px;[^}]*height:\s*40px;/s);
+	assert.match(
+		cssSource,
+		/\.student-progress-save-grid\s*\{[^}]*repeat\(3, 60px\)[^}]*gap:\s*16px/s,
+	);
+	assert.match(
+		cssSource,
+		/\.student-progress-save-button\s*\{[^}]*width:\s*116px;[^}]*height:\s*40px;/s,
+	);
 	assert.match(cssSource, /#fde047/);
 	assert.match(cssSource, /#22c55e/);
 	assert.match(cssSource, /#ef4444/);

@@ -1,5 +1,40 @@
 import { test, expect } from "@playwright/test";
 
+test("Explorer text lines use the same spacing as the surrounding copy", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Show next month" }).click();
+
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-3");
+	await octoberFirst.click();
+	await page.waitForTimeout(500);
+	await octoberFirst.click();
+	await page.getByRole("button", { name: "Math" }).click();
+
+	const panel = page.locator("#daily-menu-math-block-1-panel");
+	await expect(panel).toContainText("Explorer Raili!");
+
+	const firstParagraph = panel.locator(".daily-menu-subject-panel-message p").first();
+	const explorerName = panel.locator(".daily-menu-explorer-name").first();
+
+	const paragraphMargin = await firstParagraph.evaluate(
+		(element) => getComputedStyle(element).marginBottom,
+	);
+	const paragraphLineHeight = await firstParagraph.evaluate(
+		(element) => getComputedStyle(element).lineHeight,
+	);
+	const explorerFontSize = await explorerName.evaluate(
+		(element) => getComputedStyle(element).fontSize,
+	);
+	const paragraphFontSize = await firstParagraph.evaluate(
+		(element) => getComputedStyle(element).fontSize,
+	);
+
+	expect(paragraphMargin).toBe("0px");
+	expect(parseFloat(paragraphLineHeight)).toBeLessThanOrEqual(20);
+	expect(explorerFontSize).toBe(paragraphFontSize);
+});
+
 test("Explorer text is available for the September 28 through 30 block panels", async ({
 	page,
 }) => {

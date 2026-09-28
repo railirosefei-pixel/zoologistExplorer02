@@ -10,10 +10,37 @@ import { reactive, computed, watch } from "vue";
 const XP_PER_COMPLETED_BLOCK = 20;
 const XP_LEVEL_CAP = 240;
 const XP_PER_LEVEL = 240;
+const COMPLETED_BLOCKS_STORAGE_KEY = "zoologistExplorer02.completedBlocks";
+
+function loadCompletedBlockKeys() {
+	try {
+		const stored = globalThis.localStorage?.getItem(COMPLETED_BLOCKS_STORAGE_KEY);
+		const parsed = stored ? JSON.parse(stored) : {};
+		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+			return {};
+		}
+		return Object.fromEntries(
+			Object.entries(parsed).filter(([, completed]) => typeof completed === "boolean"),
+		);
+	} catch {
+		return {};
+	}
+}
+
+function saveCompletedBlockKeys() {
+	try {
+		globalThis.localStorage?.setItem(
+			COMPLETED_BLOCKS_STORAGE_KEY,
+			JSON.stringify(state.completedBlockKeys),
+		);
+	} catch {
+		// Storage can be unavailable in restricted browser contexts.
+	}
+}
 
 const state = reactive({
 	/** @type {Record<string, boolean>} */
-	completedBlockKeys: {},
+	completedBlockKeys: loadCompletedBlockKeys(),
 	/** Permanent level — only ever increases. */
 	level: 0,
 	bonusXp: 0,
@@ -122,10 +149,12 @@ function resetXpSchoolDaysBack(n) {
 		return false;
 	}
 	const snapshots = [...state.xpHistory].reverse();
-	const snapshot =
-		snapshots.find((entry) => entry.dateKey === targetKey) ??
-		snapshots.find((entry) => entry.dateKey < targetKey) ??
-		{ dateKey: targetKey, bonusXp: 0, level: 0 };
+	const snapshot = snapshots.find((entry) => entry.dateKey === targetKey) ??
+		snapshots.find((entry) => entry.dateKey < targetKey) ?? {
+			dateKey: targetKey,
+			bonusXp: 0,
+			level: 0,
+		};
 	state.bonusXp = snapshot.bonusXp;
 	return true;
 }
@@ -136,10 +165,12 @@ function resetLevelSchoolDaysBack(n) {
 		return false;
 	}
 	const snapshots = [...state.xpHistory].reverse();
-	const snapshot =
-		snapshots.find((entry) => entry.dateKey === targetKey) ??
-		snapshots.find((entry) => entry.dateKey < targetKey) ??
-		{ dateKey: targetKey, bonusXp: 0, level: 0 };
+	const snapshot = snapshots.find((entry) => entry.dateKey === targetKey) ??
+		snapshots.find((entry) => entry.dateKey < targetKey) ?? {
+			dateKey: targetKey,
+			bonusXp: 0,
+			level: 0,
+		};
 	state.level = snapshot.level;
 	return true;
 }
@@ -148,6 +179,7 @@ function markBlockComplete(dateLabel, subject, blockNumber) {
 	const key = buildBlockKey(dateLabel, subject, blockNumber);
 	if (key) {
 		state.completedBlockKeys[key] = true;
+		saveCompletedBlockKeys();
 		recordXpSnapshot();
 	}
 }
@@ -156,6 +188,7 @@ function markBlockIncomplete(dateLabel, subject, blockNumber) {
 	const key = buildBlockKey(dateLabel, subject, blockNumber);
 	if (key) {
 		state.completedBlockKeys[key] = false;
+		saveCompletedBlockKeys();
 		recordXpSnapshot();
 	}
 }

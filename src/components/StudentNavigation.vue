@@ -196,7 +196,8 @@ function handleResizeCommit() {
 function handleRailiResizeStart(event) {
 	railiDragActive = true;
 	railiDragStartY = event.clientY;
-	railiDragStartHeightPx = railiImageRef.value?.getBoundingClientRect().height ?? RAILI_BASE_HEIGHT_PX;
+	railiDragStartHeightPx =
+		railiImageRef.value?.getBoundingClientRect().height ?? RAILI_BASE_HEIGHT_PX;
 	event.currentTarget.setPointerCapture(event.pointerId);
 }
 
@@ -234,12 +235,14 @@ function handleRailiMoveStart(event) {
 
 	railiMoveStartX = event.clientX;
 	railiMoveStartY = event.clientY;
-	railiMoveStartOffsetX = Number.parseFloat(
-		railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "",
-	) || 0;
-	railiMoveStartOffsetY = Number.parseFloat(
-		railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "",
-	) || 0;
+	railiMoveStartOffsetX =
+		Number.parseFloat(
+			railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "",
+		) || 0;
+	railiMoveStartOffsetY =
+		Number.parseFloat(
+			railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "",
+		) || 0;
 	railiMoveActive = true;
 	event.currentTarget.setPointerCapture(event.pointerId);
 }
@@ -263,10 +266,14 @@ function handleRailiMoveEnd() {
 	}
 
 	const persistedOffsetX = Math.round(
-		Number.parseFloat(railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "0"),
+		Number.parseFloat(
+			railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "0",
+		),
 	);
 	const persistedOffsetY = Math.round(
-		Number.parseFloat(railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "0"),
+		Number.parseFloat(
+			railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "0",
+		),
 	);
 	localStorage.setItem(RAILI_OFFSET_X_STORAGE_KEY, String(persistedOffsetX));
 	localStorage.setItem(RAILI_OFFSET_Y_STORAGE_KEY, String(persistedOffsetY));
@@ -276,12 +283,18 @@ function handleRailiMoveEnd() {
 /** Read the Raili frame's current pixel offsets. */
 function readCurrentRailiOffset() {
 	return {
-		x: Math.round(
-			Number.parseFloat(railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "0"),
-		) || 0,
-		y: Math.round(
-			Number.parseFloat(railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "0"),
-		) || 0,
+		x:
+			Math.round(
+				Number.parseFloat(
+					railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-x") ?? "0",
+				),
+			) || 0,
+		y:
+			Math.round(
+				Number.parseFloat(
+					railiFrameRef.value?.style.getPropertyValue("--student-raili-offset-y") ?? "0",
+				),
+			) || 0,
 	};
 }
 
@@ -330,25 +343,35 @@ watch(
 	},
 );
 
-watch(activeStudentMenu, (menu) => {
-	if (menu !== "progress") {
-		isResizeModeActive.value = false;
-		isMoveModeActive.value = false;
-		isSaveModeActive.value = false;
-		collapseResetStack();
-		return;
-	}
+watch(
+	activeStudentMenu,
+	(menu) => {
+		if (menu !== "progress") {
+			isResizeModeActive.value = false;
+			isMoveModeActive.value = false;
+			isSaveModeActive.value = false;
+			collapseResetStack();
+			return;
+		}
 
-	const storedHeight = Number.parseFloat(localStorage.getItem(RAILI_HEIGHT_STORAGE_KEY) ?? "");
-	if (Number.isFinite(storedHeight) && storedHeight > 0) {
-		applyRailiHeight(storedHeight);
-	}
-	const storedOffsetX = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_X_STORAGE_KEY) ?? "");
-	const storedOffsetY = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_Y_STORAGE_KEY) ?? "");
-	if (Number.isFinite(storedOffsetX) && Number.isFinite(storedOffsetY)) {
-		applyRailiOffset(storedOffsetX, storedOffsetY);
-	}
-}, { flush: "post" });
+		const storedHeight = Number.parseFloat(
+			localStorage.getItem(RAILI_HEIGHT_STORAGE_KEY) ?? "",
+		);
+		if (Number.isFinite(storedHeight) && storedHeight > 0) {
+			applyRailiHeight(storedHeight);
+		}
+		const storedOffsetX = Number.parseFloat(
+			localStorage.getItem(RAILI_OFFSET_X_STORAGE_KEY) ?? "",
+		);
+		const storedOffsetY = Number.parseFloat(
+			localStorage.getItem(RAILI_OFFSET_Y_STORAGE_KEY) ?? "",
+		);
+		if (Number.isFinite(storedOffsetX) && Number.isFinite(storedOffsetY)) {
+			applyRailiOffset(storedOffsetX, storedOffsetY);
+		}
+	},
+	{ flush: "post" },
+);
 
 onMounted(() => {
 	const storedHeight = Number.parseFloat(localStorage.getItem(RAILI_HEIGHT_STORAGE_KEY) ?? "");
@@ -491,11 +514,18 @@ onMounted(() => {
 				<h2>Extra Credit</h2>
 				<p>Explore optional challenges and activities.</p>
 			</article>
-			<div v-if="activeStudentMenu === 'progress'" class="student-progress-xp-bar-slot">
+			<div
+				v-if="activeStudentMenu === 'progress'"
+				class="student-progress-xp-bar-slot"
+			>
 				<ProgressXpBar :xp="totalXp" :level="level" />
 			</div>
 			<div
-				v-if="activeStudentMenu === 'progress' && explorerPositionsModeActive && isSaveModeActive"
+				v-if="
+					activeStudentMenu === 'progress' &&
+						explorerPositionsModeActive &&
+						isSaveModeActive
+				"
 				id="student-progress-save-grid"
 				class="student-progress-save-grid"
 				title="Saved positions"
@@ -699,8 +729,8 @@ onMounted(() => {
 			<div
 				v-if="activeStudentMenu === 'progress'"
 				id="student-progress-raili-frame"
-				class="student-progress-raili-frame"
 				ref="railiFrameRef"
+				class="student-progress-raili-frame"
 				:class="{
 					'student-progress-raili-frame--resize-active': isResizeModeActive,
 					'student-progress-raili-frame--move-active': isMoveModeActive,
@@ -726,7 +756,7 @@ onMounted(() => {
 					@pointermove="handleRailiResizeMove('nw', $event)"
 					@pointerup="handleRailiResizeEnd"
 					@pointercancel="handleRailiResizeEnd"
-				></div>
+				/>
 				<div
 					v-if="isResizeModeActive"
 					id="student-progress-raili-resize-handle-ne"
@@ -736,7 +766,7 @@ onMounted(() => {
 					@pointermove="handleRailiResizeMove('ne', $event)"
 					@pointerup="handleRailiResizeEnd"
 					@pointercancel="handleRailiResizeEnd"
-				></div>
+				/>
 				<div
 					v-if="isResizeModeActive"
 					id="student-progress-raili-resize-handle-sw"
@@ -746,7 +776,7 @@ onMounted(() => {
 					@pointermove="handleRailiResizeMove('sw', $event)"
 					@pointerup="handleRailiResizeEnd"
 					@pointercancel="handleRailiResizeEnd"
-				></div>
+				/>
 				<div
 					v-if="isResizeModeActive"
 					id="student-progress-raili-resize-handle-se"
@@ -756,7 +786,7 @@ onMounted(() => {
 					@pointermove="handleRailiResizeMove('se', $event)"
 					@pointerup="handleRailiResizeEnd"
 					@pointercancel="handleRailiResizeEnd"
-				></div>
+				/>
 			</div>
 			<div
 				v-if="activeStudentMenu === 'progress' && isResizeModeActive"
@@ -890,11 +920,11 @@ onMounted(() => {
 						<input
 							v-if="isLevelCustomInputActive"
 							id="student-progress-reset-level-custom-input"
+							v-model="levelCustomInputValue"
 							class="student-progress-reset-level-custom-input"
 							type="text"
 							inputmode="numeric"
 							maxlength="3"
-							v-model="levelCustomInputValue"
 							@keydown.enter.prevent="handleLevelResetSubmit"
 						/>
 					</div>
@@ -945,11 +975,11 @@ onMounted(() => {
 						<input
 							v-if="isXpCustomInputActive"
 							id="student-progress-reset-xp-custom-input"
+							v-model="xpCustomInputValue"
 							class="student-progress-reset-xp-custom-input"
 							type="text"
 							inputmode="numeric"
 							maxlength="3"
-							v-model="xpCustomInputValue"
 							@keydown.enter.prevent="handleXpResetSubmit"
 						/>
 					</div>

@@ -47,7 +47,7 @@ const segments = computed(() =>
 				:key="segment.index"
 				class="progress-xp-bar-segment"
 				:class="{ 'progress-xp-bar-segment--filled': segment.filled }"
-			></div>
+			/>
 		</div>
 	</div>
 </template>

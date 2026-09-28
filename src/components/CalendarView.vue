@@ -13,6 +13,7 @@ import calendarPanelBackground from "../../assets/textures/minecraftDirt01.webp"
 import septemberDayTexture from "../../assets/textures/minecraftTNT.webp";
 import CalendarMonthCard from "./CalendarMonthCard.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
+import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
@@ -436,6 +437,15 @@ function isBlockComplete(subject, blockNumber) {
 	);
 }
 
+/** Read the committed Description Edits text for one subject + block on the selected day. */
+function getSavedBlockDescription(subject, blockNumber) {
+	return blockDescriptionStore.getDescription(
+		selectedDailyMenuDateLabel.value,
+		subject,
+		blockNumber,
+	);
+}
+
 function triggerConfettiBurst() {
 	confettiVisible.value = true;
 	if (confettiTimeoutId) {
@@ -606,7 +616,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div v-if="confettiVisible" class="daily-menu-confetti-overlay" aria-hidden="true">
+	<div
+		v-if="confettiVisible"
+		class="daily-menu-confetti-overlay"
+		aria-hidden="true"
+	>
 		<span
 			v-for="piece in confettiBurstPieces"
 			:key="piece.id"
@@ -663,10 +677,10 @@ onBeforeUnmount(() => {
 		>
 			<div class="calendar-header-row">
 				<button
+					v-if="0 < currentMonthIndex"
 					id="calendar-previous-month-button"
 					class="calendar-previous-month-button"
 					type="button"
-					v-if="currentMonthIndex > 0"
 					aria-label="Show previous month"
 					title="Show previous month"
 					@click="handleMonthSelectionOffset(-1)"
@@ -677,8 +691,13 @@ onBeforeUnmount(() => {
 					v-else
 					class="calendar-previous-month-button invisible"
 					aria-hidden="true"
-				></span>
-				<h1 id="calendar-menu-heading" class="student-menu-heading">Calendar</h1>
+				/>
+				<h1
+					id="calendar-menu-heading"
+					class="student-menu-heading"
+				>
+					Calendar
+				</h1>
 				<button
 					v-if="currentMonthIndex < calendarMonths.length - 1"
 					id="calendar-next-month-button"
@@ -690,10 +709,17 @@ onBeforeUnmount(() => {
 				>
 					Forward
 				</button>
-				<span v-else class="calendar-next-month-button invisible" aria-hidden="true"></span>
+				<span
+					v-else
+					class="calendar-next-month-button invisible"
+					aria-hidden="true"
+				/>
 			</div>
 		</header>
-		<div v-if="!isDailyMenuOpen" class="calendar-month-grid calendar-month-grid--single">
+		<div
+			v-if="!isDailyMenuOpen"
+			class="calendar-month-grid calendar-month-grid--single"
+		>
 			<CalendarMonthCard
 				:current-month="currentMonth"
 				:weekdays="weekdays"
@@ -723,7 +749,9 @@ onBeforeUnmount(() => {
 					{ 'daily-menu-content--story': selectedDailyMenuSubject === 'story' },
 				]"
 			>
-				<h2 v-if="selectedDailyMenuSubject !== 'story'">Daily Menu</h2>
+				<h2 v-if="selectedDailyMenuSubject !== 'story'">
+					Daily Menu
+				</h2>
 				<button
 					v-if="selectedDailyMenuSubject !== 'story'"
 					id="daily-menu-back-button"
@@ -735,7 +763,10 @@ onBeforeUnmount(() => {
 				>
 					Back
 				</button>
-				<p v-if="selectedDailyMenuSubject !== 'story'" class="daily-menu-date">
+				<p
+					v-if="selectedDailyMenuSubject !== 'story'"
+					class="daily-menu-date"
+				>
 					{{ selectedDailyMenuDateLabel }}
 				</p>
 				<nav
@@ -755,7 +786,10 @@ onBeforeUnmount(() => {
 						title="Story"
 						@click="handleDailyMenuSubjectSelection('story')"
 					>
-						<img :src="storyImage" alt="" />
+						<img
+							:src="storyImage"
+							alt=""
+						/>
 					</button>
 					<button
 						id="daily-menu-math-button"
@@ -765,7 +799,10 @@ onBeforeUnmount(() => {
 						title="Math"
 						@click="handleDailyMenuSubjectSelection('math')"
 					>
-						<img :src="mathBackground" alt="" />
+						<img
+							:src="mathBackground"
+							alt=""
+						/>
 					</button>
 					<button
 						id="daily-menu-language-arts-button"
@@ -775,7 +812,10 @@ onBeforeUnmount(() => {
 						title="Language Arts"
 						@click="handleDailyMenuSubjectSelection('language-arts')"
 					>
-						<img :src="languageArtsBackground" alt="" />
+						<img
+							:src="languageArtsBackground"
+							alt=""
+						/>
 					</button>
 					<button
 						id="daily-menu-social-studies-button"
@@ -785,7 +825,10 @@ onBeforeUnmount(() => {
 						title="Social Studies"
 						@click="handleDailyMenuSubjectSelection('social-studies')"
 					>
-						<img :src="socialStudiesBackground" alt="" />
+						<img
+							:src="socialStudiesBackground"
+							alt=""
+						/>
 					</button>
 					<button
 						id="daily-menu-science-button"
@@ -795,7 +838,10 @@ onBeforeUnmount(() => {
 						title="Science"
 						@click="handleDailyMenuSubjectSelection('science')"
 					>
-						<img :src="scienceBackground" alt="" />
+						<img
+							:src="scienceBackground"
+							alt=""
+						/>
 					</button>
 					<button
 						id="daily-menu-art-button"
@@ -805,7 +851,10 @@ onBeforeUnmount(() => {
 						title="Art"
 						@click="handleDailyMenuSubjectSelection('art')"
 					>
-						<img :src="artBackground" alt="" />
+						<img
+							:src="artBackground"
+							alt=""
+						/>
 					</button>
 				</nav>
 				<div
@@ -899,6 +948,14 @@ onBeforeUnmount(() => {
 								</span>
 							</p>
 						</div>
+						<div
+							v-if="getSavedBlockDescription(selectedDailyMenuSubject, selectedDailyMenuBlock)"
+							class="daily-menu-block-saved-description"
+						>
+							<p>
+								{{ getSavedBlockDescription(selectedDailyMenuSubject, selectedDailyMenuBlock) }}
+							</p>
+						</div>
 					</article>
 					<article
 						v-if="
@@ -913,7 +970,10 @@ onBeforeUnmount(() => {
 							v-if="isExplorerCopyActive('math')"
 							class="daily-menu-subject-panel-message"
 						>
-							<p v-for="line in getExplorerCopy('math')" :key="line">
+							<p
+								v-for="line in getExplorerCopy('math')"
+								:key="line"
+							>
 								<span
 									:class="{
 										'daily-menu-explorer-name':
@@ -1029,7 +1089,10 @@ onBeforeUnmount(() => {
 									</p>
 								</template>
 							</div>
-							<div v-else class="daily-menu-story-content">
+							<div
+								v-else
+								class="daily-menu-story-content"
+							>
 								<h3>Theme</h3>
 								<p v-if="selectedStoryContent">
 									{{ selectedStoryContent.theme }}
@@ -1049,7 +1112,7 @@ onBeforeUnmount(() => {
 					<article
 						v-if="
 							selectedDailyMenuSubject === 'language-arts' &&
-							selectedDailyMenuBlock === null
+								selectedDailyMenuBlock === null
 						"
 						id="daily-menu-language-arts-panel"
 						class="daily-menu-subject-panel daily-menu-language-arts-panel"
@@ -1060,7 +1123,10 @@ onBeforeUnmount(() => {
 							v-if="isExplorerCopyActive('language-arts')"
 							class="daily-menu-subject-panel-message"
 						>
-							<p v-for="line in explorerCopyBySubject['language-arts']" :key="line">
+							<p
+								v-for="line in explorerCopyBySubject['language-arts']"
+								:key="line"
+							>
 								<span
 									:class="{
 										'daily-menu-explorer-name':
@@ -1118,7 +1184,7 @@ onBeforeUnmount(() => {
 					<article
 						v-if="
 							selectedDailyMenuSubject === 'social-studies' &&
-							selectedDailyMenuBlock === null
+								selectedDailyMenuBlock === null
 						"
 						id="daily-menu-social-studies-panel"
 						class="daily-menu-subject-panel daily-menu-social-studies-panel"
@@ -1129,7 +1195,10 @@ onBeforeUnmount(() => {
 							v-if="isExplorerCopyActive('social-studies')"
 							class="daily-menu-subject-panel-message"
 						>
-							<p v-for="line in explorerCopyBySubject['social-studies']" :key="line">
+							<p
+								v-for="line in explorerCopyBySubject['social-studies']"
+								:key="line"
+							>
 								<span
 									:class="{
 										'daily-menu-explorer-name':
@@ -1187,7 +1256,7 @@ onBeforeUnmount(() => {
 					<article
 						v-if="
 							selectedDailyMenuSubject === 'science' &&
-							selectedDailyMenuBlock === null
+								selectedDailyMenuBlock === null
 						"
 						id="daily-menu-science-panel"
 						class="daily-menu-subject-panel daily-menu-science-panel"
@@ -1198,7 +1267,10 @@ onBeforeUnmount(() => {
 							v-if="isExplorerCopyActive('science')"
 							class="daily-menu-subject-panel-message"
 						>
-							<p v-for="line in explorerCopyBySubject.science" :key="line">
+							<p
+								v-for="line in explorerCopyBySubject.science"
+								:key="line"
+							>
 								<span
 									:class="{
 										'daily-menu-explorer-name':

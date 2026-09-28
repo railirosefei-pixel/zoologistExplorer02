@@ -4,55 +4,36 @@
 
 - Whenever a consistency check involving the investigation of stale, unused, duplicate, or contradictory code is run against the program, do not include the "assets" folder in the check. Do not remove the assets directory or anything contained within it
 
-1.) Run the following tests one at a time: 
+1.) Add a button on the top navigation bar inside the Parent menu labeled: "Text Editor"
 
-A.) C:\zoologistExplorer02\tests\asset-paths.test.js
+2.) Add a top-aligned navigation bar inside the "Text Editor" menu that starts at the left edge of the screen and continues all the way to the right edge of the screen.  Make the navigation bar start from the top edge of the screen and continue down by 126 pixels.
 
-B.) C:\zoologistExplorer02\tests\button-isolation.test.js
+3.) Create the following buttons inside the Text Editor navigation bar: 
 
-C.) C:\zoologistExplorer02\tests\css-js-integrity.test.js
+    A.) Templates
 
-D.) C:\zoologistExplorer02\tests\explorer-positions-mode.test.js
+    B.) Grid
 
-E.) C:\zoologistExplorer02\tests\menu-panel-separation.test.js
+    C.) Fonts
 
-F.) C:\zoologistExplorer02\tests\page-container-separation.test.js
+    D.) Margins
 
-G.) C:\zoologistExplorer02\tests\raili-resize-persist.spec.js
+        a.) Make all 4 of those buttons 136 pixels wide and 64 pixels high and make them all oval shaped.
 
-H.) C:\zoologistExplorer02\tests\september-day-gate.spec.js
+        b.) Give all 4 buttons a 3D effect with significant dimensional depth and shadowing.
 
-I.) C:\zoologistExplorer02\tests\smoke.spec.js
+        c.) Give the "Templates" button a gradient color scheme of 4 shades of dark grey with white font color
 
-J.) C:\zoologistExplorer02\tests\vue-audit.test.js
+        d.) Give the "Grid" button a gradient color scheme of 4 shades of dark green with white font color
 
-K.) C:\zoologistExplorer02\tests\xp-bar.test.js
+        e.) Give the "Fonts" button a gradient color scheme of 4 shades of dark blue with white font color
 
-L.) C:\zoologistExplorer02\tests\xp-level-reset.test.js
+        f.) Give the "Margins" button a gradient color scheme of 4 shades of dark purple with white font color
 
-M.) ESLint
+4.) Center the buttons on the top navigation bar both vertiaclly and horizontally.  Place Templates on the left, place a 16 pixel gap between the right edge of Templates and the left edge of Grid, place a 16 pixel gap between the right edge of Grid and the left edge of Fonts, place a 16 pixel gap between the right edge of Fonts and the left edge of margins
 
-N.) Playwright
 
-Any errors or warnings found post in plan.md starting at line 39
 
-- Validation results recorded in order:
-  - A. asset-paths.test.js: PASS (1/1)
-  - B. button-isolation.test.js: PASS (5/5)
-  - C. css-js-integrity.test.js: PASS (3/3)
-  - D. explorer-positions-mode.test.js: PASS (3/3)
-  - E. menu-panel-separation.test.js: PASS (1/1)
-  - F. page-container-separation.test.js: PASS (1/1)
-  - G. raili-resize-persist.spec.js: FAIL when run via `node --test` with: "Playwright Test did not expect test() to be called here." This file is a Playwright spec and should be run through Playwright, not Node's test runner.
-  - H. september-day-gate.spec.js: FAIL when run via `node --test` with: "Playwright Test did not expect test() to be called here." This file is a Playwright spec and should be run through Playwright, not Node's test runner.
-  - I. smoke.spec.js: FAIL when run via `node --test` with: "Playwright Test did not expect test() to be called here." This file is a Playwright spec and should be run through Playwright, not Node's test runner.
-  - J. vue-audit.test.js: PASS (5/5)
-  - K. xp-bar.test.js: PASS (4/4)
-  - L. xp-level-reset.test.js: PASS (2/2)
-  - M. ESLint: 55 warnings, 0 errors. Warning categories are primarily Vue attribute-order/formatting issues across App.vue, CalendarView.vue, DayCellInteraction.vue, ProgressXpBar.vue, RewardsView.vue, StudentEditsView.vue, and StudentNavigation.vue. 53 warnings are auto-fixable with `eslint --fix`.
-  - N. Playwright: PASS (35 passed in 10.4s via `npx playwright test`).
-
-- Summary: All requested Node-based checks passed individually, the ESLint warnings are non-blocking but should be cleaned up, and the Playwright specs pass only when executed through the project's Playwright runner rather than `node --test`.
 
 
 
