@@ -15,6 +15,7 @@ import CalendarMonthCard from "./CalendarMonthCard.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 
+const emit = defineEmits(["go-home"]);
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
 const year1TimelineStory = {
@@ -403,6 +404,11 @@ function handleDailyMenuClose() {
 	activeStoryTimelineTab.value = null;
 }
 
+/** Daily-menu home-return pipeline boundary. */
+function handleDailyMenuHome() {
+	emit("go-home");
+}
+
 /** Calendar navigation reset pipeline boundary. */
 function resetToCalendar() {
 	handleDailyMenuClose();
@@ -742,16 +748,17 @@ onBeforeUnmount(() => {
 			aria-label="Daily menu"
 			title="Daily menu"
 		>
-			<div
-				v-if="hasDailyMenuContent"
-				:class="[
-					'daily-menu-content',
-					{ 'daily-menu-content--story': selectedDailyMenuSubject === 'story' },
-				]"
-			>
-				<h2 v-if="selectedDailyMenuSubject !== 'story'">
-					Daily Menu
-				</h2>
+			<div class="daily-menu-navigation-controls">
+				<button
+					id="daily-menu-home-button"
+					class="daily-menu-home-button"
+					type="button"
+					aria-label="Return home"
+					title="Return home"
+					@click="handleDailyMenuHome"
+				>
+					Home
+				</button>
 				<button
 					v-if="selectedDailyMenuSubject !== 'story'"
 					id="daily-menu-back-button"
@@ -763,6 +770,28 @@ onBeforeUnmount(() => {
 				>
 					Back
 				</button>
+				<button
+					v-else
+					id="daily-menu-story-back-button"
+					class="daily-menu-story-back-button"
+					type="button"
+					aria-label="Back to daily menu"
+					title="Back to daily menu"
+					@click="handleStoryPanelBack"
+				>
+					Back
+				</button>
+			</div>
+			<div
+				v-if="hasDailyMenuContent"
+				:class="[
+					'daily-menu-content',
+					{ 'daily-menu-content--story': selectedDailyMenuSubject === 'story' },
+				]"
+			>
+				<h2 v-if="selectedDailyMenuSubject !== 'story'">
+					Daily Menu
+				</h2>
 				<p
 					v-if="selectedDailyMenuSubject !== 'story'"
 					class="daily-menu-date"
@@ -1057,17 +1086,6 @@ onBeforeUnmount(() => {
 									{{ storyTab }}
 								</button>
 							</div>
-							<button
-								v-if="selectedDailyMenuSubject === 'story'"
-								id="daily-menu-story-back-button"
-								class="daily-menu-story-back-button"
-								type="button"
-								aria-label="Back to daily menu"
-								title="Back to daily menu"
-								@click="handleStoryPanelBack"
-							>
-								Back
-							</button>
 							<div
 								v-if="activeStoryTimelineTab"
 								class="daily-menu-story-menu-panel"

@@ -63,8 +63,8 @@ function handleStudentEditsOpen() {
 	activeParentScreen.value = "student-edits";
 }
 
-/** Student Edits screen exit pipeline boundary. */
-function handleStudentEditsClose() {
+/** Student Edits return-to-parent-menu pipeline boundary. */
+function handleStudentEditsParentMenuClose() {
 	activeParentScreen.value = "parent";
 }
 
@@ -105,7 +105,7 @@ function handleParentChainHome() {
 	<StudentEditsView
 		v-else-if="activeParentScreen === 'student-edits'"
 		@open-curriculum-game="handleCurriculumGameOpen"
-		@back-to-parent="handleStudentEditsClose"
+		@back-to-parent-menu="handleStudentEditsParentMenuClose"
 		@go-home="handleParentChainHome"
 	/>
 
@@ -130,20 +130,8 @@ function handleParentChainHome() {
 			:explorer-positions-mode-active="isExplorerPositionsModeActive"
 			@open-calendar="handleCalendarTabOpen"
 			@open-rewards="handleRewardsPageOpen"
-		>
-			<button
-				id="student-menu-back-button"
-				class="student-menu-back-button"
-				type="button"
-				name="student-menu-back-button"
-				data-button-name="student-menu-back-button"
-				aria-label="Back to home page"
-				title="Back to home page"
-				@click="handleStudentMenuClose"
-			>
-				Back
-			</button>
-		</StudentNavigation>
+			@back-to-home="handleStudentMenuClose"
+		/>
 
 		<section
 			id="student-menu-content"
@@ -156,6 +144,7 @@ function handleParentChainHome() {
 			<CalendarView
 				v-if="activeStudentTab === 'calendar'"
 				ref="calendarViewRef"
+				@go-home="handleStudentMenuClose"
 			/>
 		</section>
 	</main>

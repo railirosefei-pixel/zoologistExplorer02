@@ -40,6 +40,8 @@ No dynamic Tailwind class building
 
 No inline style attributes
 
+For physical calibration measurements in this app, treat 86 on-screen pixels as 1 inch. This is an app-specific calibration rule, distinct from the CSS reference of 96 CSS pixels per inch.
+
 No “fixing” layout by guessing in different files
 
 After each meaningful batch, run only relevant checks whose exact commands, output paths, network effects, and other side effects were disclosed and explicitly authorized.

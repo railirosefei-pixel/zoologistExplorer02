@@ -10,7 +10,7 @@ const props = defineProps({
 	explorerPositionsModeActive: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["open-calendar", "open-rewards"]);
+const emit = defineEmits(["open-calendar", "open-rewards", "back-to-home"]);
 const activeStudentMenu = ref("");
 const isResizeModeActive = ref(false);
 const isMoveModeActive = ref(false);
@@ -60,6 +60,16 @@ function handleRewardsNavigation() {
 /** Student sidebar submenu pipeline boundary. */
 function handleStudentMenuNavigation(menuName) {
 	activeStudentMenu.value = menuName;
+}
+
+/** Progress-menu exit pipeline boundary. */
+function handleProgressBack() {
+	emit("back-to-home");
+}
+
+/** Progress-menu return pipeline boundary. */
+function handleProgressMenuBack() {
+	activeStudentMenu.value = "";
 }
 
 /** Resize mode toggle pipeline boundary. */
@@ -416,6 +426,19 @@ onMounted(() => {
 		data-container-name="student-menu-navigation"
 	>
 		<button
+			v-if="!activeStudentMenu"
+			id="student-menu-back-button"
+			class="student-menu-back-button"
+			type="button"
+			name="student-menu-back-button"
+			data-button-name="student-menu-back-button"
+			aria-label="Back to home page"
+			title="Back to home page"
+			@click="handleProgressBack"
+		>
+			Back
+		</button>
+		<button
 			id="calendar-tab"
 			class="student-menu-calendar-tab"
 			type="button"
@@ -479,8 +502,6 @@ onMounted(() => {
 		>
 			Progress
 		</button>
-		<slot />
-
 		<aside
 			v-if="activeStudentMenu"
 			id="student-submenu-panel"
@@ -494,6 +515,32 @@ onMounted(() => {
 			title="Student submenu panel"
 			data-container-name="student-submenu-panel"
 		>
+			<button
+				v-if="activeStudentMenu === 'progress'"
+				id="student-progress-back-button"
+				class="student-progress-back-button"
+				type="button"
+				name="student-progress-back-button"
+				data-button-name="student-progress-back-button"
+				aria-label="Back to student menu"
+				title="Back to student menu"
+				@click="handleProgressMenuBack"
+			>
+				Back
+			</button>
+			<button
+				v-if="activeStudentMenu === 'progress'"
+				id="student-progress-home-button"
+				class="student-progress-home-button"
+				type="button"
+				name="student-progress-home-button"
+				data-button-name="student-progress-home-button"
+				aria-label="Return home"
+				title="Return home"
+				@click="handleProgressBack"
+			>
+				Home
+			</button>
 			<article
 				v-if="activeStudentMenu === 'games'"
 				id="games-menu"

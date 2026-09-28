@@ -54,6 +54,129 @@ test("Parent Block Edits shows a Monday through Friday weekly panel set", async 
 	expect(uniqueDates.every((date) => date.length > 0)).toBeTruthy();
 });
 
+test("Text Editor Back returns to the Parent menu", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "Back to parent menu" }).click();
+
+	await expect(page.getByRole("button", { name: "Student Edits" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Text Editor" })).toBeVisible();
+	await expect(page.locator("#student-menu-page")).toHaveCount(0);
+});
+
+test("Text Editor calibration bar keeps its width and anchored resize behavior", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	const calibrateButton = page.getByRole("button", { name: "Calibrate" });
+	await calibrateButton.click();
+
+	const calibrationBar = page.locator("#calibration-bar");
+	const topHandle = page.locator("#calibration-bar-top-handle");
+	const bottomHandle = page.locator("#calibration-bar-bottom-handle");
+	const counter = page.locator("#calibration-bar-height-counter");
+	const rotateButton = page.locator("#calibration-bar-rotate-button");
+	const readBarBounds = () => calibrationBar.boundingBox();
+
+	await expect(counter).toHaveText("500 px");
+	const calibrateButtonBounds = await calibrateButton.boundingBox();
+	expect(await readBarBounds()).toMatchObject({
+		x: calibrateButtonBounds.x + (calibrateButtonBounds.width - 60) / 2,
+		y: calibrateButtonBounds.y + calibrateButtonBounds.height,
+		width: 60,
+		height: 500,
+	});
+
+	const initialBounds = await readBarBounds();
+	const bottomHandleBounds = await bottomHandle.boundingBox();
+	await page.mouse.move(
+		bottomHandleBounds.x + bottomHandleBounds.width / 2,
+		bottomHandleBounds.y + bottomHandleBounds.height / 2,
+	);
+	await page.mouse.down();
+	await page.mouse.move(
+		bottomHandleBounds.x + bottomHandleBounds.width / 2,
+		bottomHandleBounds.y + bottomHandleBounds.height / 2 + 40,
+	);
+	await page.mouse.up();
+
+	await expect(counter).toHaveText("540 px");
+	const bottomResizedBounds = await readBarBounds();
+	expect(bottomResizedBounds.x).toBe(initialBounds.x);
+	expect(bottomResizedBounds.y).toBe(initialBounds.y);
+	expect(bottomResizedBounds.height).toBe(540);
+
+	const topHandleBounds = await topHandle.boundingBox();
+	await page.mouse.move(
+		topHandleBounds.x + topHandleBounds.width / 2,
+		topHandleBounds.y + topHandleBounds.height / 2,
+	);
+	await page.mouse.down();
+	await page.mouse.move(
+		topHandleBounds.x + topHandleBounds.width / 2,
+		topHandleBounds.y + topHandleBounds.height / 2 - 40,
+	);
+	await page.mouse.up();
+
+	await expect(counter).toHaveText("580 px");
+	const topResizedBounds = await readBarBounds();
+	expect(topResizedBounds.x).toBe(initialBounds.x);
+	expect(topResizedBounds.y).toBe(initialBounds.y - 40);
+	expect(topResizedBounds.height).toBe(580);
+
+	await rotateButton.click();
+	await expect(calibrationBar).toHaveCSS("height", "60px");
+	await expect(calibrationBar).toHaveCSS("width", "60px");
+	const horizontalBounds = await readBarBounds();
+	const horizontalCounterBounds = await counter.boundingBox();
+	expect(horizontalCounterBounds.y + horizontalCounterBounds.height + 16).toBeCloseTo(
+		horizontalBounds.y,
+		0,
+	);
+	expect(horizontalCounterBounds.x + horizontalCounterBounds.width).toBeCloseTo(
+		horizontalBounds.x + horizontalBounds.width,
+		0,
+	);
+
+	const horizontalResizeHandle = page.locator("#calibration-bar-bottom-handle");
+	const horizontalResizeHandleBounds = await horizontalResizeHandle.boundingBox();
+	await page.mouse.move(
+		horizontalResizeHandleBounds.x + horizontalResizeHandleBounds.width / 2,
+		horizontalResizeHandleBounds.y + horizontalResizeHandleBounds.height / 2,
+	);
+	await page.mouse.down();
+	await page.mouse.move(
+		horizontalResizeHandleBounds.x + horizontalResizeHandleBounds.width / 2 + 40,
+		horizontalResizeHandleBounds.y + horizontalResizeHandleBounds.height / 2,
+	);
+	await page.mouse.up();
+
+	const horizontalResizedBounds = await readBarBounds();
+	expect(horizontalResizedBounds.width).toBe(100);
+	expect(horizontalResizedBounds.height).toBe(60);
+	expect(horizontalResizedBounds.y).toBe(horizontalBounds.y);
+
+	await rotateButton.click();
+	await expect(calibrationBar).toHaveCSS("width", "60px");
+	await expect(calibrationBar).toHaveCSS("height", "580px");
+
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "Calibrate" }).click();
+	const movementStartBounds = await readBarBounds();
+	const movementStartX = movementStartBounds.x + movementStartBounds.width / 2;
+	const movementStartY = movementStartBounds.y + movementStartBounds.height / 2;
+	await page.mouse.move(movementStartX, movementStartY);
+	await page.mouse.down();
+	await page.mouse.move(movementStartX + 35, movementStartY + 20);
+	await page.mouse.up();
+	const movedBounds = await readBarBounds();
+	expect(movedBounds.x).toBe(movementStartBounds.x + 35);
+	expect(movedBounds.y).toBe(movementStartBounds.y + 20);
+});
+
 test("September 2026 hides Back without moving Calendar or Forward", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
@@ -104,6 +227,39 @@ test("December 2027 hides Forward without moving Back or Calendar", async ({ pag
 	await expect(backButton).toBeVisible();
 	expect(await readPosition(calendarHeading)).toEqual(novemberHeadingPosition);
 	expect(await readPosition(backButton)).toEqual(novemberBackPosition);
+});
+
+test("Back and Home buttons depress on click and glow while held", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+
+	const homeButton = page.locator("#student-edits-screen-home-button");
+	const backButton = page.locator("#student-edits-screen-back-button");
+	await expect(homeButton).toBeVisible();
+	await expect(backButton).toBeVisible();
+
+	const homeBounds = await homeButton.boundingBox();
+	const backBounds = await backButton.boundingBox();
+	await page.mouse.move(homeBounds.x + homeBounds.width / 2, homeBounds.y + homeBounds.height / 2);
+	await page.mouse.down();
+	await expect(homeButton).toHaveClass(/nav-button--held-home/);
+	await expect(homeButton).toHaveCSS("animation-duration", "8s");
+	await expect(homeButton).toHaveCSS("animation-name", /sparkle|glow/i);
+	await page.mouse.up();
+	await expect(page.getByRole("button", { name: "Open parent section" })).toBeVisible();
+
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	const backCenterX = backBounds.x + backBounds.width / 2;
+	const backCenterY = backBounds.y + backBounds.height / 2;
+	await page.mouse.move(backCenterX, backCenterY);
+	await page.mouse.down();
+	await expect(backButton).toHaveClass(/nav-button--held-back/);
+	await expect(backButton).toHaveCSS("animation-duration", "8s");
+	await expect(backButton).toHaveCSS("animation-name", /sparkle|glow/i);
+	await page.mouse.up();
+	await expect(page.getByRole("button", { name: "Student Edits" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Text Editor" })).toBeVisible();
 });
 
 test("Student sidebar includes the full button set", async ({ page }) => {

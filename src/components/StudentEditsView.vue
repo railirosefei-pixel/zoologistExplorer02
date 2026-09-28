@@ -8,7 +8,7 @@ import { computed, ref } from "vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 
-const emit = defineEmits(["open-curriculum-game", "back-to-parent", "go-home"]);
+const emit = defineEmits(["open-curriculum-game", "back-to-parent-menu", "go-home"]);
 const isBlockEditsOpen = ref(false);
 const isBlocksMenuOpen = ref(false);
 const isDescriptionEditsOpen = ref(false);
@@ -271,7 +271,7 @@ function handleBlockEditsCompleteToggle(dateLabel, subjectKey, blockNumber) {
 }
 
 function handleStudentEditsScreenClose() {
-	emit("back-to-parent");
+	emit("back-to-parent-menu");
 }
 
 function handleStudentEditsScreenHome() {
@@ -382,7 +382,7 @@ function handleStudentEditsScreenHome() {
 			<div class="blocks-menu-sidebar-actions student-edits-sidebar-actions">
 				<button
 					id="blocks-screen-home-button"
-					class="blocks-screen-home-button student-edits-screen-home-button"
+					class="blocks-screen-home-button"
 					type="button"
 					name="blocks-screen-home-button"
 					data-button-name="blocks-screen-home-button"
@@ -394,7 +394,7 @@ function handleStudentEditsScreenHome() {
 				</button>
 				<button
 					id="blocks-screen-back-button"
-					class="blocks-screen-back-button student-edits-screen-back-button"
+					class="blocks-screen-back-button"
 					type="button"
 					name="blocks-screen-back-button"
 					data-button-name="blocks-screen-back-button"
@@ -461,7 +461,6 @@ function handleStudentEditsScreenHome() {
 							type="button"
 							name="description-edits-subject-dropdown-button"
 							data-button-name="description-edits-subject-dropdown-button"
-							aria-label="Toggle Subject options"
 							title="Toggle Subject options"
 							:aria-expanded="isDescriptionEditsSubjectOpen"
 							@click="handleDescriptionEditsSubjectToggle"
@@ -502,7 +501,6 @@ function handleStudentEditsScreenHome() {
 							type="button"
 							name="description-edits-block-dropdown-button"
 							data-button-name="description-edits-block-dropdown-button"
-							aria-label="Toggle Block options"
 							title="Toggle Block options"
 							:aria-expanded="isDescriptionEditsBlockOpen"
 							@click="handleDescriptionEditsBlockToggle"
@@ -615,7 +613,6 @@ function handleStudentEditsScreenHome() {
 							type="button"
 							name="description-edits-month-dropdown-button"
 							data-button-name="description-edits-month-dropdown-button"
-							aria-label="Toggle Month options"
 							title="Toggle Month options"
 							:aria-expanded="isDescriptionEditsMonthOpen"
 							@click="handleDescriptionEditsMonthToggle"
@@ -660,7 +657,6 @@ function handleStudentEditsScreenHome() {
 							type="button"
 							name="description-edits-day-dropdown-button"
 							data-button-name="description-edits-day-dropdown-button"
-							aria-label="Toggle Day options"
 							title="Toggle Day options"
 							:aria-expanded="isDescriptionEditsDayOpen"
 							@click="handleDescriptionEditsDayToggle"
@@ -701,7 +697,6 @@ function handleStudentEditsScreenHome() {
 							type="button"
 							name="description-edits-year-dropdown-button"
 							data-button-name="description-edits-year-dropdown-button"
-							aria-label="Toggle Year options"
 							title="Toggle Year options"
 							:aria-expanded="isDescriptionEditsYearOpen"
 							@click="handleDescriptionEditsYearToggle"

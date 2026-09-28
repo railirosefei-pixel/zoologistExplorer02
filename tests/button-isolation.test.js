@@ -267,6 +267,108 @@ test("daily menu block panels include complete controls and confetti effects", (
 	);
 });
 
+test("text editor calibration toggle and navigation gradients match the control sequence", () => {
+	const componentSource = fs.readFileSync(
+		path.join(projectRoot, "src", "components", "ParentView.vue"),
+		"utf8",
+	);
+	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
+
+	assert.match(
+		componentSource,
+		/id="text-editor-calibrate-button"[\s\S]*?@click="toggleCalibrateButton"/,
+		"The text editor should include a dedicated calibrate button with a toggle click handler",
+	);
+	assert.match(
+		componentSource,
+		/v-if="isCalibrationBarVisible"|v-show="isCalibrationBarVisible"/,
+		"The calibration bar should only render when the calibrate button is active",
+	);
+	const expectedButtonGradients = [
+		[
+			"text-editor-print-preview-button",
+			"linear-gradient\\(90deg,\\s*#633b40\\s+0%,\\s*#855256\\s+48%,\\s*#65432f\\s+100%\\)",
+		],
+		[
+			"text-editor-templates-button",
+			"linear-gradient\\(90deg,\\s*#65432f\\s+0%,\\s*#8a5c3d\\s+50%,\\s*#5e542f\\s+100%\\)",
+		],
+		[
+			"text-editor-grid-button",
+			"linear-gradient\\(90deg,\\s*#5e542f\\s+0%,\\s*#81733e\\s+50%,\\s*#344d37\\s+100%\\)",
+		],
+		[
+			"text-editor-fonts-button",
+			"linear-gradient\\(90deg,\\s*#344d37\\s+0%,\\s*#49684d\\s+50%,\\s*#30485f\\s+100%\\)",
+		],
+		[
+			"text-editor-margins-button",
+			"linear-gradient\\(90deg,\\s*#30485f\\s+0%,\\s*#45627b\\s+50%,\\s*#3e3b53\\s+100%\\)",
+		],
+		[
+			"text-editor-calibrate-button",
+			"linear-gradient\\(90deg,\\s*#3e3b53\\s+0%,\\s*#57536f\\s+33\\.333%,\\s*#50384d\\s+66\\.667%,\\s*#704f6b\\s+100%\\)",
+		],
+	];
+	for (const [buttonClass, gradientPattern] of expectedButtonGradients) {
+		assert.match(
+			cssSource,
+			new RegExp(`\\.${buttonClass}\\s*\\{[^}]*background:\\s*${gradientPattern};`, "s"),
+			`${buttonClass} should use its ordered muted rainbow segment`,
+		);
+	}
+	assert.match(
+		cssSource,
+		/\.text-editor-calibrate-button\s*\{[^}]*width:\s*136px;[^}]*height:\s*64px;/s,
+		"The Calibrate button should retain its existing size",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-calibrate-button\.text-editor-button--depressed\s*\{[^}]*filter:\s*brightness\(1\.2\)\s*drop-shadow\(0\s+0\s+12px\s*#704f6b\);/s,
+		"The active Calibrate button should use a muted violet pressed glow",
+	);
+});
+
+test("back and home buttons pin to the upper-right corner of the screen", () => {
+	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
+
+	assert.match(
+		cssSource,
+		/\.blocks-menu-sidebar-actions\s*\{[^}]*display:\s*flex;[^}]*justify-content:\s*center;[^}]*align-items:\s*center;[^}]*gap:\s*16px;[^}]*margin-top:\s*auto;/s,
+		"The Blocks menu action row should sit at the bottom of the sidebar in a centered flex layout",
+	);
+	assert.match(
+		cssSource,
+		/\.parent-screen-back-button,\s*\.parent-screen-back-button-parent,\s*\.student-edits-screen-back-button,\s*\.blocks-screen-back-button,\s*\.curriculum-game-screen-back-button\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;[^}]*right:\s*16px;/s,
+		"Back buttons should sit 16px from the top edge and 16px from the right edge of the screen",
+	);
+	assert.match(
+		cssSource,
+		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.daily-menu-home-button\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;[^}]*right:\s*calc\(6rem\s*\+\s*32px\);/s,
+		"Home buttons should sit 16px from the top edge with a 16px gap to the left edge of the Back button",
+	);
+});
+
+test("blocks menu back and home buttons match the text editor control styling", () => {
+	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
+
+	assert.match(
+		cssSource,
+		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.daily-menu-home-button\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*#246b39\s*0%,\s*#1d5a30\s*33\.333%,\s*#164a27\s*66\.667%,\s*#103a1e\s*100%\);/s,
+		"Blocks and text editor home buttons should share the same green navigation styling",
+	);
+	assert.match(
+		cssSource,
+		/\.blocks-menu-sidebar-actions\s*\.blocks-screen-back-button\s*\{[^}]*border:\s*1px\s+solid\s*#0b2035;[^}]*background:\s*linear-gradient\(180deg,\s*#235b91\s*0%,\s*#1d4c7a\s*33\.333%,\s*#173e64\s*66\.667%,\s*#112f4e\s*100%\);/s,
+		"Blocks back button should match the blue Text Editor back style exactly",
+	);
+	assert.doesNotMatch(
+		cssSource,
+		/\.blocks-menu-sidebar-actions\s*\.blocks-screen-back-button\s*\{[^}]*border:\s*1px\s+solid\s+rgba\(255,\s*248,\s*190,\s*0\.65\);/s,
+		"Blocks back button must not keep the custom golden border when it should match the standard back control",
+	);
+});
+
 test("src/css/input.css and src/js/main.js contain no stale, duplicate, or contradictory app logic", () => {
 	const findings = [];
 	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");

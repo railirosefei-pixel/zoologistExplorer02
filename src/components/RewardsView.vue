@@ -225,18 +225,6 @@ function handleRewardBookAnimationEnded() {
 	}
 }
 
-.rewards-page-back-button {
-	min-height: 2.75rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	border-radius: 0.5rem;
-	background: #282c30;
-	color: #fff7cc;
-	font: inherit;
-	font-weight: 700;
-	cursor: pointer;
-}
-
 .rewards-page-heading {
 	margin: 0;
 	color: #fff7cc;

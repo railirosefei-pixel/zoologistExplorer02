@@ -388,6 +388,33 @@ test("Story is available on weekday daily menus from September 28 onward", async
 	await expect(page.getByRole("heading", { name: "Story" })).toBeVisible();
 });
 
+test("Daily-menu Home stays 16px left of Back and returns home", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+
+	const septemberTwentyEight = page.locator("#calendar-day-cell-September-2026-28");
+	await septemberTwentyEight.click();
+	await page.waitForTimeout(500);
+	await septemberTwentyEight.click();
+
+	const homeButton = page.locator("#daily-menu-home-button");
+	const assertNavigationButtonSpacing = async (backSelector) => {
+		const homeBounds = await homeButton.boundingBox();
+		const backBounds = await page.locator(backSelector).boundingBox();
+		expect(homeBounds.y).toBe(16);
+		expect(backBounds.y).toBe(16);
+		expect(backBounds.x - (homeBounds.x + homeBounds.width)).toBe(16);
+	};
+
+	await expect(homeButton).toBeVisible();
+	await assertNavigationButtonSpacing("#daily-menu-back-button");
+	await page.getByRole("button", { name: "Story" }).click();
+	await assertNavigationButtonSpacing("#daily-menu-story-back-button");
+	await homeButton.click();
+
+	await expect(page.locator("#home-page-shell")).toBeVisible();
+});
+
 test("Story opens the Year tab by default", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
