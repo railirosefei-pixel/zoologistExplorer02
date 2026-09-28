@@ -35,18 +35,32 @@ test("Explorer Positions mode removal and Raili resize behavior are wired as req
 	const studentSource = readSource("src/components/StudentNavigation.vue");
 	assert.match(studentSource, /student-progress-resize-dock/);
 	assert.match(studentSource, /student-progress-resize-button/);
+	assert.match(studentSource, /student-progress-resize-commit-button/);
+	assert.match(studentSource, /handleResizeCommit/);
 	assert.match(studentSource, /student-progress-raili-resize-handle-nw/);
 	assert.match(studentSource, /student-progress-raili-resize-handle-ne/);
 	assert.match(studentSource, /student-progress-raili-resize-handle-sw/);
 	assert.match(studentSource, /student-progress-raili-resize-handle-se/);
-	assert.match(studentSource, /setProperty\("--student-raili-height"/);
+	assert.doesNotMatch(
+		studentSource,
+		/setProperty\("--student-raili-height"/,
+		"Resize must not double-apply height and frame scale; scale is the single source of truth",
+	);
 	assert.match(studentSource, /ze2\.studentProgress\.railiHeightPx/);
+	assert.match(studentSource, /--student-raili-resize-scale/);
 
 	const cssSource = readSource("src/css/input.css");
 	assert.match(cssSource, /\.explorer-positions-button--engaged/);
 	assert.match(cssSource, /width:\s*116px/);
 	assert.match(cssSource, /height:\s*40px/);
 	assert.match(cssSource, /var\(--student-raili-height\)/);
+	assert.match(cssSource, /student-progress-resize-commit-button/);
+	assert.match(cssSource, /--student-raili-resize-scale/);
+	assert.doesNotMatch(
+		cssSource,
+		/\.student-progress-resize-commit-button\s*\{[^}]*scale\(var\(--student-raili-resize-scale/,
+		"The resize Commit button must stay at its default size instead of scaling with the Raili frame",
+	);
 	assert.doesNotMatch(cssSource, /\.explorer-positions-screen/);
 });
 

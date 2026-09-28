@@ -4,41 +4,56 @@
 
 - Whenever a consistency check involving the investigation of stale, unused, duplicate, or contradictory code is run against the program, do not include the "assets" folder in the check. Do not remove the assets directory or anything contained within it
 
-- Goal
+1.) Run the following tests one at a time: 
 
-    - When the Explorer Positions button is active and inside the Progress screen, make it so that when the "Move" button is activated, the container holding the "Move" "Resize", and "Save" buttons is extended to the right just enough to fit a button labeled "Reset". 
+A.) C:\zoologistExplorer02\tests\asset-paths.test.js
 
-        - The "Reset" button, when clicked should stay depressed and glow bright red.  It should only become undepressed upon being clicked a second time 
+B.) C:\zoologistExplorer02\tests\button-isolation.test.js
 
-        - The "Reset" button, when clicked should make 2 more buttons appear above it.  Those buttons will be labeled "XP" and "Level"
+C.) C:\zoologistExplorer02\tests\css-js-integrity.test.js
 
-        - The "Level" button should be 16 pixels above the "Reset" button and the"XP" button should be 16 pixels above the "Level" button
+D.) C:\zoologistExplorer02\tests\explorer-positions-mode.test.js
 
-        - The "Reset" button should have the same size, shape, depth, font style, and font size as the "Move", "Resize", and "Save" buttons do, only the "Reset" button should be bright red.  
-    
-        - The "XP" button should have the same size, shape, depth, font style, and font size as the "Move", "Resize", and "Save" buttons do, only the "XP" button should be bright pink.
+E.) C:\zoologistExplorer02\tests\menu-panel-separation.test.js
 
-        - The "Level" button should have the same size, shape, depth, font style, and font size as the "Move", "Resize", and "Save" buttons do, only the "Level" button should be bright purple.
+F.) C:\zoologistExplorer02\tests\page-container-separation.test.js
 
-        - The "XP" button when clicked, should make 3 more buttons appear, to the right of it.  Those buttons will be labeled "XP Today", "XP 2 Days", "XP Custom"
+G.) C:\zoologistExplorer02\tests\raili-resize-persist.spec.js
 
-            - The "XP Today" button should be a bright golden colored 3D rectangle with shadowing and rounded corners that is 60 pixels wide and 25 pixels high with an identical font style as the "Save", "Move", and "Reset" buttons
+H.) C:\zoologistExplorer02\tests\september-day-gate.spec.js
 
-            - The "XP 2 Days" button should be a bright silver colored 3D rectangle with shadowing and rounded corners that is 60 pixels wide and 25 pixels high with an identical font style as the "Save", "Move", and "Reset" buttons
+I.) C:\zoologistExplorer02\tests\smoke.spec.js
 
-            - The "XP Custom" button should be a bright bronze colored 3D rectangle with shadowing and rounded corners that is 60 pixels wide and 25 pixels high with an identical font style as the "Save", "Move", and "Reset" buttons
+J.) C:\zoologistExplorer02\tests\vue-audit.test.js
 
-                - If the "XP Today" button is clicked, it should reset the XP counter back to the point it was at, after the last time it was modified the day before. This does not include Saturday and Sunday I.E. If this button is clicked on a Monday, then it should reset to the point it was at after the last time it was modified on the previous Friday
+K.) C:\zoologistExplorer02\tests\xp-bar.test.js
 
-                - If the "XP 2 Days" button is clicked, it should reset the XP counter back to the point it was at, after the last time it was modified 2 school days before. This does not include Saturday and Sunday I.E. If this button is clicked on a Monday, then it should reset to the point it was at after the last time it was modified on the previous Thursday
+L.) C:\zoologistExplorer02\tests\xp-level-reset.test.js
 
-                - If the "XP Custom" button is clicked, then a small input text box, which only receives input in the form of numbers and accepts only a maximum of 3 numbers should appear directly to the right of the "XP Custom" button 
+M.) ESLint
 
-                    - If the "XP Custom" button is clicked AND once the user has input a number into the input box AND pressed enter, the input box should disappear and the XP bar should reset back to the last time it was modified going back the amount of weekdays that was represented by the number that the user input.  Ignore weekends.
+N.) Playwright
 
-        - The "Level" button when clicked, should make 3 more buttons appear, to the right of it.  Those buttons will be labeled "Level Today", "Level 2 Days", "Level Custom" 
+Any errors or warnings found post in plan.md starting at line 39
 
-            - The "Level Today", "Level 2 Days", and "Level Custom" buttons should have the same exact effect on the Level as the "XP Today", "XP 2 Days", "XP Custom" have on XP, respectively
+- Validation results recorded in order:
+  - A. asset-paths.test.js: PASS (1/1)
+  - B. button-isolation.test.js: PASS (5/5)
+  - C. css-js-integrity.test.js: PASS (3/3)
+  - D. explorer-positions-mode.test.js: PASS (3/3)
+  - E. menu-panel-separation.test.js: PASS (1/1)
+  - F. page-container-separation.test.js: PASS (1/1)
+  - G. raili-resize-persist.spec.js: FAIL when run via `node --test` with: "Playwright Test did not expect test() to be called here." This file is a Playwright spec and should be run through Playwright, not Node's test runner.
+  - H. september-day-gate.spec.js: FAIL when run via `node --test` with: "Playwright Test did not expect test() to be called here." This file is a Playwright spec and should be run through Playwright, not Node's test runner.
+  - I. smoke.spec.js: FAIL when run via `node --test` with: "Playwright Test did not expect test() to be called here." This file is a Playwright spec and should be run through Playwright, not Node's test runner.
+  - J. vue-audit.test.js: PASS (5/5)
+  - K. xp-bar.test.js: PASS (4/4)
+  - L. xp-level-reset.test.js: PASS (2/2)
+  - M. ESLint: 55 warnings, 0 errors. Warning categories are primarily Vue attribute-order/formatting issues across App.vue, CalendarView.vue, DayCellInteraction.vue, ProgressXpBar.vue, RewardsView.vue, StudentEditsView.vue, and StudentNavigation.vue. 53 warnings are auto-fixable with `eslint --fix`.
+  - N. Playwright: PASS (35 passed in 10.4s via `npx playwright test`).
+
+- Summary: All requested Node-based checks passed individually, the ESLint warnings are non-blocking but should be cleaned up, and the Playwright specs pass only when executed through the project's Playwright runner rather than `node --test`.
+
 
 
             

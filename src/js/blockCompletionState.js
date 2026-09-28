@@ -17,6 +17,7 @@ const state = reactive({
 	/** Permanent level — only ever increases. */
 	level: 0,
 	bonusXp: 0,
+	xpHistory: [],
 });
 
 /**
@@ -86,10 +87,68 @@ function isBlockCompleteForDate(dateLabel, subject, blockNumber) {
 	return key ? Boolean(state.completedBlockKeys[key]) : false;
 }
 
+function recordXpSnapshot() {
+	const today = getTodayInfo();
+	state.xpHistory.push({
+		dateKey: today.key,
+		bonusXp: state.bonusXp,
+		level: state.level,
+	});
+}
+
+function getSchoolDayDateKey(n) {
+	if (!Number.isInteger(n) || n < 1) {
+		return null;
+	}
+
+	const reference = new Date();
+	let schoolDaysBack = 0;
+	const targetDate = new Date(reference);
+
+	while (schoolDaysBack < n) {
+		targetDate.setDate(targetDate.getDate() - 1);
+		const weekday = targetDate.getDay();
+		if (weekday !== 0 && weekday !== 6) {
+			schoolDaysBack += 1;
+		}
+	}
+
+	return toDateKey(targetDate);
+}
+
+function resetXpSchoolDaysBack(n) {
+	const targetKey = getSchoolDayDateKey(n);
+	if (!targetKey) {
+		return false;
+	}
+	const snapshots = [...state.xpHistory].reverse();
+	const snapshot =
+		snapshots.find((entry) => entry.dateKey === targetKey) ??
+		snapshots.find((entry) => entry.dateKey < targetKey) ??
+		{ dateKey: targetKey, bonusXp: 0, level: 0 };
+	state.bonusXp = snapshot.bonusXp;
+	return true;
+}
+
+function resetLevelSchoolDaysBack(n) {
+	const targetKey = getSchoolDayDateKey(n);
+	if (!targetKey) {
+		return false;
+	}
+	const snapshots = [...state.xpHistory].reverse();
+	const snapshot =
+		snapshots.find((entry) => entry.dateKey === targetKey) ??
+		snapshots.find((entry) => entry.dateKey < targetKey) ??
+		{ dateKey: targetKey, bonusXp: 0, level: 0 };
+	state.level = snapshot.level;
+	return true;
+}
+
 function markBlockComplete(dateLabel, subject, blockNumber) {
 	const key = buildBlockKey(dateLabel, subject, blockNumber);
 	if (key) {
 		state.completedBlockKeys[key] = true;
+		recordXpSnapshot();
 	}
 }
 
@@ -97,6 +156,7 @@ function markBlockIncomplete(dateLabel, subject, blockNumber) {
 	const key = buildBlockKey(dateLabel, subject, blockNumber);
 	if (key) {
 		state.completedBlockKeys[key] = false;
+		recordXpSnapshot();
 	}
 }
 
@@ -106,11 +166,15 @@ function addBonusXp(amount) {
 		return;
 	}
 	state.bonusXp += amount;
+	recordXpSnapshot();
 }
 
 export const blockCompletionStore = {
 	state,
 	totalXp,
+	getSchoolDayDateKey,
+	resetXpSchoolDaysBack,
+	resetLevelSchoolDaysBack,
 	isBlockCompleteForDate,
 	markBlockComplete,
 	markBlockIncomplete,

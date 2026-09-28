@@ -15,6 +15,13 @@ const activeStudentMenu = ref("");
 const isResizeModeActive = ref(false);
 const isMoveModeActive = ref(false);
 const isSaveModeActive = ref(false);
+const isResetModeActive = ref(false);
+const isXpResetMenuOpen = ref(false);
+const isLevelResetMenuOpen = ref(false);
+const isXpCustomInputActive = ref(false);
+const isLevelCustomInputActive = ref(false);
+const xpCustomInputValue = ref("");
+const levelCustomInputValue = ref("");
 const railiImageRef = ref(null);
 const railiFrameRef = ref(null);
 const progressMenuBackgroundImage = `url("${progressMenuBackground}")`;
@@ -24,6 +31,7 @@ const RAILI_HEIGHT_STORAGE_KEY = "ze2.studentProgress.railiHeightPx";
 const RAILI_OFFSET_X_STORAGE_KEY = "ze2.studentProgress.railiOffsetXPx";
 const RAILI_OFFSET_Y_STORAGE_KEY = "ze2.studentProgress.railiOffsetYPx";
 const RAILI_COMMITTED_POSITIONS_STORAGE_KEY = "ze2.studentProgress.railiCommittedPositions";
+const RAILI_BASE_HEIGHT_PX = 384;
 const saveSlotEngaged = ref({});
 const savedPositions = ref({});
 const committedPositions = ref({});
@@ -69,17 +77,126 @@ function handleSaveToggle() {
 	isSaveModeActive.value = !isSaveModeActive.value;
 }
 
-/** Apply a clamped Raili height and store it in the CSS variable. */
+function collapseResetStack() {
+	isResetModeActive.value = false;
+	isXpResetMenuOpen.value = false;
+	isLevelResetMenuOpen.value = false;
+	isXpCustomInputActive.value = false;
+	isLevelCustomInputActive.value = false;
+	xpCustomInputValue.value = "";
+	levelCustomInputValue.value = "";
+}
+
+/** Reset toggle pipeline boundary. */
+function handleResetToggle() {
+	if (isResetModeActive.value) {
+		collapseResetStack();
+		return;
+	}
+
+	isResetModeActive.value = true;
+	isXpResetMenuOpen.value = false;
+	isLevelResetMenuOpen.value = false;
+	isXpCustomInputActive.value = false;
+	isLevelCustomInputActive.value = false;
+}
+
+function handleXpResetMenuToggle() {
+	if (!isResetModeActive.value) {
+		return;
+	}
+	isXpResetMenuOpen.value = !isXpResetMenuOpen.value;
+	if (isXpResetMenuOpen.value) {
+		isLevelResetMenuOpen.value = false;
+	}
+}
+
+function handleLevelResetMenuToggle() {
+	if (!isResetModeActive.value) {
+		return;
+	}
+	isLevelResetMenuOpen.value = !isLevelResetMenuOpen.value;
+	if (isLevelResetMenuOpen.value) {
+		isXpResetMenuOpen.value = false;
+	}
+}
+
+function handleXpResetToday() {
+	blockCompletionStore.resetXpSchoolDaysBack(1);
+}
+
+function handleXpResetTwoDays() {
+	blockCompletionStore.resetXpSchoolDaysBack(2);
+}
+
+function handleXpResetCustomToggle() {
+	isXpCustomInputActive.value = !isXpCustomInputActive.value;
+}
+
+function handleLevelResetToday() {
+	blockCompletionStore.resetLevelSchoolDaysBack(1);
+}
+
+function handleLevelResetTwoDays() {
+	blockCompletionStore.resetLevelSchoolDaysBack(2);
+}
+
+function handleLevelResetCustomToggle() {
+	isLevelCustomInputActive.value = !isLevelCustomInputActive.value;
+}
+
+function handleXpResetSubmit() {
+	const parsedValue = Number.parseInt(xpCustomInputValue.value, 10);
+	if (!Number.isInteger(parsedValue) || parsedValue < 1 || parsedValue > 999) {
+		return;
+	}
+
+	const resetSucceeded = blockCompletionStore.resetXpSchoolDaysBack(parsedValue);
+	if (resetSucceeded) {
+		isXpResetMenuOpen.value = false;
+		isXpCustomInputActive.value = false;
+		xpCustomInputValue.value = "";
+	}
+}
+
+function handleLevelResetSubmit() {
+	const parsedValue = Number.parseInt(levelCustomInputValue.value, 10);
+	if (!Number.isInteger(parsedValue) || parsedValue < 1 || parsedValue > 999) {
+		return;
+	}
+
+	const resetSucceeded = blockCompletionStore.resetLevelSchoolDaysBack(parsedValue);
+	if (resetSucceeded) {
+		isLevelResetMenuOpen.value = false;
+		isLevelCustomInputActive.value = false;
+		levelCustomInputValue.value = "";
+	}
+}
+
+/** Apply a clamped Raili height as a single frame scale so commit and restore stay symmetric. */
 function applyRailiHeight(heightPx) {
 	const clampedHeight = Math.min(Math.max(heightPx, 96), window.innerHeight * 0.8);
-	railiImageRef.value?.style.setProperty("--student-raili-height", `${clampedHeight}px`);
+	railiFrameRef.value?.style.setProperty(
+		"--student-raili-resize-scale",
+		String(clampedHeight / RAILI_BASE_HEIGHT_PX),
+	);
+}
+
+/** Save the current Raili size as the persisted size for the asset. */
+function handleResizeCommit() {
+	const committedHeight = Math.round(railiImageRef.value?.getBoundingClientRect().height ?? 0);
+	if (!committedHeight) {
+		return;
+	}
+
+	localStorage.setItem(RAILI_HEIGHT_STORAGE_KEY, String(committedHeight));
 }
 
 /** Begin dragging a Raili resize handle. */
 function handleRailiResizeStart(event) {
 	railiDragActive = true;
 	railiDragStartY = event.clientY;
-	railiDragStartHeightPx = railiImageRef.value?.getBoundingClientRect().height ?? 384;
+	railiDragStartHeightPx = railiImageRef.value?.getBoundingClientRect().height ?? RAILI_BASE_HEIGHT_PX;
 	event.currentTarget.setPointerCapture(event.pointerId);
 }
 
@@ -94,14 +211,12 @@ function handleRailiResizeMove(corner, event) {
 	applyRailiHeight(nextHeight);
 }
 
-/** Finish dragging a Raili resize handle and persist the result. */
+/** Finish dragging a Raili resize handle without saving until the resize Commit button is pressed. */
 function handleRailiResizeEnd() {
 	if (!railiDragActive) {
 		return;
 	}
 
-	const persistedHeight = Math.round(railiImageRef.value?.getBoundingClientRect().height ?? 0);
-	localStorage.setItem(RAILI_HEIGHT_STORAGE_KEY, String(persistedHeight));
 	railiDragActive = false;
 }
 
@@ -210,6 +325,7 @@ watch(
 			isResizeModeActive.value = false;
 			isMoveModeActive.value = false;
 			isSaveModeActive.value = false;
+			collapseResetStack();
 		}
 	},
 );
@@ -219,9 +335,14 @@ watch(activeStudentMenu, (menu) => {
 		isResizeModeActive.value = false;
 		isMoveModeActive.value = false;
 		isSaveModeActive.value = false;
+		collapseResetStack();
 		return;
 	}
 
+	const storedHeight = Number.parseFloat(localStorage.getItem(RAILI_HEIGHT_STORAGE_KEY) ?? "");
+	if (Number.isFinite(storedHeight) && storedHeight > 0) {
+		applyRailiHeight(storedHeight);
+	}
 	const storedOffsetX = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_X_STORAGE_KEY) ?? "");
 	const storedOffsetY = Number.parseFloat(localStorage.getItem(RAILI_OFFSET_Y_STORAGE_KEY) ?? "");
 	if (Number.isFinite(storedOffsetX) && Number.isFinite(storedOffsetY)) {
@@ -638,6 +759,21 @@ onMounted(() => {
 				></div>
 			</div>
 			<div
+				v-if="activeStudentMenu === 'progress' && isResizeModeActive"
+				id="student-progress-resize-commit-button"
+				class="student-progress-resize-commit-button"
+				role="button"
+				tabindex="0"
+				name="student-progress-resize-commit-button"
+				data-button-name="student-progress-resize-commit-button"
+				aria-label="Commit Raili size"
+				title="Commit Raili size"
+				@click="handleResizeCommit"
+				@keydown.enter="handleResizeCommit"
+			>
+				Commit
+			</div>
+			<div
 				v-if="activeStudentMenu === 'progress' && explorerPositionsModeActive"
 				id="student-progress-resize-dock"
 				class="student-progress-resize-dock"
@@ -686,6 +822,138 @@ onMounted(() => {
 				>
 					Save
 				</button>
+				<div
+					v-if="explorerPositionsModeActive"
+					id="student-progress-reset-stack"
+					class="student-progress-reset-stack"
+					title="Reset XP and level"
+					data-container-name="student-progress-reset-stack"
+				>
+					<button
+						id="student-progress-reset-button"
+						class="student-progress-reset-button"
+						type="button"
+						name="student-progress-reset-button"
+						data-button-name="student-progress-reset-button"
+						aria-label="Toggle progress reset controls"
+						title="Toggle progress reset controls"
+						:aria-pressed="isResetModeActive"
+						:class="{ 'student-progress-reset-button--engaged': isResetModeActive }"
+						@click="handleResetToggle"
+					>
+						Reset
+					</button>
+
+					<button
+						v-if="isResetModeActive"
+						id="student-progress-reset-level-button"
+						class="student-progress-reset-level-button"
+						type="button"
+						name="student-progress-reset-level-button"
+						data-button-name="student-progress-reset-level-button"
+						aria-label="Toggle level reset menu"
+						title="Toggle level reset menu"
+						:aria-pressed="isLevelResetMenuOpen"
+						@click="handleLevelResetMenuToggle"
+					>
+						Level
+					</button>
+					<div
+						v-if="isLevelResetMenuOpen"
+						id="student-progress-reset-level-menu"
+						class="student-progress-reset-menu student-progress-reset-level-menu"
+					>
+						<button
+							id="student-progress-reset-level-today-button"
+							class="student-progress-reset-level-today-button"
+							type="button"
+							@click="handleLevelResetToday"
+						>
+							Level Today
+						</button>
+						<button
+							id="student-progress-reset-level-two-days-button"
+							class="student-progress-reset-level-two-days-button"
+							type="button"
+							@click="handleLevelResetTwoDays"
+						>
+							Level 2 Days
+						</button>
+						<button
+							id="student-progress-reset-level-custom-button"
+							class="student-progress-reset-level-custom-button"
+							type="button"
+							@click="handleLevelResetCustomToggle"
+						>
+							Level Custom
+						</button>
+						<input
+							v-if="isLevelCustomInputActive"
+							id="student-progress-reset-level-custom-input"
+							class="student-progress-reset-level-custom-input"
+							type="text"
+							inputmode="numeric"
+							maxlength="3"
+							v-model="levelCustomInputValue"
+							@keydown.enter.prevent="handleLevelResetSubmit"
+						/>
+					</div>
+
+					<button
+						v-if="isResetModeActive"
+						id="student-progress-reset-xp-button"
+						class="student-progress-reset-xp-button"
+						type="button"
+						name="student-progress-reset-xp-button"
+						data-button-name="student-progress-reset-xp-button"
+						aria-label="Toggle XP reset menu"
+						title="Toggle XP reset menu"
+						:aria-pressed="isXpResetMenuOpen"
+						@click="handleXpResetMenuToggle"
+					>
+						XP
+					</button>
+					<div
+						v-if="isXpResetMenuOpen"
+						id="student-progress-reset-xp-menu"
+						class="student-progress-reset-menu student-progress-reset-xp-menu"
+					>
+						<button
+							id="student-progress-reset-xp-today-button"
+							class="student-progress-reset-xp-today-button"
+							type="button"
+							@click="handleXpResetToday"
+						>
+							XP Today
+						</button>
+						<button
+							id="student-progress-reset-xp-two-days-button"
+							class="student-progress-reset-xp-two-days-button"
+							type="button"
+							@click="handleXpResetTwoDays"
+						>
+							XP 2 Days
+						</button>
+						<button
+							id="student-progress-reset-xp-custom-button"
+							class="student-progress-reset-xp-custom-button"
+							type="button"
+							@click="handleXpResetCustomToggle"
+						>
+							XP Custom
+						</button>
+						<input
+							v-if="isXpCustomInputActive"
+							id="student-progress-reset-xp-custom-input"
+							class="student-progress-reset-xp-custom-input"
+							type="text"
+							inputmode="numeric"
+							maxlength="3"
+							v-model="xpCustomInputValue"
+							@keydown.enter.prevent="handleXpResetSubmit"
+						/>
+					</div>
+				</div>
 			</div>
 		</aside>
 	</nav>
