@@ -16,6 +16,7 @@ const state = reactive({
 	completedBlockKeys: {},
 	/** Permanent level — only ever increases. */
 	level: 0,
+	bonusXp: 0,
 });
 
 /**
@@ -25,7 +26,8 @@ const state = reactive({
 const totalXp = computed(() =>
 	Math.min(
 		XP_LEVEL_CAP,
-		Object.values(state.completedBlockKeys).filter(Boolean).length * XP_PER_COMPLETED_BLOCK,
+		Object.values(state.completedBlockKeys).filter(Boolean).length * XP_PER_COMPLETED_BLOCK +
+			state.bonusXp,
 	),
 );
 
@@ -98,11 +100,20 @@ function markBlockIncomplete(dateLabel, subject, blockNumber) {
 	}
 }
 
+/** Add XP earned outside of block completion (Explorer Positions test moves). */
+function addBonusXp(amount) {
+	if (!Number.isFinite(amount) || amount <= 0) {
+		return;
+	}
+	state.bonusXp += amount;
+}
+
 export const blockCompletionStore = {
 	state,
 	totalXp,
 	isBlockCompleteForDate,
 	markBlockComplete,
 	markBlockIncomplete,
+	addBonusXp,
 	getTodayInfo,
 };

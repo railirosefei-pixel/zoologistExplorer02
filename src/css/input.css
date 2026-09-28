@@ -1859,6 +1859,314 @@ body {
 		0 0 12px rgba(56, 189, 248, 0.6);
 }
 
+.student-progress-save-button {
+	width: 116px;
+	height: 40px;
+	border: 1px solid rgba(161, 98, 7, 0.6);
+	border-radius: 9999px;
+	background: linear-gradient(180deg, #fef9c3 0%, #fde047 45%, #eab308 100%);
+	color: #3f2700;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.75),
+		inset 0 -4px 0 rgba(161, 98, 7, 0.3),
+		0 6px 0 rgba(133, 77, 14, 0.55),
+		0 10px 14px rgba(15, 23, 42, 0.3);
+	transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.student-progress-save-button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.04);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.8),
+		inset 0 -4px 0 rgba(161, 98, 7, 0.28),
+		0 8px 0 rgba(133, 77, 14, 0.6),
+		0 12px 16px rgba(15, 23, 42, 0.32);
+}
+
+.student-progress-save-button:active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.6),
+		inset 0 -2px 0 rgba(161, 98, 7, 0.25),
+		0 2px 0 rgba(133, 77, 14, 0.55),
+		0 0 12px rgba(250, 204, 21, 0.6);
+}
+
+.student-progress-save-button--engaged {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.6),
+		inset 0 -2px 0 rgba(161, 98, 7, 0.25),
+		0 2px 0 rgba(133, 77, 14, 0.55),
+		0 0 12px rgba(250, 204, 21, 0.6);
+}
+
+.student-progress-save-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 60px);
+	gap: 16px;
+	margin-top: 16px;
+	justify-content: center;
+	width: 100%;
+}
+
+.student-progress-save-1-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-1-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-2-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-2-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-3-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-3-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-4-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-4-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-5-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-5-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-6-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-6-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-7-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-7-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-8-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-8-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-9-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-9-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-10-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-10-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-11-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-11-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-12-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.student-progress-save-12-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-save-13-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #a16207;
+	border-radius: 6px;
+	background: #fde047;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+	grid-column: 2;
+}
+
+.student-progress-save-13-button--engaged {
+	background: #22c55e;
+	color: #000000;
+}
+
+.student-progress-commit-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #14532d;
+	border-radius: 6px;
+	background: #22c55e;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+	grid-column: 3;
+}
+
+.student-progress-test-button {
+	width: 60px;
+	height: 25px;
+	border: 1px solid #7f1d1d;
+	border-radius: 6px;
+	background: #ef4444;
+	color: #000000;
+	font-size: 0.7rem;
+	font-weight: 700;
+	cursor: pointer;
+	grid-column: 2;
+}
+
+.student-progress-test-button:disabled {
+	cursor: default;
+	opacity: 0.55;
+}
+
 .student-progress-raili-frame {
 	position: absolute;
 	bottom: 0;

@@ -77,3 +77,37 @@ test("Move mode button and Raili drag wiring are present", () => {
 		/class="student-progress-resize-button"[^>]*>\s*Move/,
 	);
 });
+
+test("Save/Commit/Test wiring and bonus XP are present in the Student Progress feature", () => {
+	const studentSource = readSource("src/components/StudentNavigation.vue");
+	assert.match(studentSource, /student-progress-save-button/);
+	assert.match(studentSource, /student-progress-save-button--engaged/);
+	assert.match(studentSource, /isSaveModeActive/);
+	assert.match(studentSource, /handleSaveToggle/);
+	assert.match(studentSource, /student-progress-save-grid/);
+	assert.match(studentSource, /student-progress-commit-button/);
+	assert.match(studentSource, /student-progress-test-button/);
+	assert.match(studentSource, /handleSaveSlot/);
+	assert.match(studentSource, /handleCommit/);
+	assert.match(studentSource, /handleTest/);
+	assert.match(studentSource, /ze2\.studentProgress\.railiCommittedPositions/);
+	assert.match(studentSource, /addBonusXp\(20\)/);
+	for (let n = 1; n <= 13; n += 1) {
+		assert.match(studentSource, new RegExp(`student-progress-save-${n}-button`));
+	}
+
+	const cssSource = readSource("src/css/input.css");
+	assert.match(cssSource, /\.student-progress-save-grid\s*\{[^}]*repeat\(3, 60px\)[^}]*gap:\s*16px/s);
+	assert.match(cssSource, /\.student-progress-save-button\s*\{[^}]*width:\s*116px;[^}]*height:\s*40px;/s);
+	assert.match(cssSource, /#fde047/);
+	assert.match(cssSource, /#22c55e/);
+	assert.match(cssSource, /#ef4444/);
+	assert.match(cssSource, /width:\s*60px/);
+	assert.match(cssSource, /height:\s*25px/);
+	assert.match(cssSource, /grid-column:\s*2/);
+	assert.match(cssSource, /grid-column:\s*3/);
+
+	const blockSource = readSource("src/js/blockCompletionState.js");
+	assert.match(blockSource, /bonusXp/);
+	assert.match(blockSource, /addBonusXp/);
+});
