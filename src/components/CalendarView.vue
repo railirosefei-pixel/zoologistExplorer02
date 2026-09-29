@@ -351,10 +351,6 @@ function getExplorerCopy(subject) {
 	);
 }
 function isExplorerCopyActive(subject) {
-	if (!selectedDailyMenuDateLabel.value) {
-		return false;
-	}
-
 	if (!allowedExplorerCopyDates.has(selectedDailyMenuDateLabel.value)) {
 		return false;
 	}
@@ -744,7 +740,6 @@ onBeforeUnmount(() => {
 			v-else
 			id="daily-menu-panel"
 			class="daily-menu-panel"
-			role="region"
 			aria-label="Daily menu"
 			title="Daily menu"
 		>
@@ -987,77 +982,6 @@ onBeforeUnmount(() => {
 						</div>
 					</article>
 					<article
-						v-if="
-							selectedDailyMenuSubject === 'math' && selectedDailyMenuBlock === null
-						"
-						id="daily-menu-math-panel"
-						class="daily-menu-subject-panel daily-menu-math-panel"
-						aria-label="Math subject panel"
-						title="Math subject panel"
-					>
-						<div
-							v-if="isExplorerCopyActive('math')"
-							class="daily-menu-subject-panel-message"
-						>
-							<p
-								v-for="line in getExplorerCopy('math')"
-								:key="line"
-							>
-								<span
-									:class="{
-										'daily-menu-explorer-name':
-											line.startsWith('Explorer Raili'),
-									}"
-								>
-									{{ line }}
-								</span>
-							</p>
-						</div>
-						<div
-							class="daily-menu-subject-tab-list"
-							role="tablist"
-							aria-label="Math block navigation"
-						>
-							<button
-								id="daily-menu-math-block-1-button"
-								class="daily-menu-math-block-1-button"
-								type="button"
-								role="tab"
-								aria-label="Math Block 1"
-								title="Math Block 1"
-								aria-selected="false"
-								@click="handleBlockSelection(1)"
-							>
-								Block 1
-							</button>
-							<button
-								id="daily-menu-math-block-2-button"
-								class="daily-menu-math-block-2-button"
-								type="button"
-								role="tab"
-								aria-label="Math Block 2"
-								title="Math Block 2"
-								aria-selected="false"
-								@click="handleBlockSelection(2)"
-							>
-								Block 2
-							</button>
-							<button
-								id="daily-menu-math-block-3-button"
-								class="daily-menu-math-block-3-button"
-								type="button"
-								role="tab"
-								aria-label="Math Block 3"
-								title="Math Block 3"
-								aria-selected="false"
-								@click="handleBlockSelection(3)"
-							>
-								Block 3
-							</button>
-						</div>
-						<h2>Math</h2>
-					</article>
-					<article
 						v-if="selectedDailyMenuSubject === 'story'"
 						id="daily-menu-story-panel"
 						class="daily-menu-subject-panel daily-menu-story-panel"
@@ -1127,227 +1051,11 @@ onBeforeUnmount(() => {
 							</div>
 						</div>
 					</article>
-					<article
-						v-if="
-							selectedDailyMenuSubject === 'language-arts' &&
-								selectedDailyMenuBlock === null
-						"
-						id="daily-menu-language-arts-panel"
-						class="daily-menu-subject-panel daily-menu-language-arts-panel"
-						aria-label="Language Arts subject panel"
-						title="Language Arts subject panel"
-					>
-						<div
-							v-if="isExplorerCopyActive('language-arts')"
-							class="daily-menu-subject-panel-message"
-						>
-							<p
-								v-for="line in explorerCopyBySubject['language-arts']"
-								:key="line"
-							>
-								<span
-									:class="{
-										'daily-menu-explorer-name':
-											line.startsWith('Explorer Raili'),
-									}"
-								>
-									{{ line }}
-								</span>
-							</p>
-						</div>
-						<div
-							class="daily-menu-subject-tab-list"
-							role="tablist"
-							aria-label="Language Arts block navigation"
-						>
-							<button
-								id="daily-menu-language-arts-block-1-button"
-								class="daily-menu-language-arts-block-1-button"
-								type="button"
-								role="tab"
-								aria-label="Language Arts Block 1"
-								title="Language Arts Block 1"
-								aria-selected="false"
-								@click="handleBlockSelection(1)"
-							>
-								Block 1
-							</button>
-							<button
-								id="daily-menu-language-arts-block-2-button"
-								class="daily-menu-language-arts-block-2-button"
-								type="button"
-								role="tab"
-								aria-label="Language Arts Block 2"
-								title="Language Arts Block 2"
-								aria-selected="false"
-								@click="handleBlockSelection(2)"
-							>
-								Block 2
-							</button>
-							<button
-								id="daily-menu-language-arts-block-3-button"
-								class="daily-menu-language-arts-block-3-button"
-								type="button"
-								role="tab"
-								aria-label="Language Arts Block 3"
-								title="Language Arts Block 3"
-								aria-selected="false"
-								@click="handleBlockSelection(3)"
-							>
-								Block 3
-							</button>
-						</div>
-						<h2>Language Arts</h2>
-					</article>
-					<article
-						v-if="
-							selectedDailyMenuSubject === 'social-studies' &&
-								selectedDailyMenuBlock === null
-						"
-						id="daily-menu-social-studies-panel"
-						class="daily-menu-subject-panel daily-menu-social-studies-panel"
-						aria-label="Social Studies subject panel"
-						title="Social Studies subject panel"
-					>
-						<div
-							v-if="isExplorerCopyActive('social-studies')"
-							class="daily-menu-subject-panel-message"
-						>
-							<p
-								v-for="line in explorerCopyBySubject['social-studies']"
-								:key="line"
-							>
-								<span
-									:class="{
-										'daily-menu-explorer-name':
-											line.startsWith('Explorer Raili'),
-									}"
-								>
-									{{ line }}
-								</span>
-							</p>
-						</div>
-						<div
-							class="daily-menu-subject-tab-list"
-							role="tablist"
-							aria-label="Social Studies block navigation"
-						>
-							<button
-								id="daily-menu-social-studies-block-1-button"
-								class="daily-menu-social-studies-block-1-button"
-								type="button"
-								role="tab"
-								aria-label="Social Studies Block 1"
-								title="Social Studies Block 1"
-								aria-selected="false"
-								@click="handleBlockSelection(1)"
-							>
-								Block 1
-							</button>
-							<button
-								id="daily-menu-social-studies-block-2-button"
-								class="daily-menu-social-studies-block-2-button"
-								type="button"
-								role="tab"
-								aria-label="Social Studies Block 2"
-								title="Social Studies Block 2"
-								aria-selected="false"
-								@click="handleBlockSelection(2)"
-							>
-								Block 2
-							</button>
-							<button
-								id="daily-menu-social-studies-block-3-button"
-								class="daily-menu-social-studies-block-3-button"
-								type="button"
-								role="tab"
-								aria-label="Social Studies Block 3"
-								title="Social Studies Block 3"
-								aria-selected="false"
-								@click="handleBlockSelection(3)"
-							>
-								Block 3
-							</button>
-						</div>
-						<h2>Social Studies</h2>
-					</article>
-					<article
-						v-if="
-							selectedDailyMenuSubject === 'science' &&
-								selectedDailyMenuBlock === null
-						"
-						id="daily-menu-science-panel"
-						class="daily-menu-subject-panel daily-menu-science-panel"
-						aria-label="Science subject panel"
-						title="Science subject panel"
-					>
-						<div
-							v-if="isExplorerCopyActive('science')"
-							class="daily-menu-subject-panel-message"
-						>
-							<p
-								v-for="line in explorerCopyBySubject.science"
-								:key="line"
-							>
-								<span
-									:class="{
-										'daily-menu-explorer-name':
-											line.startsWith('Explorer Raili'),
-									}"
-								>
-									{{ line }}
-								</span>
-							</p>
-						</div>
-						<div
-							class="daily-menu-subject-tab-list"
-							role="tablist"
-							aria-label="Science block navigation"
-						>
-							<button
-								id="daily-menu-science-block-1-button"
-								class="daily-menu-science-block-1-button"
-								type="button"
-								role="tab"
-								aria-label="Science Block 1"
-								title="Science Block 1"
-								aria-selected="false"
-								@click="handleBlockSelection(1)"
-							>
-								Block 1
-							</button>
-							<button
-								id="daily-menu-science-block-2-button"
-								class="daily-menu-science-block-2-button"
-								type="button"
-								role="tab"
-								aria-label="Science Block 2"
-								title="Science Block 2"
-								aria-selected="false"
-								@click="handleBlockSelection(2)"
-							>
-								Block 2
-							</button>
-							<button
-								id="daily-menu-science-block-3-button"
-								class="daily-menu-science-block-3-button"
-								type="button"
-								role="tab"
-								aria-label="Science Block 3"
-								title="Science Block 3"
-								aria-selected="false"
-								@click="handleBlockSelection(3)"
-							>
-								Block 3
-							</button>
-						</div>
-						<h2>Science</h2>
-					</article>
+					</div>
 				</div>
-			</div>
-		</section>
-	</div>
-</template>
+			</section>
+		</div>
+	</template>
 
 <style scoped>
 .calendar-panel {

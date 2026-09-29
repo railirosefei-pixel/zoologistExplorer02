@@ -40,6 +40,7 @@ test("Parent Block Edits shows a Monday through Friday weekly panel set", async 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.getByRole("button", { name: "Open Blocks menu" }).click();
 	await page.getByRole("button", { name: "Open Block Edits" }).click();
 
 	const panels = page.locator(".block-edits-panel");
@@ -156,10 +157,12 @@ test("Text Editor calibration bar keeps its width and anchored resize behavior",
 	expect(horizontalResizedBounds.width).toBe(100);
 	expect(horizontalResizedBounds.height).toBe(60);
 	expect(horizontalResizedBounds.y).toBe(horizontalBounds.y);
+	await expect(counter).toHaveText("100 px");
 
 	await rotateButton.click();
 	await expect(calibrationBar).toHaveCSS("width", "60px");
 	await expect(calibrationBar).toHaveCSS("height", "580px");
+	await expect(counter).toHaveText("580 px");
 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
@@ -249,6 +252,7 @@ test("Back and Home buttons depress on click and glow while held", async ({ page
 	await page.mouse.up();
 	await expect(page.getByRole("button", { name: "Open parent section" })).toBeVisible();
 
+	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
 	const backCenterX = backBounds.x + backBounds.width / 2;
 	const backCenterY = backBounds.y + backBounds.height / 2;

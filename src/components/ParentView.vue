@@ -11,6 +11,13 @@ const textEditorButtonStates = ref({
 	margins: false,
 	calibrate: false,
 });
+const isSizePanelOpen = ref(false);
+const isWidthMenuOpen = ref(false);
+const isHeightMenuOpen = ref(false);
+const widthValue = ref("8");
+const heightValue = ref("10");
+const widthUnit = ref("px");
+const heightUnit = ref("px");
 const isCalibrationBarVisible = ref(false);
 const calibrationButtonRef = ref(null);
 const calibrationBarFrameRef = ref(null);
@@ -48,6 +55,50 @@ function handleTextEditorOpen() {
 
 function toggleTextEditorButton(buttonName) {
 	textEditorButtonStates.value[buttonName] = !textEditorButtonStates.value[buttonName];
+}
+
+function toggleSizePanel() {
+	isSizePanelOpen.value = !isSizePanelOpen.value;
+	if (!isSizePanelOpen.value) {
+		isWidthMenuOpen.value = false;
+		isHeightMenuOpen.value = false;
+	}
+}
+
+function toggleUnitMenu(field) {
+	if (field === "width") {
+		isWidthMenuOpen.value = !isWidthMenuOpen.value;
+		isHeightMenuOpen.value = false;
+		return;
+	}
+
+	isHeightMenuOpen.value = !isHeightMenuOpen.value;
+	isWidthMenuOpen.value = false;
+}
+
+function updateUnit(field, unit) {
+	if (field === "width") {
+		widthUnit.value = unit;
+		isWidthMenuOpen.value = false;
+		return;
+	}
+
+	heightUnit.value = unit;
+	isHeightMenuOpen.value = false;
+}
+
+function getDimensionLabel(value, unit) {
+	const amount = Number.parseFloat(value) || 0;
+	if (unit === "px") {
+		return `${amount}px`;
+	}
+	if (unit === "in") {
+		return `${amount}in`;
+	}
+	if (unit === "cm") {
+		return `${amount}cm`;
+	}
+	return `${amount}mm`;
 }
 
 async function toggleCalibrateButton() {
@@ -155,6 +206,7 @@ function handleCalibrationBarPointerUp() {
 	<main
 		id="parent-screen"
 		class="parent-screen"
+		:class="{ 'parent-screen--templates-active': textEditorButtonStates.templates }"
 		role="main"
 		aria-label="Parent screen"
 		title="Parent screen"
@@ -192,6 +244,7 @@ function handleCalibrationBarPointerUp() {
 			v-else
 			id="text-editor-menu"
 			class="text-editor-menu"
+			:class="{ 'text-editor-menu--templates-active': textEditorButtonStates.templates }"
 			role="region"
 			aria-label="Text Editor menu"
 			title="Text Editor menu"
@@ -296,7 +349,7 @@ function handleCalibrationBarPointerUp() {
 					name="text-editor-template-pre-made-button"
 					data-button-name="text-editor-template-pre-made-button"
 				>
-					Pre-Made
+					Pre-made
 				</button>
 				<button
 					id="text-editor-template-custom-button"
@@ -307,6 +360,174 @@ function handleCalibrationBarPointerUp() {
 				>
 					Custom
 				</button>
+				<div class="text-editor-size-action-row">
+					<button
+						id="text-editor-size-button"
+						class="text-editor-size-button"
+						:class="{ 'text-editor-size-button--depressed': isSizePanelOpen }"
+						type="button"
+						name="text-editor-size-button"
+						data-button-name="text-editor-size-button"
+						:aria-pressed="isSizePanelOpen"
+						@click="toggleSizePanel"
+					>
+						Size
+					</button>
+					<div
+						v-if="isSizePanelOpen"
+						id="text-editor-size-panel"
+						class="text-editor-size-panel"
+						aria-label="Size options"
+					>
+													<div class="text-editor-size-row">
+								<label class="text-editor-size-label" for="text-editor-size-width">Width</label>
+								<input
+									id="text-editor-size-width"
+									v-model="widthValue"
+									class="text-editor-size-input"
+									type="text"
+									inputmode="decimal"
+									maxlength="4"
+									aria-label="Width value"
+								/>
+								<div class="text-editor-size-unit-field">
+									<button
+										id="text-editor-size-width-unit"
+										class="text-editor-size-width-unit-button"
+										type="button"
+										name="text-editor-size-width-unit"
+										data-button-name="text-editor-size-width-unit"
+										aria-label="Width unit"
+										title="Width unit"
+										@click="toggleUnitMenu('width')"
+									>
+										{{ widthUnit }}
+									</button>
+									<div
+										v-if="isWidthMenuOpen"
+										id="text-editor-size-width-menu"
+										class="text-editor-size-unit-menu"
+									>
+										<button
+											id="text-editor-size-width-px-option"
+											class="text-editor-size-width-px-option"
+											type="button"
+											name="text-editor-size-width-px-option"
+											data-button-name="text-editor-size-width-px-option"
+											@click="updateUnit('width', 'px')"
+										>
+											px
+										</button>
+										<button
+											id="text-editor-size-width-in-option"
+											class="text-editor-size-width-in-option"
+											type="button"
+											name="text-editor-size-width-in-option"
+											data-button-name="text-editor-size-width-in-option"
+											@click="updateUnit('width', 'in')"
+										>
+											in
+										</button>
+										<button
+											id="text-editor-size-width-cm-option"
+											class="text-editor-size-width-cm-option"
+											type="button"
+											name="text-editor-size-width-cm-option"
+											data-button-name="text-editor-size-width-cm-option"
+											@click="updateUnit('width', 'cm')"
+										>
+											cm
+										</button>
+										<button
+											id="text-editor-size-width-mm-option"
+											class="text-editor-size-width-mm-option"
+											type="button"
+											name="text-editor-size-width-mm-option"
+											data-button-name="text-editor-size-width-mm-option"
+											@click="updateUnit('width', 'mm')"
+										>
+											mm
+										</button>
+									</div>
+								</div>
+							</div>
+							<div class="text-editor-size-row">
+								<label class="text-editor-size-label" for="text-editor-size-height">Height</label>
+								<input
+									id="text-editor-size-height"
+									v-model="heightValue"
+									class="text-editor-size-input"
+									type="text"
+									inputmode="decimal"
+									maxlength="4"
+									aria-label="Height value"
+								/>
+								<div class="text-editor-size-unit-field">
+									<button
+										id="text-editor-size-height-unit"
+										class="text-editor-size-height-unit-button"
+										type="button"
+										name="text-editor-size-height-unit"
+										data-button-name="text-editor-size-height-unit"
+										aria-label="Height unit"
+										title="Height unit"
+										@click="toggleUnitMenu('height')"
+									>
+										{{ heightUnit }}
+									</button>
+									<div
+										v-if="isHeightMenuOpen"
+										id="text-editor-size-height-menu"
+										class="text-editor-size-unit-menu"
+									>
+										<button
+											id="text-editor-size-height-px-option"
+											class="text-editor-size-height-px-option"
+											type="button"
+											name="text-editor-size-height-px-option"
+											data-button-name="text-editor-size-height-px-option"
+											@click="updateUnit('height', 'px')"
+										>
+											px
+										</button>
+										<button
+											id="text-editor-size-height-in-option"
+											class="text-editor-size-height-in-option"
+											type="button"
+											name="text-editor-size-height-in-option"
+											data-button-name="text-editor-size-height-in-option"
+											@click="updateUnit('height', 'in')"
+										>
+											in
+										</button>
+										<button
+											id="text-editor-size-height-cm-option"
+											class="text-editor-size-height-cm-option"
+											type="button"
+											name="text-editor-size-height-cm-option"
+											data-button-name="text-editor-size-height-cm-option"
+											@click="updateUnit('height', 'cm')"
+										>
+											cm
+										</button>
+										<button
+											id="text-editor-size-height-mm-option"
+											class="text-editor-size-height-mm-option"
+											type="button"
+											name="text-editor-size-height-mm-option"
+											data-button-name="text-editor-size-height-mm-option"
+											@click="updateUnit('height', 'mm')"
+										>
+											mm
+										</button>
+									</div>
+								</div>
+							</div>
+<p class="text-editor-size-summary">
+							{{ getDimensionLabel(widthValue, widthUnit) }} × {{ getDimensionLabel(heightValue, heightUnit) }}
+						</p>
+					</div>
+				</div>
 			</section>
 			<div
 				v-if="isCalibrationBarVisible"
@@ -354,7 +575,7 @@ function handleCalibrationBarPointerUp() {
 					class="calibration-bar-height-counter"
 					aria-live="polite"
 				>
-					{{ Math.round(calibrationBarHeightPx) }} px
+					{{ Math.round(isCalibrationBarHorizontal ? calibrationBarWidthPx : calibrationBarHeightPx) }} px
 				</p>
 			</div>
 		</section>

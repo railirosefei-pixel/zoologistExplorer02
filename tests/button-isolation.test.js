@@ -267,6 +267,45 @@ test("daily menu block panels include complete controls and confetti effects", (
 	);
 });
 
+test("text editor size control and template panel are implemented as specified", () => {
+	const componentSource = fs.readFileSync(
+		path.join(projectRoot, "src", "components", "ParentView.vue"),
+		"utf8",
+	);
+	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
+
+	assert.match(
+		componentSource,
+		/id="text-editor-size-button"[\s\S]*?@click="toggleSizePanel"/,
+		"The Templates panel should include a dedicated Size button with a toggle click handler",
+	);
+	assert.match(
+		componentSource,
+		/v-if="isSizePanelOpen"[\s\S]*?id="text-editor-size-panel"/,
+		"The Size panel should render only when the Size button is active",
+	);
+	assert.match(
+		componentSource,
+		/id="text-editor-size-width"[\s\S]*?id="text-editor-size-width-unit"[\s\S]*?id="text-editor-size-height"[\s\S]*?id="text-editor-size-height-unit"/,
+		"Width and Height controls should both include numeric entry and unit selects",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-size-button\s*\{[^}]*width:\s*144px;[^}]*height:\s*60px;[^}]*background:\s*linear-gradient\(180deg,\s*#7ea980\s*0%,\s*#6b9d73\s*100%\);/s,
+		"The Size button should match the requested green two-tone gradient and fixed dimensions",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-size-button\.text-editor-size-button--depressed\s*\{[^}]*filter:\s*brightness\(1\.5\)\s*drop-shadow\(0\s+0\s+16px\s*rgba\(68,\s*232,\s*117,\s*0\.95\)\);/s,
+		"The active Size button should glow bright green when depressed",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-size-panel\s*\{[^}]*height:\s*176px;[^}]*overflow:\s*hidden;[^}]*padding:\s*12px\s*8px;[^}]*gap:\s*8px;/s,
+		"The Size panel should pop out from under the button with the required height and layout",
+	);
+});
+
 test("text editor calibration toggle and navigation gradients match the control sequence", () => {
 	const componentSource = fs.readFileSync(
 		path.join(projectRoot, "src", "components", "ParentView.vue"),
@@ -344,7 +383,7 @@ test("back and home buttons pin to the upper-right corner of the screen", () => 
 	);
 	assert.match(
 		cssSource,
-		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.daily-menu-home-button\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;[^}]*right:\s*calc\(6rem\s*\+\s*32px\);/s,
+		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.student-progress-home-button,\s*\.daily-menu-home-button\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;[^}]*right:\s*calc\(6rem\s*\+\s*32px\);/s,
 		"Home buttons should sit 16px from the top edge with a 16px gap to the left edge of the Back button",
 	);
 });
@@ -354,7 +393,7 @@ test("blocks menu back and home buttons match the text editor control styling", 
 
 	assert.match(
 		cssSource,
-		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.daily-menu-home-button\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*#246b39\s*0%,\s*#1d5a30\s*33\.333%,\s*#164a27\s*66\.667%,\s*#103a1e\s*100%\);/s,
+		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.student-progress-home-button,\s*\.daily-menu-home-button\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*#246b39\s*0%,\s*#1d5a30\s*33\.333%,\s*#164a27\s*66\.667%,\s*#103a1e\s*100%\);/s,
 		"Blocks and text editor home buttons should share the same green navigation styling",
 	);
 	assert.match(
