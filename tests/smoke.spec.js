@@ -126,9 +126,26 @@ test("Text Editor calibration bar keeps its width and anchored resize behavior",
 	expect(topResizedBounds.y).toBe(initialBounds.y - 40);
 	expect(topResizedBounds.height).toBe(580);
 
+	const preRotateBounds = await readBarBounds();
+	const repositionDeltaX = 40 - preRotateBounds.x;
+	await page.mouse.move(
+		preRotateBounds.x + preRotateBounds.width / 2,
+		preRotateBounds.y + preRotateBounds.height / 2,
+	);
+	await page.mouse.down();
+	await page.mouse.move(
+		preRotateBounds.x + preRotateBounds.width / 2 + repositionDeltaX,
+		preRotateBounds.y + preRotateBounds.height / 2,
+	);
+	await page.mouse.up();
+	const repositionedBounds = await readBarBounds();
+	expect(repositionedBounds.x).toBe(40);
+	expect(repositionedBounds.y).toBe(preRotateBounds.y);
+
 	await rotateButton.click();
 	await expect(calibrationBar).toHaveCSS("height", "60px");
-	await expect(calibrationBar).toHaveCSS("width", "60px");
+	await expect(calibrationBar).toHaveCSS("width", "580px");
+	await expect(counter).toHaveText("580 px");
 	const horizontalBounds = await readBarBounds();
 	const horizontalCounterBounds = await counter.boundingBox();
 	expect(horizontalCounterBounds.y + horizontalCounterBounds.height + 16).toBeCloseTo(
@@ -154,21 +171,29 @@ test("Text Editor calibration bar keeps its width and anchored resize behavior",
 	await page.mouse.up();
 
 	const horizontalResizedBounds = await readBarBounds();
-	expect(horizontalResizedBounds.width).toBe(100);
+	expect(horizontalResizedBounds.width).toBe(620);
 	expect(horizontalResizedBounds.height).toBe(60);
 	expect(horizontalResizedBounds.y).toBe(horizontalBounds.y);
-	await expect(counter).toHaveText("100 px");
+	await expect(counter).toHaveText("620 px");
 
 	await rotateButton.click();
 	await expect(calibrationBar).toHaveCSS("width", "60px");
-	await expect(calibrationBar).toHaveCSS("height", "580px");
-	await expect(counter).toHaveText("580 px");
+	await expect(calibrationBar).toHaveCSS("height", "620px");
+	await expect(counter).toHaveText("620 px");
+
+	await calibrateButton.click();
+	await expect(calibrationBar).toHaveCount(0);
+	await calibrateButton.click();
+	await expect(counter).toHaveText("620 px");
+	await expect(calibrationBar).toHaveCSS("height", "620px");
 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
 	await page.getByRole("button", { name: "Calibrate" }).click();
+	await expect(counter).toHaveText("620 px");
 	const movementStartBounds = await readBarBounds();
+	expect(movementStartBounds.height).toBe(620);
 	const movementStartX = movementStartBounds.x + movementStartBounds.width / 2;
 	const movementStartY = movementStartBounds.y + movementStartBounds.height / 2;
 	await page.mouse.move(movementStartX, movementStartY);
@@ -178,6 +203,62 @@ test("Text Editor calibration bar keeps its width and anchored resize behavior",
 	const movedBounds = await readBarBounds();
 	expect(movedBounds.x).toBe(movementStartBounds.x + 35);
 	expect(movedBounds.y).toBe(movementStartBounds.y + 20);
+});
+
+test("Text Editor calibration bar converts pixels to calibrated ruler units", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "Calibrate" }).click();
+
+	const counter = page.locator("#calibration-bar-height-counter");
+	const realLengthInput = page.locator("#calibration-real-length-input");
+	const unitSelect = page.locator("#calibration-unit-select");
+	const commitButton = page.locator("#calibration-commit-button");
+
+	await expect(counter).toHaveText("500 px");
+	await realLengthInput.fill("10");
+	await unitSelect.selectOption("cm");
+	await commitButton.click();
+	await expect(counter).toContainText("10.00 cm");
+	await expect(counter).toContainText("500 px");
+
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "Calibrate" }).click();
+	await expect(counter).toContainText("10.00 cm");
+});
+
+test("Print Preview renders the paper template at the Size menu dimensions", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "Templates" }).click();
+	await page.getByRole("button", { name: "Editing Tools" }).click();
+	await page.getByRole("button", { name: "Size" }).click();
+
+	await page.locator("#text-editor-size-width").fill("100");
+	await page.locator("#text-editor-size-height").fill("50");
+	await page.getByRole("button", { name: "Print Preview" }).click();
+
+	const paper = page.locator("#print-preview-paper");
+	const paperBounds = await paper.boundingBox();
+	expect(paperBounds.width).toBe(100);
+	expect(paperBounds.height).toBe(50);
+
+	await page.locator("#text-editor-size-width-unit").click();
+	await page.locator("#text-editor-size-width-in-option").click();
+	await page.locator("#text-editor-size-height-unit").click();
+	await page.locator("#text-editor-size-height-in-option").click();
+	await page.locator("#text-editor-size-width").fill("8");
+	await page.locator("#text-editor-size-height").fill("10");
+
+	const sizeLabel = page.locator("#print-preview-paper-size-label");
+	await expect(sizeLabel).toHaveText("8in × 10in");
+	const inchBounds = await paper.boundingBox();
+	expect(inchBounds.width).toBeCloseTo(537.6, 0);
+	expect(inchBounds.height).toBeCloseTo(672, 0);
 });
 
 test("September 2026 hides Back without moving Calendar or Forward", async ({ page }) => {

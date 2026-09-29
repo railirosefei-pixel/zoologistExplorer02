@@ -1433,7 +1433,7 @@ body {
 	box-shadow: -8px 0 16px rgba(0, 0, 0, 0.35);
 }
 
-.text-editor-template-pre-made-button {
+.text-editor-template-saved-templates-button {
 	width: 100%;
 	min-height: 56px;
 	border: 1px solid #171717;
@@ -1451,7 +1451,11 @@ body {
 		0 8px 10px rgba(0, 0, 0, 0.48);
 }
 
-.text-editor-template-custom-button {
+.text-editor-template-new-button,
+.text-editor-editing-tools-button,
+.text-editor-size-menu-button,
+.text-editor-fonts-button,
+.text-editor-margins-button {
 	width: 100%;
 	min-height: 56px;
 	border: 1px solid #171717;
@@ -1467,6 +1471,35 @@ body {
 		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
 		0 4px 0 #111,
 		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-size-menu-button,
+.text-editor-fonts-button {
+	width: 50%;
+	height: 56px;
+	min-height: 56px;
+	padding: 0;
+}
+
+.text-editor-margins-button {
+	width: 50%;
+	height: 56px;
+	min-height: 56px;
+	padding: 0;
+	margin-top: 16px;
+}
+
+.text-editor-size-menu-top-row {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+}
+
+.text-editor-editing-tools-button.text-editor-editing-tools-button--depressed,
+.text-editor-size-menu-button.text-editor-size-menu-button--depressed {
+	transform: translateY(4px);
+	filter: brightness(1.5);
 }
 
 .text-editor-size-action-row {
@@ -1477,38 +1510,23 @@ body {
 	width: 100%;
 }
 
-.text-editor-size-button {
-	width: 144px;
-	height: 60px;
-	padding: 0;
-	border: 1px solid #5b7b5f;
-	border-radius: 10px;
-	background: linear-gradient(180deg, #7ea980 0%, #6b9d73 100%);
-	color: #102115;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.45),
-		inset 0 -5px 0 rgba(24, 64, 35, 0.2),
-		0 4px 0 rgba(36, 86, 41, 0.45);
-}
-
-.text-editor-size-button.text-editor-size-button--depressed {
-	transform: translateY(4px);
-	filter: brightness(1.5) drop-shadow(0 0 16px rgba(68, 232, 117, 0.95));
+.text-editor-size-menu-row {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	width: 100%;
+	margin-top: 16px;
 }
 
 .text-editor-size-panel {
 	position: absolute;
-	top: calc(100% + 6px);
+	top: calc(100% + 8px);
 	left: 0;
 	display: flex;
 	flex-direction: column;
 	width: 304px;
-	height: 176px;
-	overflow: visible;
+	overflow: hidden;
 	padding: 12px 8px;
 	gap: 8px;
 	border: 1px solid rgba(154, 255, 178, 0.75);
@@ -1539,6 +1557,11 @@ body {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.text-editor-size-width-unit-field,
+.text-editor-size-height-unit-field {
+	position: relative;
 }
 
 .text-editor-size-input {
@@ -1577,7 +1600,7 @@ body {
 .text-editor-size-unit-menu {
 	position: absolute;
 	top: 0;
-	left: calc(100% + 2px);
+	left: calc(100% + 8px);
 	display: flex;
 	flex-direction: row;
 	align-items: stretch;
@@ -1588,6 +1611,12 @@ body {
 	background: #dff7e5;
 	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
 	z-index: 10;
+}
+
+.text-editor-size-width-menu,
+.text-editor-size-height-menu {
+	top: 0;
+	left: calc(100% + 8px);
 }
 
 .text-editor-size-width-px-option,
@@ -1606,14 +1635,6 @@ body {
 	font-size: 0.75rem;
 	font-weight: 700;
 	cursor: pointer;
-}
-
-.text-editor-size-summary {
-	margin: 0;
-	color: #dbf8e0;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.72rem;
-	font-weight: 700;
 }
 
 .text-editor-navigation-bar {
@@ -1748,6 +1769,103 @@ body {
 	transform: translateY(-50%);
 }
 
+.calibration-bar-px-counter {
+	display: block;
+	margin-top: 4px;
+	font-size: 0.8rem;
+	font-weight: 400;
+	opacity: 0.8;
+}
+
+.calibration-panel {
+	position: fixed;
+	top: 134px;
+	left: 344px;
+	z-index: 120;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border: 2px solid #8a5a00;
+	border-radius: 8px;
+	background: #2e1647;
+	box-sizing: border-box;
+}
+
+.calibration-panel-label {
+	color: #fff7cc;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.85rem;
+	white-space: nowrap;
+}
+
+.calibration-panel-input {
+	width: 64px;
+	padding: 4px 6px;
+	border: 2px solid #8a5a00;
+	border-radius: 4px;
+	background: #fff7cc;
+	color: #4a3000;
+	font-size: 0.9rem;
+	box-sizing: border-box;
+}
+
+.calibration-panel-unit-select {
+	padding: 4px;
+	border: 2px solid #8a5a00;
+	border-radius: 4px;
+	background: #fff7cc;
+	color: #4a3000;
+	font-size: 0.9rem;
+}
+
+.calibration-panel-commit-button {
+	padding: 4px 12px;
+	border: 2px solid #8a5a00;
+	border-radius: 4px;
+	background: #f5c542;
+	color: #4a3000;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.85rem;
+	cursor: pointer;
+}
+
+.print-preview-paper-viewport {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: auto;
+	box-sizing: border-box;
+}
+
+.print-preview-paper {
+	flex-shrink: 0;
+	position: relative;
+	background: #ffffff;
+	box-shadow: 0 4px 18px rgb(0 0 0 / 0.45);
+	transform-origin: center center;
+	box-sizing: border-box;
+}
+
+.print-preview-paper-size-label {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	margin: 0;
+	padding: 4px 8px;
+	border-radius: 4px;
+	background: rgb(46 22 71 / 0.85);
+	color: #fff7cc;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	white-space: nowrap;
+}
+
 .text-editor-templates-button {
 	width: 136px;
 	height: 64px;
@@ -1808,46 +1926,6 @@ body {
 		0 8px 10px rgba(0, 0, 0, 0.48);
 }
 
-.text-editor-fonts-button {
-	width: 136px;
-	height: 64px;
-	flex: 0 0 136px;
-	padding: 0;
-	border: 1px solid #344d37;
-	border-radius: 999px;
-	background: linear-gradient(90deg, #344d37 0%, #49684d 50%, #30485f 100%);
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #344d37,
-		0 8px 10px rgba(0, 0, 0, 0.48);
-}
-
-.text-editor-margins-button {
-	width: 136px;
-	height: 64px;
-	flex: 0 0 136px;
-	padding: 0;
-	border: 1px solid #30485f;
-	border-radius: 999px;
-	background: linear-gradient(90deg, #30485f 0%, #45627b 50%, #3e3b53 100%);
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #30485f,
-		0 8px 10px rgba(0, 0, 0, 0.48);
-}
-
 .text-editor-calibrate-button {
 	width: 136px;
 	height: 64px;
@@ -1871,8 +1949,6 @@ body {
 .text-editor-templates-button.text-editor-button--depressed,
 .text-editor-print-preview-button.text-editor-button--depressed,
 .text-editor-grid-button.text-editor-button--depressed,
-.text-editor-fonts-button.text-editor-button--depressed,
-.text-editor-margins-button.text-editor-button--depressed,
 .text-editor-calibrate-button.text-editor-button--depressed {
 	transform: translateY(4px);
 }
@@ -1887,14 +1963,6 @@ body {
 
 .text-editor-grid-button.text-editor-button--depressed {
 	filter: brightness(1.25) drop-shadow(0 0 10px #81733e);
-}
-
-.text-editor-fonts-button.text-editor-button--depressed {
-	filter: brightness(1.25) drop-shadow(0 0 10px #49684d);
-}
-
-.text-editor-margins-button.text-editor-button--depressed {
-	filter: brightness(1.25) drop-shadow(0 0 10px #45627b);
 }
 
 .text-editor-calibrate-button.text-editor-button--depressed {

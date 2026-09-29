@@ -1,5 +1,7 @@
 <script setup>
-import { nextTick, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
+
+import { convertToPixels } from "../js/unitConversion.js";
 
 const emit = defineEmits(["open-student-edits", "back-to-home"]);
 const isTextEditorOpen = ref(false);
@@ -7,10 +9,9 @@ const textEditorButtonStates = ref({
 	printPreview: false,
 	templates: false,
 	grid: false,
-	fonts: false,
-	margins: false,
 	calibrate: false,
 });
+const isEditingToolsOpen = ref(false);
 const isSizePanelOpen = ref(false);
 const isWidthMenuOpen = ref(false);
 const isHeightMenuOpen = ref(false);
@@ -18,22 +19,106 @@ const widthValue = ref("8");
 const heightValue = ref("10");
 const widthUnit = ref("px");
 const heightUnit = ref("px");
+const CALIBRATION_STORAGE_KEY = "ze2.textEditor.calibration";
+
+/** Load persisted calibration bar state, or null when unavailable/invalid. */
+function loadCalibrationState() {
+	try {
+		const raw = window.localStorage.getItem(CALIBRATION_STORAGE_KEY);
+		if (!raw) {
+			return null;
+		}
+		const parsed = JSON.parse(raw);
+		return parsed && typeof parsed === "object" ? parsed : null;
+	} catch {
+		return null;
+	}
+}
+
+const savedCalibrationState = loadCalibrationState();
 const isCalibrationBarVisible = ref(false);
 const calibrationButtonRef = ref(null);
 const calibrationBarFrameRef = ref(null);
-const calibrationBarHeightPx = ref(500);
-const calibrationBarWidthPx = ref(60);
-const isCalibrationBarHorizontal = ref(false);
+const calibrationBarLengthPx = ref(
+	Number.isFinite(savedCalibrationState?.lengthPx) && savedCalibrationState.lengthPx > 0
+		? savedCalibrationState.lengthPx
+		: 500,
+);
+const isCalibrationBarHorizontal = ref(savedCalibrationState?.isHorizontal === true);
+const calibrationPixelsPerUnit = ref(
+	Number.isFinite(savedCalibrationState?.pixelsPerUnit) && savedCalibrationState.pixelsPerUnit > 0
+		? savedCalibrationState.pixelsPerUnit
+		: null,
+);
+const calibrationUnit = ref(
+	["in", "cm", "mm"].includes(savedCalibrationState?.unit) ? savedCalibrationState.unit : "in",
+);
+const calibrationDevicePixelRatio = ref(
+	Number.isFinite(savedCalibrationState?.devicePixelRatioAtCalibration)
+		? savedCalibrationState.devicePixelRatioAtCalibration
+		: null,
+);
+const calibrationRealLengthInput = ref("");
 let calibrationBarDragMode = "";
 let calibrationBarDragStartY = 0;
 let calibrationBarDragStartX = 0;
-let calibrationBarDragStartHeightPx = 500;
-let calibrationBarDragStartWidthPx = 60;
+let calibrationBarDragStartLengthPx = calibrationBarLengthPx.value;
 let calibrationBarDragStartTopPx = 40;
 let calibrationBarDragStartLeftPx = 160;
 
+/** Persist the current calibration bar state so it survives reloads. */
+function saveCalibrationState() {
+	try {
+		window.localStorage.setItem(
+			CALIBRATION_STORAGE_KEY,
+			JSON.stringify({
+				lengthPx: calibrationBarLengthPx.value,
+				isHorizontal: isCalibrationBarHorizontal.value,
+				pixelsPerUnit: calibrationPixelsPerUnit.value,
+				unit: calibrationUnit.value,
+				devicePixelRatioAtCalibration: calibrationDevicePixelRatio.value,
+			}),
+		);
+	} catch {
+		// localStorage unavailable; calibration stays session-only.
+	}
+}
+
+/** Push the tracked bar length into the frame's CSS variables so rendering matches state. */
+function applyCalibrationBarSizeToFrame() {
+	const frame = calibrationBarFrameRef.value;
+	if (!frame) {
+		return;
+	}
+	frame.style.setProperty("--calibration-bar-height", `${calibrationBarLengthPx.value}px`);
+	frame.style.setProperty("--calibration-bar-width", `${calibrationBarLengthPx.value}px`);
+}
+
+/** Rotate the bar; the measured length carries across orientations unchanged. */
 function toggleCalibrationBarOrientation() {
 	isCalibrationBarHorizontal.value = !isCalibrationBarHorizontal.value;
+	applyCalibrationBarSizeToFrame();
+	saveCalibrationState();
+}
+
+/** Physical-unit label derived from the stored ruler calibration. */
+const calibratedLengthLabel = computed(() => {
+	if (!calibrationPixelsPerUnit.value) {
+		return "";
+	}
+	const physicalLength = calibrationBarLengthPx.value / calibrationPixelsPerUnit.value;
+	return `${physicalLength.toFixed(2)} ${calibrationUnit.value}`;
+});
+
+/** Derive and store pixels-per-unit from a user-measured real-world bar length. */
+function commitCalibration() {
+	const realLength = Number.parseFloat(calibrationRealLengthInput.value);
+	if (!Number.isFinite(realLength) || realLength <= 0) {
+		return;
+	}
+	calibrationPixelsPerUnit.value = calibrationBarLengthPx.value / realLength;
+	calibrationDevicePixelRatio.value = window.devicePixelRatio || 1;
+	saveCalibrationState();
 }
 
 function handleStudentEditsOpen() {
@@ -55,6 +140,15 @@ function handleTextEditorOpen() {
 
 function toggleTextEditorButton(buttonName) {
 	textEditorButtonStates.value[buttonName] = !textEditorButtonStates.value[buttonName];
+}
+
+function toggleEditingTools() {
+	isEditingToolsOpen.value = !isEditingToolsOpen.value;
+	if (!isEditingToolsOpen.value) {
+		isSizePanelOpen.value = false;
+		isWidthMenuOpen.value = false;
+		isHeightMenuOpen.value = false;
+	}
 }
 
 function toggleSizePanel() {
@@ -101,6 +195,28 @@ function getDimensionLabel(value, unit) {
 	return `${amount}mm`;
 }
 
+/** Paper template dimensions in CSS px, derived from the Size menu entries. */
+const paperWidthPx = computed(() => convertToPixels(widthValue.value, widthUnit.value));
+const paperHeightPx = computed(() => convertToPixels(heightValue.value, heightUnit.value));
+
+/** Scale factor that keeps an oversized paper template visible inside the preview panel. */
+const paperPreviewScale = computed(() => {
+	if (!paperWidthPx.value || !paperHeightPx.value) {
+		return 1;
+	}
+	return Math.min(
+		1,
+		(window.innerWidth - 376) / paperWidthPx.value,
+		(window.innerHeight - 48) / paperHeightPx.value,
+	);
+});
+
+/** True entered dimensions, shown when the paper template is scaled down to fit. */
+const paperDimensionLabel = computed(
+	() =>
+		`${getDimensionLabel(widthValue.value, widthUnit.value)} × ${getDimensionLabel(heightValue.value, heightUnit.value)}`,
+);
+
 async function toggleCalibrateButton() {
 	textEditorButtonStates.value.calibrate = !textEditorButtonStates.value.calibrate;
 	isCalibrationBarVisible.value = textEditorButtonStates.value.calibrate;
@@ -121,6 +237,7 @@ async function toggleCalibrateButton() {
 		"--calibration-bar-left",
 		`${calibrationButtonBounds.left + (calibrationButtonBounds.width - 60) / 2}px`,
 	);
+	applyCalibrationBarSizeToFrame();
 }
 
 /** Begin moving the calibration bar or resizing it from a fixed edge. */
@@ -128,8 +245,7 @@ function handleCalibrationBarPointerDown(mode, event) {
 	calibrationBarDragMode = mode;
 	calibrationBarDragStartY = event.clientY;
 	calibrationBarDragStartX = event.clientX;
-	calibrationBarDragStartHeightPx = calibrationBarHeightPx.value;
-	calibrationBarDragStartWidthPx = calibrationBarWidthPx.value;
+	calibrationBarDragStartLengthPx = calibrationBarLengthPx.value;
 	calibrationBarDragStartTopPx =
 		Number.parseFloat(
 			calibrationBarFrameRef.value?.style.getPropertyValue("--calibration-bar-top") ?? "",
@@ -163,14 +279,13 @@ function handleCalibrationBarPointerMove(event) {
 	}
 
 	if (isCalibrationBarHorizontal.value) {
-		const nextWidth = Math.max(
+		calibrationBarLengthPx.value = Math.max(
 			1,
 			calibrationBarDragMode === "top"
-				? calibrationBarDragStartWidthPx - deltaX
-				: calibrationBarDragStartWidthPx + deltaX,
+				? calibrationBarDragStartLengthPx - deltaX
+				: calibrationBarDragStartLengthPx + deltaX,
 		);
-		calibrationBarWidthPx.value = nextWidth;
-		frame?.style.setProperty("--calibration-bar-width", `${nextWidth}px`);
+		applyCalibrationBarSizeToFrame();
 		if (calibrationBarDragMode === "top") {
 			frame?.style.setProperty(
 				"--calibration-bar-left",
@@ -180,14 +295,13 @@ function handleCalibrationBarPointerMove(event) {
 		return;
 	}
 
-	const nextHeight = Math.max(
+	calibrationBarLengthPx.value = Math.max(
 		1,
 		calibrationBarDragMode === "top"
-			? calibrationBarDragStartHeightPx - deltaY
-			: calibrationBarDragStartHeightPx + deltaY,
+			? calibrationBarDragStartLengthPx - deltaY
+			: calibrationBarDragStartLengthPx + deltaY,
 	);
-	calibrationBarHeightPx.value = nextHeight;
-	frame?.style.setProperty("--calibration-bar-height", `${nextHeight}px`);
+	applyCalibrationBarSizeToFrame();
 	if (calibrationBarDragMode === "top") {
 		frame?.style.setProperty(
 			"--calibration-bar-top",
@@ -198,7 +312,11 @@ function handleCalibrationBarPointerMove(event) {
 
 /** End a calibration bar pointer interaction. */
 function handleCalibrationBarPointerUp() {
+	const wasDragging = calibrationBarDragMode !== "";
 	calibrationBarDragMode = "";
+	if (wasDragging) {
+		saveCalibrationState();
+	}
 }
 </script>
 
@@ -293,30 +411,6 @@ function handleCalibrationBarPointerUp() {
 					Grid
 				</button>
 				<button
-					id="text-editor-fonts-button"
-					class="text-editor-fonts-button"
-					:class="{ 'text-editor-button--depressed': textEditorButtonStates.fonts }"
-					type="button"
-					name="text-editor-fonts-button"
-					data-button-name="text-editor-fonts-button"
-					:aria-pressed="textEditorButtonStates.fonts"
-					@click="toggleTextEditorButton('fonts')"
-				>
-					Fonts
-				</button>
-				<button
-					id="text-editor-margins-button"
-					class="text-editor-margins-button"
-					:class="{ 'text-editor-button--depressed': textEditorButtonStates.margins }"
-					type="button"
-					name="text-editor-margins-button"
-					data-button-name="text-editor-margins-button"
-					:aria-pressed="textEditorButtonStates.margins"
-					@click="toggleTextEditorButton('margins')"
-				>
-					Margins
-				</button>
-				<button
 					id="text-editor-calibrate-button"
 					ref="calibrationButtonRef"
 					class="text-editor-calibrate-button"
@@ -335,7 +429,83 @@ function handleCalibrationBarPointerUp() {
 				id="text-editor-print-preview-panel"
 				class="text-editor-print-preview-panel"
 				aria-label="Print Preview"
-			/>
+			>
+				<div
+					id="print-preview-paper-viewport"
+					class="print-preview-paper-viewport"
+					data-container-name="print-preview-paper-viewport"
+				>
+					<div
+						id="print-preview-paper"
+						class="print-preview-paper"
+						data-element-name="print-preview-paper"
+						:style="{
+							width: `${paperWidthPx}px`,
+							height: `${paperHeightPx}px`,
+							transform: `scale(${paperPreviewScale})`,
+						}"
+					>
+						<p
+							v-if="paperPreviewScale < 1"
+							id="print-preview-paper-size-label"
+							class="print-preview-paper-size-label"
+						>
+							{{ paperDimensionLabel }}
+						</p>
+					</div>
+				</div>
+			</section>
+			<section
+				v-if="textEditorButtonStates.calibrate"
+				id="text-editor-calibration-panel"
+				class="calibration-panel"
+				role="region"
+				aria-label="Calibration settings"
+				title="Calibration settings"
+			>
+				<label class="calibration-panel-label" for="calibration-real-length-input">
+					Real-world bar length
+				</label>
+				<input
+					id="calibration-real-length-input"
+					v-model="calibrationRealLengthInput"
+					class="calibration-panel-input"
+					type="text"
+					inputmode="decimal"
+					maxlength="6"
+					name="calibration-real-length-input"
+					data-element-name="calibration-real-length-input"
+				/>
+				<select
+					id="calibration-unit-select"
+					v-model="calibrationUnit"
+					class="calibration-panel-unit-select"
+					aria-label="Calibration unit"
+					name="calibration-unit-select"
+					data-element-name="calibration-unit-select"
+					@change="saveCalibrationState"
+				>
+					<option value="in">
+						in
+					</option>
+					<option value="cm">
+						cm
+					</option>
+					<option value="mm">
+						mm
+					</option>
+				</select>
+				<button
+					id="calibration-commit-button"
+					class="calibration-panel-commit-button"
+					type="button"
+					name="calibration-commit-button"
+					data-button-name="calibration-commit-button"
+					@click="commitCalibration"
+				>
+					Set
+				</button>
+			</section>
 			<section
 				v-if="textEditorButtonStates.templates"
 				id="text-editor-templates-panel"
@@ -343,42 +513,78 @@ function handleCalibrationBarPointerUp() {
 				aria-label="Template options"
 			>
 				<button
-					id="text-editor-template-pre-made-button"
-					class="text-editor-template-pre-made-button"
+					id="text-editor-template-saved-templates-button"
+					class="text-editor-template-saved-templates-button"
 					type="button"
-					name="text-editor-template-pre-made-button"
-					data-button-name="text-editor-template-pre-made-button"
+					name="text-editor-template-saved-templates-button"
+					data-button-name="text-editor-template-saved-templates-button"
 				>
-					Pre-made
+					Saved Templates
 				</button>
 				<button
-					id="text-editor-template-custom-button"
-					class="text-editor-template-custom-button"
+					id="text-editor-template-new-button"
+					class="text-editor-template-new-button"
 					type="button"
-					name="text-editor-template-custom-button"
-					data-button-name="text-editor-template-custom-button"
+					name="text-editor-template-new-button"
+					data-button-name="text-editor-template-new-button"
 				>
-					Custom
+					New +
 				</button>
 				<div class="text-editor-size-action-row">
 					<button
-						id="text-editor-size-button"
-						class="text-editor-size-button"
-						:class="{ 'text-editor-size-button--depressed': isSizePanelOpen }"
+						id="text-editor-editing-tools-button"
+						class="text-editor-editing-tools-button"
+						:class="{ 'text-editor-editing-tools-button--depressed': isEditingToolsOpen }"
 						type="button"
-						name="text-editor-size-button"
-						data-button-name="text-editor-size-button"
-						:aria-pressed="isSizePanelOpen"
-						@click="toggleSizePanel"
+						name="text-editor-editing-tools-button"
+						data-button-name="text-editor-editing-tools-button"
+						:aria-pressed="isEditingToolsOpen"
+						@click="toggleEditingTools"
 					>
-						Size
+						Editing Tools
 					</button>
 					<div
-						v-if="isSizePanelOpen"
-						id="text-editor-size-panel"
-						class="text-editor-size-panel"
-						aria-label="Size options"
+						v-if="isEditingToolsOpen"
+						class="text-editor-size-menu-row"
 					>
+						<div class="text-editor-size-menu-top-row">
+							<button
+								id="text-editor-size-menu-button"
+								class="text-editor-size-menu-button"
+								:class="{ 'text-editor-size-menu-button--depressed': isSizePanelOpen }"
+								type="button"
+								name="text-editor-size-menu-button"
+								data-button-name="text-editor-size-menu-button"
+								:aria-pressed="isSizePanelOpen"
+								@click="toggleSizePanel"
+							>
+								Size
+							</button>
+							<button
+								id="text-editor-fonts-button"
+								class="text-editor-fonts-button"
+								type="button"
+								name="text-editor-fonts-button"
+								data-button-name="text-editor-fonts-button"
+							>
+								Fonts
+							</button>
+						</div>
+						<button
+							id="text-editor-margins-button"
+							class="text-editor-margins-button"
+							type="button"
+							name="text-editor-margins-button"
+							data-button-name="text-editor-margins-button"
+						>
+							Margins
+						</button>
+						<div
+							v-if="isSizePanelOpen"
+							id="text-editor-size-panel"
+							class="text-editor-size-panel"
+							aria-label="Size options"
+						>
 													<div class="text-editor-size-row">
 								<label class="text-editor-size-label" for="text-editor-size-width">Width</label>
 								<input
@@ -390,7 +596,7 @@ function handleCalibrationBarPointerUp() {
 									maxlength="4"
 									aria-label="Width value"
 								/>
-								<div class="text-editor-size-unit-field">
+								<div class="text-editor-size-unit-field text-editor-size-width-unit-field">
 									<button
 										id="text-editor-size-width-unit"
 										class="text-editor-size-width-unit-button"
@@ -406,7 +612,7 @@ function handleCalibrationBarPointerUp() {
 									<div
 										v-if="isWidthMenuOpen"
 										id="text-editor-size-width-menu"
-										class="text-editor-size-unit-menu"
+										class="text-editor-size-unit-menu text-editor-size-width-menu"
 									>
 										<button
 											id="text-editor-size-width-px-option"
@@ -462,7 +668,7 @@ function handleCalibrationBarPointerUp() {
 									maxlength="4"
 									aria-label="Height value"
 								/>
-								<div class="text-editor-size-unit-field">
+								<div class="text-editor-size-unit-field text-editor-size-height-unit-field">
 									<button
 										id="text-editor-size-height-unit"
 										class="text-editor-size-height-unit-button"
@@ -478,7 +684,7 @@ function handleCalibrationBarPointerUp() {
 									<div
 										v-if="isHeightMenuOpen"
 										id="text-editor-size-height-menu"
-										class="text-editor-size-unit-menu"
+										class="text-editor-size-unit-menu text-editor-size-height-menu"
 									>
 										<button
 											id="text-editor-size-height-px-option"
@@ -523,9 +729,7 @@ function handleCalibrationBarPointerUp() {
 									</div>
 								</div>
 							</div>
-<p class="text-editor-size-summary">
-							{{ getDimensionLabel(widthValue, widthUnit) }} × {{ getDimensionLabel(heightValue, heightUnit) }}
-						</p>
+						</div>
 					</div>
 				</div>
 			</section>
@@ -575,7 +779,15 @@ function handleCalibrationBarPointerUp() {
 					class="calibration-bar-height-counter"
 					aria-live="polite"
 				>
-					{{ Math.round(isCalibrationBarHorizontal ? calibrationBarWidthPx : calibrationBarHeightPx) }} px
+					<template v-if="calibrationPixelsPerUnit">
+						{{ calibratedLengthLabel }}
+						<span class="calibration-bar-px-counter">
+							{{ Math.round(calibrationBarLengthPx) }} px
+						</span>
+					</template>
+					<template v-else>
+						{{ Math.round(calibrationBarLengthPx) }} px
+					</template>
 				</p>
 			</div>
 		</section>

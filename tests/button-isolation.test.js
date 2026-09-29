@@ -276,8 +276,23 @@ test("text editor size control and template panel are implemented as specified",
 
 	assert.match(
 		componentSource,
-		/id="text-editor-size-button"[\s\S]*?@click="toggleSizePanel"/,
-		"The Templates panel should include a dedicated Size button with a toggle click handler",
+		/id="text-editor-template-saved-templates-button"[\s\S]*?>\s*Saved Templates\s*<\/button>/,
+		"The Pre-made button should be relabeled Saved Templates with a matching id",
+	);
+	assert.match(
+		componentSource,
+		/id="text-editor-template-new-button"[\s\S]*?>\s*New \+\s*<\/button>/,
+		"The Custom button should be relabeled New + with a matching id",
+	);
+	assert.match(
+		componentSource,
+		/id="text-editor-editing-tools-button"[\s\S]*?@click="toggleEditingTools"[\s\S]*?>\s*Editing Tools\s*<\/button>/,
+		"The Templates panel should include an Editing Tools button with a toggle click handler",
+	);
+	assert.match(
+		componentSource,
+		/v-if="isEditingToolsOpen"[\s\S]*?id="text-editor-size-menu-button"[\s\S]*?@click="toggleSizePanel"/,
+		"Clicking Editing Tools should reveal a Size button that toggles the size panel",
 	);
 	assert.match(
 		componentSource,
@@ -289,20 +304,35 @@ test("text editor size control and template panel are implemented as specified",
 		/id="text-editor-size-width"[\s\S]*?id="text-editor-size-width-unit"[\s\S]*?id="text-editor-size-height"[\s\S]*?id="text-editor-size-height-unit"/,
 		"Width and Height controls should both include numeric entry and unit selects",
 	);
-	assert.match(
-		cssSource,
-		/\.text-editor-size-button\s*\{[^}]*width:\s*144px;[^}]*height:\s*60px;[^}]*background:\s*linear-gradient\(180deg,\s*#7ea980\s*0%,\s*#6b9d73\s*100%\);/s,
-		"The Size button should match the requested green two-tone gradient and fixed dimensions",
+	assert.doesNotMatch(
+		componentSource,
+		/text-editor-size-summary/,
+		"The dimension summary line should be removed from the Size menu",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-size-button\.text-editor-size-button--depressed\s*\{[^}]*filter:\s*brightness\(1\.5\)\s*drop-shadow\(0\s+0\s+16px\s*rgba\(68,\s*232,\s*117,\s*0\.95\)\);/s,
-		"The active Size button should glow bright green when depressed",
+		/\.text-editor-template-new-button,\s*\.text-editor-editing-tools-button,\s*\.text-editor-size-menu-button\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*56px;[^}]*font-family:\s*"Minecraft2Bold"/s,
+		"The Editing Tools and Size buttons should share the New + button styling",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-size-panel\s*\{[^}]*height:\s*176px;[^}]*overflow:\s*hidden;[^}]*padding:\s*12px\s*8px;[^}]*gap:\s*8px;/s,
-		"The Size panel should pop out from under the button with the required height and layout",
+		/\.text-editor-size-menu-button\s*\{[^}]*width:\s*50%;[^}]*height:\s*56px;[^}]*min-height:\s*56px;/s,
+		"The Size button should be half-width and the same 56px height as Editing Tools",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-editing-tools-button\.text-editor-editing-tools-button--depressed,\s*\.text-editor-size-menu-button\.text-editor-size-menu-button--depressed\s*\{[^}]*filter:\s*brightness\(1\.5\);/s,
+		"Both toggle buttons should share a depressed active state",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-size-panel\s*\{[^}]*overflow:\s*hidden;[^}]*padding:\s*12px\s*8px;[^}]*gap:\s*8px;/s,
+		"The Size panel should pop out from under the Size button with the required layout",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-size-unit-menu\s*\{[^}]*position:\s*absolute;[^}]*top:\s*0;[^}]*left:\s*calc\(100%\s*\+\s*8px\);/s,
+		"The unit dropdown should open to the right of the unit box with an 8px gap",
 	);
 });
 
