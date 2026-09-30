@@ -112,7 +112,11 @@ function attachNavigationButtonState() {
 	});
 
 	document.addEventListener("pointerleave", (event) => {
-		const button = event.target.closest("button");
+		const target = event.target;
+		if (!(target instanceof Element)) {
+			return;
+		}
+		const button = target.closest("button");
 		if (!button) {
 			return;
 		}
@@ -127,7 +131,11 @@ function attachNavigationButtonState() {
 	});
 
 	document.addEventListener("pointercancel", (event) => {
-		const button = event.target.closest("button");
+		const target = event.target;
+		if (!(target instanceof Element)) {
+			return;
+		}
+		const button = target.closest("button");
 		if (!button) {
 			return;
 		}

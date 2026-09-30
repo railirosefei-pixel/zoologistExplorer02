@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, ref, watchEffect } from "vue";
 
+import { addSavedTemplate, buildTemplateEntry, loadSavedTemplates } from "../js/templateStorage.js";
 import { convertToPixels } from "../js/unitConversion.js";
 
 const emit = defineEmits(["open-student-edits", "back-to-home"]);
@@ -15,6 +16,7 @@ const isEditingToolsOpen = ref(false);
 const isSizePanelOpen = ref(false);
 const isWidthMenuOpen = ref(false);
 const isHeightMenuOpen = ref(false);
+const isSavedTemplatesListOpen = ref(false);
 const widthValue = ref("8");
 const heightValue = ref("10");
 const widthUnit = ref("in");
@@ -129,9 +131,118 @@ function handleParentScreenClose() {
 	emit("back-to-home");
 }
 
+/** Insert four spaces for Tab and prevent Enter from moving past the template's final line. */
+function handlePaperEditorKeydown(event) {
+	if (event.key === "Tab") {
+		event.preventDefault();
+		document.execCommand("insertText", false, "    ");
+		return;
+	}
+
+	if (event.key !== "Enter") {
+		return;
+	}
+
+	const editor = printPreviewPaperEditorRef.value;
+	if (!editor) {
+		return;
+	}
+
+	const selection = window.getSelection();
+	if (!selection || selection.rangeCount === 0) {
+		return;
+	}
+
+	const range = selection.getRangeAt(0);
+	const caretRect = range.collapsed ? range.getBoundingClientRect() : range.getClientRects()[0];
+	const editorRect = editor.getBoundingClientRect();
+	const computedStyle = window.getComputedStyle(editor);
+	const lineHeightPx =
+		(caretRect && Number.parseFloat(caretRect.height)) ||
+		Number.parseFloat(computedStyle.lineHeight) ||
+		Number.parseFloat(computedStyle.fontSize) * 1.2 ||
+		20;
+
+	if (!caretRect || (caretRect.top === 0 && caretRect.bottom === 0 && caretRect.height === 0)) {
+		if (editor.scrollHeight > editor.clientHeight + 1) {
+			event.preventDefault();
+		}
+		return;
+	}
+
+	// Hard boundary: Enter is ignored only when one more line would exceed the editor bottom.
+	if (caretRect.bottom + lineHeightPx > editorRect.bottom - 1) {
+		event.preventDefault();
+	}
+}
+
+function handlePaperTemplateSave() {
+	templateNameInput.value = "";
+	isTemplateNamePromptOpen.value = true;
+	nextTick(() => {
+		if (templateNameInputRef.value) {
+			templateNameInputRef.value.focus();
+		}
+	});
+}
+
+function captureCurrentTemplate() {
+	const editor = printPreviewPaperEditorRef.value;
+	if (!editor) {
+		return null;
+	}
+
+	const styles = window.getComputedStyle(editor);
+	return {
+		html: editor.innerHTML,
+		widthValue: widthValue.value,
+		widthUnit: widthUnit.value,
+		heightValue: heightValue.value,
+		heightUnit: heightUnit.value,
+		fontFamily: styles.fontFamily,
+		fontSize: styles.fontSize,
+		fontColor: styles.color,
+		textAlign: styles.textAlign,
+		padding: styles.padding,
+	};
+}
+
+function cancelTemplateSave() {
+	isTemplateNamePromptOpen.value = false;
+	templateNameInput.value = "";
+}
+
+function confirmTemplateSave() {
+	const trimmedName = templateNameInput.value.trim();
+	if (!trimmedName) {
+		return;
+	}
+
+	const snapshot = captureCurrentTemplate();
+	if (!snapshot) {
+		cancelTemplateSave();
+		return;
+	}
+
+	savedTemplates.value = addSavedTemplate(buildTemplateEntry(trimmedName, snapshot));
+	cancelTemplateSave();
+	textEditorButtonStates.value.printPreview = false;
+	handleTextEditorClose();
+}
+
 /** Return from Text Editor to the Parent menu. */
 function handleTextEditorClose() {
 	isTextEditorOpen.value = false;
+	textEditorButtonStates.value.printPreview = false;
+	textEditorButtonStates.value.templates = false;
+	textEditorButtonStates.value.grid = false;
+	textEditorButtonStates.value.calibrate = false;
+	isCalibrationBarVisible.value = false;
+	isSavedTemplatesListOpen.value = false;
+	isEditingToolsOpen.value = false;
+	isSizePanelOpen.value = false;
+	isWidthMenuOpen.value = false;
+	isHeightMenuOpen.value = false;
 }
 
 function handleTextEditorOpen() {
@@ -140,6 +251,63 @@ function handleTextEditorOpen() {
 
 function toggleTextEditorButton(buttonName) {
 	textEditorButtonStates.value[buttonName] = !textEditorButtonStates.value[buttonName];
+	if (buttonName === "printPreview" && textEditorButtonStates.value.printPreview) {
+		nextTick(() => {
+			const paperEditor = printPreviewPaperEditorRef.value;
+			if (!paperEditor) {
+				return;
+			}
+			paperEditor.focus();
+			const selection = window.getSelection();
+			selection?.selectAllChildren(paperEditor);
+			selection?.collapseToStart();
+		});
+	}
+}
+
+function toggleSavedTemplatesList() {
+	isSavedTemplatesListOpen.value = !isSavedTemplatesListOpen.value;
+	if (isSavedTemplatesListOpen.value) {
+		savedTemplates.value = loadSavedTemplates();
+	}
+}
+
+function applyTemplateTypography(editor, template = {}) {
+	const styleMap = [
+		{ value: template.fontFamily, property: "font-family" },
+		{ value: template.fontSize, property: "font-size" },
+		{ value: template.fontColor, property: "color" },
+		{ value: template.textAlign, property: "text-align" },
+		{ value: template.padding, property: "padding" },
+	];
+
+	for (const { value, property } of styleMap) {
+		if (typeof value === "string" && value) {
+			editor.style.setProperty(property, value);
+		}
+	}
+}
+
+async function loadSavedTemplate(entry) {
+	if (!entry || !entry.template) {
+		return;
+	}
+
+	widthValue.value = entry.template.widthValue ?? widthValue.value;
+	widthUnit.value = entry.template.widthUnit ?? widthUnit.value;
+	heightValue.value = entry.template.heightValue ?? heightValue.value;
+	heightUnit.value = entry.template.heightUnit ?? heightUnit.value;
+	textEditorButtonStates.value.printPreview = true;
+	isSavedTemplatesListOpen.value = false;
+
+	await nextTick();
+	const editor = printPreviewPaperEditorRef.value;
+	if (!editor) {
+		return;
+	}
+
+	editor.innerHTML = entry.template.html ?? "";
+	applyTemplateTypography(editor, entry.template);
 }
 
 function toggleEditingTools() {
@@ -181,44 +349,17 @@ function updateUnit(field, unit) {
 	isHeightMenuOpen.value = false;
 }
 
-function getDimensionLabel(value, unit) {
-	const amount = Number.parseFloat(value) || 0;
-	if (unit === "px") {
-		return `${amount}px`;
-	}
-	if (unit === "in") {
-		return `${amount}in`;
-	}
-	if (unit === "cm") {
-		return `${amount}cm`;
-	}
-	return `${amount}mm`;
-}
-
 /** Paper template dimensions in CSS px, derived from the Size menu entries. */
 const paperWidthPx = computed(() => convertToPixels(widthValue.value, widthUnit.value));
 const paperHeightPx = computed(() => convertToPixels(heightValue.value, heightUnit.value));
 
-/** Scale factor that keeps an oversized paper template visible inside the preview panel. */
-const paperPreviewScale = computed(() => {
-	if (!paperWidthPx.value || !paperHeightPx.value) {
-		return 1;
-	}
-	return Math.min(
-		1,
-		(window.innerWidth - 376) / paperWidthPx.value,
-		(window.innerHeight - 48) / paperHeightPx.value,
-	);
-});
-
-/** True entered dimensions, shown when the paper template is scaled down to fit. */
-const paperDimensionLabel = computed(
-	() =>
-		`${getDimensionLabel(widthValue.value, widthUnit.value)} × ${getDimensionLabel(heightValue.value, heightUnit.value)}`,
-);
-
 const printPreviewPaperRef = ref(null);
 const printPreviewPaperViewportRef = ref(null);
+const printPreviewPaperEditorRef = ref(null);
+const isTemplateNamePromptOpen = ref(false);
+const templateNameInput = ref("");
+const templateNameInputRef = ref(null);
+const savedTemplates = ref(loadSavedTemplates());
 
 /** Feeds the Size menu dimensions into the print preview paper stylesheet variables. */
 watchEffect(() => {
@@ -227,19 +368,8 @@ watchEffect(() => {
 	if (!paperElement || !paperViewportElement) {
 		return;
 	}
-	const visiblePaperWidthPx = paperWidthPx.value * paperPreviewScale.value;
-	const visiblePaperHeightPx = paperHeightPx.value * paperPreviewScale.value;
 	paperElement.style.setProperty("--print-preview-paper-width", `${paperWidthPx.value}px`);
 	paperElement.style.setProperty("--print-preview-paper-height", `${paperHeightPx.value}px`);
-	paperElement.style.setProperty("--print-preview-paper-scale", `${paperPreviewScale.value}`);
-	paperViewportElement.style.setProperty(
-		"--print-preview-save-right",
-		`calc(50% - ${visiblePaperWidthPx / 2}px + 16px)`,
-	);
-	paperViewportElement.style.setProperty(
-		"--print-preview-save-bottom",
-		`calc(50% + ${visiblePaperHeightPx / 2}px + 16px)`,
-	);
 });
 
 async function toggleCalibrateButton() {
@@ -395,6 +525,7 @@ function handleCalibrationBarPointerUp() {
 			<nav
 				id="text-editor-navigation-bar"
 				class="text-editor-navigation-bar"
+				:class="{ 'text-editor-navigation-bar--preview-open': textEditorButtonStates.printPreview }"
 				role="navigation"
 				aria-label="Text Editor navigation"
 				title="Text Editor navigation"
@@ -453,26 +584,68 @@ function handleCalibrationBarPointerUp() {
 				>
 					<button
 						id="text-editor-template-save-button"
-						class="text-editor-template-new-button text-editor-template-save-button"
+						class="text-editor-template-save-button"
 						type="button"
 						name="text-editor-template-save-button"
 						data-button-name="text-editor-template-save-button"
+						@click="handlePaperTemplateSave"
 					>
 						Save
 					</button>
+					<section
+						v-if="isTemplateNamePromptOpen"
+						id="text-editor-template-name-prompt"
+						class="text-editor-template-name-prompt"
+						role="dialog"
+						aria-label="Name this template"
+					>
+						<label
+							class="text-editor-template-name-prompt-label"
+							for="text-editor-template-name-input"
+						>
+							Template name
+						</label>
+						<input
+							id="text-editor-template-name-input"
+							class="text-editor-template-name-input"
+							ref="templateNameInputRef"
+							v-model="templateNameInput"
+							type="text"
+							maxlength="60"
+							@keydown.enter="confirmTemplateSave"
+							@keydown.esc="cancelTemplateSave"
+						/>
+						<button
+							id="text-editor-template-name-confirm-button"
+							class="text-editor-template-name-confirm-button"
+							type="button"
+							@click="confirmTemplateSave"
+						>
+							Save Template
+						</button>
+						<button
+							id="text-editor-template-name-cancel-button"
+							class="text-editor-template-name-cancel-button"
+							type="button"
+							@click="cancelTemplateSave"
+						>
+							Cancel
+						</button>
+					</section>
 					<div
 						id="print-preview-paper"
 						ref="printPreviewPaperRef"
 						class="print-preview-paper"
 						data-element-name="print-preview-paper"
 					>
-						<p
-							v-if="paperPreviewScale < 1"
-							id="print-preview-paper-size-label"
-							class="print-preview-paper-size-label"
-						>
-							{{ paperDimensionLabel }}
-						</p>
+						<div
+							ref="printPreviewPaperEditorRef"
+							class="print-preview-paper-editor"
+							contenteditable="true"
+							role="textbox"
+							aria-label="Paper template text"
+							@keydown="handlePaperEditorKeydown"
+						/>
 					</div>
 				</div>
 			</section>
@@ -538,12 +711,36 @@ function handleCalibrationBarPointerUp() {
 				<button
 					id="text-editor-template-saved-templates-button"
 					class="text-editor-template-saved-templates-button"
+					:class="{ 'text-editor-button--depressed': isSavedTemplatesListOpen }"
 					type="button"
 					name="text-editor-template-saved-templates-button"
 					data-button-name="text-editor-template-saved-templates-button"
+					:aria-pressed="isSavedTemplatesListOpen"
+					@click="toggleSavedTemplatesList"
 				>
 					Saved Templates
 				</button>
+				<section
+					v-if="isSavedTemplatesListOpen"
+					id="text-editor-saved-templates-list"
+					class="text-editor-saved-templates-list"
+					role="list"
+					aria-label="Saved templates"
+				>
+					<p v-if="savedTemplates.length === 0" class="text-editor-saved-templates-empty">
+						No saved templates yet.
+					</p>
+					<button
+						v-for="entry in savedTemplates"
+						:key="entry.id"
+						class="text-editor-saved-template-item"
+						type="button"
+						:data-template-id="entry.id"
+						@click="loadSavedTemplate(entry)"
+					>
+						{{ entry.name }}
+					</button>
+				</section>
 				<button
 					id="text-editor-template-new-button"
 					class="text-editor-template-new-button text-editor-print-preview-button"

@@ -262,13 +262,25 @@ test("Print Preview renders the paper template at the Size menu dimensions", asy
 	await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
 
 	const paper = page.locator("#print-preview-paper");
+	const paperEditor = page.locator(".print-preview-paper-editor");
+	await expect(paperEditor).toHaveAttribute("contenteditable", "true");
+	await expect(paperEditor).toBeFocused();
+	await paperEditor.type("Paper text");
+	await expect(paperEditor).toHaveText("Paper text");
 	const saveButton = page.locator("#text-editor-template-save-button");
+	const viewportBounds = await page.evaluate(() => ({
+		width: window.innerWidth,
+		height: window.innerHeight,
+	}));
+	const expectSaveButtonAtViewportCorner = async (bounds) => {
+		expect(bounds.x + bounds.width).toBeCloseTo(viewportBounds.width - 16, 1);
+		expect(bounds.y + bounds.height).toBeCloseTo(viewportBounds.height - 16, 1);
+	};
 	const paperBounds = await paper.boundingBox();
 	const saveBounds = await saveButton.boundingBox();
 	expect(paperBounds.width).toBe(100);
 	expect(paperBounds.height).toBe(50);
-	expect(saveBounds.x + saveBounds.width).toBeCloseTo(paperBounds.x + paperBounds.width - 16, 1);
-	expect(saveBounds.y + saveBounds.height).toBeCloseTo(paperBounds.y - 16, 1);
+	await expectSaveButtonAtViewportCorner(saveBounds);
 
 	await page.locator("#text-editor-size-width-unit").click();
 	await page.locator("#text-editor-size-width-in-option").click();
@@ -277,26 +289,15 @@ test("Print Preview renders the paper template at the Size menu dimensions", asy
 	await page.locator("#text-editor-size-width").fill("8");
 	await page.locator("#text-editor-size-height").fill("10");
 
-	const sizeLabel = page.locator("#print-preview-paper-size-label");
-	await expect(sizeLabel).toHaveText("8in × 10in");
 	const inchBounds = await paper.boundingBox();
 	const inchSaveBounds = await saveButton.boundingBox();
-	expect(inchBounds.width).toBeCloseTo(537.6, 0);
-	expect(inchBounds.height).toBeCloseTo(672, 0);
-	expect(inchSaveBounds.x + inchSaveBounds.width).toBeCloseTo(
-		inchBounds.x + inchBounds.width - 16,
-		1,
-	);
-	expect(inchSaveBounds.y + inchSaveBounds.height).toBeCloseTo(inchBounds.y - 16, 1);
+	expect(inchBounds.width).toBeCloseTo(872, 0);
+	expect(inchBounds.height).toBeCloseTo(1090, 0);
+	await expectSaveButtonAtViewportCorner(inchSaveBounds);
 
 	await page.locator("#text-editor-size-height").fill("12");
-	const scaledPaperBounds = await paper.boundingBox();
-	const scaledSaveBounds = await saveButton.boundingBox();
-	expect(scaledSaveBounds.x + scaledSaveBounds.width).toBeCloseTo(
-		scaledPaperBounds.x + scaledPaperBounds.width - 16,
-		1,
-	);
-	expect(scaledSaveBounds.y + scaledSaveBounds.height).toBeCloseTo(scaledPaperBounds.y - 16, 1);
+	const largeSaveBounds = await saveButton.boundingBox();
+	await expectSaveButtonAtViewportCorner(largeSaveBounds);
 });
 
 test("September 2026 hides Back without moving Calendar or Forward", async ({ page }) => {
@@ -563,4 +564,23 @@ test("day numbers stay fully inside the upper-left corner of each calendar box",
 	expect(info.top).toBeLessThan(info.cellHeight * 0.4);
 	expect(info.right).toBeLessThanOrEqual(info.cellWidth + 1);
 	expect(info.bottom).toBeLessThanOrEqual(info.cellHeight + 1);
+});
+
+test("Templates panel spans the full left edge at 336px", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "Templates" }).click();
+
+	const panelBounds = await page.locator("#text-editor-templates-panel").boundingBox();
+	expect(panelBounds.x).toBe(0);
+	expect(panelBounds.y).toBe(0);
+	expect(panelBounds.width).toBe(336);
+	expect(panelBounds.height).toBe(720);
+
+	const newButton = page.getByRole("button", { name: "New +" });
+	const newButtonBounds = await newButton.boundingBox();
+	expect(newButtonBounds.y).toBeGreaterThanOrEqual(126);
+	await newButton.click();
+	await expect(page.locator("#text-editor-print-preview-panel")).toBeVisible();
 });

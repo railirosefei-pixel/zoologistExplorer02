@@ -7,14 +7,14 @@
  * the app-wide zoom lock keeps CSS px aligned with the calibration.
  */
 
-/** CSS pixels per physical inch (user-measured). */
+/** CSS pixels per physical inch (project calibration). */
 export const PIXELS_PER_INCH = 109;
 
-/** CSS pixels per physical centimeter (user-measured). */
-export const PIXELS_PER_CM = 42.9;
+/** CSS pixels per physical centimeter (derived from the 109 px/in calibration). */
+export const PIXELS_PER_CM = 109 / 2.54;
 
-/** CSS pixels per physical millimeter (user-measured). */
-export const PIXELS_PER_MM = 4.29;
+/** CSS pixels per physical millimeter (derived from the 109 px/in calibration). */
+export const PIXELS_PER_MM = 109 / 25.4;
 
 const PIXELS_PER_UNIT = {
 	px: 1,
