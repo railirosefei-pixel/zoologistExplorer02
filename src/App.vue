@@ -149,8 +149,5 @@ function handleParentChainHome() {
 		</section>
 	</main>
 
-	<RewardsView
-		v-else
-		@back-to-student-menu="handleRewardsPageClose"
-	/>
+	<RewardsView v-else @back-to-student-menu="handleRewardsPageClose" />
 </template>

@@ -218,7 +218,7 @@ test("daily-menu subject panels render block controls in a tab rail", () => {
 
 	assert.match(
 		componentSource,
-		/<div\s+class="daily-menu-subject-tab-list"[^>]*role="tablist"[^>]*>/,
+		/<div\s+[^>]*class="daily-menu-subject-tab-list"[^>]*role="tablist"[^>]*>/,
 		"The subject panel should include a tablist for block controls",
 	);
 	assert.match(
@@ -291,6 +291,16 @@ test("text editor size control and template panel are implemented as specified",
 	);
 	assert.match(
 		componentSource,
+		/id="text-editor-editing-tools-button"[\s\S]*?text-editor-editing-tools-button--unavailable[\s\S]*?text-editor-editing-tools-button--available[\s\S]*?:disabled="!textEditorButtonStates\.printPreview"/,
+		"Editing Tools should be disabled without a template and styled by template availability",
+	);
+	assert.match(
+		componentSource,
+		/if \(buttonName === "printPreview" && !textEditorButtonStates\.value\.printPreview\) \{[\s\S]*?isEditingToolsOpen\.value = false;/,
+		"Closing the paper preview should close Editing Tools",
+	);
+	assert.match(
+		componentSource,
 		/v-if="isEditingToolsOpen"[\s\S]*?id="text-editor-size-menu-button"[\s\S]*?@click="toggleSizePanel"/,
 		"Clicking Editing Tools should reveal a Size button that toggles the size panel",
 	);
@@ -323,6 +333,16 @@ test("text editor size control and template panel are implemented as specified",
 		cssSource,
 		/\.text-editor-editing-tools-button\.text-editor-editing-tools-button--depressed,\s*\.text-editor-size-menu-button\.text-editor-size-menu-button--depressed\s*\{[^}]*filter:\s*brightness\(1\.5\);/s,
 		"Both toggle buttons should share a depressed active state",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-editing-tools-button--unavailable\s*\{[^}]*background:[^;]*;[^}]*cursor:\s*not-allowed;[^}]*0 0 14px rgba\(176, 48, 48, 0\.62\)/s,
+		"Unavailable Editing Tools should use a dull red background and glow",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-editing-tools-button--available\s*\{[^}]*background:[^;]*;[^}]*cursor:\s*pointer;[^}]*0 0 14px rgba\(82, 164, 70, 0\.62\)/s,
+		"Available Editing Tools should use a dull green background and glow",
 	);
 	assert.match(
 		cssSource,

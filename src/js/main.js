@@ -54,7 +54,9 @@ function getNavigationButtonKind(button) {
 		button.getAttribute("aria-label") || "",
 		button.getAttribute("title") || "",
 		button.dataset.buttonName || "",
-	].join(" ").toLowerCase();
+	]
+		.join(" ")
+		.toLowerCase();
 
 	if (/home/.test(label) && !/back to/.test(label)) {
 		return "home";

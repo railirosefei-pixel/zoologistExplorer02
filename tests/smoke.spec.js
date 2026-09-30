@@ -66,7 +66,9 @@ test("Text Editor Back returns to the Parent menu", async ({ page }) => {
 	await expect(page.locator("#student-menu-page")).toHaveCount(0);
 });
 
-test("Text Editor calibration bar keeps its width and anchored resize behavior", async ({ page }) => {
+test("Text Editor calibration bar keeps its width and anchored resize behavior", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
@@ -230,6 +232,175 @@ test("Text Editor calibration bar converts pixels to calibrated ruler units", as
 	await expect(counter).toContainText("10.00 cm");
 });
 
+test("Fonts menu toggles and aligns below Margins", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "Templates" }).click();
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Editing Tools" }).click();
+
+	const fontsButton = page.getByRole("button", { name: "Fonts", exact: true });
+	const fontsPanel = page.locator("#text-editor-fonts-panel");
+	await expect(fontsPanel).toHaveCount(0);
+	await fontsButton.click();
+	await expect(fontsButton).toHaveAttribute("aria-pressed", "true");
+	await expect(fontsPanel).toBeVisible();
+	for (const label of ["Styles", "Color", "Weight", "Font Size"]) {
+		await expect(fontsPanel.getByRole("button", { name: label, exact: true })).toBeVisible();
+	}
+	const stylesButton = fontsPanel.getByRole("button", { name: "Styles", exact: true });
+	const styleMetrics = await fontsPanel.evaluate((element) => {
+		const menu = element.getBoundingClientRect();
+		const styles = element.querySelector('[data-font-option="styles"]');
+		const fonts = document.querySelector("#text-editor-fonts-button");
+		const stylesRect = styles.getBoundingClientRect();
+		const fontsRect = fonts.getBoundingClientRect();
+		const stylesComputed = getComputedStyle(styles);
+		const fontsComputed = getComputedStyle(fonts);
+		return {
+			left: stylesRect.left,
+			top: stylesRect.top - menu.top,
+			width: stylesRect.width,
+			height: stylesRect.height,
+			fontsWidth: fontsRect.width,
+			fontsHeight: fontsRect.height,
+			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
+				(property) => [stylesComputed[property], fontsComputed[property]],
+			),
+		};
+	});
+	expect(styleMetrics.left).toBe(16);
+	expect(styleMetrics.top).toBe(16);
+	expect(styleMetrics.width).toBe(styleMetrics.fontsWidth);
+	expect(styleMetrics.height).toBe(styleMetrics.fontsHeight);
+	for (const [stylesValue, fontsValue] of styleMetrics.appearance) {
+		expect(stylesValue).toBe(fontsValue);
+	}
+	const colorMetrics = await fontsPanel.evaluate((element) => {
+		const styles = element.querySelector('[data-font-option="styles"]');
+		const color = element.querySelector('[data-font-option="color"]');
+		const fonts = document.querySelector("#text-editor-fonts-button");
+		const stylesRect = styles.getBoundingClientRect();
+		const colorRect = color.getBoundingClientRect();
+		const colorComputed = getComputedStyle(color);
+		const fontsComputed = getComputedStyle(fonts);
+		return {
+			gap: colorRect.left - stylesRect.right,
+			top: colorRect.top - stylesRect.top,
+			width: colorRect.width,
+			height: colorRect.height,
+			fontsWidth: fonts.getBoundingClientRect().width,
+			fontsHeight: fonts.getBoundingClientRect().height,
+			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
+				(property) => [colorComputed[property], fontsComputed[property]],
+			),
+		};
+	});
+	expect(colorMetrics.gap).toBe(16);
+	expect(colorMetrics.top).toBe(0);
+	expect(colorMetrics.width).toBe(colorMetrics.fontsWidth);
+	expect(colorMetrics.height).toBe(colorMetrics.fontsHeight);
+	for (const [colorValue, fontsValue] of colorMetrics.appearance) {
+		expect(colorValue).toBe(fontsValue);
+	}
+	const weightMetrics = await fontsPanel.evaluate((element) => {
+		const styles = element.querySelector('[data-font-option="styles"]');
+		const weight = element.querySelector('[data-font-option="weight"]');
+		const fonts = document.querySelector("#text-editor-fonts-button");
+		const stylesRect = styles.getBoundingClientRect();
+		const weightRect = weight.getBoundingClientRect();
+		const weightComputed = getComputedStyle(weight);
+		const fontsComputed = getComputedStyle(fonts);
+		return {
+			left: weightRect.left - stylesRect.left,
+			gap: weightRect.top - stylesRect.bottom,
+			width: weightRect.width,
+			height: weightRect.height,
+			fontsWidth: fonts.getBoundingClientRect().width,
+			fontsHeight: fonts.getBoundingClientRect().height,
+			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
+				(property) => [weightComputed[property], fontsComputed[property]],
+			),
+		};
+	});
+	expect(weightMetrics.left).toBe(0);
+	expect(weightMetrics.gap).toBe(16);
+	expect(weightMetrics.width).toBe(weightMetrics.fontsWidth);
+	expect(weightMetrics.height).toBe(weightMetrics.fontsHeight);
+	for (const [weightValue, fontsValue] of weightMetrics.appearance) {
+		expect(weightValue).toBe(fontsValue);
+	}
+	const fontSizeMetrics = await fontsPanel.evaluate((element) => {
+		const color = element.querySelector('[data-font-option="color"]');
+		const weight = element.querySelector('[data-font-option="weight"]');
+		const fontSize = element.querySelector('[data-font-option="font-size"]');
+		const fonts = document.querySelector("#text-editor-fonts-button");
+		const colorRect = color.getBoundingClientRect();
+		const weightRect = weight.getBoundingClientRect();
+		const fontSizeRect = fontSize.getBoundingClientRect();
+		const fontSizeComputed = getComputedStyle(fontSize);
+		const fontsComputed = getComputedStyle(fonts);
+		return {
+			horizontalGap: fontSizeRect.left - weightRect.right,
+			verticalGap: fontSizeRect.top - colorRect.bottom,
+			width: fontSizeRect.width,
+			height: fontSizeRect.height,
+			fontsWidth: fonts.getBoundingClientRect().width,
+			fontsHeight: fonts.getBoundingClientRect().height,
+			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
+				(property) => [fontSizeComputed[property], fontsComputed[property]],
+			),
+		};
+	});
+	expect(fontSizeMetrics.horizontalGap).toBe(16);
+	expect(fontSizeMetrics.verticalGap).toBe(16);
+	expect(fontSizeMetrics.width).toBe(fontSizeMetrics.fontsWidth);
+	expect(fontSizeMetrics.height).toBe(fontSizeMetrics.fontsHeight);
+	for (const [fontSizeValue, fontsValue] of fontSizeMetrics.appearance) {
+		expect(fontSizeValue).toBe(fontsValue);
+	}
+	const fontOptionBackgrounds = await fontsPanel
+		.locator(".text-editor-font-option-button")
+		.evaluateAll((buttons) => buttons.map((button) => getComputedStyle(button).backgroundImage));
+	expect(fontOptionBackgrounds).toEqual([
+		"linear-gradient(rgb(159, 97, 93) 0%, rgb(133, 80, 77) 50%, rgb(109, 64, 62) 100%)",
+		"linear-gradient(rgb(169, 119, 74) 0%, rgb(142, 96, 62) 50%, rgb(114, 72, 47) 100%)",
+		"linear-gradient(rgb(155, 142, 77) 0%, rgb(129, 117, 63) 50%, rgb(102, 93, 50) 100%)",
+		"linear-gradient(rgb(102, 129, 90) 0%, rgb(83, 108, 73) 50%, rgb(64, 84, 58) 100%)",
+	]);
+
+	const geometry = await fontsPanel.evaluate((element) => {
+		const panel = element.getBoundingClientRect();
+		const margins = document
+			.querySelector("#text-editor-margins-button")
+			.getBoundingClientRect();
+		const sidebar = document
+			.querySelector("#text-editor-templates-panel")
+			.getBoundingClientRect();
+		return {
+			gap: panel.top - margins.bottom,
+			left: panel.left,
+			right: panel.right,
+			height: panel.height,
+			sidebarLeft: sidebar.left,
+			sidebarRight: sidebar.right,
+		};
+	});
+	expect(geometry).toEqual({
+		gap: 16,
+		left: geometry.sidebarLeft,
+		right: geometry.sidebarRight,
+		height: 436,
+		sidebarLeft: 0,
+		sidebarRight: 336,
+	});
+
+	await fontsButton.click();
+	await expect(fontsButton).toHaveAttribute("aria-pressed", "false");
+	await expect(fontsPanel).toHaveCount(0);
+});
+
 test("Size menu defaults to inches for both dimensions", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
@@ -364,7 +535,10 @@ test("Back and Home buttons depress on click and glow while held", async ({ page
 
 	const homeBounds = await homeButton.boundingBox();
 	const backBounds = await backButton.boundingBox();
-	await page.mouse.move(homeBounds.x + homeBounds.width / 2, homeBounds.y + homeBounds.height / 2);
+	await page.mouse.move(
+		homeBounds.x + homeBounds.width / 2,
+		homeBounds.y + homeBounds.height / 2,
+	);
 	await page.mouse.down();
 	await expect(homeButton).toHaveClass(/nav-button--held-home/);
 	await expect(homeButton).toHaveCSS("animation-duration", "8s");

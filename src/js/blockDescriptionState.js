@@ -81,8 +81,7 @@ const state = reactive({
 
 /** Normalize a date (or "Month D, YYYY" label) into an ISO day key. */
 function toDateKey(dateLabelOrDate) {
-	const parsed =
-		dateLabelOrDate instanceof Date ? dateLabelOrDate : new Date(dateLabelOrDate);
+	const parsed = dateLabelOrDate instanceof Date ? dateLabelOrDate : new Date(dateLabelOrDate);
 	if (!dateLabelOrDate || Number.isNaN(parsed.getTime())) {
 		return null;
 	}

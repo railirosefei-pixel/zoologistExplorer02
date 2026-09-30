@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-test("saved templates stay available across reloads and restore their paper state", async ({ page }) => {
+test("saved templates stay available across reloads and restore their paper state", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.evaluate(() => window.localStorage.clear());
 	await page.getByRole("button", { name: "Open parent section" }).click();
@@ -36,11 +38,15 @@ test("saved templates stay available across reloads and restore their paper stat
 	await page.getByRole("button", { name: "Alphabet 5in" }).click();
 
 	await expect(editor).toContainText("Alphabet Practice");
-	await expect.poll(async () => {
-		return await page.locator(".print-preview-paper").evaluate((element) =>
-			getComputedStyle(element).getPropertyValue("--print-preview-paper-width"),
-		);
-	}).toBe("430px");
+	await expect
+		.poll(async () => {
+			return await page
+				.locator(".print-preview-paper")
+				.evaluate((element) =>
+					getComputedStyle(element).getPropertyValue("--print-preview-paper-width"),
+				);
+		})
+		.toBe("430px");
 
 	await page.getByRole("button", { name: "Save", exact: true }).click();
 	await page.locator("#text-editor-template-name-input").fill("Second");

@@ -561,17 +561,14 @@ onMounted(() => {
 				<h2>Extra Credit</h2>
 				<p>Explore optional challenges and activities.</p>
 			</article>
-			<div
-				v-if="activeStudentMenu === 'progress'"
-				class="student-progress-xp-bar-slot"
-			>
+			<div v-if="activeStudentMenu === 'progress'" class="student-progress-xp-bar-slot">
 				<ProgressXpBar :xp="totalXp" :level="level" />
 			</div>
 			<div
 				v-if="
 					activeStudentMenu === 'progress' &&
-						explorerPositionsModeActive &&
-						isSaveModeActive
+					explorerPositionsModeActive &&
+					isSaveModeActive
 				"
 				id="student-progress-save-grid"
 				class="student-progress-save-grid"

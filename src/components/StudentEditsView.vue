@@ -38,7 +38,10 @@ const blockEditsSubjects = [
 const blockEditsBlocksPerSubject = [1, 2, 3];
 
 /** Months on the current calendar, September 2026 through December 2027. */
-const descriptionEditsMonths = Array.from({ length: 16 }, (_, index) => new Date(2026, 8 + index, 1));
+const descriptionEditsMonths = Array.from(
+	{ length: 16 },
+	(_, index) => new Date(2026, 8 + index, 1),
+);
 
 /** Years available on the current calendar. */
 const descriptionEditsYears = [2026, 2027];
@@ -71,7 +74,10 @@ const descriptionEditsDays = computed(() =>
 
 /** Clamp the chosen day to the last day of the chosen month. */
 function clampDescriptionEditsDay() {
-	if (descriptionEditsSelectedDay.value && descriptionEditsSelectedDay.value > descriptionEditsDayCount.value) {
+	if (
+		descriptionEditsSelectedDay.value &&
+		descriptionEditsSelectedDay.value > descriptionEditsDayCount.value
+	) {
 		descriptionEditsSelectedDay.value = descriptionEditsDayCount.value;
 	}
 }
@@ -411,10 +417,7 @@ function handleStudentEditsScreenHome() {
 			id="description-edits-position-wrapper"
 			class="description-edits-position-wrapper"
 		>
-			<div
-				id="description-edits-panel-container"
-				class="description-edits-panel-container"
-			>
+			<div id="description-edits-panel-container" class="description-edits-panel-container">
 				<textarea
 					id="description-edits-text-box"
 					v-model="descriptionEditsDraft"
@@ -422,10 +425,7 @@ function handleStudentEditsScreenHome() {
 					aria-label="Description text box"
 					name="description-edits-text-box"
 				/>
-				<div
-					id="description-edits-controls-row"
-					class="description-edits-controls-row"
-				>
+				<div id="description-edits-controls-row" class="description-edits-controls-row">
 					<button
 						id="description-edits-commit-button"
 						class="description-edits-commit-button"
@@ -465,7 +465,11 @@ function handleStudentEditsScreenHome() {
 							:aria-expanded="isDescriptionEditsSubjectOpen"
 							@click="handleDescriptionEditsSubjectToggle"
 						>
-							{{ descriptionEditsSelectedSubject ? descriptionEditsSelectedSubject.label : "Subject" }}
+							{{
+								descriptionEditsSelectedSubject
+									? descriptionEditsSelectedSubject.label
+									: "Subject"
+							}}
 						</button>
 						<div
 							v-if="isDescriptionEditsSubjectOpen"
@@ -739,16 +743,14 @@ function handleStudentEditsScreenHome() {
 		>
 			<section
 				v-for="day in blockEditsWeekDays"
-				:key="day.key"
 				:id="`block-edits-panel-${day.key}`"
+				:key="day.key"
 				class="block-edits-panel"
 				role="region"
 				:aria-label="`Block Edits ${day.label}`"
 				:title="`Block Edits ${day.label}`"
 			>
-				<h2 class="block-edits-panel-heading">
-					Block Edits
-				</h2>
+				<h2 class="block-edits-panel-heading">Block Edits</h2>
 				<p class="block-edits-panel-date">
 					{{ day.label }}
 				</p>
@@ -766,6 +768,7 @@ function handleStudentEditsScreenHome() {
 							{{ subject.label }}
 						</h3>
 						<div class="block-edits-block-list">
+							<!-- prettier-ignore -->
 							<button
 								v-for="blockNumber in blockEditsBlocksPerSubject"
 								:id="`block-edits-panel-${day.key}-${subject.key}-block-${blockNumber}-complete-control`"

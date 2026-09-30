@@ -1,5 +1,5 @@
-﻿/** Calendar view state, month navigation, theme sync, and day-cell timing pipeline. */
 <script setup>
+/** Calendar view state, month navigation, theme sync, and day-cell timing pipeline. */
 import { computed, onBeforeUnmount, ref } from "vue";
 import minecraftExplosion from "../../assets/animations/minecraftExplosion.gif";
 import explosionSound from "../../assets/sounds/Explosion Dynamite 01.wav";
@@ -618,11 +618,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div
-		v-if="confettiVisible"
-		class="daily-menu-confetti-overlay"
-		aria-hidden="true"
-	>
+	<div v-if="confettiVisible" class="daily-menu-confetti-overlay" aria-hidden="true">
 		<span
 			v-for="piece in confettiBurstPieces"
 			:key="piece.id"
@@ -689,17 +685,8 @@ onBeforeUnmount(() => {
 				>
 					Back
 				</button>
-				<span
-					v-else
-					class="calendar-previous-month-button invisible"
-					aria-hidden="true"
-				/>
-				<h1
-					id="calendar-menu-heading"
-					class="student-menu-heading"
-				>
-					Calendar
-				</h1>
+				<span v-else class="calendar-previous-month-button invisible" aria-hidden="true" />
+				<h1 id="calendar-menu-heading" class="student-menu-heading">Calendar</h1>
 				<button
 					v-if="currentMonthIndex < calendarMonths.length - 1"
 					id="calendar-next-month-button"
@@ -711,17 +698,10 @@ onBeforeUnmount(() => {
 				>
 					Forward
 				</button>
-				<span
-					v-else
-					class="calendar-next-month-button invisible"
-					aria-hidden="true"
-				/>
+				<span v-else class="calendar-next-month-button invisible" aria-hidden="true" />
 			</div>
 		</header>
-		<div
-			v-if="!isDailyMenuOpen"
-			class="calendar-month-grid calendar-month-grid--single"
-		>
+		<div v-if="!isDailyMenuOpen" class="calendar-month-grid calendar-month-grid--single">
 			<CalendarMonthCard
 				:current-month="currentMonth"
 				:weekdays="weekdays"
@@ -785,13 +765,8 @@ onBeforeUnmount(() => {
 					{ 'daily-menu-content--story': selectedDailyMenuSubject === 'story' },
 				]"
 			>
-				<h2 v-if="selectedDailyMenuSubject !== 'story'">
-					Daily Menu
-				</h2>
-				<p
-					v-if="selectedDailyMenuSubject !== 'story'"
-					class="daily-menu-date"
-				>
+				<h2 v-if="selectedDailyMenuSubject !== 'story'">Daily Menu</h2>
+				<p v-if="selectedDailyMenuSubject !== 'story'" class="daily-menu-date">
 					{{ selectedDailyMenuDateLabel }}
 				</p>
 				<nav
@@ -811,10 +786,7 @@ onBeforeUnmount(() => {
 						title="Story"
 						@click="handleDailyMenuSubjectSelection('story')"
 					>
-						<img
-							:src="storyImage"
-							alt=""
-						/>
+						<img :src="storyImage" alt="" />
 					</button>
 					<button
 						id="daily-menu-math-button"
@@ -824,10 +796,7 @@ onBeforeUnmount(() => {
 						title="Math"
 						@click="handleDailyMenuSubjectSelection('math')"
 					>
-						<img
-							:src="mathBackground"
-							alt=""
-						/>
+						<img :src="mathBackground" alt="" />
 					</button>
 					<button
 						id="daily-menu-language-arts-button"
@@ -837,10 +806,7 @@ onBeforeUnmount(() => {
 						title="Language Arts"
 						@click="handleDailyMenuSubjectSelection('language-arts')"
 					>
-						<img
-							:src="languageArtsBackground"
-							alt=""
-						/>
+						<img :src="languageArtsBackground" alt="" />
 					</button>
 					<button
 						id="daily-menu-social-studies-button"
@@ -850,10 +816,7 @@ onBeforeUnmount(() => {
 						title="Social Studies"
 						@click="handleDailyMenuSubjectSelection('social-studies')"
 					>
-						<img
-							:src="socialStudiesBackground"
-							alt=""
-						/>
+						<img :src="socialStudiesBackground" alt="" />
 					</button>
 					<button
 						id="daily-menu-science-button"
@@ -863,10 +826,7 @@ onBeforeUnmount(() => {
 						title="Science"
 						@click="handleDailyMenuSubjectSelection('science')"
 					>
-						<img
-							:src="scienceBackground"
-							alt=""
-						/>
+						<img :src="scienceBackground" alt="" />
 					</button>
 					<button
 						id="daily-menu-art-button"
@@ -876,10 +836,7 @@ onBeforeUnmount(() => {
 						title="Art"
 						@click="handleDailyMenuSubjectSelection('art')"
 					>
-						<img
-							:src="artBackground"
-							alt=""
-						/>
+						<img :src="artBackground" alt="" />
 					</button>
 				</nav>
 				<div
@@ -901,9 +858,10 @@ onBeforeUnmount(() => {
 						},
 					]"
 				>
+					<!-- prettier-ignore -->
 					<div
-						class="daily-menu-subject-tab-list"
 						v-if="selectedDailyMenuBlock !== null"
+						class="daily-menu-subject-tab-list"
 						role="tablist"
 						:aria-label="`${blockSubjectLabels[selectedDailyMenuSubject]} block navigation`"
 					>
@@ -974,11 +932,21 @@ onBeforeUnmount(() => {
 							</p>
 						</div>
 						<div
-							v-if="getSavedBlockDescription(selectedDailyMenuSubject, selectedDailyMenuBlock)"
+							v-if="
+								getSavedBlockDescription(
+									selectedDailyMenuSubject,
+									selectedDailyMenuBlock,
+								)
+							"
 							class="daily-menu-block-saved-description"
 						>
 							<p>
-								{{ getSavedBlockDescription(selectedDailyMenuSubject, selectedDailyMenuBlock) }}
+								{{
+									getSavedBlockDescription(
+										selectedDailyMenuSubject,
+										selectedDailyMenuBlock,
+									)
+								}}
 							</p>
 						</div>
 					</article>
@@ -1032,10 +1000,7 @@ onBeforeUnmount(() => {
 									</p>
 								</template>
 							</div>
-							<div
-								v-else
-								class="daily-menu-story-content"
-							>
+							<div v-else class="daily-menu-story-content">
 								<h3>Theme</h3>
 								<p v-if="selectedStoryContent">
 									{{ selectedStoryContent.theme }}
@@ -1052,11 +1017,11 @@ onBeforeUnmount(() => {
 							</div>
 						</div>
 					</article>
-					</div>
 				</div>
-			</section>
-		</div>
-	</template>
+			</div>
+		</section>
+	</div>
+</template>
 
 <style scoped>
 .calendar-panel {

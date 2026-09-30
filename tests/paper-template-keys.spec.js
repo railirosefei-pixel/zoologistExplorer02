@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 
-test("paper template prompts for a name and saves the full template under the new schema", async ({ page }) => {
+test("paper template prompts for a name and saves the full template under the new schema", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.evaluate(() => window.localStorage.clear());
 	await page.getByRole("button", { name: "Open parent section" }).click();

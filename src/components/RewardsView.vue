@@ -68,12 +68,7 @@ function handleRewardBookAnimationEnded() {
 			>
 				Back
 			</button>
-			<h1
-				id="rewards-page-heading"
-				class="rewards-page-heading"
-			>
-				Rewards
-			</h1>
+			<h1 id="rewards-page-heading" class="rewards-page-heading">Rewards</h1>
 		</header>
 		<button
 			id="rewards-page-chest-button"
