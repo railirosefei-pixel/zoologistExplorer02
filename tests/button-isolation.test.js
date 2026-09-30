@@ -223,7 +223,7 @@ test("daily-menu subject panels render block controls in a tab rail", () => {
 	);
 	assert.match(
 		componentSource,
-		/id="daily-menu-math-panel"[\s\S]*?daily-menu-subject-tab-list[\s\S]*?daily-menu-math-block-1-button/,
+		/id="daily-menu-panel"[\s\S]*?daily-menu-subject-tab-list[\s\S]*?daily-menu-\$\{selectedDailyMenuSubject\}-block-\$\{blockNumber\}-button/,
 		"Math panel should place the block tabs inside the panel",
 	);
 	assert.match(

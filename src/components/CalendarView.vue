@@ -740,6 +740,7 @@ onBeforeUnmount(() => {
 			v-else
 			id="daily-menu-panel"
 			class="daily-menu-panel"
+			role="region"
 			aria-label="Daily menu"
 			title="Daily menu"
 		>
@@ -901,8 +902,8 @@ onBeforeUnmount(() => {
 					]"
 				>
 					<div
-						v-if="selectedDailyMenuBlock !== null"
 						class="daily-menu-subject-tab-list"
+						v-if="selectedDailyMenuBlock !== null"
 						role="tablist"
 						:aria-label="`${blockSubjectLabels[selectedDailyMenuSubject]} block navigation`"
 					>

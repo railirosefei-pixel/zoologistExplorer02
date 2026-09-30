@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, ref, watchEffect } from "vue";
 
 import { convertToPixels } from "../js/unitConversion.js";
 
@@ -17,8 +17,8 @@ const isWidthMenuOpen = ref(false);
 const isHeightMenuOpen = ref(false);
 const widthValue = ref("8");
 const heightValue = ref("10");
-const widthUnit = ref("px");
-const heightUnit = ref("px");
+const widthUnit = ref("in");
+const heightUnit = ref("in");
 const CALIBRATION_STORAGE_KEY = "ze2.textEditor.calibration";
 
 /** Load persisted calibration bar state, or null when unavailable/invalid. */
@@ -217,6 +217,31 @@ const paperDimensionLabel = computed(
 		`${getDimensionLabel(widthValue.value, widthUnit.value)} × ${getDimensionLabel(heightValue.value, heightUnit.value)}`,
 );
 
+const printPreviewPaperRef = ref(null);
+const printPreviewPaperViewportRef = ref(null);
+
+/** Feeds the Size menu dimensions into the print preview paper stylesheet variables. */
+watchEffect(() => {
+	const paperElement = printPreviewPaperRef.value;
+	const paperViewportElement = printPreviewPaperViewportRef.value;
+	if (!paperElement || !paperViewportElement) {
+		return;
+	}
+	const visiblePaperWidthPx = paperWidthPx.value * paperPreviewScale.value;
+	const visiblePaperHeightPx = paperHeightPx.value * paperPreviewScale.value;
+	paperElement.style.setProperty("--print-preview-paper-width", `${paperWidthPx.value}px`);
+	paperElement.style.setProperty("--print-preview-paper-height", `${paperHeightPx.value}px`);
+	paperElement.style.setProperty("--print-preview-paper-scale", `${paperPreviewScale.value}`);
+	paperViewportElement.style.setProperty(
+		"--print-preview-save-right",
+		`calc(50% - ${visiblePaperWidthPx / 2}px + 16px)`,
+	);
+	paperViewportElement.style.setProperty(
+		"--print-preview-save-bottom",
+		`calc(50% + ${visiblePaperHeightPx / 2}px + 16px)`,
+	);
+});
+
 async function toggleCalibrateButton() {
 	textEditorButtonStates.value.calibrate = !textEditorButtonStates.value.calibrate;
 	isCalibrationBarVisible.value = textEditorButtonStates.value.calibrate;
@@ -375,18 +400,6 @@ function handleCalibrationBarPointerUp() {
 				title="Text Editor navigation"
 			>
 				<button
-					id="text-editor-print-preview-button"
-					class="text-editor-print-preview-button"
-					:class="{ 'text-editor-button--depressed': textEditorButtonStates.printPreview }"
-					type="button"
-					name="text-editor-print-preview-button"
-					data-button-name="text-editor-print-preview-button"
-					:aria-pressed="textEditorButtonStates.printPreview"
-					@click="toggleTextEditorButton('printPreview')"
-				>
-					Print Preview
-				</button>
-				<button
 					id="text-editor-templates-button"
 					class="text-editor-templates-button"
 					:class="{ 'text-editor-button--depressed': textEditorButtonStates.templates }"
@@ -428,22 +441,30 @@ function handleCalibrationBarPointerUp() {
 				v-if="textEditorButtonStates.printPreview"
 				id="text-editor-print-preview-panel"
 				class="text-editor-print-preview-panel"
+				role="region"
 				aria-label="Print Preview"
+				title="Print Preview"
 			>
 				<div
 					id="print-preview-paper-viewport"
+					ref="printPreviewPaperViewportRef"
 					class="print-preview-paper-viewport"
 					data-container-name="print-preview-paper-viewport"
 				>
+					<button
+						id="text-editor-template-save-button"
+						class="text-editor-template-new-button text-editor-template-save-button"
+						type="button"
+						name="text-editor-template-save-button"
+						data-button-name="text-editor-template-save-button"
+					>
+						Save
+					</button>
 					<div
 						id="print-preview-paper"
+						ref="printPreviewPaperRef"
 						class="print-preview-paper"
 						data-element-name="print-preview-paper"
-						:style="{
-							width: `${paperWidthPx}px`,
-							height: `${paperHeightPx}px`,
-							transform: `scale(${paperPreviewScale})`,
-						}"
 					>
 						<p
 							v-if="paperPreviewScale < 1"
@@ -510,7 +531,9 @@ function handleCalibrationBarPointerUp() {
 				v-if="textEditorButtonStates.templates"
 				id="text-editor-templates-panel"
 				class="text-editor-templates-panel"
+				role="region"
 				aria-label="Template options"
+				title="Template options"
 			>
 				<button
 					id="text-editor-template-saved-templates-button"
@@ -523,10 +546,13 @@ function handleCalibrationBarPointerUp() {
 				</button>
 				<button
 					id="text-editor-template-new-button"
-					class="text-editor-template-new-button"
+					class="text-editor-template-new-button text-editor-print-preview-button"
+					:class="{ 'text-editor-button--depressed': textEditorButtonStates.printPreview }"
 					type="button"
 					name="text-editor-template-new-button"
 					data-button-name="text-editor-template-new-button"
+					:aria-pressed="textEditorButtonStates.printPreview"
+					@click="toggleTextEditorButton('printPreview')"
 				>
 					New +
 				</button>
