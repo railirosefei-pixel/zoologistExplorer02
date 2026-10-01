@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, nextTick, ref, watchEffect } from "vue";
 
 import { addSavedTemplate, buildTemplateEntry, loadSavedTemplates } from "../js/templateStorage.js";
@@ -15,6 +15,7 @@ const textEditorButtonStates = ref({
 const isEditingToolsOpen = ref(false);
 const isSizePanelOpen = ref(false);
 const isFontsPanelOpen = ref(false);
+const isStylesMenuOpen = ref(false);
 const isWidthMenuOpen = ref(false);
 const isHeightMenuOpen = ref(false);
 const isSavedTemplatesListOpen = ref(false);
@@ -22,7 +23,18 @@ const widthValue = ref("8");
 const heightValue = ref("10");
 const widthUnit = ref("in");
 const heightUnit = ref("in");
+const FONT_STYLE_STORAGE_KEY = "ze2.textEditor.fontStyle";
 const CALIBRATION_STORAGE_KEY = "ze2.textEditor.calibration";
+
+function loadActiveFontStyleId() {
+	try {
+		return window.localStorage.getItem(FONT_STYLE_STORAGE_KEY);
+	} catch {
+		return null;
+	}
+}
+
+const activeFontStyleId = ref(loadActiveFontStyleId());
 
 /** Load persisted calibration bar state, or null when unavailable/invalid. */
 function loadCalibrationState() {
@@ -235,6 +247,8 @@ function handleTextEditorClose() {
 	isSavedTemplatesListOpen.value = false;
 	isEditingToolsOpen.value = false;
 	isSizePanelOpen.value = false;
+	isFontsPanelOpen.value = false;
+	isStylesMenuOpen.value = false;
 	isWidthMenuOpen.value = false;
 	isHeightMenuOpen.value = false;
 }
@@ -315,6 +329,7 @@ function toggleEditingTools() {
 	if (!isEditingToolsOpen.value) {
 		isSizePanelOpen.value = false;
 		isFontsPanelOpen.value = false;
+		isStylesMenuOpen.value = false;
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
 	}
@@ -322,6 +337,47 @@ function toggleEditingTools() {
 
 function toggleFontsPanel() {
 	isFontsPanelOpen.value = !isFontsPanelOpen.value;
+	if (!isFontsPanelOpen.value) {
+		isStylesMenuOpen.value = false;
+	}
+}
+
+function toggleStylesMenu() {
+	if (!isFontsPanelOpen.value) {
+		return;
+	}
+	isStylesMenuOpen.value = !isStylesMenuOpen.value;
+}
+
+function applyFontStyle(fontOption) {
+	const editor = printPreviewPaperEditorRef.value;
+	if (!editor || !fontOption?.family) {
+		return;
+	}
+	activeFontStyleId.value = activeFontStyleId.value === fontOption.id ? null : fontOption.id;
+	try {
+		if (activeFontStyleId.value) {
+			window.localStorage.setItem(FONT_STYLE_STORAGE_KEY, activeFontStyleId.value);
+		} else {
+			window.localStorage.removeItem(FONT_STYLE_STORAGE_KEY);
+		}
+	} catch {
+		// Keep the selection usable for this session when storage is unavailable.
+	}
+	const selection = window.getSelection();
+	if (
+		!selection ||
+		selection.rangeCount === 0 ||
+		!editor.contains(selection.getRangeAt(0).commonAncestorContainer)
+	) {
+		editor.focus();
+		const range = document.createRange();
+		range.selectNodeContents(editor);
+		range.collapse(false);
+		selection?.removeAllRanges();
+		selection?.addRange(range);
+	}
+	document.execCommand("fontName", false, fontOption.family);
 }
 
 function toggleSizePanel() {
@@ -364,15 +420,42 @@ const isTemplateNamePromptOpen = ref(false);
 const templateNameInput = ref("");
 const templateNameInputRef = ref(null);
 const savedTemplates = ref(loadSavedTemplates());
+const fontStyleOptions = [
+	{
+		id: "minecraft-regular-1",
+		label: "Minecraft Reg 1",
+		family: '"MinecraftRegular1", "Trebuchet MS", sans-serif',
+	},
+	{
+		id: "minecraft-regular-2",
+		label: "Minecraft Reg 2",
+		family: '"MinecraftRegular2", "Trebuchet MS", sans-serif',
+	},
+	{
+		id: "minecraft-regular-2-bold",
+		label: "Minecraft Reg 2 (Bold)",
+		family: '"Minecraft2Bold", "Trebuchet MS", sans-serif',
+	},
+	{
+		id: "minecraft-regular-2-italic",
+		label: "Minecraft Reg 2 (Italic)",
+		family: '"Minecraft2Italic", "Trebuchet MS", sans-serif',
+	},
+	{
+		id: "minecraft-regular-2-bold-italic",
+		label: "Minecraft Reg 2 (Bold & Italic)",
+		family: '"Minecraft2BoldItalic", "Trebuchet MS", sans-serif',
+	},
+];
 
 /** Feeds the Size menu dimensions into the print preview paper stylesheet variables. */
 watchEffect(() => {
 	const paperElement = printPreviewPaperRef.value;
-	if (!paperElement) {
-		return;
+	if (paperElement) {
+		paperElement.style.setProperty("--print-preview-paper-width", `${paperWidthPx.value}px`);
+		paperElement.style.setProperty("--print-preview-paper-height", `${paperHeightPx.value}px`);
 	}
-	paperElement.style.setProperty("--print-preview-paper-width", `${paperWidthPx.value}px`);
-	paperElement.style.setProperty("--print-preview-paper-height", `${paperHeightPx.value}px`);
+
 });
 
 async function toggleCalibrateButton() {
@@ -822,6 +905,8 @@ function handleCalibrationBarPointerUp() {
 								class="text-editor-font-option-button"
 								data-font-option="styles"
 								type="button"
+								:aria-pressed="isStylesMenuOpen"
+								@click="toggleStylesMenu"
 							>
 								Styles
 							</button>
@@ -846,7 +931,26 @@ function handleCalibrationBarPointerUp() {
 							>
 								Font Size
 							</button>
+							<div v-if="isStylesMenuOpen" class="text-editor-font-styles-menu" role="region" aria-label="Font styles">
+								<button
+									v-for="fontOption in fontStyleOptions"
+									:key="fontOption.id"
+									class="text-editor-font-style-button"
+									:class="{
+										'text-editor-font-style-button--depressed': activeFontStyleId === fontOption.id,
+									}"
+									type="button"
+									:data-font-style="fontOption.id"
+									:aria-pressed="activeFontStyleId === fontOption.id"
+									:style="{ fontFamily: fontOption.family }"
+									@mousedown.prevent
+									@click="applyFontStyle(fontOption)"
+								>
+									{{ fontOption.label }}
+								</button>
+							</div>
 						</div>
+
 						<div
 							v-if="isSizePanelOpen"
 							id="text-editor-size-panel"
@@ -1106,3 +1210,4 @@ function handleCalibrationBarPointerUp() {
 		</button>
 	</main>
 </template>
+

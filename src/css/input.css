@@ -14,6 +14,27 @@
 	font-style: italic;
 }
 
+@font-face {
+	font-family: "MinecraftRegular1";
+	src: url("../../assets/fonts/minecraftFont1.ttf") format("truetype");
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "MinecraftRegular2";
+	src: url("../../assets/fonts/minecraftFont2(Reg).otf") format("opentype");
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "Minecraft2Italic";
+	src: url("../../assets/fonts/minecraftFont2(Ital).otf") format("opentype");
+	font-weight: 400;
+	font-style: italic;
+}
+
 :root {
 	color: #172033;
 	background: #f4f0e8;
@@ -1642,6 +1663,80 @@ body {
 
 .text-editor-font-option-button[data-font-option="font-size"] {
 	background: linear-gradient(180deg, #66815a 0%, #536c49 50%, #40543a 100%);
+}
+
+.text-editor-font-styles-menu {
+	position: absolute;
+	top: calc(100% + 16px);
+	left: -1px;
+	box-sizing: border-box;
+	width: 336px;
+	height: 280px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	background: linear-gradient(180deg, #173f70 0%, #0b2342 100%);
+	box-shadow: 8px 0 16px rgba(0, 0, 0, 0.35);
+}
+
+.text-editor-font-style-button {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	width: calc(50% - 24px);
+	height: 72px;
+	min-height: 72px;
+	padding: 0;
+	border: 1px solid #171717;
+	border-radius: 8px;
+	background: linear-gradient(90deg, #344d37 0%, #49684d 50%, #30485f 100%);
+	color: #fff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #111,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-font-style-button--depressed {
+	transform: translateY(4px);
+	filter: brightness(1.25);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -2px 0 rgba(0, 0, 0, 0.35),
+		0 0 12px rgba(67, 255, 115, 0.95),
+		0 0 22px rgba(67, 255, 115, 0.62);
+}
+
+.text-editor-font-style-button[data-font-style="minecraft-regular-1"] {
+	top: 16px;
+	left: 16px;
+}
+
+.text-editor-font-style-button[data-font-style="minecraft-regular-2"] {
+	top: 16px;
+	left: calc(50% + 8px);
+}
+
+.text-editor-font-style-button[data-font-style="minecraft-regular-2-bold"] {
+	top: 104px;
+	left: 16px;
+}
+
+.text-editor-font-style-button[data-font-style="minecraft-regular-2-italic"] {
+	top: 104px;
+	left: calc(50% + 8px);
+}
+
+.text-editor-font-style-button[data-font-style="minecraft-regular-2-bold-italic"] {
+	top: 192px;
+	left: 16px;
 }
 
 .text-editor-size-panel {
