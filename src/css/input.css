@@ -1429,16 +1429,34 @@ body {
 	top: 0;
 	bottom: 0;
 	left: 0;
-	z-index: 50;
+	z-index: 115;
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 8px;
 	box-sizing: border-box;
 	width: 336px;
-	padding: 146px 20px 20px;
-	border-right: 1px solid rgba(255, 248, 190, 0.65);
-	background: linear-gradient(180deg, #173f70 0%, #0b2342 100%);
-	box-shadow: 8px 0 16px rgba(0, 0, 0, 0.35);
+	padding: 8px;
+	border-right: 1px solid #d2d0ce;
+	background: #f3f3f3;
+	box-shadow: 8px 0 16px rgba(0, 0, 0, 0.08);
+	overflow-y: auto;
+}
+
+.text-editor-ribbon-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 4px 0 0;
+	border-bottom: 1px solid #e1dfdd;
+}
+
+.text-editor-ribbon-group-caption {
+	margin: 2px 0 0;
+	padding: 2px 0 4px;
+	text-align: center;
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	font-size: 0.7rem;
+	color: #605e5c;
 }
 
 .text-editor-print-preview-panel {
@@ -1454,146 +1472,105 @@ body {
 	box-shadow: -8px 0 16px rgba(0, 0, 0, 0.35);
 }
 
+.text-editor-template-saved-templates-button,
+.text-editor-template-new-button,
+.text-editor-editing-tools-button,
+.text-editor-size-menu-button,
+.text-editor-fonts-button,
+.text-editor-margins-button,
+.text-editor-font-option-button {
+	border: 1px solid transparent;
+	border-radius: 2px;
+	background: transparent;
+	color: #1b1b1b;
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	font-size: 0.85rem;
+	font-weight: 400;
+	cursor: pointer;
+	box-shadow: none;
+}
+
+.text-editor-template-saved-templates-button:hover,
+.text-editor-template-new-button:hover,
+.text-editor-editing-tools-button:hover,
+.text-editor-size-menu-button:hover,
+.text-editor-fonts-button:hover,
+.text-editor-margins-button:hover,
+.text-editor-font-option-button:hover {
+	background: #e1dfdd;
+	border-color: #c8c6c4;
+}
+
 .text-editor-template-saved-templates-button {
 	width: 100%;
-	min-height: 56px;
-	border: 1px solid #171717;
-	border-radius: 8px;
-	background: linear-gradient(180deg, #4b4b4b 0%, #3c3c3c 33.333%, #2e2e2e 66.667%, #202020 100%);
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48);
+	min-height: 40px;
 }
 
 .text-editor-fonts-button,
 .text-editor-font-option-button {
 	width: 100%;
-	min-height: 56px;
-	border: 1px solid #171717;
-	border-radius: 8px;
-	background: linear-gradient(90deg, #344d37 0%, #49684d 50%, #30485f 100%);
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48);
+	min-height: 40px;
 }
 
 .text-editor-size-menu-button {
 	width: 50%;
-	height: 56px;
-	min-height: 56px;
+	min-height: 40px;
 }
 
 .text-editor-template-new-button,
 .text-editor-editing-tools-button,
 .text-editor-size-menu-button {
 	width: 100%;
-	min-height: 56px;
-	border: 1px solid #171717;
-	border-radius: 8px;
-	background: linear-gradient(180deg, #4b4b4b 0%, #3c3c3c 33.333%, #2e2e2e 66.667%, #202020 100%);
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48);
+	min-height: 40px;
 }
 
 .text-editor-print-preview-button {
-	background: linear-gradient(90deg, #633b40 0%, #855256 48%, #65432f 100%);
+	background: transparent;
 }
 
 .text-editor-size-menu-button,
 .text-editor-fonts-button {
 	width: 50%;
-	height: 56px;
-	min-height: 56px;
+	min-height: 40px;
 	padding: 0;
 }
 
 .text-editor-font-option-button {
 	position: absolute;
 	width: 139.5px;
-	height: 56px;
-	min-height: 56px;
+	min-height: 40px;
 	padding: 0;
 }
 
 .text-editor-margins-button {
 	width: 50%;
-	height: 56px;
-	min-height: 56px;
+	min-height: 40px;
 	padding: 0;
-	margin-top: 16px;
-	border: 1px solid #171717;
-	border-radius: 8px;
-	background: linear-gradient(90deg, #30485f 0%, #45627b 50%, #3e3b53 100%);
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48);
+	margin-top: 8px;
 }
 
 .text-editor-size-menu-top-row {
 	display: flex;
 	align-items: center;
-	gap: 16px;
+	gap: 8px;
 	width: 100%;
 }
 
 .text-editor-editing-tools-button.text-editor-editing-tools-button--depressed,
 .text-editor-size-menu-button.text-editor-size-menu-button--depressed,
 .text-editor-fonts-button.text-editor-fonts-button--depressed {
-	transform: translateY(4px);
-	filter: brightness(1.5);
+	background: #c7e0f4;
+	border-color: #2b88d8;
 }
 
 .text-editor-editing-tools-button--unavailable {
-	background: linear-gradient(180deg, #956b6b 0%, #805858 50%, #6a4747 100%);
+	color: #a19f9d;
 	cursor: not-allowed;
-	opacity: 1;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48),
-		0 0 14px rgba(176, 48, 48, 0.62);
 }
 
 .text-editor-editing-tools-button--available {
-	background: linear-gradient(180deg, #7e946d 0%, #687f58 50%, #506842 100%);
+	color: #1b1b1b;
 	cursor: pointer;
-	opacity: 1;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48),
-		0 0 14px rgba(82, 164, 70, 0.62);
 }
 
 .text-editor-size-action-row {
@@ -1610,20 +1587,20 @@ body {
 	flex-direction: column;
 	align-items: flex-start;
 	width: 100%;
-	margin-top: 16px;
+	margin-top: 4px;
 }
 
 .text-editor-fonts-panel {
 	position: relative;
 	box-sizing: border-box;
 	flex: 0 0 436px;
-	width: 336px;
+	width: 320px;
 	height: 436px;
-	margin-top: 16px;
-	margin-left: -20px;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	background: linear-gradient(180deg, #173f70 0%, #0b2342 100%);
-	box-shadow: 8px 0 16px rgba(0, 0, 0, 0.35);
+	margin-top: 4px;
+	border: 1px solid #d2d0ce;
+	border-radius: 2px;
+	background: #ffffff;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .text-editor-font-option-button[data-font-option="styles"],
@@ -1649,34 +1626,60 @@ body {
 	left: 170.5px;
 }
 
-.text-editor-font-option-button[data-font-option="styles"] {
-	background: linear-gradient(180deg, #9f615d 0%, #85504d 50%, #6d403e 100%);
-}
-
-.text-editor-font-option-button[data-font-option="color"] {
-	background: linear-gradient(180deg, #a9774a 0%, #8e603e 50%, #72482f 100%);
-}
-
-.text-editor-font-option-button[data-font-option="weight"] {
-	background: linear-gradient(180deg, #9b8e4d 0%, #81753f 50%, #665d32 100%);
-}
-
-.text-editor-font-option-button[data-font-option="font-size"] {
-	background: linear-gradient(180deg, #66815a 0%, #536c49 50%, #40543a 100%);
-}
-
 .text-editor-font-styles-menu {
 	position: absolute;
-	top: calc(100% + 16px);
+	top: calc(100% + 8px);
 	left: -1px;
+	z-index: 20;
 	box-sizing: border-box;
-	width: 336px;
+	width: 320px;
 	height: 280px;
 	margin: 0;
 	padding: 0;
-	border: 1px solid rgba(255, 248, 190, 0.65);
-	background: linear-gradient(180deg, #173f70 0%, #0b2342 100%);
-	box-shadow: 8px 0 16px rgba(0, 0, 0, 0.35);
+	border: 1px solid #d2d0ce;
+	border-radius: 2px;
+	background: #ffffff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.text-editor-font-weights-menu {
+	position: absolute;
+	top: 159px;
+	left: 15px;
+	z-index: 20;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 4px;
+	box-sizing: border-box;
+	width: 139.5px;
+	padding: 8px;
+	border: 1px solid #d2d0ce;
+	border-radius: 2px;
+	background: #ffffff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.text-editor-font-weight-button {
+	min-height: 32px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 2px;
+	background: transparent;
+	color: #1b1b1b;
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	font-size: 0.8rem;
+	font-weight: 400;
+	cursor: pointer;
+}
+
+.text-editor-font-weight-button:hover {
+	background: #e1dfdd;
+	border-color: #c8c6c4;
+}
+
+.text-editor-font-weight-button--depressed {
+	background: #c7e0f4;
+	border-color: #2b88d8;
 }
 
 .text-editor-font-style-button {
@@ -1689,29 +1692,24 @@ body {
 	height: 72px;
 	min-height: 72px;
 	padding: 0;
-	border: 1px solid #171717;
-	border-radius: 8px;
-	background: linear-gradient(90deg, #344d37 0%, #49684d 50%, #30485f 100%);
-	color: #fff;
+	border: 1px solid transparent;
+	border-radius: 2px;
+	background: transparent;
+	color: #1b1b1b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
 	font-weight: 700;
 	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-font-style-button:hover {
+	background: #e1dfdd;
+	border-color: #c8c6c4;
 }
 
 .text-editor-font-style-button--depressed {
-	transform: translateY(4px);
-	filter: brightness(1.25);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -2px 0 rgba(0, 0, 0, 0.35),
-		0 0 12px rgba(67, 255, 115, 0.95),
-		0 0 22px rgba(67, 255, 115, 0.62);
+	background: #c7e0f4;
+	border-color: #2b88d8;
 }
 
 .text-editor-font-style-button[data-font-style="minecraft-regular-1"] {
@@ -1743,6 +1741,7 @@ body {
 	position: absolute;
 	top: calc(100% + 8px);
 	left: 0;
+	z-index: 20;
 	display: flex;
 	flex-direction: column;
 	width: 304px;
@@ -2064,7 +2063,7 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	overflow: visible;
+	overflow: hidden;
 	box-sizing: border-box;
 }
 
@@ -2199,39 +2198,40 @@ body {
 	width: 100%;
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	margin-top: 8px;
+	gap: 4px;
 	max-height: 240px;
 	overflow-y: auto;
 }
 
 .text-editor-saved-templates-empty {
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.9rem;
+	color: #605e5c;
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	font-size: 0.85rem;
 }
 
 .text-editor-saved-template-item {
 	width: 100%;
-	min-height: 44px;
-	border: 1px solid #171717;
-	border-radius: 8px;
-	background: linear-gradient(180deg, #4b4b4b 0%, #3c3c3c 33.333%, #2e2e2e 66.667%, #202020 100%);
-	color: #fff;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.9rem;
-	font-weight: 700;
+	min-height: 32px;
+	border: 1px solid transparent;
+	border-radius: 2px;
+	background: transparent;
+	color: #1b1b1b;
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	font-size: 0.85rem;
+	font-weight: 400;
+	text-align: left;
+	padding: 0 8px;
 	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #111,
-		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-saved-template-item:hover {
+	background: #e1dfdd;
+	border-color: #c8c6c4;
 }
 
 .text-editor-saved-template-item:active {
-	transform: translateY(4px);
-	filter: brightness(1.5);
+	background: #c7e0f4;
+	border-color: #2b88d8;
 }
 
 .text-editor-templates-button {
@@ -2295,7 +2295,6 @@ body {
 }
 
 .text-editor-templates-button.text-editor-button--depressed,
-.text-editor-template-new-button.text-editor-button--depressed,
 .text-editor-grid-button.text-editor-button--depressed,
 .text-editor-calibrate-button.text-editor-button--depressed {
 	transform: translateY(4px);
@@ -2305,8 +2304,10 @@ body {
 	filter: brightness(1.25) drop-shadow(0 0 10px #8a5c3d);
 }
 
-.text-editor-template-new-button.text-editor-button--depressed {
-	filter: brightness(1.3) drop-shadow(0 0 12px #855256);
+.text-editor-template-new-button.text-editor-button--depressed,
+.text-editor-template-saved-templates-button.text-editor-button--depressed {
+	background: #c7e0f4;
+	border-color: #2b88d8;
 }
 
 .text-editor-grid-button.text-editor-button--depressed {

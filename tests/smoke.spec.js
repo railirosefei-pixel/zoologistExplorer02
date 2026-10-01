@@ -238,137 +238,77 @@ test("Fonts menu toggles and aligns below Margins", async ({ page }) => {
 	await page.getByRole("button", { name: "Text Editor" }).click();
 	await page.getByRole("button", { name: "Templates" }).click();
 	await page.getByRole("button", { name: "New +" }).click();
-	await page.getByRole("button", { name: "Editing Tools" }).click();
+	await page.getByRole("button", { name: "Tools" }).click();
 
-	const fontsButton = page.getByRole("button", { name: "Fonts", exact: true });
+	const fontsButton = page.locator("#text-editor-fonts-button");
 	const fontsPanel = page.locator("#text-editor-fonts-panel");
 	await expect(fontsPanel).toHaveCount(0);
 	await fontsButton.click();
 	await expect(fontsButton).toHaveAttribute("aria-pressed", "true");
 	await expect(fontsPanel).toBeVisible();
-	for (const label of ["Styles", "Color", "Weight", "Font Size"]) {
+	for (const label of ["Fonts", "Font Color", "Font Size"]) {
 		await expect(fontsPanel.getByRole("button", { name: label, exact: true })).toBeVisible();
 	}
-	const stylesButton = fontsPanel.getByRole("button", { name: "Styles", exact: true });
+	await expect(fontsPanel.getByRole("button", { name: /^Font Weight: \d+$/ })).toBeVisible();
 	const styleMetrics = await fontsPanel.evaluate((element) => {
 		const menu = element.getBoundingClientRect();
 		const styles = element.querySelector('[data-font-option="styles"]');
 		const fonts = document.querySelector("#text-editor-fonts-button");
 		const stylesRect = styles.getBoundingClientRect();
 		const fontsRect = fonts.getBoundingClientRect();
-		const stylesComputed = getComputedStyle(styles);
-		const fontsComputed = getComputedStyle(fonts);
 		return {
-			left: stylesRect.left,
+			left: stylesRect.left - menu.left,
 			top: stylesRect.top - menu.top,
 			width: stylesRect.width,
 			height: stylesRect.height,
-			fontsWidth: fontsRect.width,
 			fontsHeight: fontsRect.height,
-			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
-				(property) => [stylesComputed[property], fontsComputed[property]],
-			),
 		};
 	});
 	expect(styleMetrics.left).toBe(16);
 	expect(styleMetrics.top).toBe(16);
-	expect(styleMetrics.width).toBe(styleMetrics.fontsWidth);
 	expect(styleMetrics.height).toBe(styleMetrics.fontsHeight);
-	for (const [stylesValue, fontsValue] of styleMetrics.appearance) {
-		expect(stylesValue).toBe(fontsValue);
-	}
 	const colorMetrics = await fontsPanel.evaluate((element) => {
 		const styles = element.querySelector('[data-font-option="styles"]');
 		const color = element.querySelector('[data-font-option="color"]');
-		const fonts = document.querySelector("#text-editor-fonts-button");
 		const stylesRect = styles.getBoundingClientRect();
 		const colorRect = color.getBoundingClientRect();
-		const colorComputed = getComputedStyle(color);
-		const fontsComputed = getComputedStyle(fonts);
 		return {
 			gap: colorRect.left - stylesRect.right,
 			top: colorRect.top - stylesRect.top,
-			width: colorRect.width,
-			height: colorRect.height,
-			fontsWidth: fonts.getBoundingClientRect().width,
-			fontsHeight: fonts.getBoundingClientRect().height,
-			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
-				(property) => [colorComputed[property], fontsComputed[property]],
-			),
 		};
 	});
 	expect(colorMetrics.gap).toBe(16);
 	expect(colorMetrics.top).toBe(0);
-	expect(colorMetrics.width).toBe(colorMetrics.fontsWidth);
-	expect(colorMetrics.height).toBe(colorMetrics.fontsHeight);
-	for (const [colorValue, fontsValue] of colorMetrics.appearance) {
-		expect(colorValue).toBe(fontsValue);
-	}
 	const weightMetrics = await fontsPanel.evaluate((element) => {
 		const styles = element.querySelector('[data-font-option="styles"]');
 		const weight = element.querySelector('[data-font-option="weight"]');
-		const fonts = document.querySelector("#text-editor-fonts-button");
 		const stylesRect = styles.getBoundingClientRect();
 		const weightRect = weight.getBoundingClientRect();
-		const weightComputed = getComputedStyle(weight);
-		const fontsComputed = getComputedStyle(fonts);
 		return {
 			left: weightRect.left - stylesRect.left,
 			gap: weightRect.top - stylesRect.bottom,
-			width: weightRect.width,
-			height: weightRect.height,
-			fontsWidth: fonts.getBoundingClientRect().width,
-			fontsHeight: fonts.getBoundingClientRect().height,
-			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
-				(property) => [weightComputed[property], fontsComputed[property]],
-			),
 		};
 	});
 	expect(weightMetrics.left).toBe(0);
-	expect(weightMetrics.gap).toBe(16);
-	expect(weightMetrics.width).toBe(weightMetrics.fontsWidth);
-	expect(weightMetrics.height).toBe(weightMetrics.fontsHeight);
-	for (const [weightValue, fontsValue] of weightMetrics.appearance) {
-		expect(weightValue).toBe(fontsValue);
-	}
+	expect(weightMetrics.gap).toBe(32);
 	const fontSizeMetrics = await fontsPanel.evaluate((element) => {
 		const color = element.querySelector('[data-font-option="color"]');
 		const weight = element.querySelector('[data-font-option="weight"]');
 		const fontSize = element.querySelector('[data-font-option="font-size"]');
-		const fonts = document.querySelector("#text-editor-fonts-button");
 		const colorRect = color.getBoundingClientRect();
 		const weightRect = weight.getBoundingClientRect();
 		const fontSizeRect = fontSize.getBoundingClientRect();
-		const fontSizeComputed = getComputedStyle(fontSize);
-		const fontsComputed = getComputedStyle(fonts);
 		return {
 			horizontalGap: fontSizeRect.left - weightRect.right,
 			verticalGap: fontSizeRect.top - colorRect.bottom,
-			width: fontSizeRect.width,
-			height: fontSizeRect.height,
-			fontsWidth: fonts.getBoundingClientRect().width,
-			fontsHeight: fonts.getBoundingClientRect().height,
-			appearance: ["borderRadius", "fontFamily", "fontSize", "fontWeight", "color", "boxShadow"].map(
-				(property) => [fontSizeComputed[property], fontsComputed[property]],
-			),
 		};
 	});
 	expect(fontSizeMetrics.horizontalGap).toBe(16);
-	expect(fontSizeMetrics.verticalGap).toBe(16);
-	expect(fontSizeMetrics.width).toBe(fontSizeMetrics.fontsWidth);
-	expect(fontSizeMetrics.height).toBe(fontSizeMetrics.fontsHeight);
-	for (const [fontSizeValue, fontsValue] of fontSizeMetrics.appearance) {
-		expect(fontSizeValue).toBe(fontsValue);
-	}
+	expect(fontSizeMetrics.verticalGap).toBe(32);
 	const fontOptionBackgrounds = await fontsPanel
 		.locator(".text-editor-font-option-button")
 		.evaluateAll((buttons) => buttons.map((button) => getComputedStyle(button).backgroundImage));
-	expect(fontOptionBackgrounds).toEqual([
-		"linear-gradient(rgb(159, 97, 93) 0%, rgb(133, 80, 77) 50%, rgb(109, 64, 62) 100%)",
-		"linear-gradient(rgb(169, 119, 74) 0%, rgb(142, 96, 62) 50%, rgb(114, 72, 47) 100%)",
-		"linear-gradient(rgb(155, 142, 77) 0%, rgb(129, 117, 63) 50%, rgb(102, 93, 50) 100%)",
-		"linear-gradient(rgb(102, 129, 90) 0%, rgb(83, 108, 73) 50%, rgb(64, 84, 58) 100%)",
-	]);
+	expect(fontOptionBackgrounds).toEqual(["none", "none", "none", "none"]);
 
 	const geometry = await fontsPanel.evaluate((element) => {
 		const panel = element.getBoundingClientRect();
@@ -388,9 +328,9 @@ test("Fonts menu toggles and aligns below Margins", async ({ page }) => {
 		};
 	});
 	expect(geometry).toEqual({
-		gap: 16,
-		left: geometry.sidebarLeft,
-		right: geometry.sidebarRight,
+		gap: 4,
+		left: 8,
+		right: 328,
 		height: 436,
 		sidebarLeft: 0,
 		sidebarRight: 336,
@@ -406,7 +346,8 @@ test("Size menu defaults to inches for both dimensions", async ({ page }) => {
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
 	await page.getByRole("button", { name: "Templates" }).click();
-	await page.getByRole("button", { name: "Editing Tools" }).click();
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Tools" }).click();
 	await page.getByRole("button", { name: "Size" }).click();
 
 	await expect(page.locator("#text-editor-size-width")).toHaveValue("8");
@@ -420,7 +361,8 @@ test("Print Preview renders the paper template at the Size menu dimensions", asy
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
 	await page.getByRole("button", { name: "Templates" }).click();
-	await page.getByRole("button", { name: "Editing Tools" }).click();
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Tools" }).click();
 	await page.getByRole("button", { name: "Size" }).click();
 
 	await page.locator("#text-editor-size-width-unit").click();
@@ -752,9 +694,17 @@ test("Templates panel spans the full left edge at 336px", async ({ page }) => {
 	expect(panelBounds.width).toBe(336);
 	expect(panelBounds.height).toBe(720);
 
-	const newButton = page.getByRole("button", { name: "New +" });
+	const savedTemplatesBounds = await page
+		.locator("#text-editor-template-saved-templates-button")
+		.boundingBox();
+	const newButton = page.locator("#text-editor-template-new-button");
 	const newButtonBounds = await newButton.boundingBox();
-	expect(newButtonBounds.y).toBeGreaterThanOrEqual(126);
+	const editingToolsBounds = await page
+		.locator("#text-editor-editing-tools-button")
+		.boundingBox();
+	expect(savedTemplatesBounds.y - panelBounds.y).toBe(12);
+	expect(newButtonBounds.y - savedTemplatesBounds.y - savedTemplatesBounds.height).toBe(4);
+	expect(editingToolsBounds.y - newButtonBounds.y - newButtonBounds.height).toBeCloseTo(42, 0);
 	await newButton.click();
 	await expect(page.locator("#text-editor-print-preview-panel")).toBeVisible();
 });

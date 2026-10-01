@@ -276,8 +276,8 @@ test("text editor size control and template panel are implemented as specified",
 
 	assert.match(
 		componentSource,
-		/id="text-editor-template-saved-templates-button"[\s\S]*?>\s*Saved Templates\s*<\/button>/,
-		"The Pre-made button should be relabeled Saved Templates with a matching id",
+		/id="text-editor-template-saved-templates-button"[\s\S]*?>\s*Saved\s*<\/button>/,
+		"The Saved button should have a matching id",
 	);
 	assert.match(
 		componentSource,
@@ -286,23 +286,23 @@ test("text editor size control and template panel are implemented as specified",
 	);
 	assert.match(
 		componentSource,
-		/id="text-editor-editing-tools-button"[\s\S]*?@click="toggleEditingTools"[\s\S]*?>\s*Editing Tools\s*<\/button>/,
-		"The Templates panel should include an Editing Tools button with a toggle click handler",
+		/id="text-editor-editing-tools-button"[\s\S]*?@click="toggleEditingTools"[\s\S]*?>\s*Tools\s*<\/button>/,
+		"The Templates panel should include a Tools button with a toggle click handler",
 	);
 	assert.match(
 		componentSource,
 		/id="text-editor-editing-tools-button"[\s\S]*?text-editor-editing-tools-button--unavailable[\s\S]*?text-editor-editing-tools-button--available[\s\S]*?:disabled="!textEditorButtonStates\.printPreview"/,
-		"Editing Tools should be disabled without a template and styled by template availability",
+		"The Tools button should be disabled without a template and styled by template availability",
 	);
 	assert.match(
 		componentSource,
 		/if \(buttonName === "printPreview" && !textEditorButtonStates\.value\.printPreview\) \{[\s\S]*?isEditingToolsOpen\.value = false;/,
-		"Closing the paper preview should close Editing Tools",
+		"Closing the paper preview should close the Tools panel",
 	);
 	assert.match(
 		componentSource,
 		/v-if="isEditingToolsOpen"[\s\S]*?id="text-editor-size-menu-button"[\s\S]*?@click="toggleSizePanel"/,
-		"Clicking Editing Tools should reveal a Size button that toggles the size panel",
+		"Clicking Tools should reveal a Size button that toggles the size panel",
 	);
 	assert.match(
 		componentSource,
@@ -321,28 +321,28 @@ test("text editor size control and template panel are implemented as specified",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-template-new-button,\s*\.text-editor-editing-tools-button,\s*\.text-editor-size-menu-button\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*56px;[^}]*font-family:\s*"Minecraft2Bold"/s,
-		"The Editing Tools and Size buttons should share the New + button styling",
+		/\.text-editor-template-new-button,\s*\.text-editor-editing-tools-button,\s*\.text-editor-size-menu-button\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*40px;/s,
+		"The Tools and Size buttons should share the New + button styling",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-size-menu-button\s*\{[^}]*width:\s*50%;[^}]*height:\s*56px;[^}]*min-height:\s*56px;/s,
-		"The Size button should be half-width and the same 56px height as Editing Tools",
+		/\.text-editor-size-menu-button\s*\{[^}]*width:\s*50%;[^}]*min-height:\s*40px;/s,
+		"The Size button should be half-width with the shared ribbon height",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-editing-tools-button\.text-editor-editing-tools-button--depressed,\s*\.text-editor-size-menu-button\.text-editor-size-menu-button--depressed\s*\{[^}]*filter:\s*brightness\(1\.5\);/s,
-		"Both toggle buttons should share a depressed active state",
+		/\.text-editor-editing-tools-button\.text-editor-editing-tools-button--depressed,[\s\S]*?background:\s*#c7e0f4;/,
+		"Both toggle buttons should share a selected ribbon state",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-editing-tools-button--unavailable\s*\{[^}]*background:[^;]*;[^}]*cursor:\s*not-allowed;[^}]*0 0 14px rgba\(176, 48, 48, 0\.62\)/s,
-		"Unavailable Editing Tools should use a dull red background and glow",
+		/\.text-editor-editing-tools-button--unavailable\s*\{[^}]*color:\s*#a19f9d;[^}]*cursor:\s*not-allowed;/s,
+		"The unavailable Tools button should be grayed out",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-editing-tools-button--available\s*\{[^}]*background:[^;]*;[^}]*cursor:\s*pointer;[^}]*0 0 14px rgba\(82, 164, 70, 0\.62\)/s,
-		"Available Editing Tools should use a dull green background and glow",
+		/\.text-editor-editing-tools-button--available\s*\{[^}]*color:\s*#1b1b1b;[^}]*cursor:\s*pointer;/s,
+		"The available Tools button should use the default ribbon text color",
 	);
 	assert.match(
 		cssSource,
@@ -375,24 +375,12 @@ test("text editor calibration toggle and navigation gradients match the control 
 	);
 	const expectedButtonGradients = [
 		[
-			"text-editor-print-preview-button",
-			"linear-gradient\\(90deg,\\s*#633b40\\s+0%,\\s*#855256\\s+48%,\\s*#65432f\\s+100%\\)",
-		],
-		[
 			"text-editor-templates-button",
 			"linear-gradient\\(90deg,\\s*#65432f\\s+0%,\\s*#8a5c3d\\s+50%,\\s*#5e542f\\s+100%\\)",
 		],
 		[
 			"text-editor-grid-button",
 			"linear-gradient\\(90deg,\\s*#5e542f\\s+0%,\\s*#81733e\\s+50%,\\s*#344d37\\s+100%\\)",
-		],
-		[
-			"text-editor-fonts-button",
-			"linear-gradient\\(90deg,\\s*#344d37\\s+0%,\\s*#49684d\\s+50%,\\s*#30485f\\s+100%\\)",
-		],
-		[
-			"text-editor-margins-button",
-			"linear-gradient\\(90deg,\\s*#30485f\\s+0%,\\s*#45627b\\s+50%,\\s*#3e3b53\\s+100%\\)",
 		],
 		[
 			"text-editor-calibrate-button",

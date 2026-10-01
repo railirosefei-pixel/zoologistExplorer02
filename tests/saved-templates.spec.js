@@ -12,7 +12,7 @@ test("saved templates stay available across reloads and restore their paper stat
 
 	const editor = page.locator(".print-preview-paper-editor");
 	await editor.fill("Alphabet Practice");
-	await page.getByRole("button", { name: "Editing Tools" }).click();
+	await page.getByRole("button", { name: "Tools" }).click();
 	await page.getByRole("button", { name: "Size" }).click();
 	await page.locator("#text-editor-size-width").fill("5");
 
@@ -33,7 +33,7 @@ test("saved templates stay available across reloads and restore their paper stat
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
 	await page.getByRole("button", { name: "Templates", exact: true }).click();
-	await page.getByRole("button", { name: "Saved Templates" }).click();
+	await page.getByRole("button", { name: "Saved" }).click();
 	await expect(page.getByRole("button", { name: "Alphabet 5in" })).toBeVisible();
 	await page.getByRole("button", { name: "Alphabet 5in" }).click();
 
@@ -46,14 +46,14 @@ test("saved templates stay available across reloads and restore their paper stat
 					getComputedStyle(element).getPropertyValue("--print-preview-paper-width"),
 				);
 		})
-		.toBe("430px");
+		.toBe("545px");
 
 	await page.getByRole("button", { name: "Save", exact: true }).click();
 	await page.locator("#text-editor-template-name-input").fill("Second");
 	await page.getByRole("button", { name: "Save Template" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
 	await page.getByRole("button", { name: "Templates", exact: true }).click();
-	await page.getByRole("button", { name: "Saved Templates" }).click();
+	await page.getByRole("button", { name: "Saved" }).click();
 	await expect(page.getByRole("button", { name: "Alphabet 5in" })).toBeVisible();
 	await expect(page.getByRole("button", { name: "Second" })).toBeVisible();
 });

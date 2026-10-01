@@ -1,5 +1,5 @@
 ﻿<script setup>
-import { computed, nextTick, ref, watchEffect } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 
 import { addSavedTemplate, buildTemplateEntry, loadSavedTemplates } from "../js/templateStorage.js";
 import { convertToPixels } from "../js/unitConversion.js";
@@ -16,6 +16,7 @@ const isEditingToolsOpen = ref(false);
 const isSizePanelOpen = ref(false);
 const isFontsPanelOpen = ref(false);
 const isStylesMenuOpen = ref(false);
+const isWeightMenuOpen = ref(false);
 const isWidthMenuOpen = ref(false);
 const isHeightMenuOpen = ref(false);
 const isSavedTemplatesListOpen = ref(false);
@@ -35,6 +36,15 @@ function loadActiveFontStyleId() {
 }
 
 const activeFontStyleId = ref(loadActiveFontStyleId());
+/** Initial font weight derived from the persisted font style id. */
+function getInitialFontWeight() {
+	if (!activeFontStyleId.value) {
+		return "100";
+	}
+	return activeFontStyleId.value.includes("bold") ? "700" : "400";
+}
+
+const selectedFontWeight = ref(getInitialFontWeight());
 
 /** Load persisted calibration bar state, or null when unavailable/invalid. */
 function loadCalibrationState() {
@@ -75,6 +85,7 @@ let calibrationBarDragStartX = 0;
 let calibrationBarDragStartLengthPx = calibrationBarLengthPx.value;
 let calibrationBarDragStartTopPx = 40;
 let calibrationBarDragStartLeftPx = 160;
+let pendingFontWeightSpan = null;
 
 /** Persist the current calibration bar state so it survives reloads. */
 function saveCalibrationState() {
@@ -182,6 +193,47 @@ function handlePaperEditorKeydown(event) {
 	}
 }
 
+function handlePaperEditorInput() {
+	const editor = printPreviewPaperEditorRef.value;
+	if (!editor) {
+		return;
+	}
+	// Disarm any armed weight spans: once the caret has left a span (any
+	// edit that the beforeinput redirect did not consume), it is no longer
+	// the pending typing target and must not swallow further keystrokes.
+	for (const caretSpan of editor.querySelectorAll("[data-font-weight-caret]")) {
+		delete caretSpan.dataset.fontWeightCaret;
+		if (caretSpan === pendingFontWeightSpan) {
+			pendingFontWeightSpan = null;
+		}
+	}
+}
+
+function handlePaperEditorBeforeInput(event) {
+	if (
+		!pendingFontWeightSpan ||
+		!printPreviewPaperEditorRef.value?.contains(pendingFontWeightSpan) ||
+		!event.data ||
+		!event.inputType.startsWith("insert")
+	) {
+		return;
+	}
+	event.preventDefault();
+	let textNode = pendingFontWeightSpan.lastChild;
+	if (textNode?.nodeType === Node.TEXT_NODE) {
+		textNode.appendData(event.data);
+	} else {
+		textNode = document.createTextNode(event.data);
+		pendingFontWeightSpan.append(textNode);
+	}
+	const selection = window.getSelection();
+	const range = document.createRange();
+	range.setStartAfter(textNode);
+	range.collapse(true);
+	selection?.removeAllRanges();
+	selection?.addRange(range);
+}
+
 function handlePaperTemplateSave() {
 	templateNameInput.value = "";
 	isTemplateNamePromptOpen.value = true;
@@ -238,6 +290,7 @@ function confirmTemplateSave() {
 
 /** Return from Text Editor to the Parent menu. */
 function handleTextEditorClose() {
+	pendingFontWeightSpan = null;
 	isTextEditorOpen.value = false;
 	textEditorButtonStates.value.printPreview = false;
 	textEditorButtonStates.value.templates = false;
@@ -249,6 +302,7 @@ function handleTextEditorClose() {
 	isSizePanelOpen.value = false;
 	isFontsPanelOpen.value = false;
 	isStylesMenuOpen.value = false;
+	isWeightMenuOpen.value = false;
 	isWidthMenuOpen.value = false;
 	isHeightMenuOpen.value = false;
 }
@@ -258,14 +312,8 @@ function handleTextEditorOpen() {
 }
 
 function toggleTextEditorButton(buttonName) {
-	textEditorButtonStates.value[buttonName] = !textEditorButtonStates.value[buttonName];
-	if (buttonName === "printPreview" && !textEditorButtonStates.value.printPreview) {
-		isEditingToolsOpen.value = false;
-		isSizePanelOpen.value = false;
-		isWidthMenuOpen.value = false;
-		isHeightMenuOpen.value = false;
-	}
-	if (buttonName === "printPreview" && textEditorButtonStates.value.printPreview) {
+	if (buttonName === "printPreview") {
+		textEditorButtonStates.value.printPreview = true;
 		nextTick(() => {
 			const paperEditor = printPreviewPaperEditorRef.value;
 			if (!paperEditor) {
@@ -276,13 +324,58 @@ function toggleTextEditorButton(buttonName) {
 			selection?.selectAllChildren(paperEditor);
 			selection?.collapseToStart();
 		});
+		return;
+	}
+
+	textEditorButtonStates.value[buttonName] = !textEditorButtonStates.value[buttonName];
+}
+
+function closeTextEditorDropdowns() {
+	isSavedTemplatesListOpen.value = false;
+	isStylesMenuOpen.value = false;
+	isWeightMenuOpen.value = false;
+	isSizePanelOpen.value = false;
+	isWidthMenuOpen.value = false;
+	isHeightMenuOpen.value = false;
+}
+
+function handleDocumentPointerDown(event) {
+	const sidebar = document.getElementById("text-editor-templates-panel");
+	if (!sidebar || sidebar.contains(event.target)) {
+		return;
+	}
+	// Word-ribbon light dismiss: close only the floating menus, not the
+	// inline panels whose buttons stay visible inside the ribbon.
+	isStylesMenuOpen.value = false;
+	isWeightMenuOpen.value = false;
+	isWidthMenuOpen.value = false;
+	isHeightMenuOpen.value = false;
+}
+
+function handleDocumentKeydown(event) {
+	if (event.key === "Escape") {
+		closeTextEditorDropdowns();
 	}
 }
+
+onMounted(() => {
+	document.addEventListener("pointerdown", handleDocumentPointerDown);
+	document.addEventListener("keydown", handleDocumentKeydown);
+});
+
+onBeforeUnmount(() => {
+	document.removeEventListener("pointerdown", handleDocumentPointerDown);
+	document.removeEventListener("keydown", handleDocumentKeydown);
+});
 
 function toggleSavedTemplatesList() {
 	isSavedTemplatesListOpen.value = !isSavedTemplatesListOpen.value;
 	if (isSavedTemplatesListOpen.value) {
 		savedTemplates.value = loadSavedTemplates();
+		isStylesMenuOpen.value = false;
+		isWeightMenuOpen.value = false;
+		isWidthMenuOpen.value = false;
+		isHeightMenuOpen.value = false;
 	}
 }
 
@@ -313,6 +406,7 @@ async function loadSavedTemplate(entry) {
 	heightUnit.value = entry.template.heightUnit ?? heightUnit.value;
 	textEditorButtonStates.value.printPreview = true;
 	isSavedTemplatesListOpen.value = false;
+	pendingFontWeightSpan = null;
 
 	await nextTick();
 	const editor = printPreviewPaperEditorRef.value;
@@ -330,6 +424,7 @@ function toggleEditingTools() {
 		isSizePanelOpen.value = false;
 		isFontsPanelOpen.value = false;
 		isStylesMenuOpen.value = false;
+		isWeightMenuOpen.value = false;
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
 	}
@@ -339,6 +434,7 @@ function toggleFontsPanel() {
 	isFontsPanelOpen.value = !isFontsPanelOpen.value;
 	if (!isFontsPanelOpen.value) {
 		isStylesMenuOpen.value = false;
+		isWeightMenuOpen.value = false;
 	}
 }
 
@@ -347,6 +443,43 @@ function toggleStylesMenu() {
 		return;
 	}
 	isStylesMenuOpen.value = !isStylesMenuOpen.value;
+	isWeightMenuOpen.value = false;
+	if (isStylesMenuOpen.value) {
+		isSavedTemplatesListOpen.value = false;
+		isWidthMenuOpen.value = false;
+		isHeightMenuOpen.value = false;
+	}
+}
+
+function toggleWeightMenu() {
+	if (!isFontsPanelOpen.value) {
+		return;
+	}
+	isWeightMenuOpen.value = !isWeightMenuOpen.value;
+	isStylesMenuOpen.value = false;
+	if (isWeightMenuOpen.value) {
+		isSavedTemplatesListOpen.value = false;
+		isWidthMenuOpen.value = false;
+		isHeightMenuOpen.value = false;
+	}
+}
+
+function ensureEditorSelection(editor) {
+	const selection = window.getSelection();
+	if (
+		selection &&
+		selection.rangeCount > 0 &&
+		editor.contains(selection.getRangeAt(0).commonAncestorContainer)
+	) {
+		return;
+	}
+
+	editor.focus();
+	const range = document.createRange();
+	range.selectNodeContents(editor);
+	range.collapse(false);
+	selection?.removeAllRanges();
+	selection?.addRange(range);
 }
 
 function applyFontStyle(fontOption) {
@@ -364,42 +497,79 @@ function applyFontStyle(fontOption) {
 	} catch {
 		// Keep the selection usable for this session when storage is unavailable.
 	}
-	const selection = window.getSelection();
-	if (
-		!selection ||
-		selection.rangeCount === 0 ||
-		!editor.contains(selection.getRangeAt(0).commonAncestorContainer)
-	) {
-		editor.focus();
-		const range = document.createRange();
-		range.selectNodeContents(editor);
-		range.collapse(false);
-		selection?.removeAllRanges();
-		selection?.addRange(range);
-	}
+	selectedFontWeight.value = fontOption.weight;
+	pendingFontWeightSpan = null;
+	ensureEditorSelection(editor);
 	document.execCommand("fontName", false, fontOption.family);
+}
+
+function applyFontWeight(weight) {
+	const editor = printPreviewPaperEditorRef.value;
+	if (!editor || !/^([1-9]00)$/.test(weight)) {
+		return;
+	}
+	selectedFontWeight.value = weight;
+	pendingFontWeightSpan = null;
+	const selection = window.getSelection();
+	ensureEditorSelection(editor);
+	if (!selection || selection.rangeCount === 0) {
+		return;
+	}
+
+	const range = selection.getRangeAt(0);
+	const weightSpan = document.createElement("span");
+	weightSpan.style.fontWeight = weight;
+	const isCollapsed = range.collapsed;
+	if (isCollapsed) {
+		pendingFontWeightSpan = weightSpan;
+		weightSpan.dataset.fontWeightCaret = "";
+		range.insertNode(weightSpan);
+		range.selectNodeContents(weightSpan);
+		range.collapse(true);
+	} else {
+		weightSpan.append(range.extractContents());
+		range.insertNode(weightSpan);
+		range.selectNodeContents(weightSpan);
+		range.collapse(false);
+	}
+	if (!isCollapsed) {
+		editor.normalize();
+	}
+	selection.removeAllRanges();
+	selection.addRange(range);
+	isWeightMenuOpen.value = false;
 }
 
 function toggleSizePanel() {
 	isSizePanelOpen.value = !isSizePanelOpen.value;
+	pendingFontWeightSpan = null;
 	if (!isSizePanelOpen.value) {
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
+		return;
 	}
+	isSavedTemplatesListOpen.value = false;
+	isStylesMenuOpen.value = false;
+	isWeightMenuOpen.value = false;
 }
 
 function toggleUnitMenu(field) {
 	if (field === "width") {
 		isWidthMenuOpen.value = !isWidthMenuOpen.value;
 		isHeightMenuOpen.value = false;
-		return;
+	} else {
+		isHeightMenuOpen.value = !isHeightMenuOpen.value;
+		isWidthMenuOpen.value = false;
 	}
-
-	isHeightMenuOpen.value = !isHeightMenuOpen.value;
-	isWidthMenuOpen.value = false;
+	if (isWidthMenuOpen.value || isHeightMenuOpen.value) {
+		isSavedTemplatesListOpen.value = false;
+		isStylesMenuOpen.value = false;
+		isWeightMenuOpen.value = false;
+	}
 }
 
 function updateUnit(field, unit) {
+	pendingFontWeightSpan = null;
 	if (field === "width") {
 		widthUnit.value = unit;
 		isWidthMenuOpen.value = false;
@@ -425,28 +595,34 @@ const fontStyleOptions = [
 		id: "minecraft-regular-1",
 		label: "Minecraft Reg 1",
 		family: '"MinecraftRegular1", "Trebuchet MS", sans-serif',
+		weight: "400",
 	},
 	{
 		id: "minecraft-regular-2",
 		label: "Minecraft Reg 2",
 		family: '"MinecraftRegular2", "Trebuchet MS", sans-serif',
+		weight: "400",
 	},
 	{
 		id: "minecraft-regular-2-bold",
 		label: "Minecraft Reg 2 (Bold)",
 		family: '"Minecraft2Bold", "Trebuchet MS", sans-serif',
+		weight: "700",
 	},
 	{
 		id: "minecraft-regular-2-italic",
 		label: "Minecraft Reg 2 (Italic)",
 		family: '"Minecraft2Italic", "Trebuchet MS", sans-serif',
+		weight: "400",
 	},
 	{
 		id: "minecraft-regular-2-bold-italic",
 		label: "Minecraft Reg 2 (Bold & Italic)",
 		family: '"Minecraft2BoldItalic", "Trebuchet MS", sans-serif',
+		weight: "700",
 	},
 ];
+const fontWeightOptions = ["100", "200", "300", "400", "500", "600", "700", "800", "900"];
 
 /** Feeds the Size menu dimensions into the print preview paper stylesheet variables. */
 watchEffect(() => {
@@ -455,7 +631,6 @@ watchEffect(() => {
 		paperElement.style.setProperty("--print-preview-paper-width", `${paperWidthPx.value}px`);
 		paperElement.style.setProperty("--print-preview-paper-height", `${paperHeightPx.value}px`);
 	}
-
 });
 
 async function toggleCalibrateButton() {
@@ -679,11 +854,10 @@ function handleCalibrationBarPointerUp() {
 					>
 						Save
 					</button>
-					<div
+					<dialog
 						v-if="isTemplateNamePromptOpen"
 						id="text-editor-template-name-prompt"
 						class="text-editor-template-name-prompt"
-						role="dialog"
 						aria-label="Name this template"
 					>
 						<label
@@ -718,7 +892,7 @@ function handleCalibrationBarPointerUp() {
 						>
 							Cancel
 						</button>
-					</div>
+					</dialog>
 					<div
 						id="print-preview-paper"
 						ref="printPreviewPaperRef"
@@ -731,7 +905,9 @@ function handleCalibrationBarPointerUp() {
 							contenteditable="true"
 							role="textbox"
 							aria-label="Paper template text"
+							@beforeinput="handlePaperEditorBeforeInput"
 							@keydown="handlePaperEditorKeydown"
+							@input="handlePaperEditorInput"
 						/>
 					</div>
 				</div>
@@ -789,328 +965,373 @@ function handleCalibrationBarPointerUp() {
 				aria-label="Template options"
 				title="Template options"
 			>
-				<button
-					id="text-editor-template-saved-templates-button"
-					class="text-editor-template-saved-templates-button"
-					:class="{ 'text-editor-button--depressed': isSavedTemplatesListOpen }"
-					type="button"
-					name="text-editor-template-saved-templates-button"
-					data-button-name="text-editor-template-saved-templates-button"
-					:aria-pressed="isSavedTemplatesListOpen"
-					@click="toggleSavedTemplatesList"
-				>
-					Saved Templates
-				</button>
-				<div
-					v-if="isSavedTemplatesListOpen"
-					id="text-editor-saved-templates-list"
-					class="text-editor-saved-templates-list"
-					role="list"
-					aria-label="Saved templates"
-				>
-					<p v-if="savedTemplates.length === 0" class="text-editor-saved-templates-empty">
-						No saved templates yet.
-					</p>
+				<div class="text-editor-ribbon-group">
 					<button
-						v-for="entry in savedTemplates"
-						:key="entry.id"
-						class="text-editor-saved-template-item"
+						id="text-editor-template-saved-templates-button"
+						class="text-editor-template-saved-templates-button"
+						:class="{ 'text-editor-button--depressed': isSavedTemplatesListOpen }"
 						type="button"
-						:data-template-id="entry.id"
-						@click="loadSavedTemplate(entry)"
+						name="text-editor-template-saved-templates-button"
+						data-button-name="text-editor-template-saved-templates-button"
+						:aria-pressed="isSavedTemplatesListOpen"
+						@click="toggleSavedTemplatesList"
 					>
-						{{ entry.name }}
+						Saved
 					</button>
-				</div>
-				<button
-					id="text-editor-template-new-button"
-					class="text-editor-template-new-button text-editor-print-preview-button"
-					:class="{
-						'text-editor-button--depressed': textEditorButtonStates.printPreview,
-					}"
-					type="button"
-					name="text-editor-template-new-button"
-					data-button-name="text-editor-template-new-button"
-					:aria-pressed="textEditorButtonStates.printPreview"
-					@click="toggleTextEditorButton('printPreview')"
-				>
-					New +
-				</button>
-				<div class="text-editor-size-action-row">
+					<ul
+						v-if="isSavedTemplatesListOpen"
+						id="text-editor-saved-templates-list"
+						class="text-editor-saved-templates-list"
+						aria-label="Saved templates"
+					>
+						<p
+							v-if="savedTemplates.length === 0"
+							class="text-editor-saved-templates-empty"
+						>
+							No saved templates yet.
+						</p>
+						<button
+							v-for="entry in savedTemplates"
+							:key="entry.id"
+							class="text-editor-saved-template-item"
+							type="button"
+							:data-template-id="entry.id"
+							@click="loadSavedTemplate(entry)"
+						>
+							{{ entry.name }}
+						</button>
+					</ul>
 					<button
-						id="text-editor-editing-tools-button"
-						class="text-editor-editing-tools-button"
+						id="text-editor-template-new-button"
+						class="text-editor-template-new-button text-editor-print-preview-button"
 						:class="{
-							'text-editor-editing-tools-button--depressed': isEditingToolsOpen,
-							'text-editor-editing-tools-button--unavailable': !textEditorButtonStates.printPreview,
-							'text-editor-editing-tools-button--available': textEditorButtonStates.printPreview,
+							'text-editor-button--depressed': textEditorButtonStates.printPreview,
 						}"
 						type="button"
-						:disabled="!textEditorButtonStates.printPreview"
-						name="text-editor-editing-tools-button"
-						data-button-name="text-editor-editing-tools-button"
-						:aria-pressed="isEditingToolsOpen"
-						@click="toggleEditingTools"
+						name="text-editor-template-new-button"
+						data-button-name="text-editor-template-new-button"
+						:aria-pressed="textEditorButtonStates.printPreview"
+						@click="toggleTextEditorButton('printPreview')"
 					>
-						Editing Tools
+						New +
 					</button>
-					<div v-if="isEditingToolsOpen" class="text-editor-size-menu-row">
-						<div class="text-editor-size-menu-top-row">
-							<button
-								id="text-editor-size-menu-button"
-								class="text-editor-size-menu-button"
-								:class="{
-									'text-editor-size-menu-button--depressed': isSizePanelOpen,
-								}"
-								type="button"
-								name="text-editor-size-menu-button"
-								data-button-name="text-editor-size-menu-button"
-								:aria-pressed="isSizePanelOpen"
-								@click="toggleSizePanel"
-							>
-								Size
-							</button>
-							<button
-								id="text-editor-fonts-button"
-								class="text-editor-fonts-button"
-								:class="{
-									'text-editor-fonts-button--depressed': isFontsPanelOpen,
-								}"
-								type="button"
-								name="text-editor-fonts-button"
-								data-button-name="text-editor-fonts-button"
-								:aria-pressed="isFontsPanelOpen"
-								@click="toggleFontsPanel"
-							>
-								Fonts
-							</button>
-						</div>
+					<p class="text-editor-ribbon-group-caption">Templates</p>
+				</div>
+				<div class="text-editor-ribbon-group">
+					<div class="text-editor-size-action-row">
 						<button
-							id="text-editor-margins-button"
-							class="text-editor-margins-button"
+							id="text-editor-editing-tools-button"
+							class="text-editor-editing-tools-button"
+							:class="{
+								'text-editor-editing-tools-button--depressed': isEditingToolsOpen,
+								'text-editor-editing-tools-button--unavailable':
+									!textEditorButtonStates.printPreview,
+								'text-editor-editing-tools-button--available':
+									textEditorButtonStates.printPreview,
+							}"
 							type="button"
-							name="text-editor-margins-button"
-							data-button-name="text-editor-margins-button"
+							:disabled="!textEditorButtonStates.printPreview"
+							name="text-editor-editing-tools-button"
+							data-button-name="text-editor-editing-tools-button"
+							:aria-pressed="isEditingToolsOpen"
+							@click="toggleEditingTools"
 						>
-							Margins
+							Tools
 						</button>
-						<div
-							v-if="isFontsPanelOpen"
-							id="text-editor-fonts-panel"
-							class="text-editor-fonts-panel"
-							role="region"
-							aria-label="Fonts options"
-						>
-							<button
-								class="text-editor-font-option-button"
-								data-font-option="styles"
-								type="button"
-								:aria-pressed="isStylesMenuOpen"
-								@click="toggleStylesMenu"
-							>
-								Styles
-							</button>
-							<button
-								class="text-editor-font-option-button"
-								data-font-option="color"
-								type="button"
-							>
-								Color
-							</button>
-							<button
-								class="text-editor-font-option-button"
-								data-font-option="weight"
-								type="button"
-							>
-								Weight
-							</button>
-							<button
-								class="text-editor-font-option-button"
-								data-font-option="font-size"
-								type="button"
-							>
-								Font Size
-							</button>
-							<div v-if="isStylesMenuOpen" class="text-editor-font-styles-menu" role="region" aria-label="Font styles">
+						<div v-if="isEditingToolsOpen" class="text-editor-size-menu-row">
+							<div class="text-editor-size-menu-top-row">
 								<button
-									v-for="fontOption in fontStyleOptions"
-									:key="fontOption.id"
-									class="text-editor-font-style-button"
+									id="text-editor-size-menu-button"
+									class="text-editor-size-menu-button"
 									:class="{
-										'text-editor-font-style-button--depressed': activeFontStyleId === fontOption.id,
+										'text-editor-size-menu-button--depressed': isSizePanelOpen,
 									}"
 									type="button"
-									:data-font-style="fontOption.id"
-									:aria-pressed="activeFontStyleId === fontOption.id"
-									:style="{ fontFamily: fontOption.family }"
-									@mousedown.prevent
-									@click="applyFontStyle(fontOption)"
+									name="text-editor-size-menu-button"
+									data-button-name="text-editor-size-menu-button"
+									:aria-pressed="isSizePanelOpen"
+									@click="toggleSizePanel"
 								>
-									{{ fontOption.label }}
+									Size
+								</button>
+								<button
+									id="text-editor-fonts-button"
+									class="text-editor-fonts-button"
+									:class="{
+										'text-editor-fonts-button--depressed': isFontsPanelOpen,
+									}"
+									type="button"
+									name="text-editor-fonts-button"
+									data-button-name="text-editor-fonts-button"
+									:aria-pressed="isFontsPanelOpen"
+									@click="toggleFontsPanel"
+								>
+									Fonts
 								</button>
 							</div>
-						</div>
-
-						<div
-							v-if="isSizePanelOpen"
-							id="text-editor-size-panel"
-							class="text-editor-size-panel"
-							aria-label="Size options"
-						>
-							<div class="text-editor-size-row">
-								<label class="text-editor-size-label" for="text-editor-size-width"
-									>Width</label
+							<button
+								id="text-editor-margins-button"
+								class="text-editor-margins-button"
+								type="button"
+								name="text-editor-margins-button"
+								data-button-name="text-editor-margins-button"
+							>
+								Margins
+							</button>
+							<section
+								v-if="isFontsPanelOpen"
+								id="text-editor-fonts-panel"
+								class="text-editor-fonts-panel"
+								role="region"
+								aria-label="Fonts options"
+							>
+								<button
+									class="text-editor-font-option-button"
+									data-font-option="styles"
+									type="button"
+									:aria-pressed="isStylesMenuOpen"
+									@click="toggleStylesMenu"
 								>
-								<input
-									id="text-editor-size-width"
-									v-model="widthValue"
-									class="text-editor-size-input"
-									type="text"
-									inputmode="decimal"
-									maxlength="4"
-									aria-label="Width value"
-								/>
-								<div
-									class="text-editor-size-unit-field text-editor-size-width-unit-field"
+									Fonts
+								</button>
+								<button
+									class="text-editor-font-option-button"
+									data-font-option="color"
+									type="button"
+								>
+									Font Color
+								</button>
+								<button
+									class="text-editor-font-option-button"
+									data-font-option="weight"
+									type="button"
+									:aria-pressed="isWeightMenuOpen"
+									@click="toggleWeightMenu"
+								>
+									Font Weight: {{ selectedFontWeight }}
+								</button>
+								<button
+									class="text-editor-font-option-button"
+									data-font-option="font-size"
+									type="button"
+								>
+									Font Size
+								</button>
+								<section
+									v-if="isStylesMenuOpen"
+									class="text-editor-font-styles-menu"
+									role="region"
+									aria-label="Font styles"
 								>
 									<button
-										id="text-editor-size-width-unit"
-										class="text-editor-size-width-unit-button"
+										v-for="fontOption in fontStyleOptions"
+										:key="fontOption.id"
+										class="text-editor-font-style-button"
+										:class="{
+											'text-editor-font-style-button--depressed':
+												activeFontStyleId === fontOption.id,
+										}"
 										type="button"
-										name="text-editor-size-width-unit"
-										data-button-name="text-editor-size-width-unit"
-										aria-label="Width unit"
-										title="Width unit"
-										@click="toggleUnitMenu('width')"
+										:data-font-style="fontOption.id"
+										:aria-pressed="activeFontStyleId === fontOption.id"
+										:style="{ fontFamily: fontOption.family }"
+										@mousedown.prevent
+										@click="applyFontStyle(fontOption)"
 									>
-										{{ widthUnit }}
+										{{ fontOption.label }}
 									</button>
+								</section>
+								<div
+									v-if="isWeightMenuOpen"
+									class="text-editor-font-weights-menu"
+									role="menu"
+									aria-label="Font weights"
+								>
+									<button
+										v-for="weight in fontWeightOptions"
+										:key="weight"
+										class="text-editor-font-weight-button"
+										:class="{
+											'text-editor-font-weight-button--depressed':
+												selectedFontWeight === weight,
+										}"
+										type="button"
+										role="menuitem"
+										:aria-pressed="selectedFontWeight === weight"
+										@mousedown.prevent
+										@click="applyFontWeight(weight)"
+									>
+										{{ weight }}
+									</button>
+								</div>
+							</section>
+
+							<div
+								v-if="isSizePanelOpen"
+								id="text-editor-size-panel"
+								class="text-editor-size-panel"
+								aria-label="Size options"
+							>
+								<div class="text-editor-size-row">
+									<label
+										class="text-editor-size-label"
+										for="text-editor-size-width"
+										>Width</label
+									>
+									<input
+										id="text-editor-size-width"
+										v-model="widthValue"
+										class="text-editor-size-input"
+										type="text"
+										inputmode="decimal"
+										maxlength="4"
+										aria-label="Width value"
+									/>
 									<div
-										v-if="isWidthMenuOpen"
-										id="text-editor-size-width-menu"
-										class="text-editor-size-unit-menu text-editor-size-width-menu"
+										class="text-editor-size-unit-field text-editor-size-width-unit-field"
 									>
 										<button
-											id="text-editor-size-width-px-option"
-											class="text-editor-size-width-px-option"
+											id="text-editor-size-width-unit"
+											class="text-editor-size-width-unit-button"
 											type="button"
-											name="text-editor-size-width-px-option"
-											data-button-name="text-editor-size-width-px-option"
-											@click="updateUnit('width', 'px')"
+											name="text-editor-size-width-unit"
+											data-button-name="text-editor-size-width-unit"
+											aria-label="Width unit: in"
+											title="Width unit"
+											@click="toggleUnitMenu('width')"
 										>
-											px
+											{{ widthUnit }}
 										</button>
-										<button
-											id="text-editor-size-width-in-option"
-											class="text-editor-size-width-in-option"
-											type="button"
-											name="text-editor-size-width-in-option"
-											data-button-name="text-editor-size-width-in-option"
-											@click="updateUnit('width', 'in')"
+										<div
+											v-if="isWidthMenuOpen"
+											id="text-editor-size-width-menu"
+											class="text-editor-size-unit-menu text-editor-size-width-menu"
 										>
-											in
-										</button>
-										<button
-											id="text-editor-size-width-cm-option"
-											class="text-editor-size-width-cm-option"
-											type="button"
-											name="text-editor-size-width-cm-option"
-											data-button-name="text-editor-size-width-cm-option"
-											@click="updateUnit('width', 'cm')"
-										>
-											cm
-										</button>
-										<button
-											id="text-editor-size-width-mm-option"
-											class="text-editor-size-width-mm-option"
-											type="button"
-											name="text-editor-size-width-mm-option"
-											data-button-name="text-editor-size-width-mm-option"
-											@click="updateUnit('width', 'mm')"
-										>
-											mm
-										</button>
+											<button
+												id="text-editor-size-width-px-option"
+												class="text-editor-size-width-px-option"
+												type="button"
+												name="text-editor-size-width-px-option"
+												data-button-name="text-editor-size-width-px-option"
+												@click="updateUnit('width', 'px')"
+											>
+												px
+											</button>
+											<button
+												id="text-editor-size-width-in-option"
+												class="text-editor-size-width-in-option"
+												type="button"
+												name="text-editor-size-width-in-option"
+												data-button-name="text-editor-size-width-in-option"
+												@click="updateUnit('width', 'in')"
+											>
+												in
+											</button>
+											<button
+												id="text-editor-size-width-cm-option"
+												class="text-editor-size-width-cm-option"
+												type="button"
+												name="text-editor-size-width-cm-option"
+												data-button-name="text-editor-size-width-cm-option"
+												@click="updateUnit('width', 'cm')"
+											>
+												cm
+											</button>
+											<button
+												id="text-editor-size-width-mm-option"
+												class="text-editor-size-width-mm-option"
+												type="button"
+												name="text-editor-size-width-mm-option"
+												data-button-name="text-editor-size-width-mm-option"
+												@click="updateUnit('width', 'mm')"
+											>
+												mm
+											</button>
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="text-editor-size-row">
-								<label class="text-editor-size-label" for="text-editor-size-height"
-									>Height</label
-								>
-								<input
-									id="text-editor-size-height"
-									v-model="heightValue"
-									class="text-editor-size-input"
-									type="text"
-									inputmode="decimal"
-									maxlength="4"
-									aria-label="Height value"
-								/>
-								<div
-									class="text-editor-size-unit-field text-editor-size-height-unit-field"
-								>
-									<button
-										id="text-editor-size-height-unit"
-										class="text-editor-size-height-unit-button"
-										type="button"
-										name="text-editor-size-height-unit"
-										data-button-name="text-editor-size-height-unit"
-										aria-label="Height unit"
-										title="Height unit"
-										@click="toggleUnitMenu('height')"
+								<div class="text-editor-size-row">
+									<label
+										class="text-editor-size-label"
+										for="text-editor-size-height"
+										>Height</label
 									>
-										{{ heightUnit }}
-									</button>
+									<input
+										id="text-editor-size-height"
+										v-model="heightValue"
+										class="text-editor-size-input"
+										type="text"
+										inputmode="decimal"
+										maxlength="4"
+										aria-label="Height value"
+									/>
 									<div
-										v-if="isHeightMenuOpen"
-										id="text-editor-size-height-menu"
-										class="text-editor-size-unit-menu text-editor-size-height-menu"
+										class="text-editor-size-unit-field text-editor-size-height-unit-field"
 									>
 										<button
-											id="text-editor-size-height-px-option"
-											class="text-editor-size-height-px-option"
+											id="text-editor-size-height-unit"
+											class="text-editor-size-height-unit-button"
 											type="button"
-											name="text-editor-size-height-px-option"
-											data-button-name="text-editor-size-height-px-option"
-											@click="updateUnit('height', 'px')"
+											name="text-editor-size-height-unit"
+											data-button-name="text-editor-size-height-unit"
+											aria-label="Height unit: in"
+											title="Height unit"
+											@click="toggleUnitMenu('height')"
 										>
-											px
+											{{ heightUnit }}
 										</button>
-										<button
-											id="text-editor-size-height-in-option"
-											class="text-editor-size-height-in-option"
-											type="button"
-											name="text-editor-size-height-in-option"
-											data-button-name="text-editor-size-height-in-option"
-											@click="updateUnit('height', 'in')"
+										<div
+											v-if="isHeightMenuOpen"
+											id="text-editor-size-height-menu"
+											class="text-editor-size-unit-menu text-editor-size-height-menu"
 										>
-											in
-										</button>
-										<button
-											id="text-editor-size-height-cm-option"
-											class="text-editor-size-height-cm-option"
-											type="button"
-											name="text-editor-size-height-cm-option"
-											data-button-name="text-editor-size-height-cm-option"
-											@click="updateUnit('height', 'cm')"
-										>
-											cm
-										</button>
-										<button
-											id="text-editor-size-height-mm-option"
-											class="text-editor-size-height-mm-option"
-											type="button"
-											name="text-editor-size-height-mm-option"
-											data-button-name="text-editor-size-height-mm-option"
-											@click="updateUnit('height', 'mm')"
-										>
-											mm
-										</button>
+											<button
+												id="text-editor-size-height-px-option"
+												class="text-editor-size-height-px-option"
+												type="button"
+												name="text-editor-size-height-px-option"
+												data-button-name="text-editor-size-height-px-option"
+												@click="updateUnit('height', 'px')"
+											>
+												px
+											</button>
+											<button
+												id="text-editor-size-height-in-option"
+												class="text-editor-size-height-in-option"
+												type="button"
+												name="text-editor-size-height-in-option"
+												data-button-name="text-editor-size-height-in-option"
+												@click="updateUnit('height', 'in')"
+											>
+												in
+											</button>
+											<button
+												id="text-editor-size-height-cm-option"
+												class="text-editor-size-height-cm-option"
+												type="button"
+												name="text-editor-size-height-cm-option"
+												data-button-name="text-editor-size-height-cm-option"
+												@click="updateUnit('height', 'cm')"
+											>
+												cm
+											</button>
+											<button
+												id="text-editor-size-height-mm-option"
+												class="text-editor-size-height-mm-option"
+												type="button"
+												name="text-editor-size-height-mm-option"
+												data-button-name="text-editor-size-height-mm-option"
+												@click="updateUnit('height', 'mm')"
+											>
+												mm
+											</button>
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
+					<p class="text-editor-ribbon-group-caption">Tools</p>
 				</div>
 			</section>
 			<div
@@ -1210,4 +1431,3 @@ function handleCalibrationBarPointerUp() {
 		</button>
 	</main>
 </template>
-
