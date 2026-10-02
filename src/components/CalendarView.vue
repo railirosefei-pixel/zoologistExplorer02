@@ -448,6 +448,15 @@ function getSavedBlockDescription(subject, blockNumber) {
 	);
 }
 
+/** Read committed Play by Play text for the selected date, subject, and block. */
+function getSavedBlockPlayByPlay(subject, blockNumber) {
+	return blockDescriptionStore.getPlayByPlay(
+		selectedDailyMenuDateLabel.value,
+		subject,
+		blockNumber,
+	);
+}
+
 function triggerConfettiBurst() {
 	confettiVisible.value = true;
 	if (confettiTimeoutId) {
@@ -943,6 +952,26 @@ onBeforeUnmount(() => {
 							<p>
 								{{
 									getSavedBlockDescription(
+										selectedDailyMenuSubject,
+										selectedDailyMenuBlock,
+									)
+								}}
+							</p>
+						</div>
+						<div
+							v-if="
+								getSavedBlockPlayByPlay(
+									selectedDailyMenuSubject,
+									selectedDailyMenuBlock,
+								)
+							"
+							:id="`daily-menu-${selectedDailyMenuSubject}-block-${selectedDailyMenuBlock}-play-by-play`"
+							class="daily-menu-block-play-by-play"
+							:aria-label="`${blockSubjectLabels[selectedDailyMenuSubject]} Block ${selectedDailyMenuBlock} Play by Play`"
+						>
+							<p>
+								{{
+									getSavedBlockPlayByPlay(
 										selectedDailyMenuSubject,
 										selectedDailyMenuBlock,
 									)

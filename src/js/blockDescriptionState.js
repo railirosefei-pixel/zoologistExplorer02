@@ -10,12 +10,29 @@ import { reactive } from "vue";
  */
 
 const BLOCK_DESCRIPTIONS_STORAGE_KEY = "zoologistExplorer02.blockDescriptions";
+const BLOCK_PLAY_BY_PLAY_STORAGE_KEY = "zoologistExplorer02.blockPlayByPlay";
 const DESCRIPTION_HISTORY_STORAGE_KEY = "zoologistExplorer02.descriptionHistory";
 
 /** Load the persisted description map, tolerating unavailable storage. */
 function loadDescriptionsByKey() {
 	try {
 		const stored = globalThis.localStorage?.getItem(BLOCK_DESCRIPTIONS_STORAGE_KEY);
+		const parsed = stored ? JSON.parse(stored) : {};
+		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+			return {};
+		}
+		return Object.fromEntries(
+			Object.entries(parsed).filter(([, text]) => typeof text === "string"),
+		);
+	} catch {
+		return {};
+	}
+}
+
+/** Load the persisted Play by Play map, tolerating unavailable storage. */
+function loadPlayByPlayByKey() {
+	try {
+		const stored = globalThis.localStorage?.getItem(BLOCK_PLAY_BY_PLAY_STORAGE_KEY);
 		const parsed = stored ? JSON.parse(stored) : {};
 		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
 			return {};
@@ -75,6 +92,8 @@ function saveHistoryEntries() {
 const state = reactive({
 	/** @type {Record<string, string>} */
 	descriptionsByKey: loadDescriptionsByKey(),
+	/** @type {Record<string, string>} */
+	playByPlayByKey: loadPlayByPlayByKey(),
 	/** @type {Array<{ dateKey: string, subjectKey: string, subjectAbbrev: string, blocks: number[], text: string, savedAtIso: string, savedAtLabel: string }>} */
 	historyEntries: loadHistoryEntries(),
 });
@@ -148,12 +167,86 @@ function commitDescription({ dateKey, subjectKey, blocks, text }) {
 		subjectAbbrev: toSubjectAbbrev(subjectKey),
 		blocks: [...blocks],
 		text,
+		contentType: "description",
 		savedAtIso: savedAt.toISOString(),
 		savedAtLabel: toSavedAtLabel(savedAt),
 	});
 
 	saveDescriptionsByKey();
 	saveHistoryEntries();
+	return true;
+}
+
+function overwriteDescription({ dateKey, subjectKey, blockNumber, text }) {
+	const key = buildDescriptionKey(dateKey, subjectKey, blockNumber);
+	if (!key || typeof text !== "string" || !Object.hasOwn(state.descriptionsByKey, key) || state.descriptionsByKey[key] === text) {
+		return false;
+	}
+	if (text.length > 0) {
+		return commitDescription({ dateKey, subjectKey, blocks: [blockNumber], text });
+	}
+	state.descriptionsByKey[key] = text;
+	saveDescriptionsByKey();
+	return true;
+}
+
+/** Save Play by Play text under the same date + subject + block key scheme. */
+function commitPlayByPlay({ dateKey, subjectKey, blocks, text }) {
+	if (!dateKey || !subjectKey || !Array.isArray(blocks) || blocks.length === 0) {
+		return false;
+	}
+	if (typeof text !== "string" || text.length === 0) {
+		return false;
+	}
+
+	for (const blockNumber of blocks) {
+		const key = buildDescriptionKey(dateKey, subjectKey, blockNumber);
+		if (key) {
+			state.playByPlayByKey[key] = text;
+		}
+	}
+
+	const savedAt = new Date();
+	state.historyEntries.unshift({
+		dateKey,
+		subjectKey,
+		subjectAbbrev: toSubjectAbbrev(subjectKey),
+		blocks: [...blocks],
+		text,
+		contentType: "play-by-play",
+		savedAtIso: savedAt.toISOString(),
+		savedAtLabel: toSavedAtLabel(savedAt),
+	});
+
+	try {
+		globalThis.localStorage?.setItem(
+			BLOCK_PLAY_BY_PLAY_STORAGE_KEY,
+			JSON.stringify(state.playByPlayByKey),
+		);
+	} catch {
+		// Storage can be unavailable in restricted browser contexts.
+	}
+	saveHistoryEntries();
+	return true;
+}
+
+function overwritePlayByPlay({ dateKey, subjectKey, blockNumber, text }) {
+	const key = buildDescriptionKey(dateKey, subjectKey, blockNumber);
+	if (!key || typeof text !== "string" || !Object.hasOwn(state.playByPlayByKey, key) || state.playByPlayByKey[key] === text) {
+		return false;
+	}
+	if (text.length > 0) {
+		return commitPlayByPlay({ dateKey, subjectKey, blocks: [blockNumber], text });
+	}
+	state.playByPlayByKey[key] = text;
+	try {
+		globalThis.localStorage?.setItem(
+			BLOCK_PLAY_BY_PLAY_STORAGE_KEY,
+			JSON.stringify(state.playByPlayByKey),
+		);
+	} catch {
+		return true;
+	}
 	return true;
 }
 
@@ -168,6 +261,19 @@ function getDescription(dateLabelOrKey, subjectKey, blockNumber) {
 		return null;
 	}
 	return state.descriptionsByKey[key] ?? null;
+}
+
+/** Read the saved Play by Play text for one date + subject + block, or null. */
+function getPlayByPlay(dateLabelOrKey, subjectKey, blockNumber) {
+	const dateKey =
+		typeof dateLabelOrKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateLabelOrKey)
+			? dateLabelOrKey
+			: toDateKey(dateLabelOrKey);
+	const key = buildDescriptionKey(dateKey, subjectKey, blockNumber);
+	if (!key) {
+		return null;
+	}
+	return state.playByPlayByKey[key] ?? null;
 }
 
 /** Remove saved descriptions for only the supplied date, subject, and blocks. */
@@ -191,15 +297,50 @@ function removeDescriptions({ dateKey, subjectKey, blocks }) {
 	return removed;
 }
 
+/** Remove Play by Play text for only the supplied date, subject, and blocks. */
+function removePlayByPlay({ dateKey, subjectKey, blocks }) {
+	if (!dateKey || !subjectKey || !Array.isArray(blocks) || blocks.length === 0) {
+		return false;
+	}
+
+	let removed = false;
+	for (const blockNumber of blocks) {
+		const key = buildDescriptionKey(dateKey, subjectKey, blockNumber);
+		if (key && Object.hasOwn(state.playByPlayByKey, key)) {
+			delete state.playByPlayByKey[key];
+			removed = true;
+		}
+	}
+
+	if (removed) {
+		try {
+			globalThis.localStorage?.setItem(
+				BLOCK_PLAY_BY_PLAY_STORAGE_KEY,
+				JSON.stringify(state.playByPlayByKey),
+			);
+		} catch {
+			// Storage can be unavailable in restricted browser contexts.
+		}
+	}
+	return removed;
+}
+
 /** Return the full history list, most recent first. */
-function getHistory() {
-	return state.historyEntries;
+function getHistory(contentType = "description") {
+	return state.historyEntries.filter(
+		(entry) => (entry.contentType ?? "description") === contentType,
+	);
 }
 
 export const blockDescriptionStore = {
 	state,
 	commitDescription,
+	overwriteDescription,
+	commitPlayByPlay,
+	overwritePlayByPlay,
 	getDescription,
+	getPlayByPlay,
 	removeDescriptions,
+	removePlayByPlay,
 	getHistory,
 };

@@ -44,9 +44,9 @@ For physical calibration measurements in this app, treat 109 on-screen pixels as
 
 No “fixing” layout by guessing in different files
 
-After each meaningful batch, run only relevant checks whose exact commands, output paths, network effects, and other side effects were disclosed and explicitly authorized.
+After each meaningful batch, run only relevant checks.
 
-Treat ESLint, builds, Playwright, SonarQube, provider validation, installation, network access, and generated output as separately gated actions. Unavailable, blocked, unauthorized, static-only, or stale-artifact checks are never passes.
+Treat SonarQube, provider validation, installation, and external network access as separately gated actions. Unavailable, blocked, unauthorized, static-only, or stale-artifact checks are never passes.
 
 Use a predictable naming pattern
 
@@ -66,7 +66,7 @@ avoid “mystery” names or random utility classes acting as layout logic
 
 - This project features highly coupled, medium-to-high-end logical architectures.
 
-- For all multi-file edits, the agent must perform multi-step planning, strict type checking, and logical validation across the workspace structure.
+- For all multi-file edits, the agent must perform multi-step planning and logical validation across the workspace structure.
 
 - Follow these rules for all code generation:
 

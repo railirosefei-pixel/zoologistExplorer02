@@ -4,7 +4,7 @@
  * sidebar controls plus a weekly Monday-through-Friday Block Edits set that
  * mirrors the Student daily-menu block completion behavior for each day.
  */
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 
@@ -13,11 +13,101 @@ const isBlockEditsOpen = ref(false);
 const isBlocksMenuOpen = ref(false);
 const isDescriptionEditsOpen = ref(false);
 const descriptionEditsDraft = ref("");
+const descriptionEditsPlayByPlayDraft = ref("");
+const descriptionEditsMode = ref(null);
+const descriptionEditsActiveDraft = computed({
+	get() {
+		return descriptionEditsMode.value === "play-by-play"
+			? descriptionEditsPlayByPlayDraft.value
+			: descriptionEditsDraft.value;
+	},
+	set(value) {
+		if (descriptionEditsMode.value === "play-by-play") {
+			descriptionEditsPlayByPlayDraft.value = value;
+		} else {
+			descriptionEditsDraft.value = value;
+		}
+	},
+});
 const descriptionEditsSelectedMonth = ref(null);
 const descriptionEditsSelectedDay = ref(null);
 const descriptionEditsSelectedYear = ref(null);
 const descriptionEditsSelectedSubject = ref(null);
 const descriptionEditsSelectedBlock = ref(null);
+const descriptionEditsLoadedSelectionKey = ref(null);
+const descriptionEditsLoadedFields = ref([]);
+const descriptionEditsEditor = ref(null);
+const isDescriptionEditsLoadEnabled = computed(() => Boolean(
+	descriptionEditsMode.value === "description" &&
+	descriptionEditsSelectedMonth.value &&
+	descriptionEditsSelectedDay.value &&
+	descriptionEditsSelectedYear.value &&
+	descriptionEditsSelectedSubject.value &&
+	descriptionEditsSelectedBlock.value !== null,
+));
+watch(
+	[
+		descriptionEditsSelectedMonth,
+		descriptionEditsSelectedDay,
+		descriptionEditsSelectedYear,
+		descriptionEditsSelectedSubject,
+		descriptionEditsSelectedBlock,
+		descriptionEditsMode,
+	],
+	() => {
+		descriptionEditsLoadedSelectionKey.value = null;
+		descriptionEditsLoadedFields.value = [];
+	},
+	{ flush: "sync" },
+);
+const playByPlayEditsLoadedSelectionKey = ref(null);
+const playByPlayEditsLoadedFields = ref([]);
+const playByPlayEditsEditor = ref(null);
+const isPlayByPlayEditsLoadEnabled = computed(() => Boolean(
+	descriptionEditsMode.value === "play-by-play" &&
+	descriptionEditsSelectedMonth.value &&
+	descriptionEditsSelectedDay.value &&
+	descriptionEditsSelectedYear.value &&
+	descriptionEditsSelectedSubject.value &&
+	descriptionEditsSelectedBlock.value !== null,
+));
+watch(
+	[
+		descriptionEditsSelectedMonth,
+		descriptionEditsSelectedDay,
+		descriptionEditsSelectedYear,
+		descriptionEditsSelectedSubject,
+		descriptionEditsSelectedBlock,
+		descriptionEditsMode,
+	],
+	() => {
+		playByPlayEditsLoadedSelectionKey.value = null;
+		playByPlayEditsLoadedFields.value = [];
+	},
+	{ flush: "sync" },
+);
+const isDescriptionEditsSelectionSummaryVisible = computed(() =>
+	Boolean(
+		descriptionEditsSelectedMonth.value ||
+			descriptionEditsSelectedDay.value ||
+			descriptionEditsSelectedYear.value ||
+			descriptionEditsSelectedSubject.value ||
+			descriptionEditsSelectedBlock.value !== null,
+	),
+);
+const descriptionEditsSelectionDateLabel = computed(() => {
+	if (
+		!descriptionEditsSelectedMonth.value ||
+		!descriptionEditsSelectedDay.value ||
+		!descriptionEditsSelectedYear.value
+	) {
+		return "";
+	}
+	const month = String(descriptionEditsSelectedMonth.value.getMonth() + 1).padStart(2, "0");
+	const day = String(descriptionEditsSelectedDay.value).padStart(2, "0");
+	const year = String(descriptionEditsSelectedYear.value).slice(-2);
+	return `${month}/${day}/${year}`;
+});
 const isDescriptionEditsDateOpen = ref(false);
 const isDescriptionEditsMonthOpen = ref(false);
 const isDescriptionEditsDayOpen = ref(false);
@@ -143,6 +233,11 @@ function handleDescriptionEditsToggle() {
 	isDescriptionEditsOpen.value = !isDescriptionEditsOpen.value;
 }
 
+/** Select or collapse the Description Edits content mode. */
+function handleDescriptionEditsModeToggle(mode) {
+	descriptionEditsMode.value = descriptionEditsMode.value === mode ? null : mode;
+}
+
 /** Toggle the Description Edits Date sub-row. */
 function handleDescriptionEditsDateToggle() {
 	isDescriptionEditsDateOpen.value = !isDescriptionEditsDateOpen.value;
@@ -176,6 +271,12 @@ function handleDescriptionEditsBlockToggle() {
 /** Toggle the Description Edits History options list. */
 function handleDescriptionEditsHistoryToggle() {
 	isDescriptionEditsHistoryOpen.value = !isDescriptionEditsHistoryOpen.value;
+}
+
+function getDescriptionEditsHistory() {
+	return descriptionEditsMode.value === "play-by-play"
+		? blockDescriptionStore.getHistory("play-by-play")
+		: blockDescriptionStore.getHistory();
 }
 
 /** Select a Description Edits month and clamp an out-of-range day. */
@@ -212,19 +313,20 @@ function handleDescriptionEditsBlockSelect(block) {
 
 /** Load a Description Edits history entry into the text box. */
 function handleDescriptionEditsHistorySelect(entry) {
-	descriptionEditsDraft.value = entry.text;
+	if (descriptionEditsMode.value === "play-by-play") {
+		playByPlayEditsLoadedFields.value = [];
+		playByPlayEditsLoadedSelectionKey.value = null;
+		descriptionEditsPlayByPlayDraft.value = entry.text;
+	} else {
+		descriptionEditsLoadedFields.value = [];
+		descriptionEditsLoadedSelectionKey.value = null;
+		descriptionEditsDraft.value = entry.text;
+	}
 	isDescriptionEditsHistoryOpen.value = false;
 }
 
-/** Commit the Description Edits draft to the chosen date, subject, and block(s). */
-function handleDescriptionEditsCommit() {
-	if (
-		!descriptionEditsSelectedMonth.value ||
-		!descriptionEditsSelectedDay.value ||
-		!descriptionEditsSelectedYear.value ||
-		!descriptionEditsSelectedSubject.value ||
-		descriptionEditsSelectedBlock.value === null
-	) {
+function handleDescriptionEditsLoad() {
+	if (!isDescriptionEditsLoadEnabled.value) {
 		return;
 	}
 	const dateKey = `${descriptionEditsSelectedYear.value}-${String(
@@ -234,12 +336,115 @@ function handleDescriptionEditsCommit() {
 		descriptionEditsSelectedBlock.value === "all"
 			? [1, 2, 3]
 			: [descriptionEditsSelectedBlock.value];
-	blockDescriptionStore.commitDescription({
+	const subjectKey = descriptionEditsSelectedSubject.value.key;
+	const savedBlocks = blocks.map((blockNumber) => ({
+		blockNumber,
+		text: blockDescriptionStore.getDescription(dateKey, subjectKey, blockNumber),
+	})).filter(({ text }) => text !== null && text.length > 0);
+	descriptionEditsLoadedFields.value = savedBlocks.length > 0 &&
+		savedBlocks.every(({ text }) => text === savedBlocks[0].text)
+		? [{ blocks: savedBlocks.map(({ blockNumber }) => blockNumber), originalText: savedBlocks[0].text, text: savedBlocks[0].text }]
+		: savedBlocks.map(({ blockNumber, text }) => ({ blocks: [blockNumber], originalText: text, text }));
+	descriptionEditsLoadedSelectionKey.value = savedBlocks.length > 0
+		? `${dateKey}::${subjectKey}::${descriptionEditsSelectedBlock.value}`
+		: null;
+}
+
+async function handleDescriptionEditsCommit() {
+	if (!isDescriptionEditsLoadEnabled.value) {
+		return;
+	}
+	const dateKey = `${descriptionEditsSelectedYear.value}-${String(
+		descriptionEditsSelectedMonth.value.getMonth() + 1,
+	).padStart(2, "0")}-${String(descriptionEditsSelectedDay.value).padStart(2, "0")}`;
+	const subjectKey = descriptionEditsSelectedSubject.value.key;
+	if (descriptionEditsLoadedSelectionKey.value !== null) {
+		for (const field of descriptionEditsLoadedFields.value) {
+			if (field.text !== field.originalText) {
+				for (const blockNumber of field.blocks) {
+					blockDescriptionStore.overwriteDescription({ dateKey, subjectKey, blockNumber, text: field.text });
+				}
+			}
+		}
+	} else if (!blockDescriptionStore.commitDescription({
 		dateKey,
-		subjectKey: descriptionEditsSelectedSubject.value.key,
-		blocks,
+		subjectKey,
+		blocks: descriptionEditsSelectedBlock.value === "all" ? [1, 2, 3] : [descriptionEditsSelectedBlock.value],
 		text: descriptionEditsDraft.value,
-	});
+	})) {
+		return;
+	}
+	descriptionEditsLoadedFields.value = [];
+	descriptionEditsLoadedSelectionKey.value = null;
+	descriptionEditsDraft.value = "";
+	await nextTick();
+	if (descriptionEditsEditor.value) {
+		descriptionEditsEditor.value.focus();
+		descriptionEditsEditor.value.setSelectionRange(0, 0);
+		descriptionEditsEditor.value.scrollTop = 0;
+		descriptionEditsEditor.value.scrollLeft = 0;
+	}
+}
+
+function handlePlayByPlayEditsLoad() {
+	if (!isPlayByPlayEditsLoadEnabled.value) {
+		return;
+	}
+	const dateKey = `${descriptionEditsSelectedYear.value}-${String(
+		descriptionEditsSelectedMonth.value.getMonth() + 1,
+	).padStart(2, "0")}-${String(descriptionEditsSelectedDay.value).padStart(2, "0")}`;
+	const blocks =
+		descriptionEditsSelectedBlock.value === "all"
+			? [1, 2, 3]
+			: [descriptionEditsSelectedBlock.value];
+	const subjectKey = descriptionEditsSelectedSubject.value.key;
+	const savedBlocks = blocks.map((blockNumber) => ({
+		blockNumber,
+		text: blockDescriptionStore.getPlayByPlay(dateKey, subjectKey, blockNumber),
+	})).filter(({ text }) => text !== null && text.length > 0);
+	playByPlayEditsLoadedFields.value = savedBlocks.length > 0 &&
+		savedBlocks.every(({ text }) => text === savedBlocks[0].text)
+		? [{ blocks: savedBlocks.map(({ blockNumber }) => blockNumber), originalText: savedBlocks[0].text, text: savedBlocks[0].text }]
+		: savedBlocks.map(({ blockNumber, text }) => ({ blocks: [blockNumber], originalText: text, text }));
+	playByPlayEditsLoadedSelectionKey.value = savedBlocks.length > 0
+		? `${dateKey}::${subjectKey}::${descriptionEditsSelectedBlock.value}`
+		: null;
+}
+
+async function handlePlayByPlayEditsCommit() {
+	if (!isPlayByPlayEditsLoadEnabled.value) {
+		return;
+	}
+	const dateKey = `${descriptionEditsSelectedYear.value}-${String(
+		descriptionEditsSelectedMonth.value.getMonth() + 1,
+	).padStart(2, "0")}-${String(descriptionEditsSelectedDay.value).padStart(2, "0")}`;
+	const subjectKey = descriptionEditsSelectedSubject.value.key;
+	if (playByPlayEditsLoadedSelectionKey.value !== null) {
+		for (const field of playByPlayEditsLoadedFields.value) {
+			if (field.text !== field.originalText) {
+				for (const blockNumber of field.blocks) {
+					blockDescriptionStore.overwritePlayByPlay({ dateKey, subjectKey, blockNumber, text: field.text });
+				}
+			}
+		}
+	} else if (!blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey,
+		blocks: descriptionEditsSelectedBlock.value === "all" ? [1, 2, 3] : [descriptionEditsSelectedBlock.value],
+		text: descriptionEditsPlayByPlayDraft.value,
+	})) {
+		return;
+	}
+	playByPlayEditsLoadedFields.value = [];
+	playByPlayEditsLoadedSelectionKey.value = null;
+	descriptionEditsPlayByPlayDraft.value = "";
+	await nextTick();
+	if (playByPlayEditsEditor.value) {
+		playByPlayEditsEditor.value.focus();
+		playByPlayEditsEditor.value.setSelectionRange(0, 0);
+		playByPlayEditsEditor.value.scrollTop = 0;
+		playByPlayEditsEditor.value.scrollLeft = 0;
+	}
 }
 
 /** Remove saved descriptions for the selected date, subject, and block(s). */
@@ -249,7 +454,8 @@ function handleDescriptionEditsRemove() {
 		!descriptionEditsSelectedDay.value ||
 		!descriptionEditsSelectedYear.value ||
 		!descriptionEditsSelectedSubject.value ||
-		descriptionEditsSelectedBlock.value === null
+		descriptionEditsSelectedBlock.value === null ||
+		!descriptionEditsMode.value
 	) {
 		return;
 	}
@@ -260,11 +466,16 @@ function handleDescriptionEditsRemove() {
 		descriptionEditsSelectedBlock.value === "all"
 			? [1, 2, 3]
 			: [descriptionEditsSelectedBlock.value];
-	blockDescriptionStore.removeDescriptions({
+	const removeDetails = {
 		dateKey,
 		subjectKey: descriptionEditsSelectedSubject.value.key,
 		blocks,
-	});
+	};
+	if (descriptionEditsMode.value === "play-by-play") {
+		blockDescriptionStore.removePlayByPlay(removeDetails);
+	} else {
+		blockDescriptionStore.removeDescriptions(removeDetails);
+	}
 }
 
 /** Toggle a Block Edits entry for the selected day in the active week. */
@@ -418,27 +629,153 @@ function handleStudentEditsScreenHome() {
 			class="description-edits-position-wrapper"
 		>
 			<div id="description-edits-panel-container" class="description-edits-panel-container">
+				<div
+					v-if="descriptionEditsMode === 'description' && descriptionEditsLoadedFields.length > 0"
+					id="description-edits-loaded-scroll-region"
+					class="description-edits-loaded-scroll-region ml-auto flex h-[772px] w-[772px] flex-col gap-4 overflow-y-scroll rounded-lg border-2 border-[#7a5612]/50 bg-[#fffce7] p-4 text-[#513d12] [direction:ltr]"
+					aria-label="Loaded descriptions"
+				>
+					<div
+						v-for="field in descriptionEditsLoadedFields"
+						:key="field.blocks.join('-')"
+						class="description-edits-loaded-field flex shrink-0 flex-col gap-2"
+					>
+						<label
+							:for="`description-edits-loaded-text-${field.blocks.join('-')}`"
+							class="description-edits-loaded-label text-base font-bold"
+						>Block{{ field.blocks.length > 1 ? 's' : '' }} {{ field.blocks.join(', ') }}</label>
+						<textarea
+							:id="`description-edits-loaded-text-${field.blocks.join('-')}`"
+							v-model="field.text"
+							class="description-edits-loaded-text w-full resize-none overflow-y-auto whitespace-pre-wrap rounded-lg border border-[#7a5612]/50 bg-[#fffce7] p-4 text-base leading-normal"
+							:class="descriptionEditsLoadedFields.length === 1 ? 'h-[704px]' : 'h-[240px]'"
+						/>
+					</div>
+				</div>
+				<div
+					v-else-if="descriptionEditsMode === 'play-by-play' && playByPlayEditsLoadedFields.length > 0"
+					id="play-by-play-edits-loaded-scroll-region"
+					class="play-by-play-edits-loaded-scroll-region ml-auto flex h-[772px] w-[772px] flex-col gap-4 overflow-y-scroll rounded-lg border-2 border-[#7a5612]/50 bg-[#fffce7] p-4 text-[#513d12] [direction:ltr]"
+					aria-label="Loaded Play by Play"
+				>
+					<div
+						v-for="field in playByPlayEditsLoadedFields"
+						:key="field.blocks.join('-')"
+						class="play-by-play-edits-loaded-field flex shrink-0 flex-col gap-2"
+					>
+						<label
+							:for="`play-by-play-edits-loaded-text-${field.blocks.join('-')}`"
+							class="play-by-play-edits-loaded-label text-base font-bold"
+						>Block{{ field.blocks.length > 1 ? 's' : '' }} {{ field.blocks.join(', ') }}</label>
+						<textarea
+							:id="`play-by-play-edits-loaded-text-${field.blocks.join('-')}`"
+							v-model="field.text"
+							class="play-by-play-edits-loaded-text w-full resize-none overflow-y-auto whitespace-pre-wrap rounded-lg border border-[#7a5612]/50 bg-[#fffce7] p-4 text-base leading-normal"
+							:class="playByPlayEditsLoadedFields.length === 1 ? 'h-[704px]' : 'h-[240px]'"
+						/>
+					</div>
+				</div>
 				<textarea
+					v-else-if="descriptionEditsMode === 'play-by-play'"
+					id="play-by-play-edits-text-box"
+					ref="playByPlayEditsEditor"
+					v-model="descriptionEditsPlayByPlayDraft"
+					class="play-by-play-edits-text-box block h-[772px] w-[772px] resize-none overflow-y-scroll whitespace-pre-wrap rounded-[0.875rem] border-2 border-[#7a5612]/50 bg-[#fffce7]/95 p-4 text-base leading-normal text-[#513d12] [font-family:Trebuchet_MS,sans-serif]"
+					aria-label="Play by Play text box"
+					name="play-by-play-edits-text-box"
+				/>
+				<textarea
+					v-else
 					id="description-edits-text-box"
-					v-model="descriptionEditsDraft"
+					ref="descriptionEditsEditor"
+					v-model="descriptionEditsActiveDraft"
 					class="description-edits-text-box"
-					aria-label="Description text box"
+					:aria-label="descriptionEditsMode === 'play-by-play' ? 'Play by Play text box' : 'Description text box'"
 					name="description-edits-text-box"
 				/>
 				<div id="description-edits-controls-row" class="description-edits-controls-row">
+					<div
+						v-if="descriptionEditsMode === 'description' && isDescriptionEditsSelectionSummaryVisible"
+						id="description-edits-selection-summary"
+						class="description-edits-selection-summary"
+						aria-live="polite"
+					>
+						<span
+							v-if="descriptionEditsSelectionDateLabel"
+							id="description-edits-selection-date"
+							class="description-edits-selection-date"
+						>Date: {{ descriptionEditsSelectionDateLabel }}</span>
+						<span
+							v-if="descriptionEditsSelectedSubject"
+							id="description-edits-selection-subject"
+							class="description-edits-selection-subject"
+						>Subject: {{ descriptionEditsSelectedSubject.label }}</span>
+						<span
+							v-if="descriptionEditsSelectedBlock !== null"
+							id="description-edits-selection-block"
+							class="description-edits-selection-block"
+						>Block: {{ descriptionEditsSelectedBlock === "all" ? "All" : descriptionEditsSelectedBlock }}</span>
+					</div>
+					<div
+						:id="descriptionEditsMode === 'description' ? 'description-edits-workflow-row' : 'play-by-play-edits-workflow-row'"
+						:class="descriptionEditsMode === 'description' ? 'description-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4' : descriptionEditsMode === 'play-by-play' ? 'play-by-play-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4' : 'contents'"
+					>
 					<button
+						v-if="descriptionEditsMode === 'description'"
 						id="description-edits-commit-button"
 						class="description-edits-commit-button"
 						type="button"
 						name="description-edits-commit-button"
 						data-button-name="description-edits-commit-button"
-						aria-label="Commit description"
-						title="Commit description"
+						aria-label="Save description"
+						title="Save description"
 						@click="handleDescriptionEditsCommit"
 					>
-						Commit
+						Save
 					</button>
 					<button
+						v-else-if="descriptionEditsMode === 'play-by-play'"
+						id="play-by-play-edits-commit-button"
+						class="play-by-play-edits-commit-button"
+						type="button"
+						name="play-by-play-edits-commit-button"
+						data-button-name="play-by-play-edits-commit-button"
+						aria-label="Save Play by Play"
+						title="Save Play by Play"
+						@click="handlePlayByPlayEditsCommit"
+					>
+						Save
+					</button>
+					<button
+						v-if="descriptionEditsMode === 'description'"
+						id="description-edits-load-button"
+						class="description-edits-load-button h-[44px] w-full cursor-pointer rounded-lg border-2 border-[#7a5612]/50 bg-[#fff7b8] text-sm font-bold text-[#513d12] shadow-[0_4px_0_#7a5612] enabled:hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#d1d5db] disabled:text-[#6b7280] disabled:shadow-none"
+						type="button"
+						name="description-edits-load-button"
+						data-button-name="description-edits-load-button"
+						aria-label="Load description"
+						title="Load description"
+						:disabled="!isDescriptionEditsLoadEnabled"
+						@click="handleDescriptionEditsLoad"
+					>
+						Load
+					</button>
+					<button
+						v-else-if="descriptionEditsMode === 'play-by-play'"
+						id="play-by-play-edits-load-button"
+						class="play-by-play-edits-load-button h-[44px] w-full cursor-pointer rounded-lg border-2 border-[#7a5612]/50 bg-[#fff7b8] text-sm font-bold text-[#513d12] shadow-[0_4px_0_#7a5612] enabled:hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#d1d5db] disabled:text-[#6b7280] disabled:shadow-none"
+						type="button"
+						name="play-by-play-edits-load-button"
+						data-button-name="play-by-play-edits-load-button"
+						aria-label="Load Play by Play"
+						title="Load Play by Play"
+						:disabled="!isPlayByPlayEditsLoadEnabled"
+						@click="handlePlayByPlayEditsLoad"
+					>
+						Load
+					</button>
+					<button
+						v-if="descriptionEditsMode === 'description'"
 						id="description-edits-date-dropdown-button"
 						class="description-edits-date-dropdown-button"
 						type="button"
@@ -451,11 +788,27 @@ function handleStudentEditsScreenHome() {
 					>
 						Date
 					</button>
+					<button
+						v-else-if="descriptionEditsMode === 'play-by-play'"
+						id="play-by-play-edits-date-dropdown-button"
+						class="play-by-play-edits-date-dropdown-button"
+						type="button"
+						name="play-by-play-edits-date-dropdown-button"
+						data-button-name="play-by-play-edits-date-dropdown-button"
+						aria-label="Toggle Play by Play Date options"
+						title="Toggle Play by Play Date options"
+						:aria-expanded="isDescriptionEditsDateOpen"
+						@click="handleDescriptionEditsDateToggle"
+					>
+						Date
+					</button>
 					<div
+						v-if="descriptionEditsMode"
 						id="description-edits-subject-dropdown-wrapper"
 						class="description-edits-subject-dropdown-wrapper"
 					>
 						<button
+							v-if="descriptionEditsMode === 'description'"
 							id="description-edits-subject-dropdown-button"
 							class="description-edits-subject-dropdown-button"
 							type="button"
@@ -471,11 +824,27 @@ function handleStudentEditsScreenHome() {
 									: "Subject"
 							}}
 						</button>
-						<div
+						<button
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-subject-dropdown-button"
+							class="play-by-play-edits-subject-dropdown-button"
+							type="button"
+							name="play-by-play-edits-subject-dropdown-button"
+							data-button-name="play-by-play-edits-subject-dropdown-button"
+							title="Toggle Play by Play Subject options"
+							:aria-expanded="isDescriptionEditsSubjectOpen"
+							@click="handleDescriptionEditsSubjectToggle"
+						>
+							{{
+								descriptionEditsSelectedSubject
+									? descriptionEditsSelectedSubject.label
+									: "Subject"
+							}}
+						</button>
+						<fieldset
 							v-if="isDescriptionEditsSubjectOpen"
 							id="description-edits-subject-options-list"
 							class="description-edits-subject-options-list"
-							role="listbox"
 							aria-label="Subject options"
 							title="Subject options"
 						>
@@ -493,13 +862,15 @@ function handleStudentEditsScreenHome() {
 							>
 								{{ subject.label }}
 							</button>
-						</div>
+						</fieldset>
 					</div>
 					<div
+						v-if="descriptionEditsMode"
 						id="description-edits-block-dropdown-wrapper"
 						class="description-edits-block-dropdown-wrapper"
 					>
 						<button
+							v-if="descriptionEditsMode === 'description'"
 							id="description-edits-block-dropdown-button"
 							class="description-edits-block-dropdown-button"
 							type="button"
@@ -517,11 +888,29 @@ function handleStudentEditsScreenHome() {
 										: `Block ${descriptionEditsSelectedBlock}`
 							}}
 						</button>
-						<div
+						<button
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-block-dropdown-button"
+							class="play-by-play-edits-block-dropdown-button"
+							type="button"
+							name="play-by-play-edits-block-dropdown-button"
+							data-button-name="play-by-play-edits-block-dropdown-button"
+							title="Toggle Play by Play Block options"
+							:aria-expanded="isDescriptionEditsBlockOpen"
+							@click="handleDescriptionEditsBlockToggle"
+						>
+							{{
+								descriptionEditsSelectedBlock === null
+									? "Block"
+									: descriptionEditsSelectedBlock === "all"
+										? "All Blocks"
+										: `Block ${descriptionEditsSelectedBlock}`
+							}}
+						</button>
+						<fieldset
 							v-if="isDescriptionEditsBlockOpen"
 							id="description-edits-block-options-list"
 							class="description-edits-block-options-list"
-							role="listbox"
 							aria-label="Block options"
 							title="Block options"
 						>
@@ -539,13 +928,15 @@ function handleStudentEditsScreenHome() {
 							>
 								{{ blockOption === "all" ? "All Blocks" : `Block ${blockOption}` }}
 							</button>
-						</div>
+						</fieldset>
 					</div>
 					<div
+						v-if="descriptionEditsMode"
 						id="description-edits-history-dropdown-wrapper"
 						class="description-edits-history-dropdown-wrapper"
 					>
 						<button
+							v-if="descriptionEditsMode === 'description'"
 							id="description-edits-history-dropdown-button"
 							class="description-edits-history-dropdown-button"
 							type="button"
@@ -558,38 +949,52 @@ function handleStudentEditsScreenHome() {
 						>
 							History
 						</button>
-						<div
+						<button
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-history-dropdown-button"
+							class="play-by-play-edits-history-dropdown-button"
+							type="button"
+							name="play-by-play-edits-history-dropdown-button"
+							data-button-name="play-by-play-edits-history-dropdown-button"
+							aria-label="Toggle Play by Play History options"
+							title="Toggle Play by Play History options"
+							:aria-expanded="isDescriptionEditsHistoryOpen"
+							@click="handleDescriptionEditsHistoryToggle"
+						>
+							History
+						</button>
+						<fieldset
 							v-if="isDescriptionEditsHistoryOpen"
 							id="description-edits-history-options-list"
 							class="description-edits-history-options-list"
-							role="listbox"
-							aria-label="Description history options"
-							title="Description history options"
+							:aria-label="descriptionEditsMode === 'play-by-play' ? 'Play by Play history options' : 'Description history options'"
+							:title="descriptionEditsMode === 'play-by-play' ? 'Play by Play history options' : 'Description history options'"
 						>
 							<button
-								v-for="entry in blockDescriptionStore.getHistory()"
-								:id="`description-edits-history-option-${entry.savedAtIso}`"
+								v-for="entry in getDescriptionEditsHistory()"
+								:id="descriptionEditsMode === 'play-by-play' ? `play-by-play-edits-history-option-${entry.savedAtIso}` : `description-edits-history-option-${entry.savedAtIso}`"
 								:key="entry.savedAtIso"
-								class="description-edits-history-option-button"
+								:class="descriptionEditsMode === 'play-by-play' ? 'play-by-play-edits-history-option-button' : 'description-edits-history-option-button'"
 								type="button"
-								:name="`description-edits-history-option-${entry.savedAtIso}`"
-								:data-button-name="`description-edits-history-option-${entry.savedAtIso}`"
-								:aria-label="`Load description ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`"
-								:title="`Load description ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`"
+								:name="descriptionEditsMode === 'play-by-play' ? `play-by-play-edits-history-option-${entry.savedAtIso}` : `description-edits-history-option-${entry.savedAtIso}`"
+								:data-button-name="descriptionEditsMode === 'play-by-play' ? `play-by-play-edits-history-option-${entry.savedAtIso}` : `description-edits-history-option-${entry.savedAtIso}`"
+								:aria-label="`Load ${descriptionEditsMode === 'play-by-play' ? 'Play by Play' : 'description'} ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`"
+								:title="`Load ${descriptionEditsMode === 'play-by-play' ? 'Play by Play' : 'description'} ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`"
 								@click="handleDescriptionEditsHistorySelect(entry)"
 							>
 								{{ entry.subjectAbbrev }} {{ entry.savedAtLabel }}
 							</button>
 							<p
-								v-if="blockDescriptionStore.getHistory().length === 0"
+								v-if="getDescriptionEditsHistory().length === 0"
 								id="description-edits-history-empty"
 								class="description-edits-history-empty"
 							>
 								&lt; none &gt;
 							</p>
-						</div>
+						</fieldset>
 					</div>
 					<button
+						v-if="descriptionEditsMode === 'description'"
 						id="description-edits-remove-button"
 						class="description-edits-remove-button"
 						type="button"
@@ -601,6 +1006,20 @@ function handleStudentEditsScreenHome() {
 					>
 						Remove
 					</button>
+					<button
+						v-else-if="descriptionEditsMode === 'play-by-play'"
+						id="play-by-play-edits-remove-button"
+						class="play-by-play-edits-remove-button"
+						type="button"
+						name="play-by-play-edits-remove-button"
+						data-button-name="play-by-play-edits-remove-button"
+						aria-label="Remove Play by Play"
+						title="Remove Play by Play"
+						@click="handleDescriptionEditsRemove"
+					>
+						Remove
+					</button>
+					</div>
 				<div id="description-edits-action-buttons" class="description-edits-action-buttons">
 					<button
 						id="description-edits-description-button"
@@ -608,6 +1027,8 @@ function handleStudentEditsScreenHome() {
 						type="button"
 						name="description-edits-description-button"
 						data-button-name="description-edits-description-button"
+						:aria-pressed="descriptionEditsMode === 'description'"
+						@click="handleDescriptionEditsModeToggle('description')"
 					>
 						Description
 					</button>
@@ -617,13 +1038,15 @@ function handleStudentEditsScreenHome() {
 						type="button"
 						name="description-edits-play-by-play-button"
 						data-button-name="description-edits-play-by-play-button"
+						:aria-pressed="descriptionEditsMode === 'play-by-play'"
+						@click="handleDescriptionEditsModeToggle('play-by-play')"
 					>
 						Play by Play
 					</button>
 				</div>
 				</div>
 				<div
-					v-if="isDescriptionEditsDateOpen"
+					v-if="isDescriptionEditsDateOpen && descriptionEditsMode"
 					id="description-edits-date-subrow"
 					class="description-edits-date-subrow"
 				>
@@ -647,11 +1070,10 @@ function handleStudentEditsScreenHome() {
 									: "Month"
 							}}
 						</button>
-						<div
+						<fieldset
 							v-if="isDescriptionEditsMonthOpen"
 							id="description-edits-month-options-list"
 							class="description-edits-month-options-list"
-							role="listbox"
 							aria-label="Month options"
 							title="Month options"
 						>
@@ -669,7 +1091,7 @@ function handleStudentEditsScreenHome() {
 							>
 								{{ monthNames[month.getMonth()] }}
 							</button>
-						</div>
+						</fieldset>
 					</div>
 					<div
 						id="description-edits-day-dropdown-wrapper"
@@ -687,11 +1109,10 @@ function handleStudentEditsScreenHome() {
 						>
 							{{ descriptionEditsSelectedDay ?? "Day" }}
 						</button>
-						<div
+						<fieldset
 							v-if="isDescriptionEditsDayOpen"
 							id="description-edits-day-options-list"
 							class="description-edits-day-options-list"
-							role="listbox"
 							aria-label="Day options"
 							title="Day options"
 						>
@@ -709,7 +1130,7 @@ function handleStudentEditsScreenHome() {
 							>
 								{{ day }}
 							</button>
-						</div>
+						</fieldset>
 					</div>
 					<div
 						id="description-edits-year-dropdown-wrapper"
@@ -727,11 +1148,10 @@ function handleStudentEditsScreenHome() {
 						>
 							{{ descriptionEditsSelectedYear ?? "Year" }}
 						</button>
-						<div
+						<fieldset
 							v-if="isDescriptionEditsYearOpen"
 							id="description-edits-year-options-list"
 							class="description-edits-year-options-list"
-							role="listbox"
 							aria-label="Year options"
 							title="Year options"
 						>
@@ -749,7 +1169,7 @@ function handleStudentEditsScreenHome() {
 							>
 								{{ year }}
 							</button>
-						</div>
+						</fieldset>
 					</div>
 				</div>
 			</div>
