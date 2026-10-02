@@ -249,7 +249,6 @@ test("Fonts menu toggles and aligns below Margins", async ({ page }) => {
 	for (const label of ["Fonts", "Font Color", "Font Size"]) {
 		await expect(fontsPanel.getByRole("button", { name: label, exact: true })).toBeVisible();
 	}
-	await expect(fontsPanel.getByRole("button", { name: /^Font Weight: \d+$/ })).toBeVisible();
 	const styleMetrics = await fontsPanel.evaluate((element) => {
 		const menu = element.getBoundingClientRect();
 		const styles = element.querySelector('[data-font-option="styles"]');
@@ -279,31 +278,15 @@ test("Fonts menu toggles and aligns below Margins", async ({ page }) => {
 	});
 	expect(colorMetrics.gap).toBe(16);
 	expect(colorMetrics.top).toBe(0);
-	const weightMetrics = await fontsPanel.evaluate((element) => {
-		const styles = element.querySelector('[data-font-option="styles"]');
-		const weight = element.querySelector('[data-font-option="weight"]');
-		const stylesRect = styles.getBoundingClientRect();
-		const weightRect = weight.getBoundingClientRect();
-		return {
-			left: weightRect.left - stylesRect.left,
-			gap: weightRect.top - stylesRect.bottom,
-		};
-	});
-	expect(weightMetrics.left).toBe(0);
-	expect(weightMetrics.gap).toBe(32);
 	const fontSizeMetrics = await fontsPanel.evaluate((element) => {
 		const color = element.querySelector('[data-font-option="color"]');
-		const weight = element.querySelector('[data-font-option="weight"]');
 		const fontSize = element.querySelector('[data-font-option="font-size"]');
 		const colorRect = color.getBoundingClientRect();
-		const weightRect = weight.getBoundingClientRect();
 		const fontSizeRect = fontSize.getBoundingClientRect();
 		return {
-			horizontalGap: fontSizeRect.left - weightRect.right,
 			verticalGap: fontSizeRect.top - colorRect.bottom,
 		};
 	});
-	expect(fontSizeMetrics.horizontalGap).toBe(16);
 	expect(fontSizeMetrics.verticalGap).toBe(32);
 	const fontOptionBackgrounds = await fontsPanel
 		.locator(".text-editor-font-option-button")

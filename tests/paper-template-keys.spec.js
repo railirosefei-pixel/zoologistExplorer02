@@ -29,9 +29,14 @@ test("paper template prompts for a name and saves the full template under the ne
 	const afterNormalEnter = await editor.evaluate((element) => element.innerHTML);
 	expect(afterNormalEnter).not.toBe(beforeNormalEnter);
 
-	for (let index = 0; index < 60; index += 1) {
+	for (let index = 0; index < 100; index += 1) {
 		await editor.type(`Line ${index + 1}`);
+		const beforeEnter = await editor.evaluate((element) => element.innerHTML);
 		await page.keyboard.press("Enter");
+		const afterEnter = await editor.evaluate((element) => element.innerHTML);
+		if (afterEnter === beforeEnter) {
+			break;
+		}
 	}
 	const beforeBottom = await editor.evaluate((element) => element.innerHTML);
 	for (let index = 0; index < 3; index += 1) {
@@ -51,7 +56,7 @@ test("paper template prompts for a name and saves the full template under the ne
 	});
 
 	expect(metrics.overflow).toBe("hidden");
-	expect(metrics.scrollHeight).toBeGreaterThanOrEqual(metrics.clientHeight);
+	expect(metrics.scrollHeight).toBeLessThanOrEqual(metrics.clientHeight);
 
 	await page.getByRole("button", { name: "Save", exact: true }).click();
 	await expect(page.locator("#text-editor-template-name-prompt")).toBeVisible();
@@ -67,6 +72,8 @@ test("paper template prompts for a name and saves the full template under the ne
 	expect(savedTemplates).toHaveLength(1);
 	expect(savedTemplates[0].name).toBe("Keys Test Template");
 	expect(savedTemplates[0].template.html).toContain("Line 1");
-	expect(savedTemplates[0].template.widthValue).toBe("8");
+	expect(savedTemplates[0].template.widthValue).toBe("8.5");
 	expect(savedTemplates[0].template.widthUnit).toBe("in");
+	expect(savedTemplates[0].template.heightValue).toBe("11");
+	expect(savedTemplates[0].template.heightUnit).toBe("in");
 });

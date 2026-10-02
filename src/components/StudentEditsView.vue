@@ -601,6 +601,26 @@ function handleStudentEditsScreenHome() {
 					>
 						Remove
 					</button>
+				<div id="description-edits-action-buttons" class="description-edits-action-buttons">
+					<button
+						id="description-edits-description-button"
+						class="description-edits-description-button"
+						type="button"
+						name="description-edits-description-button"
+						data-button-name="description-edits-description-button"
+					>
+						Description
+					</button>
+					<button
+						id="description-edits-play-by-play-button"
+						class="description-edits-play-by-play-button"
+						type="button"
+						name="description-edits-play-by-play-button"
+						data-button-name="description-edits-play-by-play-button"
+					>
+						Play by Play
+					</button>
+				</div>
 				</div>
 				<div
 					v-if="isDescriptionEditsDateOpen"

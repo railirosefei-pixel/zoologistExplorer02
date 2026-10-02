@@ -15,13 +15,27 @@ const textEditorButtonStates = ref({
 const isEditingToolsOpen = ref(false);
 const isSizePanelOpen = ref(false);
 const isFontsPanelOpen = ref(false);
+const isMarginsPanelOpen = ref(false);
+
+/** Ids of the currently open Tools menus, in the order they were opened. Drives stack DOM order. */
+const toolsMenuOpenOrder = ref([]);
+
+/** Push or remove a Tools menu id in toolsMenuOpenOrder to mirror its open state. */
+function syncToolsMenuOrder(menuId, isOpen) {
+	const currentIndex = toolsMenuOpenOrder.value.indexOf(menuId);
+	if (isOpen && currentIndex === -1) {
+		toolsMenuOpenOrder.value.push(menuId);
+	} else if (!isOpen && currentIndex !== -1) {
+		toolsMenuOpenOrder.value.splice(currentIndex, 1);
+	}
+}
+
 const isStylesMenuOpen = ref(false);
-const isWeightMenuOpen = ref(false);
 const isWidthMenuOpen = ref(false);
 const isHeightMenuOpen = ref(false);
 const isSavedTemplatesListOpen = ref(false);
-const widthValue = ref("8");
-const heightValue = ref("10");
+const widthValue = ref("8.5");
+const heightValue = ref("11");
 const widthUnit = ref("in");
 const heightUnit = ref("in");
 const FONT_STYLE_STORAGE_KEY = "ze2.textEditor.fontStyle";
@@ -36,15 +50,6 @@ function loadActiveFontStyleId() {
 }
 
 const activeFontStyleId = ref(loadActiveFontStyleId());
-/** Initial font weight derived from the persisted font style id. */
-function getInitialFontWeight() {
-	if (!activeFontStyleId.value) {
-		return "100";
-	}
-	return activeFontStyleId.value.includes("bold") ? "700" : "400";
-}
-
-const selectedFontWeight = ref(getInitialFontWeight());
 
 /** Load persisted calibration bar state, or null when unavailable/invalid. */
 function loadCalibrationState() {
@@ -85,7 +90,6 @@ let calibrationBarDragStartX = 0;
 let calibrationBarDragStartLengthPx = calibrationBarLengthPx.value;
 let calibrationBarDragStartTopPx = 40;
 let calibrationBarDragStartLeftPx = 160;
-let pendingFontWeightSpan = null;
 
 /** Persist the current calibration bar state so it survives reloads. */
 function saveCalibrationState() {
@@ -148,7 +152,7 @@ function handleParentScreenClose() {
 	emit("back-to-home");
 }
 
-/** Insert four spaces for Tab and prevent Enter from moving past the template's final line. */
+/** Block Enter when another line below the content or caret would exceed the paper bottom. */
 function handlePaperEditorKeydown(event) {
 	if (event.key === "Tab") {
 		event.preventDefault();
@@ -165,73 +169,37 @@ function handlePaperEditorKeydown(event) {
 		return;
 	}
 
-	const selection = window.getSelection();
-	if (!selection || selection.rangeCount === 0) {
-		return;
-	}
-
-	const range = selection.getRangeAt(0);
-	const caretRect = range.collapsed ? range.getBoundingClientRect() : range.getClientRects()[0];
 	const editorRect = editor.getBoundingClientRect();
 	const computedStyle = window.getComputedStyle(editor);
 	const lineHeightPx =
-		(caretRect && Number.parseFloat(caretRect.height)) ||
 		Number.parseFloat(computedStyle.lineHeight) ||
 		Number.parseFloat(computedStyle.fontSize) * 1.2 ||
 		20;
 
-	if (!caretRect || (caretRect.top === 0 && caretRect.bottom === 0 && caretRect.height === 0)) {
-		if (editor.scrollHeight > editor.clientHeight + 1) {
-			event.preventDefault();
-		}
+	const contentRange = document.createRange();
+	contentRange.selectNodeContents(editor);
+	const contentRect = contentRange.getBoundingClientRect();
+	const selection = window.getSelection();
+	const caretRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+	let caretRect = null;
+	if (caretRange) {
+		caretRect = caretRange.collapsed
+			? caretRange.getBoundingClientRect()
+			: caretRange.getClientRects()[0];
+	}
+	if (caretRect && caretRect.top === 0 && caretRect.bottom === 0 && caretRect.height === 0) {
+		caretRect = null;
+	}
+
+	if (contentRect.height === 0 && !caretRect) {
 		return;
 	}
 
-	// Hard boundary: Enter is ignored only when one more line would exceed the editor bottom.
-	if (caretRect.bottom + lineHeightPx > editorRect.bottom - 1) {
+	// The content range omits the trailing empty line; trust the caret bottom, not its height.
+	const lowestBottom = Math.max(contentRect.bottom, caretRect ? caretRect.bottom : 0);
+	if (lowestBottom + lineHeightPx > editorRect.bottom) {
 		event.preventDefault();
 	}
-}
-
-function handlePaperEditorInput() {
-	const editor = printPreviewPaperEditorRef.value;
-	if (!editor) {
-		return;
-	}
-	// Disarm any armed weight spans: once the caret has left a span (any
-	// edit that the beforeinput redirect did not consume), it is no longer
-	// the pending typing target and must not swallow further keystrokes.
-	for (const caretSpan of editor.querySelectorAll("[data-font-weight-caret]")) {
-		delete caretSpan.dataset.fontWeightCaret;
-		if (caretSpan === pendingFontWeightSpan) {
-			pendingFontWeightSpan = null;
-		}
-	}
-}
-
-function handlePaperEditorBeforeInput(event) {
-	if (
-		!pendingFontWeightSpan ||
-		!printPreviewPaperEditorRef.value?.contains(pendingFontWeightSpan) ||
-		!event.data ||
-		!event.inputType.startsWith("insert")
-	) {
-		return;
-	}
-	event.preventDefault();
-	let textNode = pendingFontWeightSpan.lastChild;
-	if (textNode?.nodeType === Node.TEXT_NODE) {
-		textNode.appendData(event.data);
-	} else {
-		textNode = document.createTextNode(event.data);
-		pendingFontWeightSpan.append(textNode);
-	}
-	const selection = window.getSelection();
-	const range = document.createRange();
-	range.setStartAfter(textNode);
-	range.collapse(true);
-	selection?.removeAllRanges();
-	selection?.addRange(range);
 }
 
 function handlePaperTemplateSave() {
@@ -290,7 +258,6 @@ function confirmTemplateSave() {
 
 /** Return from Text Editor to the Parent menu. */
 function handleTextEditorClose() {
-	pendingFontWeightSpan = null;
 	isTextEditorOpen.value = false;
 	textEditorButtonStates.value.printPreview = false;
 	textEditorButtonStates.value.templates = false;
@@ -302,7 +269,6 @@ function handleTextEditorClose() {
 	isSizePanelOpen.value = false;
 	isFontsPanelOpen.value = false;
 	isStylesMenuOpen.value = false;
-	isWeightMenuOpen.value = false;
 	isWidthMenuOpen.value = false;
 	isHeightMenuOpen.value = false;
 }
@@ -312,7 +278,7 @@ function handleTextEditorOpen() {
 }
 
 function toggleTextEditorButton(buttonName) {
-	if (buttonName === "printPreview") {
+	if (buttonName === "printPreview" && !textEditorButtonStates.value.printPreview) {
 		textEditorButtonStates.value.printPreview = true;
 		nextTick(() => {
 			const paperEditor = printPreviewPaperEditorRef.value;
@@ -326,6 +292,16 @@ function toggleTextEditorButton(buttonName) {
 		});
 		return;
 	}
+	if (buttonName === "printPreview") {
+		textEditorButtonStates.value.printPreview = false;
+		isEditingToolsOpen.value = false;
+		isSizePanelOpen.value = false;
+		isFontsPanelOpen.value = false;
+		isStylesMenuOpen.value = false;
+		isWidthMenuOpen.value = false;
+		isHeightMenuOpen.value = false;
+		return;
+	}
 
 	textEditorButtonStates.value[buttonName] = !textEditorButtonStates.value[buttonName];
 }
@@ -333,7 +309,6 @@ function toggleTextEditorButton(buttonName) {
 function closeTextEditorDropdowns() {
 	isSavedTemplatesListOpen.value = false;
 	isStylesMenuOpen.value = false;
-	isWeightMenuOpen.value = false;
 	isSizePanelOpen.value = false;
 	isWidthMenuOpen.value = false;
 	isHeightMenuOpen.value = false;
@@ -347,7 +322,6 @@ function handleDocumentPointerDown(event) {
 	// Word-ribbon light dismiss: close only the floating menus, not the
 	// inline panels whose buttons stay visible inside the ribbon.
 	isStylesMenuOpen.value = false;
-	isWeightMenuOpen.value = false;
 	isWidthMenuOpen.value = false;
 	isHeightMenuOpen.value = false;
 }
@@ -373,7 +347,6 @@ function toggleSavedTemplatesList() {
 	if (isSavedTemplatesListOpen.value) {
 		savedTemplates.value = loadSavedTemplates();
 		isStylesMenuOpen.value = false;
-		isWeightMenuOpen.value = false;
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
 	}
@@ -406,7 +379,6 @@ async function loadSavedTemplate(entry) {
 	heightUnit.value = entry.template.heightUnit ?? heightUnit.value;
 	textEditorButtonStates.value.printPreview = true;
 	isSavedTemplatesListOpen.value = false;
-	pendingFontWeightSpan = null;
 
 	await nextTick();
 	const editor = printPreviewPaperEditorRef.value;
@@ -423,8 +395,9 @@ function toggleEditingTools() {
 	if (!isEditingToolsOpen.value) {
 		isSizePanelOpen.value = false;
 		isFontsPanelOpen.value = false;
+		isMarginsPanelOpen.value = false;
+		toolsMenuOpenOrder.value = [];
 		isStylesMenuOpen.value = false;
-		isWeightMenuOpen.value = false;
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
 	}
@@ -432,9 +405,9 @@ function toggleEditingTools() {
 
 function toggleFontsPanel() {
 	isFontsPanelOpen.value = !isFontsPanelOpen.value;
+	syncToolsMenuOrder("fonts", isFontsPanelOpen.value);
 	if (!isFontsPanelOpen.value) {
 		isStylesMenuOpen.value = false;
-		isWeightMenuOpen.value = false;
 	}
 }
 
@@ -443,21 +416,7 @@ function toggleStylesMenu() {
 		return;
 	}
 	isStylesMenuOpen.value = !isStylesMenuOpen.value;
-	isWeightMenuOpen.value = false;
 	if (isStylesMenuOpen.value) {
-		isSavedTemplatesListOpen.value = false;
-		isWidthMenuOpen.value = false;
-		isHeightMenuOpen.value = false;
-	}
-}
-
-function toggleWeightMenu() {
-	if (!isFontsPanelOpen.value) {
-		return;
-	}
-	isWeightMenuOpen.value = !isWeightMenuOpen.value;
-	isStylesMenuOpen.value = false;
-	if (isWeightMenuOpen.value) {
 		isSavedTemplatesListOpen.value = false;
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
@@ -497,52 +456,13 @@ function applyFontStyle(fontOption) {
 	} catch {
 		// Keep the selection usable for this session when storage is unavailable.
 	}
-	selectedFontWeight.value = fontOption.weight;
-	pendingFontWeightSpan = null;
 	ensureEditorSelection(editor);
 	document.execCommand("fontName", false, fontOption.family);
 }
 
-function applyFontWeight(weight) {
-	const editor = printPreviewPaperEditorRef.value;
-	if (!editor || !/^([1-9]00)$/.test(weight)) {
-		return;
-	}
-	selectedFontWeight.value = weight;
-	pendingFontWeightSpan = null;
-	const selection = window.getSelection();
-	ensureEditorSelection(editor);
-	if (!selection || selection.rangeCount === 0) {
-		return;
-	}
-
-	const range = selection.getRangeAt(0);
-	const weightSpan = document.createElement("span");
-	weightSpan.style.fontWeight = weight;
-	const isCollapsed = range.collapsed;
-	if (isCollapsed) {
-		pendingFontWeightSpan = weightSpan;
-		weightSpan.dataset.fontWeightCaret = "";
-		range.insertNode(weightSpan);
-		range.selectNodeContents(weightSpan);
-		range.collapse(true);
-	} else {
-		weightSpan.append(range.extractContents());
-		range.insertNode(weightSpan);
-		range.selectNodeContents(weightSpan);
-		range.collapse(false);
-	}
-	if (!isCollapsed) {
-		editor.normalize();
-	}
-	selection.removeAllRanges();
-	selection.addRange(range);
-	isWeightMenuOpen.value = false;
-}
-
 function toggleSizePanel() {
 	isSizePanelOpen.value = !isSizePanelOpen.value;
-	pendingFontWeightSpan = null;
+	syncToolsMenuOrder("size", isSizePanelOpen.value);
 	if (!isSizePanelOpen.value) {
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
@@ -550,7 +470,12 @@ function toggleSizePanel() {
 	}
 	isSavedTemplatesListOpen.value = false;
 	isStylesMenuOpen.value = false;
-	isWeightMenuOpen.value = false;
+}
+
+/** Toggle the Margins placeholder panel and track it in the Tools menu open order. */
+function toggleMarginsPanel() {
+	isMarginsPanelOpen.value = !isMarginsPanelOpen.value;
+	syncToolsMenuOrder("margins", isMarginsPanelOpen.value);
 }
 
 function toggleUnitMenu(field) {
@@ -564,12 +489,10 @@ function toggleUnitMenu(field) {
 	if (isWidthMenuOpen.value || isHeightMenuOpen.value) {
 		isSavedTemplatesListOpen.value = false;
 		isStylesMenuOpen.value = false;
-		isWeightMenuOpen.value = false;
 	}
 }
 
 function updateUnit(field, unit) {
-	pendingFontWeightSpan = null;
 	if (field === "width") {
 		widthUnit.value = unit;
 		isWidthMenuOpen.value = false;
@@ -595,34 +518,28 @@ const fontStyleOptions = [
 		id: "minecraft-regular-1",
 		label: "Minecraft Reg 1",
 		family: '"MinecraftRegular1", "Trebuchet MS", sans-serif',
-		weight: "400",
 	},
 	{
 		id: "minecraft-regular-2",
 		label: "Minecraft Reg 2",
 		family: '"MinecraftRegular2", "Trebuchet MS", sans-serif',
-		weight: "400",
 	},
 	{
 		id: "minecraft-regular-2-bold",
 		label: "Minecraft Reg 2 (Bold)",
 		family: '"Minecraft2Bold", "Trebuchet MS", sans-serif',
-		weight: "700",
 	},
 	{
 		id: "minecraft-regular-2-italic",
 		label: "Minecraft Reg 2 (Italic)",
 		family: '"Minecraft2Italic", "Trebuchet MS", sans-serif',
-		weight: "400",
 	},
 	{
 		id: "minecraft-regular-2-bold-italic",
 		label: "Minecraft Reg 2 (Bold & Italic)",
 		family: '"Minecraft2BoldItalic", "Trebuchet MS", sans-serif',
-		weight: "700",
 	},
 ];
-const fontWeightOptions = ["100", "200", "300", "400", "500", "600", "700", "800", "900"];
 
 /** Feeds the Size menu dimensions into the print preview paper stylesheet variables. */
 watchEffect(() => {
@@ -779,7 +696,6 @@ function handleCalibrationBarPointerUp() {
 			id="text-editor-menu"
 			class="text-editor-menu"
 			:class="{ 'text-editor-menu--templates-active': textEditorButtonStates.templates }"
-			role="region"
 			aria-label="Text Editor menu"
 			title="Text Editor menu"
 		>
@@ -835,7 +751,6 @@ function handleCalibrationBarPointerUp() {
 				v-if="textEditorButtonStates.printPreview"
 				id="text-editor-print-preview-panel"
 				class="text-editor-print-preview-panel"
-				role="region"
 				aria-label="Print Preview"
 				title="Print Preview"
 			>
@@ -905,9 +820,7 @@ function handleCalibrationBarPointerUp() {
 							contenteditable="true"
 							role="textbox"
 							aria-label="Paper template text"
-							@beforeinput="handlePaperEditorBeforeInput"
 							@keydown="handlePaperEditorKeydown"
-							@input="handlePaperEditorInput"
 						/>
 					</div>
 				</div>
@@ -916,7 +829,6 @@ function handleCalibrationBarPointerUp() {
 				v-if="textEditorButtonStates.calibrate"
 				id="text-editor-calibration-panel"
 				class="calibration-panel"
-				role="region"
 				aria-label="Calibration settings"
 				title="Calibration settings"
 			>
@@ -961,7 +873,6 @@ function handleCalibrationBarPointerUp() {
 				v-if="textEditorButtonStates.templates"
 				id="text-editor-templates-panel"
 				class="text-editor-templates-panel"
-				role="region"
 				aria-label="Template options"
 				title="Template options"
 			>
@@ -1072,9 +983,14 @@ function handleCalibrationBarPointerUp() {
 							<button
 								id="text-editor-margins-button"
 								class="text-editor-margins-button"
+								:class="{
+									'text-editor-margins-button--depressed': isMarginsPanelOpen,
+								}"
 								type="button"
 								name="text-editor-margins-button"
 								data-button-name="text-editor-margins-button"
+								:aria-pressed="isMarginsPanelOpen"
+								@click="toggleMarginsPanel"
 							>
 								Margins
 							</button>
@@ -1082,11 +998,12 @@ function handleCalibrationBarPointerUp() {
 								v-if="isFontsPanelOpen"
 								id="text-editor-fonts-panel"
 								class="text-editor-fonts-panel"
-								role="region"
 								aria-label="Fonts options"
+								title="Fonts options"
 							>
 								<button
-									class="text-editor-font-option-button"
+								id="text-editor-font-styles-button"
+								class="text-editor-font-styles-button"
 									data-font-option="styles"
 									type="button"
 									:aria-pressed="isStylesMenuOpen"
@@ -1095,23 +1012,16 @@ function handleCalibrationBarPointerUp() {
 									Fonts
 								</button>
 								<button
-									class="text-editor-font-option-button"
+									id="text-editor-font-color-button"
+									class="text-editor-font-color-button"
 									data-font-option="color"
 									type="button"
 								>
 									Font Color
 								</button>
 								<button
-									class="text-editor-font-option-button"
-									data-font-option="weight"
-									type="button"
-									:aria-pressed="isWeightMenuOpen"
-									@click="toggleWeightMenu"
-								>
-									Font Weight: {{ selectedFontWeight }}
-								</button>
-								<button
-									class="text-editor-font-option-button"
+									id="text-editor-font-size-button"
+									class="text-editor-font-size-button"
 									data-font-option="font-size"
 									type="button"
 								>
@@ -1119,13 +1029,15 @@ function handleCalibrationBarPointerUp() {
 								</button>
 								<section
 									v-if="isStylesMenuOpen"
+									id="text-editor-font-styles-menu"
 									class="text-editor-font-styles-menu"
-									role="region"
 									aria-label="Font styles"
+									title="Font styles"
 								>
 									<button
 										v-for="fontOption in fontStyleOptions"
 										:key="fontOption.id"
+										:id="`text-editor-font-style-button-${fontOption.id}`"
 										class="text-editor-font-style-button"
 										:class="{
 											'text-editor-font-style-button--depressed':
@@ -1134,38 +1046,13 @@ function handleCalibrationBarPointerUp() {
 										type="button"
 										:data-font-style="fontOption.id"
 										:aria-pressed="activeFontStyleId === fontOption.id"
-										:style="{ fontFamily: fontOption.family }"
 										@mousedown.prevent
 										@click="applyFontStyle(fontOption)"
 									>
 										{{ fontOption.label }}
 									</button>
 								</section>
-								<div
-									v-if="isWeightMenuOpen"
-									class="text-editor-font-weights-menu"
-									role="menu"
-									aria-label="Font weights"
-								>
-									<button
-										v-for="weight in fontWeightOptions"
-										:key="weight"
-										class="text-editor-font-weight-button"
-										:class="{
-											'text-editor-font-weight-button--depressed':
-												selectedFontWeight === weight,
-										}"
-										type="button"
-										role="menuitem"
-										:aria-pressed="selectedFontWeight === weight"
-										@mousedown.prevent
-										@click="applyFontWeight(weight)"
-									>
-										{{ weight }}
-									</button>
-								</div>
 							</section>
-
 							<div
 								v-if="isSizePanelOpen"
 								id="text-editor-size-panel"
@@ -1174,9 +1061,9 @@ function handleCalibrationBarPointerUp() {
 							>
 								<div class="text-editor-size-row">
 									<label
-										class="text-editor-size-label"
-										for="text-editor-size-width"
-										>Width</label
+									class="text-editor-size-label"
+									for="text-editor-size-width"
+									>Width</label
 									>
 									<input
 										id="text-editor-size-width"
@@ -1254,7 +1141,7 @@ function handleCalibrationBarPointerUp() {
 									<label
 										class="text-editor-size-label"
 										for="text-editor-size-height"
-										>Height</label
+									>Height</label
 									>
 									<input
 										id="text-editor-size-height"
@@ -1330,7 +1217,7 @@ function handleCalibrationBarPointerUp() {
 								</div>
 							</div>
 						</div>
-					</div>
+						</div>
 					<p class="text-editor-ribbon-group-caption">Tools</p>
 				</div>
 			</section>

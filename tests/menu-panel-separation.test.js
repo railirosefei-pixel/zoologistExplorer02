@@ -115,7 +115,13 @@ test("menus and panels keep unique identification, role, and title metadata", ()
 				);
 			}
 
-			if (tagName === "section" && !/region|tabpanel/i.test(role)) {
+			const hasImplicitRegionRole =
+				tagName === "section" && Boolean(label || labelledBy);
+			if (
+				tagName === "section" &&
+				!/region|tabpanel/i.test(role) &&
+				!hasImplicitRegionRole
+			) {
 				findings.push(`${relativePath} contains a section panel without a region role`);
 			}
 

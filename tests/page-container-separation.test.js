@@ -125,9 +125,12 @@ test("pages and containers keep unique identification, role, and title metadata"
 				);
 			}
 
+			const hasImplicitRegionRole =
+				tagName === "section" && Boolean(label || labelledBy);
 			if (
 				["main", "section"].includes(tagName) &&
-				!/main|region|complementary|article|tabpanel/i.test(role)
+				!/main|region|complementary|article|tabpanel/i.test(role) &&
+				!hasImplicitRegionRole
 			) {
 				findings.push(
 					`${relativePath} contains a page or container section without a meaningful role`,

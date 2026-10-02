@@ -141,8 +141,13 @@ test("input.css keeps Blocks menu and Description Edits layout invariants", () =
 	);
 	assert.match(
 		source,
-		/\.description-edits-panel-container\s*\{[^}]*padding:\s*16px 16px 96px 16px;/s,
-		"text box container must keep the 16/96 padding contract",
+		/\.description-edits-panel-container\s*\{[^}]*padding:\s*16px;/s,
+		"text box container must keep 16px padding",
+	);
+	assert.match(
+		source,
+		/\.description-edits-controls-row\s*\{[^}]*margin-top:\s*16px;[^}]*row-gap:\s*16px;/s,
+		"Description Edits rows must keep 16px vertical gaps",
 	);
 	assert.match(
 		source,
