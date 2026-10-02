@@ -41,7 +41,12 @@ test("Parent Block Edits shows a Monday through Friday weekly panel set", async 
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
 	await page.getByRole("button", { name: "Open Blocks menu" }).click();
-	await page.getByRole("button", { name: "Open Block Edits" }).click();
+	const blockEditsButton = page.getByRole("button", { name: "Toggle Block Edits" });
+	await blockEditsButton.click();
+	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "true");
+	await expect(blockEditsButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
+	const activeShadow = await blockEditsButton.evaluate((button) => getComputedStyle(button).boxShadow);
+	expect(activeShadow).toContain("0, 255, 64");
 
 	const panels = page.locator(".block-edits-panel");
 	await expect(panels).toHaveCount(5);
@@ -53,6 +58,10 @@ test("Parent Block Edits shows a Monday through Friday weekly panel set", async 
 		.evaluateAll((elements) => elements.map((element) => element.textContent.trim()));
 	expect(uniqueDates).toHaveLength(5);
 	expect(uniqueDates.every((date) => date.length > 0)).toBeTruthy();
+
+	await blockEditsButton.click();
+	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "false");
+	await expect(panels).toHaveCount(0);
 });
 
 test("Text Editor Back returns to the Parent menu", async ({ page }) => {

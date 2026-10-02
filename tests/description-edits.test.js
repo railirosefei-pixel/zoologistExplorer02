@@ -56,6 +56,9 @@ test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", 
 		"description-edits-month-dropdown-button",
 		"description-edits-day-dropdown-button",
 		"description-edits-year-dropdown-button",
+		"play-by-play-edits-month-dropdown-button",
+		"play-by-play-edits-day-dropdown-button",
+		"play-by-play-edits-year-dropdown-button",
 		"blocks-screen-home-button",
 		"blocks-screen-back-button",
 	];
@@ -92,9 +95,6 @@ for (const { name, label, handler } of [
 		const accessibleLabel = group[0].match(/:?aria-label="([^"]*)"/);
 		assert.ok(accessibleLabel, `${selector} must have an accessible name`);
 		assert.ok(accessibleLabel[1].includes(label));
-		if (name === "history") {
-			assert.ok(accessibleLabel[1].includes("Play by Play history options"));
-		}
 		assert.ok(group[0].includes(`@click="${handler}"`));
 		assert.doesNotMatch(group[0], /role="(?:listbox|option)"/);
 		const styles = cssSource.match(new RegExp(`\\.${selector}\\s*\\{([^}]*)\\}`));
@@ -104,6 +104,65 @@ for (const { name, label, handler } of [
 		assert.match(styles[1], /min-width:\s*0;/);
 	});
 }
+
+test("Description and Play by Play menus own separate controls and option-menu identities", () => {
+	const source = readSource("src/components/StudentEditsView.vue");
+	const cssSource = readSource("src/css/input.css");
+	const menuElements = [
+		"date-subrow",
+		"month-dropdown-wrapper", "month-dropdown-button", "month-options-list", "month-option-button",
+		"day-dropdown-wrapper", "day-dropdown-button", "day-options-list", "day-option-button",
+		"year-dropdown-wrapper", "year-dropdown-button", "year-options-list", "year-option-button",
+		"subject-dropdown-wrapper", "subject-dropdown-button", "subject-options-list", "subject-option-button",
+		"block-dropdown-wrapper", "block-dropdown-button", "block-options-list", "block-option-button",
+		"history-dropdown-wrapper", "history-dropdown-button", "history-options-list", "history-option-button",
+	];
+	const findTagWithClass = (className) =>
+		source.match(new RegExp(`<[^>]+class="${className}"[^>]*>`))?.[0] ?? "";
+	for (const elementName of menuElements) {
+		const descriptionTag = findTagWithClass(`description-edits-${elementName}`);
+		const playByPlayTag = findTagWithClass(`play-by-play-edits-${elementName}`);
+		for (const className of [`description-edits-${elementName}`, `play-by-play-edits-${elementName}`]) {
+			assert.match(cssSource, new RegExp(`^\\.${className}\\s*\\{`, "m"), `${className} must own an independent style rule`);
+		}
+		assert.ok(descriptionTag, `Description ${elementName} must have its own identified element`);
+		assert.ok(playByPlayTag, `Play by Play ${elementName} must have its own identified element`);
+		for (const [tag, prefix] of [
+			[descriptionTag, "description-edits"],
+			[playByPlayTag, "play-by-play-edits"],
+		]) {
+			assert.match(tag, new RegExp(`:?id="[^"]*${prefix}-`));
+			if (tag.startsWith("<button")) {
+				assert.match(tag, new RegExp(`:?name="[^"]*${prefix}-`));
+				assert.match(tag, new RegExp(`:?data-button-name="[^"]*${prefix}-`));
+				assert.match(tag, /@click="handle[A-Za-z_$][\w$]*(?:\([^)]*\))?"/);
+			}
+		}
+		assert.notEqual(descriptionTag, playByPlayTag, `${elementName} must not share markup identity`);
+	}
+
+	for (const control of ["commit", "load", "date-dropdown", "subject-dropdown", "block-dropdown", "history-dropdown", "remove"]) {
+		const descriptionTag = source.match(new RegExp(`<button\\b[^>]*id="description-edits-${control}(?:-button)?"[^>]*>`))?.[0] ?? "";
+		const playByPlayTag = source.match(new RegExp(`<button\\b[^>]*id="play-by-play-edits-${control}(?:-button)?"[^>]*>`))?.[0] ?? "";
+		assert.ok(descriptionTag, `Description ${control} button must exist independently`);
+		assert.ok(playByPlayTag, `Play by Play ${control} button must exist independently`);
+		const descriptionHandler = descriptionTag.match(/@click="([^"]+)"/)?.[1];
+		const playByPlayHandler = playByPlayTag.match(/@click="([^"]+)"/)?.[1];
+		assert.ok(descriptionHandler, `Description ${control} button must call a named handler`);
+		assert.ok(playByPlayHandler, `Play by Play ${control} button must call a named handler`);
+		assert.notEqual(descriptionHandler, playByPlayHandler, `${control} buttons must call separate handlers`);
+		for (const [tag, prefix] of [
+			[descriptionTag, "description-edits"],
+			[playByPlayTag, "play-by-play-edits"],
+		]) {
+			const className = tag.match(/class="([^"]+)"/)?.[1];
+			assert.equal(className, `${prefix}-${control}-button`);
+			assert.ok(tag.includes(`name="${prefix}-${control}-button"`));
+			assert.ok(tag.includes(`data-button-name="${prefix}-${control}-button"`));
+			assert.match(cssSource, new RegExp(`^\\.${className}\\s*\\{`, "m"));
+		}
+	}
+});
 
 test("Description Edits commit pipeline is wired in StudentEditsView.vue", () => {
 	const source = readSource("src/components/StudentEditsView.vue");
@@ -339,9 +398,8 @@ test("Description Load has independent disabled styling, labeled editors, and a 
 	assert.ok(button);
 	assert.match(button[0], /description-edits-load-button/);
 	assert.match(button[0], /:disabled="!isDescriptionEditsLoadEnabled"/);
-	assert.match(button[0], /disabled:shadow-none/);
-	assert.match(button[0], /disabled:bg-\[#d1d5db\]/);
 	assert.match(button[0], /@click="handleDescriptionEditsLoad"/);
+	assert.match(readSource("src/css/input.css"), /\.description-edits-load-button:disabled\s*\{[^}]*background:\s*#d1d5db;[^}]*box-shadow:\s*none;/s);
 	assert.match(source, /description-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4/);
 	assert.match(source, /id="description-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/);
 	assert.match(source, /:for="`description-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"/);
@@ -439,9 +497,8 @@ test("Play by Play Load has independently disabled controls, labeled editors, an
 	assert.ok(button);
 	assert.match(button[0], /play-by-play-edits-load-button/);
 	assert.match(button[0], /:disabled="!isPlayByPlayEditsLoadEnabled"/);
-	assert.match(button[0], /disabled:shadow-none/);
-	assert.match(button[0], /disabled:bg-\[#d1d5db\]/);
 	assert.match(button[0], /@click="handlePlayByPlayEditsLoad"/);
+	assert.match(readSource("src/css/input.css"), /\.play-by-play-edits-load-button:disabled\s*\{[^}]*background:\s*#d1d5db;[^}]*box-shadow:\s*none;/s);
 	assert.match(source, /play-by-play-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4/);
 	assert.match(source, /id="play-by-play-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/);
 	assert.match(source, /:for="`play-by-play-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"/);
@@ -487,7 +544,7 @@ test("Play by Play All Blocks edits only changed original keys, including empty 
 	assert.deepEqual(view.playByPlayEditsLoadedFields.value, []);
 	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "science", 1), "Steps 1");
 	view.handlePlayByPlayEditsLoad();
-	view.handleDescriptionEditsHistorySelect({ text: "History steps" });
+	view.handlePlayByPlayEditsHistorySelect({ text: "History steps" });
 	assert.deepEqual(view.playByPlayEditsLoadedFields.value, []);
 	assert.equal(view.playByPlayEditsLoadedSelectionKey.value, null);
 	assert.equal(view.descriptionEditsPlayByPlayDraft.value, "History steps");
@@ -578,6 +635,31 @@ test("Description Edits selection summary formats selected date, subject, and bl
 	);
 });
 
+test("Description and Play by Play keep independent selected dates", async () => {
+	const view = await createDescriptionEditsView();
+	view.descriptionEditsMode.value = "description";
+	view.handleDescriptionEditsMonthSelect(new Date(2026, 8, 1));
+	view.handleDescriptionEditsDaySelect(15);
+	view.handleDescriptionEditsYearSelect(2026);
+
+	view.descriptionEditsMode.value = "play-by-play";
+	assert.equal(view.descriptionEditsSelectedMonth.value, null);
+	assert.equal(view.descriptionEditsSelectedDay.value, null);
+	assert.equal(view.descriptionEditsSelectedYear.value, null);
+	view.handlePlayByPlayEditsMonthSelect(new Date(2026, 9, 1));
+	view.handlePlayByPlayEditsDaySelect(26);
+	view.handlePlayByPlayEditsYearSelect(2027);
+
+	view.descriptionEditsMode.value = "description";
+	assert.equal(view.descriptionEditsSelectedMonth.value.getMonth(), 8);
+	assert.equal(view.descriptionEditsSelectedDay.value, 15);
+	assert.equal(view.descriptionEditsSelectedYear.value, 2026);
+	view.descriptionEditsMode.value = "play-by-play";
+	assert.equal(view.descriptionEditsSelectedMonth.value.getMonth(), 9);
+	assert.equal(view.descriptionEditsSelectedDay.value, 26);
+	assert.equal(view.descriptionEditsSelectedYear.value, 2027);
+});
+
 test("Play by Play has distinct controls and a separate calendar data path", () => {
 	const studentEditsSource = readSource("src/components/StudentEditsView.vue");
 	const calendarSource = readSource("src/components/CalendarView.vue");
@@ -593,6 +675,36 @@ test("Play by Play has distinct controls and a separate calendar data path", () 
 	);
 	assert.match(studentEditsSource, /blockDescriptionStore\.commitPlayByPlay\(/);
 	assert.match(calendarSource, /blockDescriptionStore\.getPlayByPlay\(/);
+});
+
+test("Description mode stays visually depressed while pressed", () => {
+	const studentEditsSource = readSource("src/components/StudentEditsView.vue");
+	const cssSource = readSource("src/css/input.css");
+	assert.match(
+		studentEditsSource,
+		/class="description-edits-description-button"[\s\S]*:aria-pressed="descriptionEditsMode === 'description'"[\s\S]*@click="handleDescriptionEditsModeToggle\('description'\)"/,
+		"Description button must expose its toggled mode as aria-pressed",
+	);
+	assert.match(
+		cssSource,
+		/\.description-edits-description-button\[aria-pressed="true"\]\s*\{[^}]*transform:\s*translateY\(3px\)[^}]*background:[^}]*box-shadow:[^}]*0 0 12px 5px rgba\(255, 113, 0, 0\.95\)/s,
+		"pressed Description button must remain depressed with a bright orange glow",
+	);
+});
+
+test("Play by Play mode stays visually depressed while pressed", () => {
+	const studentEditsSource = readSource("src/components/StudentEditsView.vue");
+	const cssSource = readSource("src/css/input.css");
+	assert.match(
+		studentEditsSource,
+		/class="description-edits-play-by-play-button"[\s\S]*:aria-pressed="descriptionEditsMode === 'play-by-play'"[\s\S]*@click="handleDescriptionEditsModeToggle\('play-by-play'\)"/,
+		"Play by Play button must expose its toggled mode as aria-pressed",
+	);
+	assert.match(
+		cssSource,
+		/\.description-edits-play-by-play-button\[aria-pressed="true"\]\s*\{[^}]*transform:\s*translateY\(3px\)[^}]*background:[^}]*box-shadow:[^}]*0 0 12px 5px rgba\(255, 225, 0, 0\.98\)/s,
+		"pressed Play by Play button must remain depressed with a bright yellow glow",
+	);
 });
 
 test("Description Edits Remove targets only the selected date, subject, and blocks", () => {
@@ -651,6 +763,57 @@ test("Description Edits Remove targets only the selected date, subject, and bloc
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "math", 3), null);
 });
 
+test("Remove clears loaded Description and Play by Play text without clearing the other draft", async () => {
+	const view = await createDescriptionEditsView();
+	const descriptionDateKey = "2098-01-14";
+	view.descriptionEditsMode.value = "description";
+	view.descriptionEditsSelectedMonth.value = new Date(2098, 0, 1);
+	view.descriptionEditsSelectedDay.value = 14;
+	view.descriptionEditsSelectedYear.value = 2098;
+	view.descriptionEditsSelectedSubject.value = { key: "math", label: "Math" };
+	view.descriptionEditsSelectedBlock.value = 2;
+	view.descriptionEditsDraft.value = "Old Description draft";
+	view.descriptionEditsPlayByPlayDraft.value = "Unrelated Play by Play draft";
+	blockDescriptionStore.commitDescription({
+		dateKey: descriptionDateKey,
+		subjectKey: "math",
+		blocks: [2],
+		text: "Loaded Description\n\ntext",
+	});
+	view.handleDescriptionEditsLoad();
+	assert.equal(view.descriptionEditsLoadedFields.value[0].text, "Loaded Description\n\ntext");
+	view.handleDescriptionEditsRemove();
+	assert.deepEqual(view.descriptionEditsLoadedFields.value, []);
+	assert.equal(view.descriptionEditsLoadedSelectionKey.value, null);
+	assert.equal(view.descriptionEditsDraft.value, "");
+	assert.equal(view.descriptionEditsPlayByPlayDraft.value, "Unrelated Play by Play draft");
+	assert.equal(blockDescriptionStore.getDescription(descriptionDateKey, "math", 2), null);
+
+	const playByPlayDateKey = "2098-01-15";
+	view.descriptionEditsMode.value = "play-by-play";
+	view.descriptionEditsSelectedMonth.value = new Date(2098, 0, 1);
+	view.descriptionEditsSelectedDay.value = 15;
+	view.descriptionEditsSelectedYear.value = 2098;
+	view.descriptionEditsSelectedSubject.value = { key: "science", label: "Science" };
+	view.descriptionEditsSelectedBlock.value = 3;
+	view.descriptionEditsDraft.value = "Unrelated Description draft";
+	view.descriptionEditsPlayByPlayDraft.value = "Old Play by Play draft";
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey: playByPlayDateKey,
+		subjectKey: "science",
+		blocks: [3],
+		text: "Loaded Play by Play\n\ntext",
+	});
+	view.handlePlayByPlayEditsLoad();
+	assert.equal(view.playByPlayEditsLoadedFields.value[0].text, "Loaded Play by Play\n\ntext");
+	view.handlePlayByPlayEditsRemove();
+	assert.deepEqual(view.playByPlayEditsLoadedFields.value, []);
+	assert.equal(view.playByPlayEditsLoadedSelectionKey.value, null);
+	assert.equal(view.descriptionEditsPlayByPlayDraft.value, "");
+	assert.equal(view.descriptionEditsDraft.value, "Unrelated Description draft");
+	assert.equal(blockDescriptionStore.getPlayByPlay(playByPlayDateKey, "science", 3), null);
+});
+
 test("Calendar Description and Play by Play containers keep separate selectors with matching backgrounds", () => {
 	const calendarSource = readSource("src/components/CalendarView.vue");
 	const cssSource = readSource("src/css/input.css");
@@ -687,8 +850,13 @@ test("input.css keeps Blocks menu and Description Edits layout invariants", () =
 	);
 	assert.match(
 		source,
-		/\.description-edits-panel-container\s*\{[^}]*padding:\s*16px;/s,
-		"text box container must keep 16px padding",
+		/\.description-edits-panel-container\s*\{[^}]*height:\s*auto;[^}]*padding:\s*16px 16px 18px;/s,
+		"expanded container must fit its contents and keep a 16px inset below the pressed mode button",
+	);
+	assert.match(
+		source,
+		/\.description-edits-panel-container--compact\s*\{[^}]*padding-bottom:\s*15px;/s,
+		"compact container must keep its original bottom inset",
 	);
 	assert.match(
 		source,

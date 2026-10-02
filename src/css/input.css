@@ -2699,7 +2699,7 @@ body {
 		filter 120ms ease;
 }
 
-.block-edits-button:hover {
+.block-edits-button:hover:not(.block-edits-button--active) {
 	transform: translateY(-2px);
 	filter: brightness(1.03);
 	box-shadow:
@@ -2707,6 +2707,17 @@ body {
 		inset 0 -4px 0 rgba(45, 106, 79, 0.25),
 		0 9px 0 rgba(27, 67, 50, 0.6),
 		0 16px 20px rgba(15, 23, 42, 0.32);
+}
+
+.block-edits-button--active {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(45, 106, 79, 0.25),
+		0 3px 0 rgba(27, 67, 50, 0.55),
+		0 0 22px rgba(0, 255, 64, 1),
+		0 0 44px rgba(0, 255, 64, 0.9),
+		0 0 68px rgba(0, 255, 64, 0.7);
 }
 
 .block-edits-button:active {
@@ -2923,7 +2934,7 @@ body {
 		0 3px 0 rgba(160, 125, 36, 0.55);
 }
 
-.description-edits-button--active {
+.description-edits-button.description-edits-button--active {
 	transform: translateY(4px);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.48),
@@ -2949,14 +2960,17 @@ body {
 .description-edits-panel-container {
 	pointer-events: auto;
 	position: relative;
-	padding: 16px;
+	width: 806px;
+	height: auto;
+	padding: 16px 16px 18px;
 	border: 1px solid rgba(255, 248, 190, 0.45);
 	border-radius: 1rem;
 	background: rgba(12, 22, 16, 0.92);
 }
 
-.description-edits-panel-container--date-open {
-	transform: translateY(32px);
+.description-edits-panel-container--compact {
+	height: auto;
+	padding-bottom: 15px;
 }
 
 .description-edits-text-box {
@@ -2992,6 +3006,7 @@ body {
 }
 
 .description-edits-controls-row {
+	position: relative;
 	width: 772px;
 	margin-top: 16px;
 	display: grid;
@@ -3002,23 +3017,40 @@ body {
 	justify-content: center;
 }
 
-.description-edits-workflow-row,
+.description-edits-workflow-row {
+	width: calc(100% + 2px);
+	margin-inline: -1px;
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 8px;
+	padding-inline: 0;
+}
+
 .play-by-play-edits-workflow-row {
 	width: calc(100% + 2px);
 	margin-inline: -1px;
 	display: grid;
 	grid-template-columns: repeat(7, minmax(0, 1fr));
 	gap: 8px;
-	padding-inline: 17px;
+	padding-inline: 0;
 }
 
-.description-edits-workflow-row > *,
+.description-edits-workflow-row > * {
+	min-width: 0;
+}
+
 .play-by-play-edits-workflow-row > * {
 	min-width: 0;
 }
 
 .description-edits-workflow-row > button,
-.description-edits-workflow-row > div > button,
+.description-edits-workflow-row > div > button {
+	width: 100%;
+	min-width: 0;
+	padding-inline: 4px;
+	overflow-wrap: anywhere;
+}
+
 .play-by-play-edits-workflow-row > button,
 .play-by-play-edits-workflow-row > div > button {
 	width: 100%;
@@ -3027,7 +3059,35 @@ body {
 	overflow-wrap: anywhere;
 }
 
-.description-edits-workflow-row > .description-edits-load-button,
+.description-edits-workflow-row > .description-edits-load-button {
+	padding-block: 0.55rem;
+	border-radius: 9999px;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.description-edits-load-button {
+	cursor: pointer;
+	border: 2px solid rgba(122, 86, 18, 0.5);
+	background: #fff7b8;
+	color: #513d12;
+	box-shadow: 0 4px 0 #7a5612;
+}
+
+.description-edits-load-button:enabled:hover {
+	filter: brightness(1.05);
+}
+
+.description-edits-load-button:disabled {
+	cursor: not-allowed;
+	border-color: rgba(122, 86, 18, 0.5);
+	background: #d1d5db;
+	color: #4b5563;
+	box-shadow: none;
+}
+
 .play-by-play-edits-workflow-row > .play-by-play-edits-load-button {
 	padding-block: 0.55rem;
 	border-radius: 9999px;
@@ -3037,11 +3097,35 @@ body {
 	text-transform: uppercase;
 }
 
+.play-by-play-edits-load-button {
+	cursor: pointer;
+	border: 2px solid rgba(122, 86, 18, 0.5);
+	background: #fff7b8;
+	color: #513d12;
+	box-shadow: 0 4px 0 #7a5612;
+}
+
+.play-by-play-edits-load-button:enabled:hover {
+	filter: brightness(1.05);
+}
+
+.play-by-play-edits-load-button:disabled {
+	cursor: not-allowed;
+	border-color: rgba(122, 86, 18, 0.5);
+	background: #d1d5db;
+	color: #4b5563;
+	box-shadow: none;
+}
+
 .description-edits-action-buttons {
 	display: contents;
 }
 
 .description-edits-selection-summary {
+	position: absolute;
+	left: 0;
+	bottom: calc(100% + 25.6px);
+	width: calc((100% - 48px) * 4 / 7 + 24px);
 	grid-column: 1 / -1;
 	display: flex;
 	align-items: center;
@@ -3051,6 +3135,10 @@ body {
 	font-family: "Trebuchet MS", sans-serif;
 	font-size: 1rem;
 	line-height: 1.5;
+}
+
+.description-edits-selection-summary--hidden {
+	visibility: hidden;
 }
 
 .description-edits-selection-date {
@@ -3100,6 +3188,16 @@ body {
 		0 3px 0 rgba(146, 64, 14, 0.38);
 }
 
+.description-edits-description-button[aria-pressed="true"] {
+	transform: translateY(3px);
+	background: linear-gradient(180deg, #ffad42 0%, #ff7417 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 244, 214, 0.9),
+		inset 0 -2px 0 rgba(180, 54, 0, 0.35),
+		0 3px 0 rgba(146, 64, 14, 0.38),
+		0 0 12px 5px rgba(255, 113, 0, 0.95);
+}
+
 .description-edits-play-by-play-button {
 	grid-column: 4 / 7;
 	padding: 0.55rem 1.1rem;
@@ -3135,14 +3233,28 @@ body {
 		0 3px 0 rgba(133, 77, 14, 0.38);
 }
 
+.description-edits-play-by-play-button[aria-pressed="true"] {
+	transform: translateY(3px);
+	background: linear-gradient(180deg, #fff45c 0%, #ffd500 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 224, 0.95),
+		inset 0 -2px 0 rgba(161, 98, 7, 0.3),
+		0 3px 0 rgba(133, 77, 14, 0.38),
+		0 0 12px 5px rgba(255, 225, 0, 0.98);
+}
+
 .description-edits-date-subrow {
-	height: 48px;
-	margin-top: 16px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 16px;
-	transform: translateX(163.5px);
+	width: calc(100% + 2px);
+	height: auto;
+	margin: 16px -1px 0;
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	column-gap: 8px;
+	padding-inline: 0;
+}
+
+.description-edits-date-subrow--hidden {
+	visibility: hidden;
 }
 
 .description-edits-commit-button {
@@ -3555,19 +3667,19 @@ body {
 
 .description-edits-month-dropdown-button {
 	padding: 0.55rem 1.1rem;
-	border: 2px solid rgba(30, 64, 120, 0.4);
+	border: 2px solid rgba(164, 139, 58, 0.42);
 	border-radius: 9999px;
-	background: linear-gradient(180deg, #e0f2fe 0%, #7dd3fc 100%);
-	color: #0c2f4a;
+	background: linear-gradient(180deg, #cfe4ff 0%, #93c5fd 100%);
+	color: #16293f;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.85rem;
+	font-size: 0.9rem;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 	cursor: pointer;
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(3, 105, 161, 0.25),
-		0 6px 0 rgba(12, 74, 110, 0.45);
+		inset 0 -4px 0 rgba(161, 98, 7, 0.2),
+		0 6px 0 rgba(133, 77, 14, 0.38);
 	transition:
 		transform 160ms ease,
 		box-shadow 160ms ease,
@@ -3583,25 +3695,25 @@ body {
 	transform: translateY(3px);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.48),
-		inset 0 -2px 0 rgba(3, 105, 161, 0.25),
-		0 3px 0 rgba(12, 74, 110, 0.45);
+		inset 0 -2px 0 rgba(161, 98, 7, 0.2),
+		0 3px 0 rgba(133, 77, 14, 0.38);
 }
 
 .description-edits-day-dropdown-button {
 	padding: 0.55rem 1.1rem;
-	border: 2px solid rgba(30, 64, 120, 0.4);
+	border: 2px solid rgba(164, 139, 58, 0.42);
 	border-radius: 9999px;
-	background: linear-gradient(180deg, #e0f2fe 0%, #7dd3fc 100%);
-	color: #0c2f4a;
+	background: linear-gradient(180deg, #cfe4ff 0%, #93c5fd 100%);
+	color: #16293f;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.85rem;
+	font-size: 0.9rem;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 	cursor: pointer;
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(3, 105, 161, 0.25),
-		0 6px 0 rgba(12, 74, 110, 0.45);
+		inset 0 -4px 0 rgba(161, 98, 7, 0.2),
+		0 6px 0 rgba(133, 77, 14, 0.38);
 	transition:
 		transform 160ms ease,
 		box-shadow 160ms ease,
@@ -3617,25 +3729,25 @@ body {
 	transform: translateY(3px);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.48),
-		inset 0 -2px 0 rgba(3, 105, 161, 0.25),
-		0 3px 0 rgba(12, 74, 110, 0.45);
+		inset 0 -2px 0 rgba(161, 98, 7, 0.2),
+		0 3px 0 rgba(133, 77, 14, 0.38);
 }
 
 .description-edits-year-dropdown-button {
 	padding: 0.55rem 1.1rem;
-	border: 2px solid rgba(30, 64, 120, 0.4);
+	border: 2px solid rgba(164, 139, 58, 0.42);
 	border-radius: 9999px;
-	background: linear-gradient(180deg, #e0f2fe 0%, #7dd3fc 100%);
-	color: #0c2f4a;
+	background: linear-gradient(180deg, #ffd6d6 0%, #fca5a5 100%);
+	color: #000000;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.85rem;
+	font-size: 0.9rem;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 	cursor: pointer;
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.56),
-		inset 0 -4px 0 rgba(3, 105, 161, 0.25),
-		0 6px 0 rgba(12, 74, 110, 0.45);
+		inset 0 -4px 0 rgba(161, 98, 7, 0.2),
+		0 6px 0 rgba(133, 77, 14, 0.38);
 	transition:
 		transform 160ms ease,
 		box-shadow 160ms ease,
@@ -3651,8 +3763,41 @@ body {
 	transform: translateY(3px);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.48),
-		inset 0 -2px 0 rgba(3, 105, 161, 0.25),
-		0 3px 0 rgba(12, 74, 110, 0.45);
+		inset 0 -2px 0 rgba(161, 98, 7, 0.2),
+		0 3px 0 rgba(133, 77, 14, 0.38);
+}
+
+.description-edits-month-dropdown-wrapper {
+	grid-column: 5;
+	position: relative;
+	min-width: 0;
+}
+
+.description-edits-day-dropdown-wrapper {
+	grid-column: 6;
+	position: relative;
+	min-width: 0;
+}
+
+.description-edits-year-dropdown-wrapper {
+	grid-column: 7;
+	position: relative;
+	min-width: 0;
+}
+
+.description-edits-month-dropdown-button,
+.description-edits-day-dropdown-button,
+.description-edits-year-dropdown-button {
+	width: 100%;
+	min-width: 0;
+	padding-inline: 4px;
+	overflow-wrap: anywhere;
+}
+
+.description-edits-date-subrow:not(.description-edits-date-subrow--hidden) .description-edits-month-dropdown-button,
+.description-edits-date-subrow:not(.description-edits-date-subrow--hidden) .description-edits-day-dropdown-button,
+.description-edits-date-subrow:not(.description-edits-date-subrow--hidden) .description-edits-year-dropdown-button {
+	background: linear-gradient(180deg, #fff7b8 0%, #f8e99a 100%);
 }
 
 .description-edits-subject-dropdown-wrapper {
@@ -3664,18 +3809,6 @@ body {
 }
 
 .description-edits-history-dropdown-wrapper {
-	position: relative;
-}
-
-.description-edits-month-dropdown-wrapper {
-	position: relative;
-}
-
-.description-edits-day-dropdown-wrapper {
-	position: relative;
-}
-
-.description-edits-year-dropdown-wrapper {
 	position: relative;
 }
 
@@ -3984,6 +4117,480 @@ body {
 }
 
 .description-edits-history-empty {
+	margin: 0;
+	padding: 0.75rem;
+	color: #16293f;
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 0.95rem;
+	text-align: center;
+}
+
+.play-by-play-edits-date-subrow {
+	width: calc(100% + 2px);
+	height: auto;
+	margin: 16px -1px 0;
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	column-gap: 8px;
+	padding-inline: 0;
+}
+
+.play-by-play-edits-date-subrow--hidden {
+	visibility: hidden;
+}
+
+.play-by-play-edits-month-dropdown-wrapper {
+	grid-column: 5;
+	position: relative;
+	min-width: 0;
+}
+
+.play-by-play-edits-day-dropdown-wrapper {
+	grid-column: 6;
+	position: relative;
+	min-width: 0;
+}
+
+.play-by-play-edits-year-dropdown-wrapper {
+	grid-column: 7;
+	position: relative;
+	min-width: 0;
+}
+
+.play-by-play-edits-month-dropdown-button {
+	width: 100%;
+	min-width: 0;
+	padding: 0.55rem 4px;
+	border: 2px solid rgba(164, 139, 58, 0.42);
+	border-radius: 9999px;
+	background: linear-gradient(180deg, #cfe4ff 0%, #93c5fd 100%);
+	color: #16293f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(161, 98, 7, 0.2),
+		0 6px 0 rgba(133, 77, 14, 0.38);
+	transition:
+		transform 160ms ease,
+		box-shadow 160ms ease,
+		filter 160ms ease;
+	overflow-wrap: anywhere;
+}
+
+.play-by-play-edits-month-dropdown-button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.03);
+}
+
+.play-by-play-edits-month-dropdown-button:active {
+	transform: translateY(3px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(161, 98, 7, 0.2),
+		0 3px 0 rgba(133, 77, 14, 0.38);
+}
+
+.play-by-play-edits-day-dropdown-button {
+	width: 100%;
+	min-width: 0;
+	padding: 0.55rem 4px;
+	border: 2px solid rgba(164, 139, 58, 0.42);
+	border-radius: 9999px;
+	background: linear-gradient(180deg, #cfe4ff 0%, #93c5fd 100%);
+	color: #16293f;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(161, 98, 7, 0.2),
+	0 6px 0 rgba(133, 77, 14, 0.38);
+	transition:
+		transform 160ms ease,
+		box-shadow 160ms ease,
+		filter 160ms ease;
+	overflow-wrap: anywhere;
+}
+
+.play-by-play-edits-day-dropdown-button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.03);
+}
+
+.play-by-play-edits-day-dropdown-button:active {
+	transform: translateY(3px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(161, 98, 7, 0.2),
+		0 3px 0 rgba(133, 77, 14, 0.38);
+}
+
+.play-by-play-edits-year-dropdown-button {
+	width: 100%;
+	min-width: 0;
+	padding: 0.55rem 4px;
+	border: 2px solid rgba(164, 139, 58, 0.42);
+	border-radius: 9999px;
+	background: linear-gradient(180deg, #cfe4ff 0%, #93c5fd 100%);
+	color: #000000;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.56),
+		inset 0 -4px 0 rgba(161, 98, 7, 0.2),
+		0 6px 0 rgba(133, 77, 14, 0.38);
+	transition:
+		transform 160ms ease,
+		box-shadow 160ms ease,
+		filter 160ms ease;
+	overflow-wrap: anywhere;
+}
+
+.play-by-play-edits-year-dropdown-button:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.03);
+}
+
+.play-by-play-edits-year-dropdown-button:active {
+	transform: translateY(3px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.48),
+		inset 0 -2px 0 rgba(161, 98, 7, 0.2),
+		0 3px 0 rgba(133, 77, 14, 0.38);
+}
+
+.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden) .play-by-play-edits-month-dropdown-button,
+.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden) .play-by-play-edits-day-dropdown-button,
+.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden) .play-by-play-edits-year-dropdown-button {
+	background: linear-gradient(180deg, #fff7b8 0%, #f8e99a 100%);
+}
+
+.play-by-play-edits-subject-dropdown-wrapper {
+	position: relative;
+}
+
+.play-by-play-edits-block-dropdown-wrapper {
+	position: relative;
+}
+
+.play-by-play-edits-history-dropdown-wrapper {
+	position: relative;
+}
+
+.play-by-play-edits-month-options-list {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	width: 180px;
+	max-height: 220px;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+	border: 2px solid rgba(12, 74, 110, 0.45);
+	border-radius: 0.75rem;
+	background: rgba(255, 252, 231, 0.98);
+	z-index: 40;
+}
+
+.play-by-play-edits-month-options-list::-webkit-scrollbar {
+	width: 24px;
+}
+
+.play-by-play-edits-month-options-list::-webkit-scrollbar-track {
+	background: rgba(12, 74, 110, 0.15);
+	border-radius: 0 0.75rem 0.75rem 0;
+}
+
+.play-by-play-edits-month-options-list::-webkit-scrollbar-thumb {
+	background: rgba(12, 74, 110, 0.5);
+	border-radius: 12px;
+	border: 4px solid rgba(255, 252, 231, 0.98);
+}
+
+.play-by-play-edits-day-options-list {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	width: 120px;
+	max-height: 220px;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+	border: 2px solid rgba(12, 74, 110, 0.45);
+	border-radius: 0.75rem;
+	background: rgba(255, 252, 231, 0.98);
+	z-index: 40;
+}
+
+.play-by-play-edits-day-options-list::-webkit-scrollbar {
+	width: 24px;
+}
+
+.play-by-play-edits-day-options-list::-webkit-scrollbar-track {
+	background: rgba(12, 74, 110, 0.15);
+	border-radius: 0 0.75rem 0.75rem 0;
+}
+
+.play-by-play-edits-day-options-list::-webkit-scrollbar-thumb {
+	background: rgba(12, 74, 110, 0.5);
+	border-radius: 12px;
+	border: 4px solid rgba(255, 252, 231, 0.98);
+}
+
+.play-by-play-edits-year-options-list {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	width: 120px;
+	display: flex;
+	flex-direction: column;
+	border: 2px solid rgba(12, 74, 110, 0.45);
+	border-radius: 0.75rem;
+	background: rgba(255, 252, 231, 0.98);
+	z-index: 40;
+}
+
+.play-by-play-edits-subject-options-list {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	width: 200px;
+	max-height: 220px;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+	border: 2px solid rgba(23, 47, 86, 0.45);
+	border-radius: 0.75rem;
+	background: rgba(255, 252, 231, 0.98);
+	z-index: 40;
+}
+
+.play-by-play-edits-subject-options-list::-webkit-scrollbar {
+	width: 24px;
+}
+
+.play-by-play-edits-subject-options-list::-webkit-scrollbar-track {
+	background: rgba(23, 47, 86, 0.15);
+	border-radius: 0 0.75rem 0.75rem 0;
+}
+
+.play-by-play-edits-subject-options-list::-webkit-scrollbar-thumb {
+	background: rgba(23, 47, 86, 0.5);
+	border-radius: 12px;
+	border: 4px solid rgba(255, 252, 231, 0.98);
+}
+
+.play-by-play-edits-block-options-list {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	width: 160px;
+	display: flex;
+	flex-direction: column;
+	border: 2px solid rgba(23, 47, 86, 0.45);
+	border-radius: 0.75rem;
+	background: rgba(255, 252, 231, 0.98);
+	z-index: 40;
+}
+
+.play-by-play-edits-history-options-list {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	transform: translateX(-50%);
+	width: 200px;
+	max-height: 220px;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+	border: 2px solid rgba(23, 47, 86, 0.45);
+	border-radius: 0.75rem;
+	background: rgba(255, 252, 231, 0.98);
+	z-index: 40;
+}
+
+.play-by-play-edits-history-options-list::-webkit-scrollbar {
+	width: 24px;
+}
+
+.play-by-play-edits-history-options-list::-webkit-scrollbar-track {
+	background: rgba(23, 47, 86, 0.15);
+	border-radius: 0 0.75rem 0.75rem 0;
+}
+
+.play-by-play-edits-history-options-list::-webkit-scrollbar-thumb {
+	background: rgba(23, 47, 86, 0.5);
+	border-radius: 12px;
+	border: 4px solid rgba(255, 252, 231, 0.98);
+}
+
+.play-by-play-edits-month-option-button {
+	width: 100%;
+	height: 44px;
+	min-height: 44px;
+	padding: 0 0.75rem;
+	border: none;
+	border-bottom: 1px solid rgba(12, 74, 110, 0.18);
+	background: transparent;
+	color: #0c2f4a;
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 0.95rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.play-by-play-edits-month-option-button:hover {
+	background: rgba(125, 211, 252, 0.35);
+}
+
+.play-by-play-edits-month-option-button:active {
+	background: rgba(125, 211, 252, 0.55);
+}
+
+.play-by-play-edits-day-option-button {
+	width: 100%;
+	height: 44px;
+	min-height: 44px;
+	padding: 0 0.75rem;
+	border: none;
+	border-bottom: 1px solid rgba(12, 74, 110, 0.18);
+	background: transparent;
+	color: #0c2f4a;
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 0.95rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.play-by-play-edits-day-option-button:hover {
+	background: rgba(125, 211, 252, 0.35);
+}
+
+.play-by-play-edits-day-option-button:active {
+	background: rgba(125, 211, 252, 0.55);
+}
+
+.play-by-play-edits-year-option-button {
+	width: 100%;
+	padding: 0.6rem 0.75rem;
+	border: none;
+	border-bottom: 1px solid rgba(12, 74, 110, 0.18);
+	background: transparent;
+	color: #0c2f4a;
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 0.95rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.play-by-play-edits-year-option-button:hover {
+	background: rgba(125, 211, 252, 0.35);
+}
+
+.play-by-play-edits-year-option-button:active {
+	background: rgba(125, 211, 252, 0.55);
+}
+
+.play-by-play-edits-subject-option-button {
+	width: 100%;
+	height: 44px;
+	min-height: 44px;
+	padding: 0 0.75rem;
+	border: none;
+	border-bottom: 1px solid rgba(23, 47, 86, 0.18);
+	background: transparent;
+	color: #16293f;
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 0.95rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.play-by-play-edits-subject-option-button:hover {
+	background: rgba(147, 197, 253, 0.35);
+}
+
+.play-by-play-edits-subject-option-button:active {
+	background: rgba(147, 197, 253, 0.55);
+}
+
+.play-by-play-edits-block-option-button {
+	width: 100%;
+	padding: 0.6rem 0.75rem;
+	border: none;
+	border-bottom: 1px solid rgba(23, 47, 86, 0.18);
+	background: transparent;
+	color: #16293f;
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 0.95rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.play-by-play-edits-block-option-button:hover {
+	background: rgba(147, 197, 253, 0.35);
+}
+
+.play-by-play-edits-block-option-button:active {
+	background: rgba(147, 197, 253, 0.55);
+}
+
+.play-by-play-edits-history-option-button {
+	width: 100%;
+	height: 44px;
+	min-height: 44px;
+	padding: 0 0.75rem;
+	border: none;
+	border-bottom: 1px solid rgba(23, 47, 86, 0.18);
+	background: transparent;
+	color: #16293f;
+	font-family: "Trebuchet MS", sans-serif;
+	font-size: 0.95rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.play-by-play-edits-history-option-button:hover {
+	background: rgba(147, 197, 253, 0.35);
+}
+
+.play-by-play-edits-history-option-button:active {
+	background: rgba(147, 197, 253, 0.55);
+}
+
+.play-by-play-edits-history-empty {
 	margin: 0;
 	padding: 0.75rem;
 	color: #16293f;

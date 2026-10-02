@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 /**
  * End-to-end coverage for Parent > Student Edits > Blocks > Description Edits:
- * independent Description and Play by Play workflows, selection summary,
+		await expect(page.locator(`#${prefix}-date-subrow`)).toBeVisible();
  * stable mode controls, and calendar rendering of saved text.
  * Gated/manual: run with `npm run test:e2e -- tests/description-edits.spec.js`.
  */
@@ -78,7 +78,7 @@ test("Load buttons match neighboring workflow button geometry and typography", a
 	}
 });
 
-test("Date selectors shift 163.5px right in both modes", async ({ page }) => {
+test("Date selectors match and align with workflow buttons in both modes", async ({ page }) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
@@ -92,17 +92,53 @@ test("Date selectors shift 163.5px right in both modes", async ({ page }) => {
 		}
 		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
 		await page.locator(`#${prefix}-date-dropdown-button`).click();
-		const dateSubrow = page.locator("#description-edits-date-subrow");
+		const dateSubrow = page.locator(`#${prefix}-date-subrow`);
 		await expect(dateSubrow).toBeVisible();
-		const offset = await dateSubrow.evaluate((element) =>
-			new DOMMatrix(getComputedStyle(element).transform).m41,
-		);
-		expect(offset).toBe(163.5);
+		const comparisons = await page.evaluate(({ prefix }) => {
+			const styleProperties = [
+				"borderRadius",
+				"borderTopWidth",
+				"color",
+				"fontFamily",
+				"fontSize",
+				"fontWeight",
+				"letterSpacing",
+				"paddingTop",
+				"paddingBottom",
+				"textTransform",
+			];
+			return [
+				[`${prefix}-month-dropdown-button`, `${prefix}-block-dropdown-button`],
+				[`${prefix}-day-dropdown-button`, `${prefix}-history-dropdown-button`],
+				[`${prefix}-year-dropdown-button`, `${prefix}-remove-button`],
+			].map(([dateId, workflowId]) => {
+				const dateButton = document.getElementById(dateId);
+				const workflowButton = document.getElementById(workflowId);
+				const dateBounds = dateButton.getBoundingClientRect();
+				const workflowBounds = workflowButton.getBoundingClientRect();
+				const getStyles = (element) => {
+					const styles = getComputedStyle(element);
+					return Object.fromEntries(styleProperties.map((property) => [property, styles[property]]));
+				};
+				return {
+					dateGeometry: [dateBounds.left, dateBounds.width, dateBounds.height],
+					workflowGeometry: [workflowBounds.left, workflowBounds.width, workflowBounds.height],
+					dateStyles: getStyles(dateButton),
+					workflowStyles: dateId.endsWith("year-dropdown-button")
+						? { ...getStyles(workflowButton), color: "rgb(0, 0, 0)" }
+						: getStyles(workflowButton),
+				};
+			});
+		}, { prefix });
+		for (const comparison of comparisons) {
+			expect(comparison.dateGeometry).toEqual(comparison.workflowGeometry);
+			expect(comparison.dateStyles).toEqual(comparison.workflowStyles);
+		}
 		await page.locator(`#${prefix}-date-dropdown-button`).click();
 	}
 });
 
-test("Date selector row expands the panel downward with 16px gaps in both modes", async ({ page }) => {
+test("Date selector row keeps the panel fixed with 16px gaps in both modes", async ({ page }) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
@@ -118,31 +154,214 @@ test("Date selector row expands the panel downward with 16px gaps in both modes"
 		const panel = page.locator("#description-edits-panel-container");
 		const initialPanel = await panel.boundingBox();
 		const initialButtonSpacing = await measureHorizontalButtonSpacing(page, prefix);
+		expect(initialButtonSpacing.workflow.leftInset).toBe(16);
+		expect(initialButtonSpacing.workflow.rightInset).toBe(16);
+		const dateRow = page.locator(`#${prefix}-date-subrow`);
+		await expect(dateRow).toBeHidden();
 		await page.locator(`#${prefix}-date-dropdown-button`).click();
+		await page.mouse.move(0, 0);
+		await page.evaluate(() => {
+			for (const animation of document.getAnimations()) animation.finish();
+		});
 		expect(await measureHorizontalButtonSpacing(page, prefix)).toEqual(initialButtonSpacing);
-		const geometry = await page.evaluate(() => {
+		await expect(dateRow).toBeVisible();
+		const geometry = await page.evaluate((modePrefix) => {
 			const bounds = (selector) => document.querySelector(selector).getBoundingClientRect();
 			const panel = bounds("#description-edits-panel-container");
 			const editor = bounds("#description-edits-text-box, #play-by-play-edits-text-box");
-			const dateRow = bounds("#description-edits-date-subrow");
-			const controls = bounds("#description-edits-controls-row");
+			const workflow = bounds(`#${modePrefix}-workflow-row`);
+			const actions = [...document.querySelectorAll("#description-edits-action-buttons button")]
+				.map((button) => button.getBoundingClientRect());
 			return {
 				panelTop: panel.top,
 				panelHeight: panel.height,
-				editorBottom: editor.bottom,
-				dateTop: dateRow.top,
-				dateBottom: dateRow.bottom,
-				controlsTop: controls.top,
+				bottomInset: panel.bottom - Math.max(...actions.map((button) => button.bottom)),
+				dateGaps: ["month", "day", "year"].map((field) => {
+					const date = bounds(`#${modePrefix}-${field}-dropdown-button`);
+					return { above: date.top - editor.bottom, below: workflow.top - date.bottom };
+				}),
 			};
-		});
+		}, prefix);
 		expect(geometry.panelTop).toBe(initialPanel.y);
-		expect(geometry.panelHeight).toBe(initialPanel.height + 64);
-		expect(geometry.dateTop - geometry.editorBottom).toBe(16);
-		expect(geometry.controlsTop - geometry.dateBottom).toBe(16);
+		expect(geometry.panelHeight).toBe(initialPanel.height);
+		expect(geometry.bottomInset).toBe(16);
+		for (const gaps of geometry.dateGaps) {
+			expect(gaps.above).toBe(16);
+			expect(gaps.below).toBe(16);
+		}
 		await page.locator(`#${prefix}-date-dropdown-button`).click();
-		await expect(page.locator("#description-edits-date-subrow")).toHaveCount(0);
+		await expect(dateRow).toBeHidden();
 		const collapsedPanel = await panel.boundingBox();
 		expect(collapsedPanel).toEqual(initialPanel);
+	}
+});
+
+test("Selecting date fields does not resize or shift the Description Edits panel", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+
+	for (const mode of ["description", "play-by-play"]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.locator("#description-edits-button").click();
+		await page.locator(`#description-edits-${mode}-button`).click();
+
+		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
+		await page.locator(`#${prefix}-date-dropdown-button`).click();
+		await expect(page.locator(`#${prefix}-date-subrow`)).toBeVisible();
+
+		const geometry = await page.evaluate(() => {
+			const bounds = (element) => {
+				const { x, y, width, height } = element.getBoundingClientRect();
+				return { x, y, width, height };
+			};
+			return {
+				panel: bounds(document.querySelector("#description-edits-panel-container")),
+				editor: bounds(document.querySelector("#description-edits-text-box, #play-by-play-edits-text-box")),
+				modeButtons: [...document.querySelectorAll("#description-edits-action-buttons button")].map((button) => {
+					const { width, height } = button.getBoundingClientRect();
+					return { width: Number(width.toFixed(2)), height: Number(height.toFixed(2)) };
+				}),
+			};
+		});
+
+		for (const [buttonSelector, optionSelector] of [
+			[`#${prefix}-month-dropdown-button`, `#${prefix}-month-option-2026-8`],
+			[`#${prefix}-day-dropdown-button`, `#${prefix}-day-option-15`],
+			[`#${prefix}-year-dropdown-button`, `#${prefix}-year-option-2026`],
+		]) {
+			await page.locator(buttonSelector).click();
+			await page.locator(optionSelector).click();
+			const selectedGeometry = await page.evaluate(() => {
+				const bounds = (element) => {
+					const { x, y, width, height } = element.getBoundingClientRect();
+					return { x, y, width, height };
+				};
+				return {
+					panel: bounds(document.querySelector("#description-edits-panel-container")),
+					editor: bounds(document.querySelector("#description-edits-text-box, #play-by-play-edits-text-box")),
+					modeButtons: [...document.querySelectorAll("#description-edits-action-buttons button")].map((button) => {
+						const { width, height } = button.getBoundingClientRect();
+						return { width: Number(width.toFixed(2)), height: Number(height.toFixed(2)) };
+					}),
+				};
+			});
+			expect(selectedGeometry).toEqual(geometry);
+		}
+	}
+});
+
+test("Description and Play by Play keep independent selected dates", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.locator("#description-edits-description-button").click();
+	await page.locator("#description-edits-date-dropdown-button").click();
+
+	for (const [buttonSelector, optionSelector] of [
+		["#description-edits-month-dropdown-button", "#description-edits-month-option-2026-8"],
+		["#description-edits-day-dropdown-button", "#description-edits-day-option-15"],
+		["#description-edits-year-dropdown-button", "#description-edits-year-option-2026"],
+	]) {
+		await page.locator(buttonSelector).click();
+		await page.locator(optionSelector).click();
+	}
+	await expect(page.locator("#description-edits-month-dropdown-button")).toHaveText("Month");
+	await expect(page.locator("#description-edits-day-dropdown-button")).toHaveText("Day");
+	await expect(page.locator("#description-edits-year-dropdown-button")).toHaveText("Year");
+
+	await page.locator("#description-edits-play-by-play-button").click();
+	await expect(page.locator("#play-by-play-edits-month-dropdown-button")).toHaveText("Month");
+	await expect(page.locator("#play-by-play-edits-day-dropdown-button")).toHaveText("Day");
+	await expect(page.locator("#play-by-play-edits-year-dropdown-button")).toHaveText("Year");
+	await page.locator("#play-by-play-edits-date-dropdown-button").click();
+	for (const [buttonSelector, optionSelector] of [
+		["#play-by-play-edits-month-dropdown-button", "#play-by-play-edits-month-option-2026-9"],
+		["#play-by-play-edits-day-dropdown-button", "#play-by-play-edits-day-option-26"],
+		["#play-by-play-edits-year-dropdown-button", "#play-by-play-edits-year-option-2027"],
+	]) {
+		await page.locator(buttonSelector).click();
+		await page.locator(optionSelector).click();
+	}
+
+	await page.locator("#description-edits-description-button").click();
+	await expect(page.locator("#description-edits-month-dropdown-button")).toHaveText("Month");
+	await expect(page.locator("#description-edits-day-dropdown-button")).toHaveText("Day");
+	await expect(page.locator("#description-edits-year-dropdown-button")).toHaveText("Year");
+	await page.locator("#description-edits-play-by-play-button").click();
+	await expect(page.locator("#play-by-play-edits-month-dropdown-button")).toHaveText("Month");
+	await expect(page.locator("#play-by-play-edits-day-dropdown-button")).toHaveText("Day");
+	await expect(page.locator("#play-by-play-edits-year-dropdown-button")).toHaveText("Year");
+});
+
+test("Description and Play by Play keep independent selected subjects and blocks", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.locator("#description-edits-description-button").click();
+	await page.locator("#description-edits-subject-dropdown-button").click();
+	await page.locator("#description-edits-subject-option-math").click();
+	await page.locator("#description-edits-block-dropdown-button").click();
+	await page.locator("#description-edits-block-option-1").click();
+	await expect(page.locator("#description-edits-selection-subject")).toHaveText("Subject: Math");
+	await expect(page.locator("#description-edits-selection-block")).toHaveText("Block: 1");
+
+	await page.locator("#description-edits-play-by-play-button").click();
+	await expect(page.locator("#description-edits-selection-subject")).toHaveCount(0);
+	await expect(page.locator("#description-edits-selection-block")).toHaveCount(0);
+	await page.locator("#play-by-play-edits-subject-dropdown-button").click();
+	await page.locator("#play-by-play-edits-subject-option-science").click();
+	await page.locator("#play-by-play-edits-block-dropdown-button").click();
+	await page.locator("#play-by-play-edits-block-option-3").click();
+	await expect(page.locator("#description-edits-selection-subject")).toHaveText("Subject: Science");
+	await expect(page.locator("#description-edits-selection-block")).toHaveText("Block: 3");
+
+	await page.locator("#description-edits-description-button").click();
+	await expect(page.locator("#description-edits-selection-subject")).toHaveText("Subject: Math");
+	await expect(page.locator("#description-edits-selection-block")).toHaveText("Block: 1");
+	await page.locator("#description-edits-play-by-play-button").click();
+	await expect(page.locator("#description-edits-selection-subject")).toHaveText("Subject: Science");
+	await expect(page.locator("#description-edits-selection-block")).toHaveText("Block: 3");
+});
+
+test("Selecting a block does not resize or shift the Description Edits panel", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+
+	for (const mode of ["description", "play-by-play"]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.locator("#description-edits-button").click();
+		await page.locator(`#description-edits-${mode}-button`).click();
+		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
+
+		const geometry = async () => page.evaluate(() => {
+			const bounds = (element) => {
+				const { x, y, width, height } = element.getBoundingClientRect();
+				return { x, y, width, height };
+			};
+			return {
+				panel: bounds(document.querySelector("#description-edits-panel-container")),
+				editor: bounds(document.querySelector("#description-edits-text-box, #play-by-play-edits-text-box")),
+				modeButtons: [...document.querySelectorAll("#description-edits-action-buttons button")].map((button) => {
+					const { width, height } = button.getBoundingClientRect();
+					return { width: Number(width.toFixed(2)), height: Number(height.toFixed(2)) };
+				}),
+			};
+		});
+		const initialGeometry = await geometry();
+
+		for (const block of ["1", "all"]) {
+			await page.locator(`#${prefix}-block-dropdown-wrapper button`).click();
+			await page.locator(`#${prefix}-block-option-${block}`).click();
+			expect(await geometry()).toEqual(initialGeometry);
+		}
 	}
 });
 
@@ -156,7 +375,80 @@ test.beforeEach(async ({ page }) => {
 	await page.reload();
 });
 
-test("Description and Play by Play buttons keep their size and bottom inset across modes", async ({ page }) => {
+test("Description Edits stays depressed while hovered and toggles on click", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+
+	const button = page.locator("#description-edits-button");
+	await button.click();
+	await expect(button).toHaveAttribute("aria-pressed", "true");
+	await expect(button).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
+
+	const bounds = await button.boundingBox();
+	await page.mouse.move(1200, 100);
+	await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+	await expect(button).toHaveAttribute("aria-pressed", "true");
+	await expect(button).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
+
+	await button.click();
+	await expect(button).toHaveAttribute("aria-pressed", "false");
+	await expect(page.locator("#description-edits-panel-container")).toBeHidden();
+});
+
+test("Description Edits panel expands on selection and stays fixed across content modes", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.evaluate(() => document.fonts.ready);
+
+	const panel = page.locator("#description-edits-panel-container");
+	const initialGeometry = await panel.boundingBox();
+	const initialGaps = await page.evaluate(() => {
+		const editor = document.querySelector("#description-edits-text-box").getBoundingClientRect();
+		const buttons = [...document.querySelectorAll("#description-edits-action-buttons button")]
+			.map((button) => button.getBoundingClientRect());
+		const panelBounds = document.querySelector("#description-edits-panel-container").getBoundingClientRect();
+		return {
+			top: Math.min(...buttons.map((button) => button.top)) - editor.bottom,
+			bottom: panelBounds.bottom - Math.max(...buttons.map((button) => button.bottom)),
+		};
+	});
+	expect(initialGaps.top).toBeCloseTo(16, 0);
+	expect(initialGaps.bottom).toBeCloseTo(16, 0);
+
+	let expandedGeometry;
+	let expandedButtonLayout;
+	for (const selector of [
+		"#description-edits-description-button",
+		"#description-edits-play-by-play-button",
+	]) {
+		await page.locator(selector).click();
+		const currentGeometry = await panel.boundingBox();
+		const currentButtonLayout = await page.evaluate(() =>
+			[...document.querySelectorAll("#description-edits-panel-container button")].map((button) => ({
+				left: button.offsetLeft,
+				top: button.offsetTop,
+				width: button.offsetWidth,
+				height: button.offsetHeight,
+			})),
+		);
+		expect(currentGeometry.height).toBeGreaterThan(initialGeometry.height);
+		if (expandedGeometry) {
+			expect(currentGeometry).toEqual(expandedGeometry);
+			expect(currentButtonLayout).toEqual(expandedButtonLayout);
+		} else {
+			expandedGeometry = currentGeometry;
+			expandedButtonLayout = currentButtonLayout;
+			expect(currentGeometry.width).toBe(initialGeometry.width);
+		}
+	}
+});
+
+test("Description and Play by Play buttons keep their size across modes", async ({ page }) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
@@ -170,13 +462,11 @@ test("Description and Play by Play buttons keep their size and bottom inset acro
 	];
 	async function measureButtons() {
 		return page.locator("#description-edits-panel-container").evaluate((panel, selectors) => {
-			const panelBox = panel.getBoundingClientRect();
 			return selectors.map((selector) => {
 				const buttonBox = panel.querySelector(selector).getBoundingClientRect();
 				return {
 					width: buttonBox.width,
 					height: buttonBox.height,
-					bottomInset: panelBox.bottom - buttonBox.bottom,
 				};
 			});
 		}, buttonSelectors);
@@ -206,11 +496,11 @@ for (const mode of [
 		await page.locator(`#description-edits-${mode.button}-button`).click();
 
 		for (const selection of [
-			{ name: "subject", label: "Subject options", option: "math", width: 200 },
-			{ name: "block", label: "Block options", option: "1", width: 160 },
-			{ name: "month", label: "Month options", option: "2026-8", width: 180 },
-			{ name: "day", label: "Day options", option: "1", width: 120 },
-			{ name: "year", label: "Year options", option: "2026", width: 120 },
+			{ name: "subject", label: mode.name === "Description" ? "Subject options" : "Play by Play Subject options", option: "math", width: 200 },
+			{ name: "block", label: mode.name === "Description" ? "Block options" : "Play by Play Block options", option: "1", width: 160 },
+			{ name: "month", label: mode.name === "Description" ? "Month options" : "Play by Play Month options", option: "2026-8", width: 180 },
+			{ name: "day", label: mode.name === "Description" ? "Day options" : "Play by Play Day options", option: "1", width: 120 },
+			{ name: "year", label: mode.name === "Description" ? "Year options" : "Play by Play Year options", option: "2026", width: 120 },
 			{ name: "history", label: mode.history, width: 200 },
 		]) {
 			if (selection.name === "month") {
@@ -222,15 +512,12 @@ for (const mode of [
 				await page.locator(`#${mode.prefix}-commit-button`).press("Enter");
 				await page.locator(mode.editor).fill("");
 			}
-			const prefix = ["month", "day", "year"].includes(selection.name)
-				? "description-edits"
-				: mode.prefix;
-			const trigger = page.locator(`#${prefix}-${selection.name}-dropdown-button`);
+			const trigger = page.locator(`#${mode.prefix}-${selection.name}-dropdown-button`);
 			await trigger.press("Enter");
 			await expect(trigger).toHaveAttribute("aria-expanded", "true");
 			const group = page.getByRole("group", { name: selection.label, exact: true });
-			await expect(group).toHaveAttribute("id", `description-edits-${selection.name}-options-list`);
-			await expect(group).toHaveAttribute("class", `description-edits-${selection.name}-options-list`);
+			await expect(group).toHaveAttribute("id", `${mode.prefix}-${selection.name}-options-list`);
+			await expect(group).toHaveAttribute("class", `${mode.prefix}-${selection.name}-options-list`);
 			await expect(group).toHaveJSProperty("tagName", "FIELDSET");
 			const geometry = await group.evaluate((element) => {
 				const styles = getComputedStyle(element);
@@ -245,7 +532,7 @@ for (const mode of [
 			await trigger.press("Tab");
 			const option = selection.name === "history"
 				? group.getByRole("button").first()
-				: page.locator(`#description-edits-${selection.name}-option-${selection.option}`);
+				: page.locator(`#${mode.prefix}-${selection.name}-option-${selection.option}`);
 			await expect(option).toBeFocused();
 			await option.press("Enter");
 			await expect(group).toHaveCount(0);
@@ -468,24 +755,24 @@ test.describe("Play by Play Load and Save", () => {
 		await expect(page.locator("#description-edits-load-button")).toHaveCount(0);
 		await expect(page.locator("#description-edits-text-box")).toHaveCount(0);
 		await page.locator("#play-by-play-edits-date-dropdown-button").click();
-		await page.locator("#description-edits-month-dropdown-button").click();
-		await page.locator("#description-edits-month-option-2026-9").click();
+		await page.locator("#play-by-play-edits-month-dropdown-button").click();
+		await page.locator("#play-by-play-edits-month-option-2026-9").click();
 		await expect(load).toBeDisabled();
-		await page.locator("#description-edits-day-dropdown-button").click();
-		await page.locator("#description-edits-day-option-1").click();
+		await page.locator("#play-by-play-edits-day-dropdown-button").click();
+		await page.locator("#play-by-play-edits-day-option-1").click();
 		await expect(load).toBeDisabled();
-		await page.locator("#description-edits-year-dropdown-button").click();
-		await page.locator("#description-edits-year-option-2026").click();
+		await page.locator("#play-by-play-edits-year-dropdown-button").click();
+		await page.locator("#play-by-play-edits-year-option-2026").click();
 		await expect(load).toBeDisabled();
 		await page.locator("#play-by-play-edits-date-dropdown-button").click();
 		await page.locator("#play-by-play-edits-subject-dropdown-button").click();
-		await page.locator("#description-edits-subject-option-math").click();
+		await page.locator("#play-by-play-edits-subject-option-math").click();
 		await expect(load).toBeDisabled();
 	});
 
 	test("single-block editing waits for Save, overwrites only its key, and resets the editor", async ({ page }) => {
 		await page.locator("#play-by-play-edits-block-dropdown-button").click();
-		await page.locator("#description-edits-block-option-1").click();
+		await page.locator("#play-by-play-edits-block-option-1").click();
 		const load = page.getByRole("button", { name: "Load Play by Play", exact: true });
 		await expect(load).toBeEnabled();
 		expect(await load.evaluate((element) => getComputedStyle(element).boxShadow)).toContain("rgb(122, 86, 18) 0px 4px 0px 0px");
@@ -525,7 +812,7 @@ test.describe("Play by Play Load and Save", () => {
 
 	test("All Blocks groups identical non-empty steps without creating empty block values", async ({ page }) => {
 		await page.locator("#play-by-play-edits-block-dropdown-button").click();
-		await page.locator("#description-edits-block-option-all").click();
+		await page.locator("#play-by-play-edits-block-option-all").click();
 		const original = await page.evaluate(() => ({
 			steps: JSON.parse(localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 			descriptions: localStorage.getItem("zoologistExplorer02.blockDescriptions"),
@@ -552,14 +839,14 @@ test.describe("Play by Play Load and Save", () => {
 
 	test("differing steps have labeled scrollable fields and Save writes only changed blocks", async ({ page }) => {
 		await page.locator("#play-by-play-edits-block-dropdown-button").click();
-		await page.locator("#description-edits-block-option-2").click();
+		await page.locator("#play-by-play-edits-block-option-2").click();
 		await page.locator("#play-by-play-edits-load-button").click();
 		await expect(page.locator("#play-by-play-edits-loaded-scroll-region")).toHaveCount(0);
 		const longSteps = "A long Play by Play step.\n".repeat(100);
 		await page.locator("#play-by-play-edits-text-box").fill(longSteps);
 		await page.locator("#play-by-play-edits-commit-button").press("Enter");
 		await page.locator("#play-by-play-edits-block-dropdown-button").click();
-		await page.locator("#description-edits-block-option-all").click();
+		await page.locator("#play-by-play-edits-block-option-all").click();
 		await page.locator("#play-by-play-edits-load-button").click();
 		await expect(page.locator(".play-by-play-edits-loaded-text")).toHaveCount(3);
 		await expect(page.getByLabel("Block 1", { exact: true })).toHaveValue(PLAY_BY_PLAY_TEXT);
@@ -644,14 +931,14 @@ test.describe("Description selection summary", () => {
 			option: "#description-edits-block-option-1",
 		},
 	]) {
-		test(`appears and grows the container after selecting a ${selection.name}`, async ({ page }) => {
+		test(`appears without resizing the container after selecting a ${selection.name}`, async ({ page }) => {
 			const summary = page.locator("#description-edits-selection-summary");
 			const controls = page.locator("#description-edits-controls-row");
-			await expect(summary).toHaveCount(0);
+			await expect(summary).toBeHidden();
 			const initialControls = await controls.boundingBox();
 			const initialPanel = await page.locator("#description-edits-panel-container").boundingBox();
 			await page.locator(selection.button).click();
-			await expect(summary).toHaveCount(0);
+			await expect(summary).toBeHidden();
 			if (selection.name === "date") {
 				await page.locator("#description-edits-month-dropdown-button").click();
 			}
@@ -660,8 +947,8 @@ test.describe("Description selection summary", () => {
 			await expect(summary).toHaveCount(1);
 			const selectedControls = await controls.boundingBox();
 			const selectedPanel = await page.locator("#description-edits-panel-container").boundingBox();
-			expect(selectedControls.height).toBeGreaterThan(initialControls.height);
-			expect(selectedPanel.height).toBeGreaterThan(initialPanel.height);
+			expect(selectedControls).toEqual(initialControls);
+			expect(selectedPanel).toEqual(initialPanel);
 			const summaryBox = await summary.boundingBox();
 			for (const selector of [
 				"#description-edits-date-dropdown-button",
@@ -672,13 +959,48 @@ test.describe("Description selection summary", () => {
 				expect(summaryBox.y + summaryBox.height).toBeLessThanOrEqual(buttonBox.y);
 			}
 			await page.locator("#description-edits-play-by-play-button").click();
-			await expect(summary).toHaveCount(0);
+			await expect(summary).toBeHidden();
 			await page.locator("#description-edits-description-button").click();
 			await expect(summary).toBeVisible();
 			await page.locator("#description-edits-description-button").click();
 			await expect(summary).toHaveCount(0);
 		});
 	}
+
+	test("Play by Play displays the same selection text and placement as Description", async ({ page }) => {
+		const layouts = [];
+		for (const mode of ["description", "play-by-play"]) {
+			if (mode === "play-by-play") {
+				await page.locator("#description-edits-play-by-play-button").click();
+			}
+			const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
+			await page.locator(`#${prefix}-date-dropdown-button`).click();
+			for (const [field, option] of [
+				["month", "month-option-2026-9"],
+				["day", "day-option-1"],
+				["year", "year-option-2027"],
+			]) {
+				await page.locator(`#${prefix}-${field}-dropdown-button`).click();
+				await page.locator(`#${prefix}-${option}`).click();
+			}
+			await page.locator(`#${prefix}-date-dropdown-button`).click();
+			await page.locator(`#${prefix}-subject-dropdown-button`).click();
+			await page.locator(`#${prefix}-subject-option-math`).click();
+			await page.locator(`#${prefix}-block-dropdown-button`).click();
+			await page.locator(`#${prefix}-block-option-all`).click();
+			const summary = page.locator("#description-edits-selection-summary");
+			await expect(summary).toBeVisible();
+			await expect(summary.locator("span")).toHaveText(["Date: 10/01/27", "Subject: Math", "Block: All"]);
+			layouts.push(await summary.evaluate((element) => [...element.children].map((field) => {
+				const range = document.createRange();
+				range.selectNodeContents(field);
+				const { x, y, width, height } = range.getBoundingClientRect();
+				const styles = getComputedStyle(field);
+				return { x, y, width, height, font: styles.font, color: styles.color };
+			})));
+		}
+		expect(layouts[1]).toEqual(layouts[0]);
+	});
 
 	test("formats the date, subjects and blocks in order with 16px text gaps", async ({ page }) => {
 		await page.locator("#description-edits-date-dropdown-button").click();
@@ -811,6 +1133,17 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 
 	await page.locator("#description-edits-play-by-play-button").click();
 	await expect(page.locator("#play-by-play-edits-commit-button")).toBeVisible();
+	await clickOffscreenControl(page, "#play-by-play-edits-date-dropdown-button");
+	await clickOffscreenControl(page, "#play-by-play-edits-month-dropdown-button");
+	await page.locator("#play-by-play-edits-month-option-2026-9").click();
+	await clickOffscreenControl(page, "#play-by-play-edits-day-dropdown-button");
+	await page.locator("#play-by-play-edits-day-option-1").click();
+	await clickOffscreenControl(page, "#play-by-play-edits-year-dropdown-button");
+	await page.locator("#play-by-play-edits-year-option-2026").click();
+	await clickOffscreenControl(page, "#play-by-play-edits-subject-dropdown-button");
+	await page.locator("#play-by-play-edits-subject-option-math").click();
+	await clickOffscreenControl(page, "#play-by-play-edits-block-dropdown-button");
+	await page.locator("#play-by-play-edits-block-option-2").click();
 	await page.locator("#play-by-play-edits-text-box").fill(PLAY_BY_PLAY_TEXT);
 	await clickOffscreenControl(page, "#play-by-play-edits-commit-button");
 	const storedPlayByPlay = await page.evaluate(() =>
