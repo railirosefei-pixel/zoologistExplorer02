@@ -15,6 +15,137 @@ async function clickOffscreenControl(page, selector) {
 	await page.locator(selector).evaluate((element) => element.click());
 }
 
+async function measureHorizontalButtonSpacing(page, prefix) {
+	return page.evaluate((modePrefix) => {
+		const panel = document.querySelector("#description-edits-panel-container");
+		const panelBounds = panel.getBoundingClientRect();
+		const workflow = panel.querySelector(`#${modePrefix}-workflow-row`);
+		const actionButtons = panel.querySelector("#description-edits-action-buttons");
+		const measure = (elements) => {
+			const bounds = [...elements].map((element) => element.getBoundingClientRect());
+			return {
+				leftInset: bounds[0].left - panelBounds.left,
+				rightInset: panelBounds.right - bounds.at(-1).right,
+				gaps: bounds.slice(1).map((box, index) => box.left - bounds[index].right),
+			};
+		};
+		return {
+			workflow: measure(workflow.children),
+			actionButtons: measure(actionButtons.children),
+		};
+	}, prefix);
+}
+
+test("Load buttons match neighboring workflow button geometry and typography", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.locator("#description-edits-description-button").click();
+
+	for (const mode of ["description", "play-by-play"]) {
+		if (mode === "play-by-play") {
+			await page.locator("#description-edits-play-by-play-button").click();
+		}
+		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
+		const comparison = page.locator(`#${prefix}-date-dropdown-button`);
+		const load = page.locator(`#${prefix}-load-button`);
+		const matchedStyles = await page.evaluate(({ comparisonId, loadId }) => {
+			const properties = [
+				"borderRadius",
+				"fontFamily",
+				"fontSize",
+				"fontWeight",
+				"letterSpacing",
+				"paddingTop",
+				"paddingBottom",
+				"textTransform",
+			];
+			const comparison = document.getElementById(comparisonId);
+			const load = document.getElementById(loadId);
+			const comparisonStyles = getComputedStyle(comparison);
+			const loadStyles = getComputedStyle(load);
+			return {
+				comparisonSize: [comparison.getBoundingClientRect().width, comparison.getBoundingClientRect().height],
+				loadSize: [load.getBoundingClientRect().width, load.getBoundingClientRect().height],
+				comparisonStyles: Object.fromEntries(properties.map((property) => [property, comparisonStyles[property]])),
+				loadStyles: Object.fromEntries(properties.map((property) => [property, loadStyles[property]])),
+			};
+		}, { comparisonId: `${prefix}-date-dropdown-button`, loadId: `${prefix}-load-button` });
+		expect(matchedStyles.loadSize).toEqual(matchedStyles.comparisonSize);
+		expect(matchedStyles.loadStyles).toEqual(matchedStyles.comparisonStyles);
+	}
+});
+
+test("Date selectors shift 163.5px right in both modes", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.locator("#description-edits-description-button").click();
+
+	for (const mode of ["description", "play-by-play"]) {
+		if (mode === "play-by-play") {
+			await page.locator("#description-edits-play-by-play-button").click();
+		}
+		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
+		await page.locator(`#${prefix}-date-dropdown-button`).click();
+		const dateSubrow = page.locator("#description-edits-date-subrow");
+		await expect(dateSubrow).toBeVisible();
+		const offset = await dateSubrow.evaluate((element) =>
+			new DOMMatrix(getComputedStyle(element).transform).m41,
+		);
+		expect(offset).toBe(163.5);
+		await page.locator(`#${prefix}-date-dropdown-button`).click();
+	}
+});
+
+test("Date selector row expands the panel downward with 16px gaps in both modes", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.locator("#description-edits-description-button").click();
+
+	for (const mode of ["description", "play-by-play"]) {
+		if (mode === "play-by-play") {
+			await page.locator("#description-edits-play-by-play-button").click();
+		}
+		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
+		const panel = page.locator("#description-edits-panel-container");
+		const initialPanel = await panel.boundingBox();
+		const initialButtonSpacing = await measureHorizontalButtonSpacing(page, prefix);
+		await page.locator(`#${prefix}-date-dropdown-button`).click();
+		expect(await measureHorizontalButtonSpacing(page, prefix)).toEqual(initialButtonSpacing);
+		const geometry = await page.evaluate(() => {
+			const bounds = (selector) => document.querySelector(selector).getBoundingClientRect();
+			const panel = bounds("#description-edits-panel-container");
+			const editor = bounds("#description-edits-text-box, #play-by-play-edits-text-box");
+			const dateRow = bounds("#description-edits-date-subrow");
+			const controls = bounds("#description-edits-controls-row");
+			return {
+				panelTop: panel.top,
+				panelHeight: panel.height,
+				editorBottom: editor.bottom,
+				dateTop: dateRow.top,
+				dateBottom: dateRow.bottom,
+				controlsTop: controls.top,
+			};
+		});
+		expect(geometry.panelTop).toBe(initialPanel.y);
+		expect(geometry.panelHeight).toBe(initialPanel.height + 64);
+		expect(geometry.dateTop - geometry.editorBottom).toBe(16);
+		expect(geometry.controlsTop - geometry.dateBottom).toBe(16);
+		await page.locator(`#${prefix}-date-dropdown-button`).click();
+		await expect(page.locator("#description-edits-date-subrow")).toHaveCount(0);
+		const collapsedPanel = await panel.boundingBox();
+		expect(collapsedPanel).toEqual(initialPanel);
+	}
+});
+
 test.beforeEach(async ({ page }) => {
 	await page.goto("./");
 	await page.evaluate(() => {
@@ -119,6 +250,9 @@ for (const mode of [
 			await option.press("Enter");
 			await expect(group).toHaveCount(0);
 			await expect(trigger).toHaveAttribute("aria-expanded", "false");
+			if (selection.name === "subject" || selection.name === "block") {
+				await expect(trigger).toHaveText(selection.name === "subject" ? "Subject" : "Block");
+			}
 		}
 		await expect(page.locator(mode.editor)).toHaveValue(COMMIT_TEXT);
 		await expect(page.getByRole("listbox")).toHaveCount(0);

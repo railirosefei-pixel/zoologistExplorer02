@@ -2955,6 +2955,10 @@ body {
 	background: rgba(12, 22, 16, 0.92);
 }
 
+.description-edits-panel-container--date-open {
+	transform: translateY(32px);
+}
+
 .description-edits-text-box {
 	width: 772px;
 	height: 772px;
@@ -2996,6 +3000,41 @@ body {
 	row-gap: 16px;
 	align-items: center;
 	justify-content: center;
+}
+
+.description-edits-workflow-row,
+.play-by-play-edits-workflow-row {
+	width: calc(100% + 2px);
+	margin-inline: -1px;
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 8px;
+	padding-inline: 17px;
+}
+
+.description-edits-workflow-row > *,
+.play-by-play-edits-workflow-row > * {
+	min-width: 0;
+}
+
+.description-edits-workflow-row > button,
+.description-edits-workflow-row > div > button,
+.play-by-play-edits-workflow-row > button,
+.play-by-play-edits-workflow-row > div > button {
+	width: 100%;
+	min-width: 0;
+	padding-inline: 4px;
+	overflow-wrap: anywhere;
+}
+
+.description-edits-workflow-row > .description-edits-load-button,
+.play-by-play-edits-workflow-row > .play-by-play-edits-load-button {
+	padding-block: 0.55rem;
+	border-radius: 9999px;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
 }
 
 .description-edits-action-buttons {
@@ -3097,14 +3136,13 @@ body {
 }
 
 .description-edits-date-subrow {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 134px;
+	height: 48px;
+	margin-top: 16px;
 	display: flex;
+	align-items: center;
 	justify-content: center;
 	gap: 16px;
-	padding-bottom: 8px;
+	transform: translateX(163.5px);
 }
 
 .description-edits-commit-button {

@@ -628,7 +628,11 @@ function handleStudentEditsScreenHome() {
 			id="description-edits-position-wrapper"
 			class="description-edits-position-wrapper"
 		>
-			<div id="description-edits-panel-container" class="description-edits-panel-container">
+			<div
+				id="description-edits-panel-container"
+				class="description-edits-panel-container"
+				:class="{ 'description-edits-panel-container--date-open': isDescriptionEditsDateOpen && descriptionEditsMode }"
+			>
 				<div
 					v-if="descriptionEditsMode === 'description' && descriptionEditsLoadedFields.length > 0"
 					id="description-edits-loaded-scroll-region"
@@ -693,6 +697,131 @@ function handleStudentEditsScreenHome() {
 					:aria-label="descriptionEditsMode === 'play-by-play' ? 'Play by Play text box' : 'Description text box'"
 					name="description-edits-text-box"
 				/>
+				<div
+					v-if="isDescriptionEditsDateOpen && descriptionEditsMode"
+					id="description-edits-date-subrow"
+					class="description-edits-date-subrow"
+				>
+					<div
+						id="description-edits-month-dropdown-wrapper"
+						class="description-edits-month-dropdown-wrapper"
+					>
+						<button
+							id="description-edits-month-dropdown-button"
+							class="description-edits-month-dropdown-button"
+							type="button"
+							name="description-edits-month-dropdown-button"
+							data-button-name="description-edits-month-dropdown-button"
+							title="Toggle Month options"
+							:aria-expanded="isDescriptionEditsMonthOpen"
+							@click="handleDescriptionEditsMonthToggle"
+						>
+							{{
+								descriptionEditsSelectedMonth
+									? monthNames[descriptionEditsSelectedMonth.getMonth()]
+									: "Month"
+							}}
+						</button>
+						<fieldset
+							v-if="isDescriptionEditsMonthOpen"
+							id="description-edits-month-options-list"
+							class="description-edits-month-options-list"
+							aria-label="Month options"
+							title="Month options"
+						>
+							<button
+								v-for="month in descriptionEditsMonths"
+								:id="`description-edits-month-option-${month.getFullYear()}-${month.getMonth()}`"
+								:key="`${month.getFullYear()}-${month.getMonth()}`"
+								class="description-edits-month-option-button"
+								type="button"
+								:name="`description-edits-month-option-${month.getFullYear()}-${month.getMonth()}`"
+								:data-button-name="`description-edits-month-option-${month.getFullYear()}-${month.getMonth()}`"
+								:aria-label="`Select month ${monthNames[month.getMonth()]} ${month.getFullYear()}`"
+								:title="`Select month ${monthNames[month.getMonth()]} ${month.getFullYear()}`"
+								@click="handleDescriptionEditsMonthSelect(month)"
+							>
+								{{ monthNames[month.getMonth()] }}
+							</button>
+						</fieldset>
+					</div>
+					<div
+						id="description-edits-day-dropdown-wrapper"
+						class="description-edits-day-dropdown-wrapper"
+					>
+						<button
+							id="description-edits-day-dropdown-button"
+							class="description-edits-day-dropdown-button"
+							type="button"
+							name="description-edits-day-dropdown-button"
+							data-button-name="description-edits-day-dropdown-button"
+							title="Toggle Day options"
+							:aria-expanded="isDescriptionEditsDayOpen"
+							@click="handleDescriptionEditsDayToggle"
+						>
+							{{ descriptionEditsSelectedDay ?? "Day" }}
+						</button>
+						<fieldset
+							v-if="isDescriptionEditsDayOpen"
+							id="description-edits-day-options-list"
+							class="description-edits-day-options-list"
+							aria-label="Day options"
+						>
+							<button
+								v-for="day in descriptionEditsDays"
+								:id="`description-edits-day-option-${day}`"
+								:key="day"
+								class="description-edits-day-option-button"
+								type="button"
+								:name="`description-edits-day-option-${day}`"
+								:data-button-name="`description-edits-day-option-${day}`"
+								:aria-label="`Select day ${day}`"
+								:title="`Select day ${day}`"
+								@click="handleDescriptionEditsDaySelect(day)"
+							>
+								{{ day }}
+							</button>
+						</fieldset>
+					</div>
+					<div
+						id="description-edits-year-dropdown-wrapper"
+						class="description-edits-year-dropdown-wrapper"
+					>
+						<button
+							id="description-edits-year-dropdown-button"
+							class="description-edits-year-dropdown-button"
+							type="button"
+							name="description-edits-year-dropdown-button"
+							data-button-name="description-edits-year-dropdown-button"
+							title="Toggle Year options"
+							:aria-expanded="isDescriptionEditsYearOpen"
+							@click="handleDescriptionEditsYearToggle"
+						>
+							{{ descriptionEditsSelectedYear ?? "Year" }}
+						</button>
+						<fieldset
+							v-if="isDescriptionEditsYearOpen"
+							id="description-edits-year-options-list"
+							class="description-edits-year-options-list"
+							aria-label="Year options"
+						>
+							<button
+								v-for="year in descriptionEditsYears"
+								:id="`description-edits-year-option-${year}`"
+								:key="year"
+								class="description-edits-year-option-button"
+								type="button"
+								:name="`description-edits-year-option-${year}`"
+								:data-button-name="`description-edits-year-option-${year}`"
+								:aria-label="`Select year ${year}`"
+								:title="`Select year ${year}`"
+								@click="handleDescriptionEditsYearSelect(year)"
+							>
+								{{ year }}
+							</button>
+						</fieldset>
+					</div>
+				</div>
 				<div id="description-edits-controls-row" class="description-edits-controls-row">
 					<div
 						v-if="descriptionEditsMode === 'description' && isDescriptionEditsSelectionSummaryVisible"
@@ -749,7 +878,7 @@ function handleStudentEditsScreenHome() {
 					<button
 						v-if="descriptionEditsMode === 'description'"
 						id="description-edits-load-button"
-						class="description-edits-load-button h-[44px] w-full cursor-pointer rounded-lg border-2 border-[#7a5612]/50 bg-[#fff7b8] text-sm font-bold text-[#513d12] shadow-[0_4px_0_#7a5612] enabled:hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#d1d5db] disabled:text-[#6b7280] disabled:shadow-none"
+						class="description-edits-load-button cursor-pointer border-2 border-[#7a5612]/50 bg-[#fff7b8] text-[#513d12] shadow-[0_4px_0_#7a5612] enabled:hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#d1d5db] disabled:text-[#6b7280] disabled:shadow-none"
 						type="button"
 						name="description-edits-load-button"
 						data-button-name="description-edits-load-button"
@@ -763,7 +892,7 @@ function handleStudentEditsScreenHome() {
 					<button
 						v-else-if="descriptionEditsMode === 'play-by-play'"
 						id="play-by-play-edits-load-button"
-						class="play-by-play-edits-load-button h-[44px] w-full cursor-pointer rounded-lg border-2 border-[#7a5612]/50 bg-[#fff7b8] text-sm font-bold text-[#513d12] shadow-[0_4px_0_#7a5612] enabled:hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#d1d5db] disabled:text-[#6b7280] disabled:shadow-none"
+						class="play-by-play-edits-load-button cursor-pointer border-2 border-[#7a5612]/50 bg-[#fff7b8] text-[#513d12] shadow-[0_4px_0_#7a5612] enabled:hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#d1d5db] disabled:text-[#6b7280] disabled:shadow-none"
 						type="button"
 						name="play-by-play-edits-load-button"
 						data-button-name="play-by-play-edits-load-button"
@@ -818,11 +947,7 @@ function handleStudentEditsScreenHome() {
 							:aria-expanded="isDescriptionEditsSubjectOpen"
 							@click="handleDescriptionEditsSubjectToggle"
 						>
-							{{
-								descriptionEditsSelectedSubject
-									? descriptionEditsSelectedSubject.label
-									: "Subject"
-							}}
+							Subject
 						</button>
 						<button
 							v-else-if="descriptionEditsMode === 'play-by-play'"
@@ -835,11 +960,7 @@ function handleStudentEditsScreenHome() {
 							:aria-expanded="isDescriptionEditsSubjectOpen"
 							@click="handleDescriptionEditsSubjectToggle"
 						>
-							{{
-								descriptionEditsSelectedSubject
-									? descriptionEditsSelectedSubject.label
-									: "Subject"
-							}}
+							Subject
 						</button>
 						<fieldset
 							v-if="isDescriptionEditsSubjectOpen"
@@ -880,13 +1001,7 @@ function handleStudentEditsScreenHome() {
 							:aria-expanded="isDescriptionEditsBlockOpen"
 							@click="handleDescriptionEditsBlockToggle"
 						>
-							{{
-								descriptionEditsSelectedBlock === null
-									? "Block"
-									: descriptionEditsSelectedBlock === "all"
-										? "All Blocks"
-										: `Block ${descriptionEditsSelectedBlock}`
-							}}
+							Block
 						</button>
 						<button
 							v-else-if="descriptionEditsMode === 'play-by-play'"
@@ -899,13 +1014,7 @@ function handleStudentEditsScreenHome() {
 							:aria-expanded="isDescriptionEditsBlockOpen"
 							@click="handleDescriptionEditsBlockToggle"
 						>
-							{{
-								descriptionEditsSelectedBlock === null
-									? "Block"
-									: descriptionEditsSelectedBlock === "all"
-										? "All Blocks"
-										: `Block ${descriptionEditsSelectedBlock}`
-							}}
+							Block
 						</button>
 						<fieldset
 							v-if="isDescriptionEditsBlockOpen"
@@ -1045,134 +1154,7 @@ function handleStudentEditsScreenHome() {
 					</button>
 				</div>
 				</div>
-				<div
-					v-if="isDescriptionEditsDateOpen && descriptionEditsMode"
-					id="description-edits-date-subrow"
-					class="description-edits-date-subrow"
-				>
-					<div
-						id="description-edits-month-dropdown-wrapper"
-						class="description-edits-month-dropdown-wrapper"
-					>
-						<button
-							id="description-edits-month-dropdown-button"
-							class="description-edits-month-dropdown-button"
-							type="button"
-							name="description-edits-month-dropdown-button"
-							data-button-name="description-edits-month-dropdown-button"
-							title="Toggle Month options"
-							:aria-expanded="isDescriptionEditsMonthOpen"
-							@click="handleDescriptionEditsMonthToggle"
-						>
-							{{
-								descriptionEditsSelectedMonth
-									? monthNames[descriptionEditsSelectedMonth.getMonth()]
-									: "Month"
-							}}
-						</button>
-						<fieldset
-							v-if="isDescriptionEditsMonthOpen"
-							id="description-edits-month-options-list"
-							class="description-edits-month-options-list"
-							aria-label="Month options"
-							title="Month options"
-						>
-							<button
-								v-for="month in descriptionEditsMonths"
-								:id="`description-edits-month-option-${month.getFullYear()}-${month.getMonth()}`"
-								:key="`${month.getFullYear()}-${month.getMonth()}`"
-								class="description-edits-month-option-button"
-								type="button"
-								:name="`description-edits-month-option-${month.getFullYear()}-${month.getMonth()}`"
-								:data-button-name="`description-edits-month-option-${month.getFullYear()}-${month.getMonth()}`"
-								:aria-label="`Select month ${monthNames[month.getMonth()]} ${month.getFullYear()}`"
-								:title="`Select month ${monthNames[month.getMonth()]} ${month.getFullYear()}`"
-								@click="handleDescriptionEditsMonthSelect(month)"
-							>
-								{{ monthNames[month.getMonth()] }}
-							</button>
-						</fieldset>
-					</div>
-					<div
-						id="description-edits-day-dropdown-wrapper"
-						class="description-edits-day-dropdown-wrapper"
-					>
-						<button
-							id="description-edits-day-dropdown-button"
-							class="description-edits-day-dropdown-button"
-							type="button"
-							name="description-edits-day-dropdown-button"
-							data-button-name="description-edits-day-dropdown-button"
-							title="Toggle Day options"
-							:aria-expanded="isDescriptionEditsDayOpen"
-							@click="handleDescriptionEditsDayToggle"
-						>
-							{{ descriptionEditsSelectedDay ?? "Day" }}
-						</button>
-						<fieldset
-							v-if="isDescriptionEditsDayOpen"
-							id="description-edits-day-options-list"
-							class="description-edits-day-options-list"
-							aria-label="Day options"
-							title="Day options"
-						>
-							<button
-								v-for="day in descriptionEditsDays"
-								:id="`description-edits-day-option-${day}`"
-								:key="day"
-								class="description-edits-day-option-button"
-								type="button"
-								:name="`description-edits-day-option-${day}`"
-								:data-button-name="`description-edits-day-option-${day}`"
-								:aria-label="`Select day ${day}`"
-								:title="`Select day ${day}`"
-								@click="handleDescriptionEditsDaySelect(day)"
-							>
-								{{ day }}
-							</button>
-						</fieldset>
-					</div>
-					<div
-						id="description-edits-year-dropdown-wrapper"
-						class="description-edits-year-dropdown-wrapper"
-					>
-						<button
-							id="description-edits-year-dropdown-button"
-							class="description-edits-year-dropdown-button"
-							type="button"
-							name="description-edits-year-dropdown-button"
-							data-button-name="description-edits-year-dropdown-button"
-							title="Toggle Year options"
-							:aria-expanded="isDescriptionEditsYearOpen"
-							@click="handleDescriptionEditsYearToggle"
-						>
-							{{ descriptionEditsSelectedYear ?? "Year" }}
-						</button>
-						<fieldset
-							v-if="isDescriptionEditsYearOpen"
-							id="description-edits-year-options-list"
-							class="description-edits-year-options-list"
-							aria-label="Year options"
-							title="Year options"
-						>
-							<button
-								v-for="year in descriptionEditsYears"
-								:id="`description-edits-year-option-${year}`"
-								:key="year"
-								class="description-edits-year-option-button"
-								type="button"
-								:name="`description-edits-year-option-${year}`"
-								:data-button-name="`description-edits-year-option-${year}`"
-								:aria-label="`Select year ${year}`"
-								:title="`Select year ${year}`"
-								@click="handleDescriptionEditsYearSelect(year)"
-							>
-								{{ year }}
-							</button>
-						</fieldset>
-					</div>
 				</div>
-			</div>
 		</div>
 		<div
 			v-if="isBlockEditsOpen"
