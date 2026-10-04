@@ -1403,6 +1403,7 @@ body {
 	position: relative;
 	display: flex;
 	flex-direction: column;
+	align-items: flex-start;
 	align-items: stretch;
 	justify-content: flex-start;
 	min-height: 100vh;
@@ -1424,41 +1425,43 @@ body {
 
 .text-editor-menu {
 	width: 100%;
+	padding-top: 96px;
 }
 
-.text-editor-templates-panel {
+.text-editor-tools-panel {
 	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	z-index: 115;
+	top: 96px;
+	left: 320px;
+	z-index: 145;
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 16px;
 	box-sizing: border-box;
-	width: 336px;
-	padding: 8px;
-	border-right: 1px solid #d2d0ce;
-	background: #f3f3f3;
-	box-shadow: 8px 0 16px rgba(0, 0, 0, 0.08);
-	overflow-y: auto;
+	width: 288px;
+	margin: 16px 0 0;
+	padding: 15px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
+}
+
+.text-editor-tools-panel--shell,
+.text-editor-tools-panel--template {
+	width: 288px;
 }
 
 .text-editor-ribbon-group {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
-	padding: 4px 0 0;
-	border-bottom: 1px solid #e1dfdd;
-}
-
-.text-editor-ribbon-group-caption {
-	margin: 2px 0 0;
-	padding: 2px 0 4px;
-	text-align: center;
-	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
-	font-size: 0.7rem;
-	color: #605e5c;
+	box-sizing: border-box;
+	width: 100%;
+	padding: 0;
 }
 
 .text-editor-print-preview-panel {
@@ -1474,15 +1477,18 @@ body {
 	box-shadow: -8px 0 16px rgba(0, 0, 0, 0.35);
 }
 
-.text-editor-template-saved-templates-button,
-.text-editor-template-new-button,
+.text-editor-print-preview-panel--shell,
+.text-editor-print-preview-panel--template {
+	top: 96px;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+
 .text-editor-editing-tools-button,
 .text-editor-size-menu-button,
 .text-editor-fonts-button,
-.text-editor-margins-button,
-.text-editor-font-styles-button,
-.text-editor-font-color-button,
-.text-editor-font-size-button {
+.text-editor-margins-button {
 	border: 1px solid transparent;
 	border-radius: 2px;
 	background: transparent;
@@ -1494,30 +1500,12 @@ body {
 	box-shadow: none;
 }
 
-.text-editor-template-saved-templates-button:hover,
-.text-editor-template-new-button:hover,
 .text-editor-editing-tools-button:hover,
 .text-editor-size-menu-button:hover,
 .text-editor-fonts-button:hover,
-.text-editor-margins-button:hover,
-.text-editor-font-styles-button:hover,
-.text-editor-font-color-button:hover,
-.text-editor-font-size-button:hover {
+.text-editor-margins-button:hover {
 	background: #e1dfdd;
 	border-color: #c8c6c4;
-}
-
-.text-editor-template-saved-templates-button {
-	width: 100%;
-	min-height: 40px;
-}
-
-.text-editor-fonts-button,
-.text-editor-font-styles-button,
-.text-editor-font-color-button,
-.text-editor-font-size-button {
-	width: 100%;
-	min-height: 40px;
 }
 
 .text-editor-size-menu-button {
@@ -1525,7 +1513,6 @@ body {
 	min-height: 40px;
 }
 
-.text-editor-template-new-button,
 .text-editor-editing-tools-button,
 .text-editor-size-menu-button {
 	width: 100%;
@@ -1543,15 +1530,6 @@ body {
 	padding: 0;
 }
 
-.text-editor-font-styles-button,
-.text-editor-font-color-button,
-.text-editor-font-size-button {
-	position: absolute;
-	width: 139.5px;
-	min-height: 40px;
-	padding: 0;
-}
-
 .text-editor-margins-button {
 	width: 50%;
 	min-height: 40px;
@@ -1561,8 +1539,9 @@ body {
 
 .text-editor-size-menu-top-row {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: 8px;
+	gap: 16px;
 	width: 100%;
 }
 
@@ -1573,14 +1552,62 @@ body {
 	border-color: #2b88d8;
 }
 
-.text-editor-editing-tools-button--unavailable {
-	color: #a19f9d;
-	cursor: not-allowed;
+.text-editor-margins-button.text-editor-margins-button--depressed {
+	background: #c7e0f4;
+	border-color: #2b88d8;
 }
 
-.text-editor-editing-tools-button--available {
-	color: #1b1b1b;
-	cursor: pointer;
+.text-editor-size-menu-button.text-editor-size-menu-button--depressed,
+.text-editor-size-menu-button.text-editor-size-menu-button--depressed:hover {
+	transform: translateY(4px);
+	border-color: #0095ff;
+	background: #58bfff;
+	box-shadow:
+		inset 0 3px 6px rgba(0, 0, 0, 0.28),
+		inset 0 -2px 0 rgba(255, 255, 255, 0.2),
+		0 2px 6px rgba(0, 0, 0, 0.24),
+		0 0 12px 4px rgba(0, 149, 255, 0.95),
+		0 0 26px 10px rgba(0, 122, 255, 0.7);
+}
+
+.text-editor-margins-button.text-editor-margins-button--depressed,
+.text-editor-margins-button.text-editor-margins-button--depressed:hover {
+	transform: translateY(4px);
+	border-color: #0095ff;
+	background: #58bfff;
+	box-shadow:
+		inset 0 3px 6px rgba(0, 0, 0, 0.28),
+		inset 0 -2px 0 rgba(255, 255, 255, 0.2),
+		0 2px 6px rgba(0, 0, 0, 0.24),
+		0 0 12px 4px rgba(0, 149, 255, 0.95),
+		0 0 26px 10px rgba(0, 122, 255, 0.7);
+}
+
+.text-editor-fonts-button.text-editor-fonts-button--depressed,
+.text-editor-fonts-button.text-editor-fonts-button--depressed:hover {
+	transform: translateY(4px);
+	border-color: #0095ff;
+	background: #58bfff;
+	box-shadow:
+		inset 0 3px 6px rgba(0, 0, 0, 0.28),
+		inset 0 -2px 0 rgba(255, 255, 255, 0.2),
+		0 2px 6px rgba(0, 0, 0, 0.24),
+		0 0 12px 4px rgba(0, 149, 255, 0.95),
+		0 0 26px 10px rgba(0, 122, 255, 0.7);
+}
+
+.text-editor-editing-tools-button.text-editor-editing-tools-button--depressed.text-editor-navigation-tools-button,
+.text-editor-template-load-button.text-editor-button--depressed,
+.text-editor-template-new-button.text-editor-button--depressed,
+.text-editor-grid-button.text-editor-button--depressed,
+.text-editor-calibrate-button.text-editor-button--depressed {
+	transform: translateY(4px);
+	box-shadow:
+		inset 0 3px 6px rgba(0, 0, 0, 0.28),
+		inset 0 -2px 0 rgba(255, 255, 255, 0.2),
+		0 2px 6px rgba(0, 0, 0, 0.24),
+		0 0 12px 4px rgba(0, 149, 255, 0.95),
+		0 0 26px 10px rgba(0, 122, 255, 0.7);
 }
 
 .text-editor-size-action-row {
@@ -1595,56 +1622,217 @@ body {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	align-items: flex-start;
+	align-items: stretch;
+	gap: 16px;
 	width: 100%;
-	margin-top: 4px;
+	margin-top: 0;
 }
 
 .text-editor-fonts-panel {
-	position: relative;
+	position: absolute;
+	top: calc(100% - 64px);
+	left: calc(100% + 8px);
+	z-index: 20;
+	display: flex;
+	flex-direction: column;
 	box-sizing: border-box;
-	flex: 0 0 436px;
-	width: 320px;
-	height: 436px;
-	margin-top: 4px;
-	border: 1px solid #d2d0ce;
-	border-radius: 2px;
-	background: #ffffff;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+	width: 288px;
+	height: auto;
+	margin-top: 0;
+	padding: 15px;
+	gap: 16px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
 }
 
-.text-editor-font-styles-button[data-font-option="styles"],
-.text-editor-font-color-button[data-font-option="color"] {
-	top: 15px;
-}
-
-.text-editor-font-styles-button[data-font-option="styles"] {
-	left: 15px;
-}
-
-.text-editor-font-color-button[data-font-option="color"] {
-	left: 170.5px;
-}
-
-.text-editor-font-size-button[data-font-option="font-size"] {
-	top: 87px;
-	left: 170.5px;
+.text-editor-fonts-panel--below-tools {
+	top: calc(100% + 32px);
+	left: -16px;
 }
 
 .text-editor-font-styles-menu {
 	position: absolute;
-	top: calc(100% + 8px);
-	left: -1px;
+	top: 0;
+	left: calc(-100% - 11px);
 	z-index: 20;
 	box-sizing: border-box;
-	width: 320px;
-	height: 280px;
+	width: 288px;
+	height: 256px;
 	margin: 0;
+	padding: 15px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
+}
+
+.text-editor-font-styles-menu--lowered {
+	top: 271px;
+}
+
+.text-editor-font-color-menu {
 	padding: 0;
-	border: 1px solid #d2d0ce;
-	border-radius: 2px;
+}
+
+.text-editor-font-color-menu--above-styles {
+	top: -272px;
+	left: calc(-100% - 11px);
+}
+
+.text-editor-font-color-menu--lowered {
+	top: -1px;
+}
+
+.text-editor-font-color-menu--left-of-fonts {
+	top: 0;
+	left: calc(-100% - 19px);
+}
+
+.text-editor-font-size-menu {
+	height: 112px;
+	padding: 15px;
+}
+
+.text-editor-font-size-menu--below-styles {
+	top: 272px;
+	left: calc(-100% - 11px);
+}
+
+.text-editor-font-size-menu--below-color {
+	top: 272px;
+	left: calc(-100% - 19px);
+}
+
+.text-editor-font-size-menu--left-of-fonts {
+	top: auto;
+	bottom: -1px;
+	left: calc(-100% - 19px);
+}
+
+.text-editor-font-size-menu--lowered {
+	top: 543px;
+	left: calc(-100% - 11px);
+}
+
+.text-editor-font-size-label {
+	line-height: 24px;
+	text-align: left;
+}
+
+.text-editor-font-size-menu-content {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	height: 100%;
+}
+
+.text-editor-font-size-controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.text-editor-font-size-input {
+	box-sizing: border-box;
+	width: 56px;
+	height: 24px;
+	flex: 0 0 56px;
+	padding: 2px 4px;
+	border: 1px solid #8a5a00;
+	border-radius: 4px;
+	background: #fff7cc;
+	color: #4a3000;
+	font-size: 1rem;
+}
+
+.text-editor-font-size-unit {
+	font-size: 0.875rem;
+}
+
+.text-editor-font-size-commit-button {
+	align-self: flex-end;
+}
+
+.text-editor-font-color-picker {
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	box-sizing: border-box;
+	width: calc(100% - 30px);
+	height: 176px;
+	border: 1px solid #d4d4d4;
+	background:
+		linear-gradient(to bottom, #ffffff 0%, transparent 50%, #000000 100%),
+		linear-gradient(
+			to right,
+			#ff0000 0%,
+			#ffff00 16.6667%,
+			#00ff00 33.3333%,
+			#00ffff 50%,
+			#0000ff 66.6667%,
+			#ff00ff 83.3333%,
+			#ff0000 100%
+		);
+	cursor: crosshair;
+	touch-action: none;
+}
+
+.text-editor-font-color-picker:focus-visible {
+	outline: 3px solid #0095ff;
+	outline-offset: 2px;
+}
+
+.text-editor-font-color-controls {
+	position: absolute;
+	right: 10px;
+	bottom: 7px;
+	left: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	height: 48px;
+}
+
+.text-editor-font-color-preview {
+	display: block;
+	box-sizing: border-box;
+	width: 40px;
+	height: 40px;
+	flex: 0 0 40px;
+	border: 2px solid #ffffff;
+	border-radius: 4px;
 	background: #ffffff;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.text-editor-font-color-hex-input {
+	box-sizing: border-box;
+	width: 0;
+	height: 36px;
+	min-width: 0;
+	flex: 1 1 auto;
+	padding: 4px 6px;
+	border: 2px solid #8a5a00;
+	border-radius: 4px;
+	background: #fff7cc;
+	color: #4a3000;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.85rem;
+}
+
+.text-editor-font-color-commit-button {
+	flex: 0 0 auto;
+	padding: 0.55rem 0.8rem;
 }
 
 .text-editor-font-style-button {
@@ -1654,11 +1842,11 @@ body {
 	justify-content: center;
 	text-align: center;
 	width: calc(50% - 24px);
-	height: 72px;
-	min-height: 72px;
+	height: 64px;
+	min-height: 64px;
 	padding: 0;
 	border: 1px solid transparent;
-	border-radius: 2px;
+	border-radius: 999px;
 	background: transparent;
 	color: #1b1b1b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
@@ -1672,9 +1860,34 @@ body {
 	border-color: #c8c6c4;
 }
 
-.text-editor-font-style-button--depressed {
+.text-editor-font-style-button.text-editor-font-style-button--depressed,
+.text-editor-font-style-button.text-editor-font-style-button--depressed:hover {
 	background: #c7e0f4;
 	border-color: #2b88d8;
+	transform: translateY(4px);
+	box-shadow:
+		0 0 12px 4px rgba(199, 224, 244, 0.95),
+		0 0 26px 10px rgba(199, 224, 244, 0.7),
+		inset 0 3px 6px rgba(0, 0, 0, 0.28),
+		inset 0 -2px 0 rgba(255, 255, 255, 0.2),
+		0 2px 6px rgba(0, 0, 0, 0.24);
+}
+
+.text-editor-font-styles-button.text-editor-font-styles-button--depressed,
+.text-editor-font-styles-button.text-editor-font-styles-button--depressed:hover,
+.text-editor-font-color-button.text-editor-font-color-button--depressed,
+.text-editor-font-color-button.text-editor-font-color-button--depressed:hover,
+.text-editor-font-size-button.text-editor-font-size-button--depressed,
+.text-editor-font-size-button.text-editor-font-size-button--depressed:hover {
+	transform: translateY(4px);
+	border-color: #0095ff;
+	background: #58bfff;
+	box-shadow:
+		inset 0 3px 6px rgba(0, 0, 0, 0.28),
+		inset 0 -2px 0 rgba(255, 255, 255, 0.2),
+		0 2px 6px rgba(0, 0, 0, 0.24),
+		0 0 12px 4px rgba(0, 149, 255, 0.95),
+		0 0 26px 10px rgba(0, 122, 255, 0.7);
 }
 
 .text-editor-font-style-button[data-font-style="minecraft-regular-1"] {
@@ -1692,21 +1905,21 @@ body {
 }
 
 .text-editor-font-style-button[data-font-style="minecraft-regular-2-bold"] {
-	top: 104px;
+	top: 96px;
 	left: 16px;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-weight: 700;
 }
 
 .text-editor-font-style-button[data-font-style="minecraft-regular-2-italic"] {
-	top: 104px;
+	top: 96px;
 	left: calc(50% + 8px);
 	font-family: "Minecraft2Italic", "Trebuchet MS", sans-serif;
 	font-weight: 400;
 }
 
 .text-editor-font-style-button[data-font-style="minecraft-regular-2-bold-italic"] {
-	top: 192px;
+	top: 176px;
 	left: 16px;
 	font-family: "Minecraft2BoldItalic", "Trebuchet MS", sans-serif;
 	font-weight: 700;
@@ -1714,19 +1927,123 @@ body {
 
 .text-editor-size-panel {
 	position: absolute;
-	top: calc(100% + 8px);
-	left: 0;
+	top: calc(100% + 32px);
+	left: -16px;
 	z-index: 20;
 	display: flex;
 	flex-direction: column;
-	width: 304px;
+	box-sizing: border-box;
+	width: 288px;
+	height: auto;
+	overflow: hidden;
+	padding: 9px 15px;
+	gap: 8px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
+}
+
+.text-editor-margins-panel {
+	position: absolute;
+	top: calc(100% + 32px);
+	left: -16px;
+	z-index: 20;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	width: 288px;
+	height: 256px;
 	overflow: hidden;
 	padding: 12px 8px;
 	gap: 8px;
-	border: 1px solid rgba(154, 255, 178, 0.75);
+	border: 1px solid transparent;
 	border-radius: 12px;
-	background: linear-gradient(180deg, rgba(28, 72, 41, 0.96) 0%, rgba(18, 48, 28, 0.96) 100%);
-	box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
+}
+
+.text-editor-size-panel--below-fonts {
+	top: calc(100% + 304px);
+}
+
+.text-editor-margins-panel--below-size {
+	top: calc(100% + 127.1875px);
+}
+
+.text-editor-margins-panel--below-fonts {
+	top: calc(100% + 304px);
+}
+
+.text-editor-margins-panel--below-fonts-after-size {
+	top: calc(100% + 399.1875px);
+}
+
+.text-editor-margin-controls {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 4px;
+	width: 100%;
+	height: 100%;
+}
+
+.text-editor-margin-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	min-height: 28px;
+	color: #ffffff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.text-editor-margin-input {
+	box-sizing: content-box;
+	width: 4ch;
+	height: 20px;
+	padding: 2px 4px;
+	border: 1px solid #8ba7c3;
+	border-radius: 2px;
+	background: #ffffff;
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	text-align: right;
+}
+
+.text-editor-margin-visibility-button {
+	width: 48px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	color: #101010;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.text-editor-margin-visibility-button--on {
+	border-color: #00c832;
+	background: #00ff40;
+}
+
+.text-editor-margin-visibility-button--off {
+	border-color: #d71920;
+	background: #ff3030;
 }
 
 .text-editor-size-row {
@@ -1832,24 +2149,331 @@ body {
 }
 
 .text-editor-navigation-bar {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 16px;
+	box-sizing: border-box;
+	width: 100%;
+	height: 96px;
+	min-height: 96px;
+	margin: 0;
+	padding-left: 15px;
+	border: 1px solid transparent;
+	border-radius: 0;
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
+	z-index: 110;
+}
+
+.text-editor-load-menu {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	box-sizing: border-box;
+	width: 288px;
+	margin: 16px 0 0 16px;
+	padding: 15px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
+}
+
+.text-editor-new-menu {
+	position: fixed;
+	top: 96px;
+	left: 0;
+	z-index: 145;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	box-sizing: border-box;
+	width: 288px;
+	margin: 16px 0 0 16px;
+	padding: 15px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.24),
+		inset 0 -4px 0 rgba(0, 0, 0, 0.35),
+		0 5px 0 #061a32,
+		0 8px 12px rgba(0, 0, 0, 0.3);
+}
+
+.text-editor-unsaved-confirmation-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+	display: grid;
+	place-items: center;
+	box-sizing: border-box;
+	padding: 16px;
+	background: rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-unsaved-confirmation {
+	position: fixed;
+	inset: 0;
+	box-sizing: border-box;
+	width: min(calc(100% - 32px), 480px);
+	margin: auto;
+	padding: 24px;
+	border: 2px solid #061a32;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.text-editor-unsaved-confirmation p {
+	margin: 0 0 20px;
+	color: #7f1d1d;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.text-editor-unsaved-confirmation-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 12px;
+}
+
+.text-editor-unsaved-confirmation-leave-button,
+.text-editor-unsaved-confirmation-stay-button {
+	min-width: 112px;
+	min-height: 48px;
+	padding: 8px 20px;
+	border: 1px solid #000;
+	border-radius: 999px;
+	color: #000;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.text-editor-unsaved-confirmation-leave-button {
+	background: #a52a35;
+}
+
+.text-editor-unsaved-confirmation-stay-button {
+	background: #2be33b;
+}
+
+.text-editor-new-create-shell-button {
+	width: 100%;
+	height: 64px;
+	flex: 0 0 64px;
+	padding: 0;
+	border: 1px solid #a45d31;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #c5753e 0%, #d98b54 50%, #bd6935 100%);
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #a45d31,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-new-create-template-button,
+.text-editor-size-menu-button,
+.text-editor-fonts-button,
+.text-editor-margins-button {
+	width: 100%;
+	height: 64px;
+	flex: 0 0 64px;
+	padding: 0;
+	margin-top: 0;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	background: transparent;
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.text-editor-new-create-template-button {
+	width: 100%;
+	height: 64px;
+	flex: 0 0 64px;
+	padding: 0;
+	border: 1px solid #bb763f;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #d78d52 0%, #e6a36d 50%, #d18448 100%);
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #bb763f,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-size-menu-button--dark-blue {
+	border-color: #5f8db0;
+	background: linear-gradient(90deg, #8fb8d6 0%, #7aa8cc 50%, #6798bd 100%);
+	color: #1b1b1b;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #5f8db0,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-margins-button--medium-blue {
+	border-color: #79accf;
+	background: linear-gradient(90deg, #b0d4ec 0%, #9fc9e6 50%, #8abadd 100%);
+	color: #1b1b1b;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #79accf,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-fonts-button--light-blue {
+	border-color: #a9c8dd;
+	background: linear-gradient(90deg, #d5e8f5 0%, #c9e1f1 50%, #bdd9ec 100%);
+	color: #1b1b1b;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #a9c8dd,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-font-styles-button,
+.text-editor-font-color-button,
+.text-editor-font-size-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	height: 126px;
-	min-height: 126px;
-	position: relative;
-	z-index: 110;
+	height: 64px;
+	flex: 0 0 64px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 var(--font-menu-button-shadow-color),
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-font-styles-button {
+	--font-menu-button-shadow-color: #a9c8dd;
+	border-color: #a9c8dd;
+	background: linear-gradient(90deg, #d5e8f5 0%, #c9e1f1 50%, #bdd9ec 100%);
+}
+
+.text-editor-font-color-button {
+	--font-menu-button-shadow-color: #b9d4e5;
+	border-color: #b9d4e5;
+	background: linear-gradient(90deg, #e0eef7 0%, #d7eaf5 50%, #cee4f2 100%);
+}
+
+.text-editor-font-size-button {
+	--font-menu-button-shadow-color: #c8dce9;
+	border-color: #c8dce9;
+	background: linear-gradient(90deg, #edf5fa 0%, #e6f1f8 50%, #dcecf5 100%);
+}
+
+.text-editor-font-styles-button:hover,
+.text-editor-font-color-button:hover,
+.text-editor-font-size-button:hover {
+	filter: brightness(1.04);
+}
+
+.text-editor-load-menu-shells-button {
+	width: 100%;
+	height: 64px;
+	flex: 0 0 64px;
+	padding: 0;
+	border: 1px solid #b85d66;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #c86c76 0%, #d77d86 50%, #bf5964 100%);
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #b85d66,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-load-menu-templates-button {
+	width: 100%;
+	height: 64px;
+	flex: 0 0 64px;
+	padding: 0;
+	border: 1px solid #c76b73;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #dc828a 0%, #e9959c 50%, #d5747d 100%);
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #c76b73,
+		0 8px 10px rgba(0, 0, 0, 0.48);
 }
 
 .text-editor-navigation-bar--preview-open {
-	pointer-events: none;
-	z-index: 20;
+	pointer-events: auto;
+	z-index: 140;
 }
 
-.text-editor-menu--templates-active .text-editor-navigation-bar {
-	position: relative;
-	z-index: 110;
+#text-editor-home-button {
+	position: absolute;
+	top: 50%;
+	right: calc(6rem + 31px);
+	transform: translateY(-50%);
+}
+
+#parent-screen-back-button {
+	position: absolute;
+	top: 50%;
+	right: 15px;
+	transform: translateY(-50%);
 }
 
 .text-editor-home-button,
@@ -2054,15 +2678,60 @@ body {
 
 .print-preview-paper-editor {
 	position: absolute;
-	inset: 0;
-	padding: 0;
+	inset:
+		var(--print-preview-margin-top, 0px)
+		var(--print-preview-margin-right, 0px)
+		var(--print-preview-margin-bottom, 0px)
+		var(--print-preview-margin-left, 0px);
+	padding: 0 0 0 2px;
 	font-synthesis: weight;
+	font-feature-settings: "calt" 0, "rand" 0;
 	outline: none;
 	caret-color: #000000;
 	color: #000000;
 	overflow: hidden;
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
+}
+
+.print-preview-margin-guides {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	pointer-events: none;
+}
+
+.print-preview-margin-guide {
+	position: absolute;
+	background: #00a83b;
+}
+
+.print-preview-margin-guide--top {
+	top: var(--print-preview-margin-top, 0px);
+	right: 0;
+	left: 0;
+	height: 2px;
+}
+
+.print-preview-margin-guide--bottom {
+	right: 0;
+	bottom: var(--print-preview-margin-bottom, 0px);
+	left: 0;
+	height: 2px;
+}
+
+.print-preview-margin-guide--left {
+	top: 0;
+	bottom: 0;
+	left: var(--print-preview-margin-left, 0px);
+	width: 2px;
+}
+
+.print-preview-margin-guide--right {
+	top: 0;
+	right: var(--print-preview-margin-right, 0px);
+	bottom: 0;
+	width: 2px;
 }
 
 .text-editor-template-save-button {
@@ -2172,17 +2841,13 @@ body {
 
 .text-editor-saved-templates-list {
 	width: 100%;
+	margin: 0;
+	padding: 0;
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 	max-height: 240px;
 	overflow-y: auto;
-}
-
-.text-editor-saved-templates-empty {
-	color: #605e5c;
-	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
-	font-size: 0.85rem;
 }
 
 .text-editor-saved-template-item {
@@ -2191,13 +2856,18 @@ body {
 	border: 1px solid transparent;
 	border-radius: 2px;
 	background: transparent;
-	color: #1b1b1b;
+	color: #fff;
 	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
 	font-size: 0.85rem;
 	font-weight: 400;
 	text-align: left;
 	padding: 0 8px;
 	cursor: pointer;
+}
+
+.text-editor-saved-template-date {
+	color: #39ff14;
+	margin-right: 6px;
 }
 
 .text-editor-saved-template-item:hover {
@@ -2210,7 +2880,44 @@ body {
 	border-color: #2b88d8;
 }
 
-.text-editor-templates-button {
+.text-editor-saved-shells-list {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-height: 240px;
+	overflow-y: auto;
+}
+
+.text-editor-saved-shell-item {
+	width: 100%;
+	min-height: 32px;
+	border: 1px solid transparent;
+	border-radius: 2px;
+	background: transparent;
+	color: #fff;
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	font-size: 0.85rem;
+	font-weight: 400;
+	text-align: left;
+	padding: 0 8px;
+	cursor: pointer;
+}
+
+.text-editor-saved-shell-item:hover {
+	background: #e1dfdd;
+	border-color: #c8c6c4;
+}
+
+.text-editor-saved-shell-item:active {
+	background: #c7e0f4;
+	border-color: #2b88d8;
+}
+
+.text-editor-template-load-button,
+.text-editor-template-new-button {
 	width: 136px;
 	height: 64px;
 	flex: 0 0 136px;
@@ -2230,24 +2937,69 @@ body {
 		0 8px 10px rgba(0, 0, 0, 0.48);
 }
 
+.text-editor-template-load-button {
+	border-color: #d47575;
+	background: linear-gradient(90deg, #f7b9b9 0%, #ef9a9a 50%, #e98282 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.24),
+		0 4px 0 #d47575,
+		0 8px 10px rgba(0, 0, 0, 0.32);
+}
+
+.text-editor-template-new-button {
+	border-color: #d9985b;
+	background: linear-gradient(90deg, #ffd1a3 0%, #ffbd7c 50%, #f4a261 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.24),
+		0 4px 0 #d9985b,
+		0 8px 10px rgba(0, 0, 0, 0.32);
+}
+
+.text-editor-navigation-tools-button {
+	width: 136px;
+	height: 64px;
+	flex: 0 0 136px;
+	padding: 0;
+	border: 1px solid #729bc4;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #c4e2f7 0%, #a6cfee 50%, #83b7df 100%);
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.45),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.24),
+		0 4px 0 #729bc4,
+		0 8px 10px rgba(0, 0, 0, 0.32);
+}
+
+.text-editor-editing-tools-button.text-editor-navigation-tools-button:hover {
+	background: linear-gradient(90deg, #c4e2f7 0%, #a6cfee 50%, #83b7df 100%);
+	border-color: #729bc4;
+}
+
 .text-editor-grid-button {
 	width: 136px;
 	height: 64px;
 	flex: 0 0 136px;
 	padding: 0;
-	border: 1px solid #5e542f;
+	border: 1px solid #78ad7b;
 	border-radius: 999px;
-	background: linear-gradient(90deg, #5e542f 0%, #81733e 50%, #344d37 100%);
-	color: #fff;
+	background: linear-gradient(90deg, #c5e8c1 0%, #a6d7a2 50%, #83c28a 100%);
+	color: #1b1b1b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
 	font-weight: 700;
 	cursor: pointer;
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.42),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
-		0 4px 0 #5e542f,
-		0 8px 10px rgba(0, 0, 0, 0.48);
+		inset 0 -5px 0 rgba(0, 0, 0, 0.24),
+		0 4px 0 #78ad7b,
+		0 8px 10px rgba(0, 0, 0, 0.32);
 }
 
 .text-editor-calibrate-button {
@@ -2255,43 +3007,19 @@ body {
 	height: 64px;
 	flex: 0 0 136px;
 	padding: 0;
-	border: 1px solid #50384d;
+	border: 1px solid #729bc4;
 	border-radius: 999px;
-	background: linear-gradient(90deg, #3e3b53 0%, #57536f 33.333%, #50384d 66.667%, #704f6b 100%);
-	color: #fff;
+	background: linear-gradient(90deg, #c4e2f7 0%, #a6cfee 50%, #83b7df 100%);
+	color: #1b1b1b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
 	font-weight: 700;
 	cursor: pointer;
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.45),
-		inset 0 -5px 0 rgba(0, 0, 0, 0.32),
-		0 4px 0 #50384d,
-		0 8px 10px rgba(0, 0, 0, 0.42);
-}
-
-.text-editor-templates-button.text-editor-button--depressed,
-.text-editor-grid-button.text-editor-button--depressed,
-.text-editor-calibrate-button.text-editor-button--depressed {
-	transform: translateY(4px);
-}
-
-.text-editor-templates-button.text-editor-button--depressed {
-	filter: brightness(1.25) drop-shadow(0 0 10px #8a5c3d);
-}
-
-.text-editor-template-new-button.text-editor-button--depressed,
-.text-editor-template-saved-templates-button.text-editor-button--depressed {
-	background: #c7e0f4;
-	border-color: #2b88d8;
-}
-
-.text-editor-grid-button.text-editor-button--depressed {
-	filter: brightness(1.25) drop-shadow(0 0 10px #81733e);
-}
-
-.text-editor-calibrate-button.text-editor-button--depressed {
-	filter: brightness(1.2) drop-shadow(0 0 12px #704f6b);
+		inset 0 -5px 0 rgba(0, 0, 0, 0.24),
+		0 4px 0 #729bc4,
+		0 8px 10px rgba(0, 0, 0, 0.32);
 }
 
 .student-edits-tab,
@@ -2497,6 +3225,60 @@ body {
 .daily-menu-story-back-button,
 .rewards-page-back-button,
 .calendar-panel-header button.calendar-previous-month-button {
+	width: 6rem;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid #0b2035;
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	background: linear-gradient(180deg, #235b91 0%, #1d4c7a 33.333%, #173e64 66.667%, #112f4e 100%);
+	color: #fff;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #091c2e,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.text-editor-workflow-home-button {
+	position: absolute;
+	top: 50%;
+	right: calc(6rem + 31px);
+	transform: translateY(-50%);
+	z-index: 110;
+	width: 6rem;
+	min-height: 2.75rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid #0c2e18;
+	border-radius: 0.5rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	background: linear-gradient(180deg, #246b39 0%, #1d5a30 33.333%, #164a27 66.667%, #103a1e 100%);
+	color: #fff;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #0b2814,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
+}
+
+.text-editor-workflow-back-button {
+	position: absolute;
+	top: 50%;
+	right: 15px;
+	transform: translateY(-50%);
+	z-index: 110;
 	width: 6rem;
 	min-height: 2.75rem;
 	padding: 0.65rem 1rem;
@@ -3044,7 +3826,9 @@ body {
 }
 
 .description-edits-workflow-row > button,
-.description-edits-workflow-row > div > button {
+.description-edits-workflow-row > .description-edits-subject-dropdown-wrapper > button,
+.description-edits-workflow-row > .description-edits-block-dropdown-wrapper > button,
+.description-edits-workflow-row > .description-edits-history-dropdown-wrapper > button {
 	width: 100%;
 	min-width: 0;
 	padding-inline: 4px;
@@ -3052,7 +3836,9 @@ body {
 }
 
 .play-by-play-edits-workflow-row > button,
-.play-by-play-edits-workflow-row > div > button {
+.play-by-play-edits-workflow-row > .play-by-play-edits-subject-dropdown-wrapper > button,
+.play-by-play-edits-workflow-row > .play-by-play-edits-block-dropdown-wrapper > button,
+.play-by-play-edits-workflow-row > .play-by-play-edits-history-dropdown-wrapper > button {
 	width: 100%;
 	min-width: 0;
 	padding-inline: 4px;

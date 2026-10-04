@@ -989,187 +989,187 @@ function handleStudentEditsScreenHome() {
 						:id="descriptionEditsMode === 'description' ? 'description-edits-workflow-row' : 'play-by-play-edits-workflow-row'"
 						:class="descriptionEditsMode === 'description' ? 'description-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4' : descriptionEditsMode === 'play-by-play' ? 'play-by-play-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4' : 'contents'"
 					>
-					<button
-						v-if="descriptionEditsMode === 'description'"
-						id="description-edits-commit-button"
-						class="description-edits-commit-button"
-						type="button"
-						name="description-edits-commit-button"
-						data-button-name="description-edits-commit-button"
-						aria-label="Save description"
-						title="Save description"
-						@click="handleDescriptionEditsCommit"
-					>
-						Save
-					</button>
-					<button
-						v-else-if="descriptionEditsMode === 'play-by-play'"
-						id="play-by-play-edits-commit-button"
-						class="play-by-play-edits-commit-button"
-						type="button"
-						name="play-by-play-edits-commit-button"
-						data-button-name="play-by-play-edits-commit-button"
-						aria-label="Save Play by Play"
-						title="Save Play by Play"
-						@click="handlePlayByPlayEditsCommit"
-					>
-						Save
-					</button>
-					<button
-						v-if="descriptionEditsMode === 'description'"
-						id="description-edits-load-button"
-						class="description-edits-load-button"
-						type="button"
-						name="description-edits-load-button"
-						data-button-name="description-edits-load-button"
-						aria-label="Load description"
-						title="Load description"
-						:disabled="!isDescriptionEditsLoadEnabled"
-						@click="handleDescriptionEditsLoad"
-					>
-						Load
-					</button>
-					<button
-						v-else-if="descriptionEditsMode === 'play-by-play'"
-						id="play-by-play-edits-load-button"
-						class="play-by-play-edits-load-button"
-						type="button"
-						name="play-by-play-edits-load-button"
-						data-button-name="play-by-play-edits-load-button"
-						aria-label="Load Play by Play"
-						title="Load Play by Play"
-						:disabled="!isPlayByPlayEditsLoadEnabled"
-						@click="handlePlayByPlayEditsLoad"
-					>
-						Load
-					</button>
-					<button
-						v-if="descriptionEditsMode === 'description'"
-						id="description-edits-date-dropdown-button"
-						class="description-edits-date-dropdown-button"
-						type="button"
-						name="description-edits-date-dropdown-button"
-						data-button-name="description-edits-date-dropdown-button"
-						aria-label="Toggle Date options"
-						title="Toggle Date options"
-						:aria-expanded="isDescriptionEditsDateOpen"
-						@click="handleDescriptionEditsDateToggle"
-					>
-						Date
-					</button>
-					<button
-						v-else-if="descriptionEditsMode === 'play-by-play'"
-						id="play-by-play-edits-date-dropdown-button"
-						class="play-by-play-edits-date-dropdown-button"
-						type="button"
-						name="play-by-play-edits-date-dropdown-button"
-						data-button-name="play-by-play-edits-date-dropdown-button"
-						aria-label="Toggle Play by Play Date options"
-						title="Toggle Play by Play Date options"
-						:aria-expanded="isDescriptionEditsDateOpen"
-						@click="handlePlayByPlayEditsDateToggle"
-					>
-						Date
-					</button>
-					<div
-						v-if="descriptionEditsMode === 'description'"
-						id="description-edits-subject-dropdown-wrapper"
-						class="description-edits-subject-dropdown-wrapper"
-					>
-						<button id="description-edits-subject-dropdown-button" class="description-edits-subject-dropdown-button" type="button" name="description-edits-subject-dropdown-button" data-button-name="description-edits-subject-dropdown-button" title="Toggle Subject options" :aria-expanded="isDescriptionEditsSubjectOpen" @click="handleDescriptionEditsSubjectToggle">Subject</button>
-						<fieldset v-if="isDescriptionEditsSubjectOpen" id="description-edits-subject-options-list" class="description-edits-subject-options-list" aria-label="Subject options" title="Subject options">
-							<button v-for="subject in descriptionEditsSubjects" :id="`description-edits-subject-option-${subject.key}`" :key="subject.key" class="description-edits-subject-option-button" type="button" :name="`description-edits-subject-option-${subject.key}`" :data-button-name="`description-edits-subject-option-${subject.key}`" :aria-label="`Select subject ${subject.label}`" :title="`Select subject ${subject.label}`" @click="handleDescriptionEditsSubjectSelect(subject)">{{ subject.label }}</button>
-						</fieldset>
+						<button
+							v-if="descriptionEditsMode === 'description'"
+							id="description-edits-commit-button"
+							class="description-edits-commit-button"
+							type="button"
+							name="description-edits-commit-button"
+							data-button-name="description-edits-commit-button"
+							aria-label="Save description"
+							title="Save description"
+							@click="handleDescriptionEditsCommit"
+						>
+							Save
+						</button>
+						<button
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-commit-button"
+							class="play-by-play-edits-commit-button"
+							type="button"
+							name="play-by-play-edits-commit-button"
+							data-button-name="play-by-play-edits-commit-button"
+							aria-label="Save Play by Play"
+							title="Save Play by Play"
+							@click="handlePlayByPlayEditsCommit"
+						>
+							Save
+						</button>
+						<button
+							v-if="descriptionEditsMode === 'description'"
+							id="description-edits-load-button"
+							class="description-edits-load-button"
+							type="button"
+							name="description-edits-load-button"
+							data-button-name="description-edits-load-button"
+							aria-label="Load description"
+							title="Load description"
+							:disabled="!isDescriptionEditsLoadEnabled"
+							@click="handleDescriptionEditsLoad"
+						>
+							Load
+						</button>
+						<button
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-load-button"
+							class="play-by-play-edits-load-button"
+							type="button"
+							name="play-by-play-edits-load-button"
+							data-button-name="play-by-play-edits-load-button"
+							aria-label="Load Play by Play"
+							title="Load Play by Play"
+							:disabled="!isPlayByPlayEditsLoadEnabled"
+							@click="handlePlayByPlayEditsLoad"
+						>
+							Load
+						</button>
+						<button
+							v-if="descriptionEditsMode === 'description'"
+							id="description-edits-date-dropdown-button"
+							class="description-edits-date-dropdown-button"
+							type="button"
+							name="description-edits-date-dropdown-button"
+							data-button-name="description-edits-date-dropdown-button"
+							aria-label="Toggle Date options"
+							title="Toggle Date options"
+							:aria-expanded="isDescriptionEditsDateOpen"
+							@click="handleDescriptionEditsDateToggle"
+						>
+							Date
+						</button>
+						<button
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-date-dropdown-button"
+							class="play-by-play-edits-date-dropdown-button"
+							type="button"
+							name="play-by-play-edits-date-dropdown-button"
+							data-button-name="play-by-play-edits-date-dropdown-button"
+							aria-label="Toggle Play by Play Date options"
+							title="Toggle Play by Play Date options"
+							:aria-expanded="isDescriptionEditsDateOpen"
+							@click="handlePlayByPlayEditsDateToggle"
+						>
+							Date
+						</button>
+						<div
+							v-if="descriptionEditsMode === 'description'"
+							id="description-edits-subject-dropdown-wrapper"
+							class="description-edits-subject-dropdown-wrapper"
+						>
+							<button id="description-edits-subject-dropdown-button" class="description-edits-subject-dropdown-button" type="button" name="description-edits-subject-dropdown-button" data-button-name="description-edits-subject-dropdown-button" title="Toggle Subject options" :aria-expanded="isDescriptionEditsSubjectOpen" @click="handleDescriptionEditsSubjectToggle">Subject</button>
+							<fieldset v-if="isDescriptionEditsSubjectOpen" id="description-edits-subject-options-list" class="description-edits-subject-options-list" aria-label="Subject options" title="Subject options">
+								<button v-for="subject in descriptionEditsSubjects" :id="`description-edits-subject-option-${subject.key}`" :key="subject.key" class="description-edits-subject-option-button" type="button" :name="`description-edits-subject-option-${subject.key}`" :data-button-name="`description-edits-subject-option-${subject.key}`" :aria-label="`Select subject ${subject.label}`" :title="`Select subject ${subject.label}`" @click="handleDescriptionEditsSubjectSelect(subject)">{{ subject.label }}</button>
+							</fieldset>
+						</div>
+						<div
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-subject-dropdown-wrapper"
+							class="play-by-play-edits-subject-dropdown-wrapper"
+						>
+							<button id="play-by-play-edits-subject-dropdown-button" class="play-by-play-edits-subject-dropdown-button" type="button" name="play-by-play-edits-subject-dropdown-button" data-button-name="play-by-play-edits-subject-dropdown-button" title="Toggle Play by Play Subject options" :aria-expanded="isDescriptionEditsSubjectOpen" @click="handlePlayByPlayEditsSubjectToggle">Subject</button>
+							<fieldset v-if="isDescriptionEditsSubjectOpen" id="play-by-play-edits-subject-options-list" class="play-by-play-edits-subject-options-list" aria-label="Play by Play Subject options" title="Play by Play Subject options">
+								<button v-for="subject in descriptionEditsSubjects" :id="`play-by-play-edits-subject-option-${subject.key}`" :key="subject.key" class="play-by-play-edits-subject-option-button" type="button" :name="`play-by-play-edits-subject-option-${subject.key}`" :data-button-name="`play-by-play-edits-subject-option-${subject.key}`" :aria-label="`Select Play by Play subject ${subject.label}`" :title="`Select Play by Play subject ${subject.label}`" @click="handlePlayByPlayEditsSubjectSelect(subject)">{{ subject.label }}</button>
+							</fieldset>
+						</div>
+						<div v-if="descriptionEditsMode === 'description'" id="description-edits-block-dropdown-wrapper" class="description-edits-block-dropdown-wrapper">
+							<button id="description-edits-block-dropdown-button" class="description-edits-block-dropdown-button" type="button" name="description-edits-block-dropdown-button" data-button-name="description-edits-block-dropdown-button" title="Toggle Block options" :aria-expanded="isDescriptionEditsBlockOpen" @click="handleDescriptionEditsBlockToggle">Block</button>
+							<fieldset v-if="isDescriptionEditsBlockOpen" id="description-edits-block-options-list" class="description-edits-block-options-list" aria-label="Block options" title="Block options">
+								<button v-for="blockOption in descriptionEditsBlocks" :id="`description-edits-block-option-${blockOption}`" :key="blockOption" class="description-edits-block-option-button" type="button" :name="`description-edits-block-option-${blockOption}`" :data-button-name="`description-edits-block-option-${blockOption}`" :aria-label="`Select ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" :title="`Select ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" @click="handleDescriptionEditsBlockSelect(blockOption)">{{ blockOption === "all" ? "All Blocks" : `Block ${blockOption}` }}</button>
+							</fieldset>
+						</div>
+						<div v-else-if="descriptionEditsMode === 'play-by-play'" id="play-by-play-edits-block-dropdown-wrapper" class="play-by-play-edits-block-dropdown-wrapper">
+							<button id="play-by-play-edits-block-dropdown-button" class="play-by-play-edits-block-dropdown-button" type="button" name="play-by-play-edits-block-dropdown-button" data-button-name="play-by-play-edits-block-dropdown-button" title="Toggle Play by Play Block options" :aria-expanded="isDescriptionEditsBlockOpen" @click="handlePlayByPlayEditsBlockToggle">Block</button>
+							<fieldset v-if="isDescriptionEditsBlockOpen" id="play-by-play-edits-block-options-list" class="play-by-play-edits-block-options-list" aria-label="Play by Play Block options" title="Play by Play Block options">
+								<button v-for="blockOption in descriptionEditsBlocks" :id="`play-by-play-edits-block-option-${blockOption}`" :key="blockOption" class="play-by-play-edits-block-option-button" type="button" :name="`play-by-play-edits-block-option-${blockOption}`" :data-button-name="`play-by-play-edits-block-option-${blockOption}`" :aria-label="`Select Play by Play ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" :title="`Select Play by Play ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" @click="handlePlayByPlayEditsBlockSelect(blockOption)">{{ blockOption === "all" ? "All Blocks" : `Block ${blockOption}` }}</button>
+							</fieldset>
+						</div>
+						<div v-if="descriptionEditsMode === 'description'" id="description-edits-history-dropdown-wrapper" class="description-edits-history-dropdown-wrapper">
+							<button id="description-edits-history-dropdown-button" class="description-edits-history-dropdown-button" type="button" name="description-edits-history-dropdown-button" data-button-name="description-edits-history-dropdown-button" aria-label="Toggle History options" title="Toggle History options" :aria-expanded="isDescriptionEditsHistoryOpen" @click="handleDescriptionEditsHistoryToggle">History</button>
+							<fieldset v-if="isDescriptionEditsHistoryOpen" id="description-edits-history-options-list" class="description-edits-history-options-list" aria-label="Description history options" title="Description history options">
+								<button v-for="entry in getDescriptionEditsHistory()" :id="`description-edits-history-option-${entry.savedAtIso}`" :key="entry.savedAtIso" class="description-edits-history-option-button" type="button" :name="`description-edits-history-option-${entry.savedAtIso}`" :data-button-name="`description-edits-history-option-${entry.savedAtIso}`" :aria-label="`Load description ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" :title="`Load description ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" @click="handleDescriptionEditsHistorySelect(entry)">{{ entry.subjectAbbrev }} {{ entry.savedAtLabel }}</button>
+								<p v-if="getDescriptionEditsHistory().length === 0" id="description-edits-history-empty" class="description-edits-history-empty">&lt; none &gt;</p>
+							</fieldset>
+						</div>
+						<div v-else-if="descriptionEditsMode === 'play-by-play'" id="play-by-play-edits-history-dropdown-wrapper" class="play-by-play-edits-history-dropdown-wrapper">
+							<button id="play-by-play-edits-history-dropdown-button" class="play-by-play-edits-history-dropdown-button" type="button" name="play-by-play-edits-history-dropdown-button" data-button-name="play-by-play-edits-history-dropdown-button" aria-label="Toggle Play by Play History options" title="Toggle Play by Play History options" :aria-expanded="isDescriptionEditsHistoryOpen" @click="handlePlayByPlayEditsHistoryToggle">History</button>
+							<fieldset v-if="isDescriptionEditsHistoryOpen" id="play-by-play-edits-history-options-list" class="play-by-play-edits-history-options-list" aria-label="Play by Play history options" title="Play by Play history options">
+								<button v-for="entry in getPlayByPlayEditsHistory()" :id="`play-by-play-edits-history-option-${entry.savedAtIso}`" :key="entry.savedAtIso" class="play-by-play-edits-history-option-button" type="button" :name="`play-by-play-edits-history-option-${entry.savedAtIso}`" :data-button-name="`play-by-play-edits-history-option-${entry.savedAtIso}`" :aria-label="`Load Play by Play ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" :title="`Load Play by Play ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" @click="handlePlayByPlayEditsHistorySelect(entry)">{{ entry.subjectAbbrev }} {{ entry.savedAtLabel }}</button>
+								<p v-if="getPlayByPlayEditsHistory().length === 0" id="play-by-play-edits-history-empty" class="play-by-play-edits-history-empty">&lt; none &gt;</p>
+							</fieldset>
+						</div>
+						<button
+							v-if="descriptionEditsMode === 'description'"
+							id="description-edits-remove-button"
+							class="description-edits-remove-button"
+							type="button"
+							name="description-edits-remove-button"
+							data-button-name="description-edits-remove-button"
+							aria-label="Remove description"
+							title="Remove description"
+							@click="handleDescriptionEditsRemove"
+						>
+							Remove
+						</button>
+						<button
+							v-else-if="descriptionEditsMode === 'play-by-play'"
+							id="play-by-play-edits-remove-button"
+							class="play-by-play-edits-remove-button"
+							type="button"
+							name="play-by-play-edits-remove-button"
+							data-button-name="play-by-play-edits-remove-button"
+							aria-label="Remove Play by Play"
+							title="Remove Play by Play"
+							@click="handlePlayByPlayEditsRemove"
+						>
+							Remove
+						</button>
 					</div>
-					<div
-						v-else-if="descriptionEditsMode === 'play-by-play'"
-						id="play-by-play-edits-subject-dropdown-wrapper"
-						class="play-by-play-edits-subject-dropdown-wrapper"
-					>
-						<button id="play-by-play-edits-subject-dropdown-button" class="play-by-play-edits-subject-dropdown-button" type="button" name="play-by-play-edits-subject-dropdown-button" data-button-name="play-by-play-edits-subject-dropdown-button" title="Toggle Play by Play Subject options" :aria-expanded="isDescriptionEditsSubjectOpen" @click="handlePlayByPlayEditsSubjectToggle">Subject</button>
-						<fieldset v-if="isDescriptionEditsSubjectOpen" id="play-by-play-edits-subject-options-list" class="play-by-play-edits-subject-options-list" aria-label="Play by Play Subject options" title="Play by Play Subject options">
-							<button v-for="subject in descriptionEditsSubjects" :id="`play-by-play-edits-subject-option-${subject.key}`" :key="subject.key" class="play-by-play-edits-subject-option-button" type="button" :name="`play-by-play-edits-subject-option-${subject.key}`" :data-button-name="`play-by-play-edits-subject-option-${subject.key}`" :aria-label="`Select Play by Play subject ${subject.label}`" :title="`Select Play by Play subject ${subject.label}`" @click="handlePlayByPlayEditsSubjectSelect(subject)">{{ subject.label }}</button>
-						</fieldset>
+					<div id="description-edits-action-buttons" class="description-edits-action-buttons">
+						<button
+							id="description-edits-description-button"
+							class="description-edits-description-button"
+							type="button"
+							name="description-edits-description-button"
+							data-button-name="description-edits-description-button"
+							:aria-pressed="descriptionEditsMode === 'description'"
+							@click="handleDescriptionEditsModeToggle('description')"
+						>
+							Description
+						</button>
+						<button
+							id="description-edits-play-by-play-button"
+							class="description-edits-play-by-play-button"
+							type="button"
+							name="description-edits-play-by-play-button"
+							data-button-name="description-edits-play-by-play-button"
+							:aria-pressed="descriptionEditsMode === 'play-by-play'"
+							@click="handleDescriptionEditsModeToggle('play-by-play')"
+						>
+							Play by Play
+						</button>
 					</div>
-					<div v-if="descriptionEditsMode === 'description'" id="description-edits-block-dropdown-wrapper" class="description-edits-block-dropdown-wrapper">
-						<button id="description-edits-block-dropdown-button" class="description-edits-block-dropdown-button" type="button" name="description-edits-block-dropdown-button" data-button-name="description-edits-block-dropdown-button" title="Toggle Block options" :aria-expanded="isDescriptionEditsBlockOpen" @click="handleDescriptionEditsBlockToggle">Block</button>
-						<fieldset v-if="isDescriptionEditsBlockOpen" id="description-edits-block-options-list" class="description-edits-block-options-list" aria-label="Block options" title="Block options">
-							<button v-for="blockOption in descriptionEditsBlocks" :id="`description-edits-block-option-${blockOption}`" :key="blockOption" class="description-edits-block-option-button" type="button" :name="`description-edits-block-option-${blockOption}`" :data-button-name="`description-edits-block-option-${blockOption}`" :aria-label="`Select ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" :title="`Select ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" @click="handleDescriptionEditsBlockSelect(blockOption)">{{ blockOption === "all" ? "All Blocks" : `Block ${blockOption}` }}</button>
-						</fieldset>
-					</div>
-					<div v-else-if="descriptionEditsMode === 'play-by-play'" id="play-by-play-edits-block-dropdown-wrapper" class="play-by-play-edits-block-dropdown-wrapper">
-						<button id="play-by-play-edits-block-dropdown-button" class="play-by-play-edits-block-dropdown-button" type="button" name="play-by-play-edits-block-dropdown-button" data-button-name="play-by-play-edits-block-dropdown-button" title="Toggle Play by Play Block options" :aria-expanded="isDescriptionEditsBlockOpen" @click="handlePlayByPlayEditsBlockToggle">Block</button>
-						<fieldset v-if="isDescriptionEditsBlockOpen" id="play-by-play-edits-block-options-list" class="play-by-play-edits-block-options-list" aria-label="Play by Play Block options" title="Play by Play Block options">
-							<button v-for="blockOption in descriptionEditsBlocks" :id="`play-by-play-edits-block-option-${blockOption}`" :key="blockOption" class="play-by-play-edits-block-option-button" type="button" :name="`play-by-play-edits-block-option-${blockOption}`" :data-button-name="`play-by-play-edits-block-option-${blockOption}`" :aria-label="`Select Play by Play ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" :title="`Select Play by Play ${blockOption === 'all' ? 'All Blocks' : `Block ${blockOption}`}`" @click="handlePlayByPlayEditsBlockSelect(blockOption)">{{ blockOption === "all" ? "All Blocks" : `Block ${blockOption}` }}</button>
-						</fieldset>
-					</div>
-					<div v-if="descriptionEditsMode === 'description'" id="description-edits-history-dropdown-wrapper" class="description-edits-history-dropdown-wrapper">
-						<button id="description-edits-history-dropdown-button" class="description-edits-history-dropdown-button" type="button" name="description-edits-history-dropdown-button" data-button-name="description-edits-history-dropdown-button" aria-label="Toggle History options" title="Toggle History options" :aria-expanded="isDescriptionEditsHistoryOpen" @click="handleDescriptionEditsHistoryToggle">History</button>
-						<fieldset v-if="isDescriptionEditsHistoryOpen" id="description-edits-history-options-list" class="description-edits-history-options-list" aria-label="Description history options" title="Description history options">
-							<button v-for="entry in getDescriptionEditsHistory()" :id="`description-edits-history-option-${entry.savedAtIso}`" :key="entry.savedAtIso" class="description-edits-history-option-button" type="button" :name="`description-edits-history-option-${entry.savedAtIso}`" :data-button-name="`description-edits-history-option-${entry.savedAtIso}`" :aria-label="`Load description ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" :title="`Load description ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" @click="handleDescriptionEditsHistorySelect(entry)">{{ entry.subjectAbbrev }} {{ entry.savedAtLabel }}</button>
-							<p v-if="getDescriptionEditsHistory().length === 0" id="description-edits-history-empty" class="description-edits-history-empty">&lt; none &gt;</p>
-						</fieldset>
-					</div>
-					<div v-else-if="descriptionEditsMode === 'play-by-play'" id="play-by-play-edits-history-dropdown-wrapper" class="play-by-play-edits-history-dropdown-wrapper">
-						<button id="play-by-play-edits-history-dropdown-button" class="play-by-play-edits-history-dropdown-button" type="button" name="play-by-play-edits-history-dropdown-button" data-button-name="play-by-play-edits-history-dropdown-button" aria-label="Toggle Play by Play History options" title="Toggle Play by Play History options" :aria-expanded="isDescriptionEditsHistoryOpen" @click="handlePlayByPlayEditsHistoryToggle">History</button>
-						<fieldset v-if="isDescriptionEditsHistoryOpen" id="play-by-play-edits-history-options-list" class="play-by-play-edits-history-options-list" aria-label="Play by Play history options" title="Play by Play history options">
-							<button v-for="entry in getPlayByPlayEditsHistory()" :id="`play-by-play-edits-history-option-${entry.savedAtIso}`" :key="entry.savedAtIso" class="play-by-play-edits-history-option-button" type="button" :name="`play-by-play-edits-history-option-${entry.savedAtIso}`" :data-button-name="`play-by-play-edits-history-option-${entry.savedAtIso}`" :aria-label="`Load Play by Play ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" :title="`Load Play by Play ${entry.subjectAbbrev} saved ${entry.savedAtLabel}`" @click="handlePlayByPlayEditsHistorySelect(entry)">{{ entry.subjectAbbrev }} {{ entry.savedAtLabel }}</button>
-							<p v-if="getPlayByPlayEditsHistory().length === 0" id="play-by-play-edits-history-empty" class="play-by-play-edits-history-empty">&lt; none &gt;</p>
-						</fieldset>
-					</div>
-					<button
-						v-if="descriptionEditsMode === 'description'"
-						id="description-edits-remove-button"
-						class="description-edits-remove-button"
-						type="button"
-						name="description-edits-remove-button"
-						data-button-name="description-edits-remove-button"
-						aria-label="Remove description"
-						title="Remove description"
-						@click="handleDescriptionEditsRemove"
-					>
-						Remove
-					</button>
-					<button
-						v-else-if="descriptionEditsMode === 'play-by-play'"
-						id="play-by-play-edits-remove-button"
-						class="play-by-play-edits-remove-button"
-						type="button"
-						name="play-by-play-edits-remove-button"
-						data-button-name="play-by-play-edits-remove-button"
-						aria-label="Remove Play by Play"
-						title="Remove Play by Play"
-						@click="handlePlayByPlayEditsRemove"
-					>
-						Remove
-					</button>
-					</div>
-				<div id="description-edits-action-buttons" class="description-edits-action-buttons">
-					<button
-						id="description-edits-description-button"
-						class="description-edits-description-button"
-						type="button"
-						name="description-edits-description-button"
-						data-button-name="description-edits-description-button"
-						:aria-pressed="descriptionEditsMode === 'description'"
-						@click="handleDescriptionEditsModeToggle('description')"
-					>
-						Description
-					</button>
-					<button
-						id="description-edits-play-by-play-button"
-						class="description-edits-play-by-play-button"
-						type="button"
-						name="description-edits-play-by-play-button"
-						data-button-name="description-edits-play-by-play-button"
-						:aria-pressed="descriptionEditsMode === 'play-by-play'"
-						@click="handleDescriptionEditsModeToggle('play-by-play')"
-					>
-						Play by Play
-					</button>
 				</div>
-				</div>
-				</div>
+			</div>
 		</div>
 		<section
 			v-if="isBlockEditsOpen"

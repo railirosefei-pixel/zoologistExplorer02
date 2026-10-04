@@ -2,15 +2,8 @@
 
 - Whenever a consistency check involving the investigation of stale, unused, duplicate, or contradictory code is run against the program, do not include the "assets" folder in the check. Do not remove the assets directory or anything contained within it
 
-1.) If the "Block Edits" button is depressed it should stay depressed unless it is clicked on a 2nd time.  The mouse cursor hovering over the button should have no effect.  Only the button being clicked should affect this behavior
+1.) If either the Size or Margins buttons or both are activated, and the Fonts button is activated, place the Size and/or Margins menu(s) below the Fonts menu
 
-2.) While the "Block Edits" button is depressed it should glow a very bright green color.  
-
-3.) The Description Edits button should not become undepressed when the mouse cursor is hovering over it.  Only the button being clicked should affect its behavior
-
-
-
-
-
+        
 
 

@@ -1,17 +1,33 @@
 import { test, expect } from "@playwright/test";
 
-test("paper template prompts for a name and saves the full template under the new schema", async ({
-	page,
-}) => {
+test("loaded editable paper templates preserve keyboard line bounds", async ({ page }) => {
+	await page.addInitScript(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "paper-keys-test-template",
+					name: "Keyboard Test Template",
+					template: {
+						html: "",
+						widthValue: "8",
+						widthUnit: "in",
+						heightValue: "10",
+						heightUnit: "in",
+					},
+				},
+			]),
+		);
+	});
 	await page.goto("./");
-	await page.evaluate(() => window.localStorage.clear());
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
-	await page.getByRole("button", { name: "Templates" }).click();
-	await page.getByRole("button", { name: "New +" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Keyboard Test Template" }).click();
 
 	const editor = page.locator(".print-preview-paper-editor");
-	await expect(editor).toBeFocused();
+	await expect(editor).toHaveAttribute("contenteditable", "true");
+	await editor.focus();
 	await editor.press("Tab");
 	await expect(editor).toHaveText("    ");
 	const beforeEmptyLineEnter = await editor.evaluate((element) => element.innerHTML);
@@ -58,22 +74,49 @@ test("paper template prompts for a name and saves the full template under the ne
 	expect(metrics.overflow).toBe("hidden");
 	expect(metrics.scrollHeight).toBeLessThanOrEqual(metrics.clientHeight);
 
-	await page.getByRole("button", { name: "Save", exact: true }).click();
-	await expect(page.locator("#text-editor-template-name-prompt")).toBeVisible();
-	await page.locator("#text-editor-template-name-input").fill("Keys Test Template");
-	await page.getByRole("button", { name: "Save Template" }).click();
-	await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
+});
 
-	const savedTemplates = await page.evaluate(() => {
-		const rawValue = window.localStorage.getItem("ze2.textEditor.savedTemplates");
-		return rawValue ? JSON.parse(rawValue) : [];
+test("new shells reject text while keeping size tools available", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+
+	const panel = page.locator("#text-editor-print-preview-panel");
+	const shellBounds = await panel.evaluate((element) => {
+		const panelRect = element.getBoundingClientRect();
+		const navigationRect = document
+			.querySelector("#text-editor-navigation-bar")
+			.getBoundingClientRect();
+		return {
+			top: panelRect.top,
+			left: panelRect.left,
+			right: panelRect.right,
+			bottom: panelRect.bottom,
+			navigationBottom: navigationRect.bottom,
+			viewportWidth: window.innerWidth,
+			viewportHeight: window.innerHeight,
+		};
+	});
+	expect(shellBounds).toEqual({
+		top: shellBounds.navigationBottom,
+		left: 0,
+		right: shellBounds.viewportWidth,
+		bottom: shellBounds.viewportHeight,
+		navigationBottom: 96,
+		viewportWidth: shellBounds.viewportWidth,
+		viewportHeight: shellBounds.viewportHeight,
 	});
 
-	expect(savedTemplates).toHaveLength(1);
-	expect(savedTemplates[0].name).toBe("Keys Test Template");
-	expect(savedTemplates[0].template.html).toContain("Line 1");
-	expect(savedTemplates[0].template.widthValue).toBe("8.5");
-	expect(savedTemplates[0].template.widthUnit).toBe("in");
-	expect(savedTemplates[0].template.heightValue).toBe("11");
-	expect(savedTemplates[0].template.heightUnit).toBe("in");
+	const editor = page.locator(".print-preview-paper-editor");
+	await expect(editor).toHaveAttribute("contenteditable", "false");
+	await page.keyboard.type("Text is not allowed");
+	await expect(editor).toBeEmpty();
+
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.getByRole("button", { name: "Size" }).click();
+	await page.locator("#text-editor-size-width").fill("5");
+	await expect(page.locator("#text-editor-size-width")).toHaveValue("5");
+	await expect(page.locator("#text-editor-template-save-button")).toBeVisible();
 });

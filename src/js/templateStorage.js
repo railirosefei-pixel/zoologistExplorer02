@@ -12,6 +12,9 @@
  *     widthUnit: "in",
  *     heightValue: "10",
  *     heightUnit: "in",
+ *     marginValues: { top: "0", bottom: "0", left: "0", right: "0" },
+ *     marginVisibility: true,
+ *     isShell: false,
  *     fontFamily: "...",
  *     fontSize: "...",
  *     fontColor: "...",
@@ -86,7 +89,8 @@ export function addSavedTemplate(entry, storage = globalThis.localStorage) {
  * @returns {string}
  */
 export function makeTemplateId() {
-	return `tpl-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+	const randomValue = globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % 9000;
+	return `tpl-${Date.now()}-${randomValue + 1000}`;
 }
 
 /**

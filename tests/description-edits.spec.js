@@ -49,8 +49,6 @@ test("Load buttons match neighboring workflow button geometry and typography", a
 			await page.locator("#description-edits-play-by-play-button").click();
 		}
 		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
-		const comparison = page.locator(`#${prefix}-date-dropdown-button`);
-		const load = page.locator(`#${prefix}-load-button`);
 		const matchedStyles = await page.evaluate(({ comparisonId, loadId }) => {
 			const properties = [
 				"borderRadius",

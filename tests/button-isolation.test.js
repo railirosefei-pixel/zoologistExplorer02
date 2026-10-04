@@ -31,14 +31,41 @@ function collectOpeningTags(source, tagName) {
 
 function collectAttributeValues(source, attributeName) {
 	const escapedAttributeName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	const pattern = new RegExp(`${escapedAttributeName}\\s*=\\s*(["'])(.*?)\\1`, "gs");
+	const pattern = new RegExp(`(?:^|\\s)${escapedAttributeName}\\s*=\\s*(["'])(.*?)\\1`, "gs");
 	return [...source.matchAll(pattern)].map((match) => match[2]);
 }
 
 function collectBoundAttributeValues(source, attributeName) {
 	const escapedAttributeName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	const pattern = new RegExp(`:${escapedAttributeName}\\s*=\\s*(["'])(.*?)\\1`, "gs");
+	const pattern = new RegExp(`(?:^|\\s):${escapedAttributeName}\\s*=\\s*(["'])(.*?)\\1`, "gs");
 	return [...source.matchAll(pattern)].map((match) => match[2]);
+}
+
+function collectBoundClassValues(source, openingTag) {
+	const classBinding = collectBoundAttributeValues(openingTag, "class")[0] ?? "";
+	const inlineClassNames = [...classBinding.matchAll(/["']([A-Za-z_][\w-]*)["']/g)].map(
+		(match) => match[1],
+	);
+	if (inlineClassNames.length > 0) {
+		return inlineClassNames;
+	}
+
+	const classMapName = classBinding.match(/^([A-Za-z_$][\w$]*)\s*\[/)?.[1];
+	if (!classMapName) {
+		return [];
+	}
+
+	const escapedClassMapName = classMapName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const classMap = source.match(
+		new RegExp(`\\bconst\\s+${escapedClassMapName}\\s*=\\s*\\{([\\s\\S]*?)\\n\\};`),
+	)?.[1];
+	if (!classMap) {
+		return [];
+	}
+
+	return [...classMap.matchAll(/:\s*\[([^\]]*)\]/g)].flatMap((match) =>
+		[...match[1].matchAll(/["']([A-Za-z_][\w-]*)["']/g)].map((classMatch) => classMatch[1]),
+	);
 }
 
 function collectButtonRecords(source, filePath) {
@@ -48,7 +75,10 @@ function collectButtonRecords(source, filePath) {
 			collectAttributeValues(openingTag, "id")[0] ??
 			collectBoundAttributeValues(openingTag, "id")[0] ??
 			"",
-		classes: collectAttributeValues(openingTag, "class")[0]?.split(/\s+/).filter(Boolean) ?? [],
+		classes: [
+			...(collectAttributeValues(openingTag, "class")[0]?.split(/\s+/).filter(Boolean) ?? []),
+			...collectBoundClassValues(source, openingTag),
+		],
 		clickHandler: collectAttributeValues(openingTag, "@click")[0] ?? "",
 	}));
 }
@@ -119,6 +149,7 @@ test("buttons keep isolated rendering, style, and functionality ownership", () =
 	});
 	const buttonIds = new Map();
 	const buttonClasses = new Map();
+	const sharedStateClasses = new Set(["text-editor-button--depressed"]);
 
 	for (const button of buttonRecords) {
 		if (!button.id) {
@@ -154,7 +185,7 @@ test("buttons keep isolated rendering, style, and functionality ownership", () =
 	}
 
 	for (const [className, buttons] of buttonClasses) {
-		if (buttons.length > 1) {
+		if (buttons.length > 1 && !sharedStateClasses.has(className)) {
 			findings.push(
 				`button class "${className}" is shared by ${buttons
 					.map((button) => `${button.filePath}#${button.id || "<missing-id>"}`)
@@ -267,7 +298,7 @@ test("daily menu block panels include complete controls and confetti effects", (
 	);
 });
 
-test("text editor size control and template panel are implemented as specified", () => {
+test("text editor size controls and the Tools panel are implemented as specified", () => {
 	const componentSource = fs.readFileSync(
 		path.join(projectRoot, "src", "components", "ParentView.vue"),
 		"utf8",
@@ -276,8 +307,8 @@ test("text editor size control and template panel are implemented as specified",
 
 	assert.match(
 		componentSource,
-		/id="text-editor-template-saved-templates-button"[\s\S]*?>\s*Saved\s*<\/button>/,
-		"The Saved button should have a matching id",
+		/id="text-editor-template-load-button"[\s\S]*?>\s*Load\s*<\/button>/,
+		"The Load button should have a matching id",
 	);
 	assert.match(
 		componentSource,
@@ -287,17 +318,17 @@ test("text editor size control and template panel are implemented as specified",
 	assert.match(
 		componentSource,
 		/id="text-editor-editing-tools-button"[\s\S]*?@click="toggleEditingTools"[\s\S]*?>\s*Tools\s*<\/button>/,
-		"The Templates panel should include a Tools button with a toggle click handler",
+		"The top navigation should include a Tools button with a toggle click handler",
 	);
 	assert.match(
 		componentSource,
-		/id="text-editor-editing-tools-button"[\s\S]*?text-editor-editing-tools-button--unavailable[\s\S]*?text-editor-editing-tools-button--available[\s\S]*?:disabled="!textEditorButtonStates\.printPreview"/,
-		"The Tools button should be disabled without a template and styled by template availability",
+		/id="text-editor-editing-tools-button"[\s\S]*?:aria-pressed="isEditingToolsOpen"[\s\S]*?@click="toggleEditingTools"(?![\s\S]*?:disabled=)/,
+		"The Tools button should toggle independently of paper preview state",
 	);
 	assert.match(
 		componentSource,
-		/if \(buttonName === "printPreview" && !textEditorButtonStates\.value\.printPreview\) \{[\s\S]*?isEditingToolsOpen\.value = false;/,
-		"Closing the paper preview should close the Tools panel",
+		/function handleTextEditorClose\(\) \{(?:(?!isEditingToolsOpen\.value = false;)[\s\S])*?\n\}/,
+		"Closing the Text Editor should not reset the Tools button state",
 	);
 	assert.match(
 		componentSource,
@@ -321,13 +352,18 @@ test("text editor size control and template panel are implemented as specified",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-template-new-button,\s*\.text-editor-editing-tools-button,\s*\.text-editor-size-menu-button\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*40px;/s,
-		"The Tools and Size buttons should share the New + button styling",
+		/\.text-editor-template-load-button,\s*\.text-editor-template-new-button\s*\{[^}]*width:\s*136px;[^}]*height:\s*64px;[^}]*border-radius:\s*999px;[^}]*font-family:\s*"Minecraft2Bold"[^}]*font-size:\s*1rem;[^}]*box-shadow:/s,
+		"Load and New + should retain their navigation button styling",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-size-menu-button\s*\{[^}]*width:\s*50%;[^}]*min-height:\s*40px;/s,
-		"The Size button should be half-width with the shared ribbon height",
+		/\.text-editor-editing-tools-button,\s*\.text-editor-size-menu-button\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*40px;/s,
+		"The Tools and Size buttons should retain the shared ribbon sizing",
+	);
+	assert.match(
+		cssSource,
+		/\.text-editor-size-menu-button,\s*\.text-editor-fonts-button,\s*\.text-editor-margins-button\s*\{[^}]*width:\s*100%;[^}]*height:\s*64px;[^}]*flex:\s*0\s*0\s*64px;[^}]*border-radius:\s*999px;/s,
+		"The Size, Fonts, and Margins buttons should share the template button dimensions and shape",
 	);
 	assert.match(
 		cssSource,
@@ -336,17 +372,17 @@ test("text editor size control and template panel are implemented as specified",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-editing-tools-button--unavailable\s*\{[^}]*color:\s*#a19f9d;[^}]*cursor:\s*not-allowed;/s,
-		"The unavailable Tools button should be grayed out",
+		/\.text-editor-editing-tools-button\.text-editor-editing-tools-button--depressed\.text-editor-navigation-tools-button,\s*\.text-editor-template-load-button\.text-editor-button--depressed,\s*\.text-editor-template-new-button\.text-editor-button--depressed,\s*\.text-editor-grid-button\.text-editor-button--depressed,\s*\.text-editor-calibrate-button\.text-editor-button--depressed\s*\{\s*transform:\s*translateY\(4px\);[^}]*box-shadow:\s*inset 0 3px 6px rgba\(0, 0, 0, 0\.28\),\s*inset 0 -2px 0 rgba\(255, 255, 255, 0\.2\),\s*0 2px 6px rgba\(0, 0, 0, 0\.24\),\s*0 0 12px 4px rgba\(0, 149, 255, 0\.95\),\s*0 0 26px 10px rgba\(0, 122, 255, 0\.7\);/s,
+		"All depressed navigation buttons should share the Tools button's exact transform and shadow",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-editing-tools-button--available\s*\{[^}]*color:\s*#1b1b1b;[^}]*cursor:\s*pointer;/s,
-		"The available Tools button should use the default ribbon text color",
+		/\.text-editor-editing-tools-button\.text-editor-navigation-tools-button:hover\s*\{[^}]*background:\s*linear-gradient\(90deg,\s*#c4e2f7\s*0%,\s*#a6cfee\s*50%,\s*#83b7df\s*100%\);/s,
+		"Hovering the navigation Tools button should preserve its blue gradient instead of turning gray",
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-size-panel\s*\{[^}]*overflow:\s*hidden;[^}]*padding:\s*12px\s*8px;[^}]*gap:\s*8px;/s,
+		/\.text-editor-size-panel\s*\{[^}]*overflow:\s*hidden;[^}]*padding:\s*9px\s+15px;[^}]*gap:\s*8px;/s,
 		"The Size panel should pop out from under the Size button with the required layout",
 	);
 	assert.match(
@@ -356,7 +392,7 @@ test("text editor size control and template panel are implemented as specified",
 	);
 });
 
-test("text editor calibration toggle and navigation gradients match the control sequence", () => {
+test("text editor calibration toggle and navigation gradients match the current palette", () => {
 	const componentSource = fs.readFileSync(
 		path.join(projectRoot, "src", "components", "ParentView.vue"),
 		"utf8",
@@ -375,34 +411,25 @@ test("text editor calibration toggle and navigation gradients match the control 
 	);
 	const expectedButtonGradients = [
 		[
-			"text-editor-templates-button",
-			"linear-gradient\\(90deg,\\s*#65432f\\s+0%,\\s*#8a5c3d\\s+50%,\\s*#5e542f\\s+100%\\)",
-		],
-		[
 			"text-editor-grid-button",
-			"linear-gradient\\(90deg,\\s*#5e542f\\s+0%,\\s*#81733e\\s+50%,\\s*#344d37\\s+100%\\)",
+			"linear-gradient\\(90deg,\\s*#c5e8c1\\s+0%,\\s*#a6d7a2\\s+50%,\\s*#83c28a\\s+100%\\)",
 		],
 		[
 			"text-editor-calibrate-button",
-			"linear-gradient\\(90deg,\\s*#3e3b53\\s+0%,\\s*#57536f\\s+33\\.333%,\\s*#50384d\\s+66\\.667%,\\s*#704f6b\\s+100%\\)",
+			"linear-gradient\\(90deg,\\s*#c4e2f7\\s+0%,\\s*#a6cfee\\s+50%,\\s*#83b7df\\s+100%\\)",
 		],
 	];
 	for (const [buttonClass, gradientPattern] of expectedButtonGradients) {
 		assert.match(
 			cssSource,
 			new RegExp(`\\.${buttonClass}\\s*\\{[^}]*background:\\s*${gradientPattern};`, "s"),
-			`${buttonClass} should use its ordered muted rainbow segment`,
+			`${buttonClass} should use its current ordered gradient`,
 		);
 	}
 	assert.match(
 		cssSource,
 		/\.text-editor-calibrate-button\s*\{[^}]*width:\s*136px;[^}]*height:\s*64px;/s,
 		"The Calibrate button should retain its existing size",
-	);
-	assert.match(
-		cssSource,
-		/\.text-editor-calibrate-button\.text-editor-button--depressed\s*\{[^}]*filter:\s*brightness\(1\.2\)\s*drop-shadow\(0\s+0\s+12px\s*#704f6b\);/s,
-		"The active Calibrate button should use a muted violet pressed glow",
 	);
 });
 

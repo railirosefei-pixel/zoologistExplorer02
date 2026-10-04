@@ -567,8 +567,8 @@ onMounted(() => {
 			<div
 				v-if="
 					activeStudentMenu === 'progress' &&
-					explorerPositionsModeActive &&
-					isSaveModeActive
+						explorerPositionsModeActive &&
+						isSaveModeActive
 				"
 				id="student-progress-save-grid"
 				class="student-progress-save-grid"
