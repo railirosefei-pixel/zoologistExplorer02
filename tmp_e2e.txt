@@ -1,0 +1,73 @@
+﻿node.exe : npm notice run zoologistexplorer02@1.0.0 npx
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\jason\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run ...rer02@1.0.0 npx 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice run playwright test tests/font-style-typing.spec.js 
+tests/saved-templates.spec.js tests/paper-template-keys.spec.js 
+tests/smoke.spec.js
+
+Running 87 tests using 8 workers
+
+  Γ£ô   4 [chromium] ΓÇ║ tests\font-style-typing.spec.js:72:1 ΓÇ║ font selected before loading a template applies to new text (2.3s)
+  Γ£ÿ   1 [chromium] ΓÇ║ tests\font-style-typing.spec.js:100:1 ΓÇ║ repeated letters keep stable font features across every font style (30.0s)
+  Γ£ÿ   2 [chromium] ΓÇ║ tests\font-style-typing.spec.js:145:1 ΓÇ║ font styles affect highlighted text and text typed afterward only (30.0s)
+  Γ£ÿ   3 [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open (30.0s)
+  Γ£ÿ   6 [chromium] ΓÇ║ tests\font-style-typing.spec.js:260:1 ΓÇ║ Font Size stays depressed until toggled off (30.0s)
+  Γ£ÿ   5 [chromium] ΓÇ║ tests\font-style-typing.spec.js:231:1 ΓÇ║ Font Styles stays depressed with the Font Color glow until toggled off (30.0s)
+  Γ£ÿ   8 [chromium] ΓÇ║ tests\font-style-typing.spec.js:281:1 ΓÇ║ Font Size menu matches Font Color width and label inset (30.0s)
+  Γ£ÿ   7 [chromium] ΓÇ║ tests\font-style-typing.spec.js:322:1 ΓÇ║ Font Size menu sits below the active Font Styles or Font Color menu (30.0s)
+  Γ£ÿ   9 [chromium] ΓÇ║ tests\font-style-typing.spec.js:362:1 ΓÇ║ Font Size input accepts at most three digits (30.1s)
+  Γ£ÿ  10 [chromium] ΓÇ║ tests\font-style-typing.spec.js:461:1 ΓÇ║ font style buttons use the requested 16px spacing and centered text (30.0s)
+  Γ£ÿ  11 [chromium] ΓÇ║ tests\font-style-typing.spec.js:416:1 ΓÇ║ Font Size changes selected text and future typing only (30.0s)
+  Γ£ÿ  12 [chromium] ΓÇ║ tests\font-style-typing.spec.js:376:1 ΓÇ║ Font Size Commit matches Font Color Commit styling (30.0s)
+  Γ£ÿ  13 [chromium] ΓÇ║ tests\font-style-typing.spec.js:662:1 ΓÇ║ alignment changes the current line and preserves its caret (30.0s)
+  Γ£ÿ  14 [chromium] ΓÇ║ tests\font-style-typing.spec.js:536:1 ΓÇ║ font color picker commits a color that persists across font styles (30.0s)
+  Γ£ÿ  15 [chromium] ΓÇ║ tests\font-style-typing.spec.js:746:1 ΓÇ║ selected alignment applies to loaded and newly created templates (30.0s)
+  Γ£ÿ  16 [chromium] ΓÇ║ tests\font-style-typing.spec.js:703:1 ΓÇ║ alignment moves selected text without changing surrounding text (30.0s)
+  Γ£ÿ  17 [chromium] ΓÇ║ tests\font-style-typing.spec.js:806:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow (30.0s)
+  Γ£ÿ  25 [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls (983ms)
+  Γ£ô  23 [chromium] ΓÇ║ tests\saved-templates.spec.js:154:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation (2.8s)
+  Γ£ô  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:335:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (966ms)
+  Γ£ô  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:420:1 ΓÇ║ loading saved documents preserves their settings and shell mode (1.5s)
+  Γ£ô  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:563:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (1.0s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:728:1 ΓÇ║ shell save prompt identifies the name as a shell (356ms)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:743:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (444ms)
+  Γ£ô  32 [chromium] ΓÇ║ tests\smoke.spec.js:3:1 ΓÇ║ home page loads and renders the app shell (130ms)
+  Γ£ô  33 [chromium] ΓÇ║ tests\smoke.spec.js:19:1 ΓÇ║ Student button opens the full-screen menu and Back returns home (294ms)
+  Γ£ô  34 [chromium] ΓÇ║ tests\smoke.spec.js:39:1 ΓÇ║ Parent Block Edits shows a Monday through Friday weekly panel set (754ms)
+  Γ£ô  35 [chromium] ΓÇ║ tests\smoke.spec.js:67:1 ΓÇ║ Text Editor Back returns to the Parent menu (261ms)
+  Γ£ô  36 [chromium] ΓÇ║ tests\smoke.spec.js:78:1 ΓÇ║ Text Editor prints only the selected paper and respects the Grid Printable toggle (811ms)
+  Γ£ô  37 [chromium] ΓÇ║ tests\smoke.spec.js:233:1 ΓÇ║ Parent menu includes a Games side panel and toggling buttons (530ms)
+  Γ£ô  38 [chromium] ΓÇ║ tests\smoke.spec.js:267:1 ΓÇ║ Math place-value game has ten self-paced levels and supports retry and replay (4.1s)
+  Γ£ô  39 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: place-names teaches its topic through all ten levels (4.1s)
+  Γ£ô  40 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: digit-values teaches its topic through all ten levels (4.1s)
+  Γ£ô  41 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: place-relations teaches its topic through all ten levels (4.1s)
+  Γ£ÿ  18 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds (30.0s)
+  Γ£ÿ  19 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:79:1 ΓÇ║ new shells reject text while keeping size tools available (30.0s)
+  Γ£ÿ  20 [chromium] ΓÇ║ tests\saved-templates.spec.js:3:1 ΓÇ║ New and Load menus reject conflicting activation with an illegal-action sound (30.0s)
+  Γ£ÿ  21 [chromium] ΓÇ║ tests\saved-templates.spec.js:69:1 ΓÇ║ New menu matches the Load menu position with separate identifiers (30.0s)
+  Γ£ÿ  22 [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode (30.0s)
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:192:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:375:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ô  49 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: round-any teaches its topic through all ten levels (4.6s)
+  Γ£ô  50 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: round-puzzles teaches its topic through all ten levels (4.1s)
+  Γ£ô  51 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: add-numbers teaches its topic through all ten levels (3.9s)
+  Γ£ô  52 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: add-word teaches its topic through all ten levels (4.1s)
+  Γ£ô  53 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: subtract-numbers teaches its topic through all ten levels (4.1s)
+  Γ£ÿ  42 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: place-conversion teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  43 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: number-words teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  44 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: expanded-form teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  45 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: compare-numbers teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  47 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: order-numbers teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  46 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: compare-tables teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  48 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: round-place teaches its topic through all ten levels (30.1s)
+  Γ£ô  56 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: sum-difference teaches its topic through all ten levels (5.6s)
+  Γ£ô  60 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-differences-word teaches its topic through all ten levels (5.4s)
+  Γ£ô  57 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums teaches its topic through all ten levels (5.8s)
+  Γ£ô  59 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-differences teaches its topic through all ten levels (5.6s)
+  Γ£ô  58 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums-word teaches its topic through all ten levels (5.8s)
+  Γ£ô  61 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: multi-step-word teaches its topic through all ten levels (5.3s)

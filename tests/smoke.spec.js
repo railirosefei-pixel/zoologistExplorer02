@@ -96,7 +96,7 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 			const homeBounds = document.querySelector(homeSelector).getBoundingClientRect();
 			return homeBounds.left - printBounds.right;
 		}, selector);
-	expect(await measureHomeGap("#text-editor-home-button")).toBe(16);
+	expect(await measureHomeGap("#text-editor-home-button")).toBe(76);
 	const measureVerticalCenterDifference = (selector) =>
 		printButton.evaluate((button, targetSelector) => {
 			const printBounds = button.getBoundingClientRect();
@@ -699,6 +699,52 @@ test("Text Editor calibration bar converts pixels to calibrated ruler units", as
 	await page.getByRole("button", { name: "Text Editor" }).click();
 	await page.getByRole("button", { name: "Calibrate" }).click();
 	await expect(counter).toContainText("10.00 cm");
+});
+
+test("Alignment menu stays 16px below its button", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+	await page.getByRole("button", { name: "Tools" }).click();
+
+	const alignmentButton = page.locator("#text-editor-alignment-button");
+	const alignmentPanel = page.locator("#text-editor-alignment-panel");
+	const menuButtons = {
+		size: page.locator("#text-editor-size-menu-button"),
+		margins: page.locator("#text-editor-margins-button"),
+		fonts: page.locator("#text-editor-fonts-button"),
+	};
+	const menuStates = [
+		[],
+		["size"],
+		["margins"],
+		["fonts"],
+		["size", "margins"],
+		["size", "fonts"],
+		["margins", "fonts"],
+		["size", "margins", "fonts"],
+	];
+	let activeMenus = new Set();
+	await alignmentButton.click();
+
+	for (const menuState of menuStates) {
+		const nextMenus = new Set(menuState);
+		for (const menuName of new Set([...activeMenus, ...nextMenus])) {
+			if (activeMenus.has(menuName) !== nextMenus.has(menuName)) {
+				await menuButtons[menuName].click();
+			}
+		}
+		activeMenus = nextMenus;
+
+		const gap = await page.evaluate(() => {
+			const button = document.querySelector("#text-editor-alignment-button");
+			const panel = document.querySelector("#text-editor-alignment-panel");
+			return panel.getBoundingClientRect().top - button.getBoundingClientRect().bottom;
+		});
+		expect(gap).toBeCloseTo(16, 3);
+	}
 });
 
 test("Fonts menu stays above active Size and Margins menus", async ({ page }) => {
@@ -1626,6 +1672,90 @@ test("Text Editor Home and Back buttons sit inside the navigation bar", async ({
 	});
 });
 
+test("Grid menu nudges the grid by the selected pixel amount", async ({ page }) => {
+	await page.setViewportSize({ width: 2560, height: 1080 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+	await page.getByRole("button", { name: "Grid", exact: true }).click();
+
+	const headingLayout = await page.evaluate(() => {
+		const heading = document.querySelector("#grid-menu-position-heading");
+		const stepSelect = document.querySelector("#grid-move-step");
+		const stepUnit = document.querySelector("#grid-move-unit");
+		const alignment = document.querySelector("#grid-menu-alignment-heading");
+		const headingStyles = getComputedStyle(heading);
+		const alignmentStyles = getComputedStyle(alignment);
+		return {
+			text: heading.textContent.trim(),
+			inAlignmentControls: heading.closest(".grid-menu-alignment-controls") !== null,
+			selectorGap: stepSelect.getBoundingClientRect().left - heading.getBoundingClientRect().right,
+			options: [...stepSelect.options]
+				.filter((option) => !option.disabled)
+				.map((option) => option.textContent.trim()),
+			unitText: stepUnit.textContent.trim(),
+			unitFollowsSelector: stepSelect.nextElementSibling === stepUnit,
+			matchingStyle: ["color", "fontFamily", "fontSize", "fontWeight", "lineHeight"].every(
+				(property) => headingStyles[property] === alignmentStyles[property],
+			),
+		};
+	});
+	expect(headingLayout.text).toBe("Grid Position");
+	expect(headingLayout.inAlignmentControls).toBe(true);
+	expect(headingLayout.selectorGap).toBe(16);
+	expect(headingLayout.options).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
+	expect(headingLayout.unitText).toBe("px");
+	expect(headingLayout.unitFollowsSelector).toBe(true);
+	expect(headingLayout.matchingStyle).toBe(true);
+
+	await page.locator("#grid-applied-button").click();
+	const grid = page.locator("#print-preview-grid");
+	await expect(grid).toBeVisible();
+	const gridMoveStep = page.locator("#grid-move-step");
+	await expect(gridMoveStep.locator("option")).toHaveCount(11);
+	await expect(gridMoveStep).toHaveValue("Select");
+	const directionGroup = page.locator("#grid-menu-move-directions");
+	await expect(directionGroup).toBeHidden();
+	await gridMoveStep.selectOption("1");
+	await expect(directionGroup).toBeVisible();
+	await expect(directionGroup.locator("button")).toHaveText(["Up", "Down", "Left", "Right"]);
+	const buttonPositions = await directionGroup.locator("button").evaluateAll((buttons) =>
+		buttons.map((button) => {
+			const { left, top } = button.getBoundingClientRect();
+			return { left, top };
+		}),
+	);
+	expect(new Set(buttonPositions.map(({ top }) => top)).size).toBe(1);
+	expect(buttonPositions.map(({ left }) => left)).toEqual(
+		[...buttonPositions.map(({ left }) => left)].sort((left, right) => left - right),
+	);
+	const gridPositionGroup = grid.locator("g");
+	const readGridOffset = async () =>
+		gridPositionGroup.evaluate((group) => {
+			const match = group.getAttribute("transform").match(/translate\(([-\d.]+) ([-\d.]+)\)/);
+			return { x: Number(match[1]), y: Number(match[2]) };
+		});
+	const initialGridOffset = await readGridOffset();
+	await gridMoveStep.selectOption("10");
+	await page.locator("#grid-move-right-button").click();
+	await page.locator("#grid-move-right-button").click();
+	const afterRepeatedRightNudges = await readGridOffset();
+	expect(afterRepeatedRightNudges.x).toBe(initialGridOffset.x + 20);
+	expect(afterRepeatedRightNudges.y).toBe(initialGridOffset.y);
+	await page.locator("#grid-move-up-button").click();
+	const afterUpNudge = await readGridOffset();
+	expect(afterUpNudge.y).toBe(initialGridOffset.y - 10);
+	await gridMoveStep.selectOption("1");
+	await page.locator("#grid-move-down-button").click();
+	await page.locator("#grid-move-left-button").click();
+	await page.locator("#grid-move-left-button").click();
+	const afterSmallNudges = await readGridOffset();
+	expect(afterSmallNudges.x).toBe(initialGridOffset.x + 18);
+	expect(afterSmallNudges.y).toBe(initialGridOffset.y - 9);
+});
+
 test("Text Editor navigation controls stay aligned with the New menu", async ({ page }) => {
 	await page.setViewportSize({ width: 1920, height: 1080 });
 	await page.goto("./");
@@ -1754,7 +1884,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	});
 	expect(gridAlignmentLayout.leftInset).toBe(16);
 	expect(gridAlignmentLayout.gaps).toEqual([16, 16]);
-	expect(gridAlignmentLayout.sizeControlsGap).toBe(16);
+	expect(gridAlignmentLayout.sizeControlsGap).toBe(76);
 	expect(gridAlignmentLayout.buttonHeights).toEqual(Array(9).fill(24));
 	expect(gridAlignmentLayout.fontSizes).toEqual(Array(9).fill("12px"));
 	expect(new Set(gridAlignmentLayout.buttonTops.slice(0, 3)).size).toBe(1);
@@ -1764,8 +1894,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(gridAlignmentLayout.buttonTops[6]).toBe(gridAlignmentLayout.buttonTops[5]);
 	expect(gridAlignmentLayout.buttonTops[7]).toBe(gridAlignmentLayout.buttonBottoms[5] + 16);
 	expect(gridAlignmentLayout.buttonTops[8]).toBe(gridAlignmentLayout.buttonTops[7]);
-	expect(new Set(gridAlignmentLayout.buttonWidths).size).toBe(1);
-	expect(gridAlignmentLayout.buttonWidths).toEqual(Array(9).fill(80));
+	expect(gridAlignmentLayout.buttonWidths).toEqual([80, 80, 80, 80, 80, 120, 120, 80, 80]);
 	expect(gridAlignmentLayout.backgroundColors).toEqual(Array(9).fill("rgb(255, 48, 48)"));
 	expect(gridAlignmentLayout.borderRadii).toEqual([
 		gridAlignmentLayout.referenceBorderRadius,
@@ -1842,6 +1971,15 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	const applyToMarginsButton = page.locator("#grid-apply-to-margins-button");
 	const rowsAmount = page.locator("#grid-rows-amount");
 	const columnsAmount = page.locator("#grid-columns-amount");
+	await expect(rowsAmount).toBeVisible();
+	await expect(columnsAmount).toBeVisible();
+	const amountInputEdges = await page.evaluate(() => {
+		const rows = document.querySelector("#grid-rows-amount").getBoundingClientRect();
+		const columns = document.querySelector("#grid-columns-amount").getBoundingClientRect();
+		return { rowsLeft: rows.left, rowsRight: rows.right, columnsLeft: columns.left, columnsRight: columns.right };
+	});
+	expect(amountInputEdges.rowsLeft).toBe(amountInputEdges.columnsLeft);
+	expect(amountInputEdges.rowsRight).toBe(amountInputEdges.columnsRight);
 	const gridShapesList = page.locator("#grid-menu-shapes-list");
 	const gridShapeCommitButton = page.locator("#grid-sides-commit-button");
 	await expect(page.locator("#grid-sides-label, #grid-sides-input")).toHaveCount(0);
@@ -1889,7 +2027,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(gridHeadingLayout.linesLeftOffset).toBe(16);
 	expect(gridHeadingLayout.shapesLeftOffset).toBe(16);
 	expect(gridHeadingLayout.headingsTopOffset).toBe(0);
-	expect(gridHeadingLayout.headingsHorizontalGap).toBe(125);
+	expect(gridHeadingLayout.headingsHorizontalGap).toBe(185);
 	expect(gridHeadingLayout.sizeDimensionsGap).toBe(16);
 	expect(gridHeadingLayout.shapesGap).toBeGreaterThan(0);
 	expect(gridHeadingLayout.linesTextAlign).toBe("left");

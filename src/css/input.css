@@ -1491,13 +1491,13 @@ body {
 .grid-menu-control-headings {
 	display: grid;
 	grid-template-columns: max-content max-content;
-	column-gap: 125px;
+	column-gap: 185px;
 }
 
 .grid-menu-control-columns {
 	display: grid;
 	grid-template-columns: max-content max-content;
-	column-gap: 16px;
+	column-gap: 76px;
 }
 
 .grid-menu-alignment-heading {
@@ -1615,7 +1615,8 @@ body {
 }
 
 .grid-menu-alignment-heading,
-.grid-menu-lines-heading {
+.grid-menu-lines-heading,
+.grid-menu-position-heading {
 	color: #000;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 22pt;
@@ -1629,6 +1630,61 @@ body {
 	width: 298px;
 	margin-top: 35px;
 	text-align: left;
+}
+
+.grid-menu-position-heading {
+	width: max-content;
+	margin: 0;
+	text-align: left;
+}
+
+.grid-menu-position-picker {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.grid-menu-position-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.grid-menu-position-step-select {
+	box-sizing: border-box;
+	min-width: 72px;
+	height: 28px;
+	padding: 2px 4px;
+	border: 1px solid #8ba7c3;
+	border-radius: 2px;
+	background: #fff;
+	color: #1b1b1b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.grid-menu-position-directions {
+	display: flex;
+	gap: 8px;
+}
+
+.grid-menu-position-button {
+	min-width: 56px;
+	height: 28px;
+	padding: 0 8px;
+	border: 1px solid #00c832;
+	border-radius: 4px;
+	background: #00ff40;
+	color: #003d10;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.875rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.grid-menu-position-button:active {
+	transform: translateY(2px);
 }
 
 .grid-menu-printable-button {
@@ -1872,6 +1928,16 @@ body {
 .grid-menu-control-row--amount,
 .grid-menu-control-row--margins {
 	margin-top: 8px;
+}
+
+.grid-menu-control-row--amount {
+	display: grid;
+	grid-template-columns: 144px 72px;
+	align-items: start;
+}
+
+.grid-menu-control-row--amount > .grid-menu-control-label {
+	white-space: nowrap;
 }
 
 .grid-menu-control-label {
@@ -2271,7 +2337,7 @@ body {
 
 .text-editor-alignment-panel {
 	position: absolute;
-	top: calc(100% + 32px);
+	top: calc(100% + 20px);
 	left: -16px;
 	z-index: 20;
 	display: flex;
@@ -2297,11 +2363,20 @@ body {
 	top: calc(100% + 127.1875px);
 }
 
+.text-editor-alignment-panel--below-size {
+	top: calc(100% + 211.1875px);
+}
+
 .text-editor-alignment-button--below-margins,
 .text-editor-alignment-button--below-fonts,
 .text-editor-alignment-panel--below-margins,
 .text-editor-alignment-panel--below-fonts {
 	top: calc(100% + 304px);
+}
+
+.text-editor-alignment-panel--below-margins,
+.text-editor-alignment-panel--below-fonts {
+	top: calc(100% + 388px);
 }
 
 .text-editor-alignment-button--below-size-and-margins,
@@ -2311,14 +2386,27 @@ body {
 	top: calc(100% + 399.1875px);
 }
 
+.text-editor-alignment-panel--below-size-and-margins,
+.text-editor-alignment-panel--below-fonts-and-size {
+	top: calc(100% + 483.1875px);
+}
+
 .text-editor-alignment-button--below-fonts-and-margins,
 .text-editor-alignment-panel--below-fonts-and-margins {
 	top: calc(100% + 576px);
 }
 
+.text-editor-alignment-panel--below-fonts-and-margins {
+	top: calc(100% + 660px);
+}
+
 .text-editor-alignment-button--below-all,
 .text-editor-alignment-panel--below-all {
 	top: calc(100% + 671.1875px);
+}
+
+.text-editor-alignment-panel--below-all {
+	top: calc(100% + 755.1875px);
 }
 
 .text-editor-font-styles-menu {

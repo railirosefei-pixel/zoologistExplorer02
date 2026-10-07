@@ -1,0 +1,1501 @@
+﻿node.exe : npm notice run zoologistexplorer02@1.0.0 npx
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\jason\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run ...rer02@1.0.0 npx 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice run playwright test tests/font-style-typing.spec.js 
+tests/saved-templates.spec.js tests/smoke.spec.js 
+tests/paper-template-keys.spec.js
+
+Running 87 tests using 8 workers
+
+  Γ£ô   2 [chromium] ΓÇ║ tests\font-style-typing.spec.js:72:1 ΓÇ║ font selected before loading a template applies to new text (1.5s)
+  Γ£ÿ   1 [chromium] ΓÇ║ tests\font-style-typing.spec.js:231:1 ΓÇ║ Font Styles stays depressed with the Font Color glow until toggled off (30.0s)
+  Γ£ÿ   3 [chromium] ΓÇ║ tests\font-style-typing.spec.js:260:1 ΓÇ║ Font Size stays depressed until toggled off (30.0s)
+  Γ£ÿ   5 [chromium] ΓÇ║ tests\font-style-typing.spec.js:145:1 ΓÇ║ font styles affect highlighted text and text typed afterward only (30.0s)
+  Γ£ÿ   4 [chromium] ΓÇ║ tests\font-style-typing.spec.js:281:1 ΓÇ║ Font Size menu matches Font Color width and label inset (30.0s)
+  Γ£ÿ   8 [chromium] ΓÇ║ tests\font-style-typing.spec.js:322:1 ΓÇ║ Font Size menu sits below the active Font Styles or Font Color menu (30.0s)
+  Γ£ÿ   6 [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open (31.1s)
+  Γ£ÿ   7 [chromium] ΓÇ║ tests\font-style-typing.spec.js:100:1 ΓÇ║ repeated letters keep stable font features across every font style (31.1s)
+  Γ£ÿ   9 [chromium] ΓÇ║ tests\font-style-typing.spec.js:362:1 ΓÇ║ Font Size input accepts at most three digits (30.0s)
+  Γ£ÿ  11 [chromium] ΓÇ║ tests\font-style-typing.spec.js:416:1 ΓÇ║ Font Size changes selected text and future typing only (30.0s)
+  Γ£ÿ  10 [chromium] ΓÇ║ tests\font-style-typing.spec.js:376:1 ΓÇ║ Font Size Commit matches Font Color Commit styling (30.0s)
+  Γ£ÿ  12 [chromium] ΓÇ║ tests\font-style-typing.spec.js:461:1 ΓÇ║ font style buttons use the requested 16px spacing and centered text (30.0s)
+  Γ£ÿ  13 [chromium] ΓÇ║ tests\font-style-typing.spec.js:536:1 ΓÇ║ font color picker commits a color that persists across font styles (30.0s)
+  Γ£ÿ  14 [chromium] ΓÇ║ tests\font-style-typing.spec.js:662:1 ΓÇ║ alignment changes the current line and preserves its caret (30.0s)
+  Γ£ÿ  15 [chromium] ΓÇ║ tests\font-style-typing.spec.js:703:1 ΓÇ║ alignment moves selected text without changing surrounding text (30.0s)
+  Γ£ÿ  16 [chromium] ΓÇ║ tests\font-style-typing.spec.js:746:1 ΓÇ║ selected alignment applies to loaded and newly created templates (30.0s)
+  Γ£ÿ  17 [chromium] ΓÇ║ tests\font-style-typing.spec.js:806:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow (30.0s)
+  Γ£ô  20 [chromium] ΓÇ║ tests\saved-templates.spec.js:3:1 ΓÇ║ New and Load menus reject conflicting activation with an illegal-action sound (2.7s)
+  Γ£ô  19 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:79:1 ΓÇ║ new shells reject text while keeping size tools available (2.8s)
+  Γ£ô  21 [chromium] ΓÇ║ tests\saved-templates.spec.js:69:1 ΓÇ║ New menu matches the Load menu position with separate identifiers (2.7s)
+  Γ£ÿ  22 [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode (2.6s)
+  Γ£ÿ  25 [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:728:1 ΓÇ║ shell save prompt identifies the name as a shell (1.2s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:375:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (1.7s)
+  Γ£ô  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:335:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (1.8s)
+  Γ£ô  33 [chromium] ΓÇ║ tests\smoke.spec.js:3:1 ΓÇ║ home page loads and renders the app shell (1.0s)
+  Γ£ô  32 [chromium] ΓÇ║ tests\smoke.spec.js:19:1 ΓÇ║ Student button opens the full-screen menu and Back returns home (1.4s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:743:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ô  35 [chromium] ΓÇ║ tests\smoke.spec.js:67:1 ΓÇ║ Text Editor Back returns to the Parent menu (315ms)
+  Γ£ô  34 [chromium] ΓÇ║ tests\smoke.spec.js:39:1 ΓÇ║ Parent Block Edits shows a Monday through Friday weekly panel set (766ms)
+  Γ£ô  37 [chromium] ΓÇ║ tests\smoke.spec.js:233:1 ΓÇ║ Parent menu includes a Games side panel and toggling buttons (511ms)
+  Γ£ô  36 [chromium] ΓÇ║ tests\smoke.spec.js:78:1 ΓÇ║ Text Editor prints only the selected paper and respects the Grid Printable toggle (799ms)
+  Γ£ô  38 [chromium] ΓÇ║ tests\smoke.spec.js:267:1 ΓÇ║ Math place-value game has ten self-paced levels and supports retry and replay (4.2s)
+  Γ£ô  39 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: place-names teaches its topic through all ten levels (4.1s)
+  Γ£ô  40 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: digit-values teaches its topic through all ten levels (4.1s)
+  Γ£ô  41 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: place-relations teaches its topic through all ten levels (4.1s)
+  Γ£ô  42 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: place-conversion teaches its topic through all ten levels (4.1s)
+  Γ£ô  43 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: expanded-form teaches its topic through all ten levels (4.8s)
+  Γ£ô  44 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: number-words teaches its topic through all ten levels (4.1s)
+  Γ£ô  45 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: compare-numbers teaches its topic through all ten levels (4.0s)
+  Γ£ô  46 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: compare-tables teaches its topic through all ten levels (4.0s)
+  Γ£ô  48 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: round-place teaches its topic through all ten levels (4.1s)
+  Γ£ô  49 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: round-any teaches its topic through all ten levels (4.0s)
+  Γ£ô  47 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: order-numbers teaches its topic through all ten levels (5.4s)
+  Γ£ô  50 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: round-puzzles teaches its topic through all ten levels (4.0s)
+  Γ£ô  51 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: add-numbers teaches its topic through all ten levels (3.7s)
+  Γ£ô  52 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: add-word teaches its topic through all ten levels (4.1s)
+  Γ£ÿ  18 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds (30.0s)
+  Γ£ÿ  23 [chromium] ΓÇ║ tests\saved-templates.spec.js:154:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation (30.0s)
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:192:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:420:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:563:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+  Γ£ô  59 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-differences teaches its topic through all ten levels (4.9s)
+  Γ£ô  60 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-differences-word teaches its topic through all ten levels (4.5s)
+  Γ£ô  61 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: multi-step-word teaches its topic through all ten levels (4.2s)
+  Γ£ô  62 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: equation-word teaches its topic through all ten levels (4.5s)
+  Γ£ÿ  53 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: subtract-numbers teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  54 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: subtract-word teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  55 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: compare-word teaches its topic through all ten levels (30.0s)
+  Γ£ô  65 [chromium] ΓÇ║ tests\smoke.spec.js:511:2 ΓÇ║ Parent math thumbnails have exact dimensions and gaps at 375px (2.0s)
+  Γ£ô  66 [chromium] ΓÇ║ tests\smoke.spec.js:559:2 ΓÇ║ Student math thumbnails have exact dimensions and gaps at 1280px (1.6s)
+  Γ£ô  67 [chromium] ΓÇ║ tests\smoke.spec.js:559:2 ΓÇ║ Student math thumbnails have exact dimensions and gaps at 375px (837ms)
+  Γ£ÿ  70 [chromium] ΓÇ║ tests\smoke.spec.js:761:1 ΓÇ║ Fonts menu stays above active Size and Margins menus (368ms)
+  Γ£ÿ  56 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: sum-difference teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  57 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  58 [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums-word teaches its topic through all ten levels (30.0s)
+  Γ£ÿ  71 [chromium] ΓÇ║ tests\smoke.spec.js:798:1 ΓÇ║ Size menu defaults to inches for both dimensions (2.0s)
+  Γ£ÿ  72 [chromium] ΓÇ║ tests\smoke.spec.js:848:1 ΓÇ║ Margins menu matches the Tools frame below Tools or Size (1.6s)
+  Γ£ô  74 [chromium] ΓÇ║ tests\smoke.spec.js:948:1 ΓÇ║ Margins inset the selected editable template (933ms)
+  Γ£ô  77 [chromium] ΓÇ║ tests\smoke.spec.js:1063:1 ΓÇ║ October 2026 is first and hides Back without moving Calendar or Forward (666ms)
+  Γ£ô  75 [chromium] ΓÇ║ tests\smoke.spec.js:1088:1 ΓÇ║ December 2027 hides Forward without moving Back or Calendar (1.4s)
+  Γ£ÿ  76 [chromium] ΓÇ║ tests\smoke.spec.js:1013:1 ΓÇ║ Print Preview renders the paper template at the Size menu dimensions (981ms)
+  Γ£ÿ  68 [chromium] ΓÇ║ tests\smoke.spec.js:594:1 ΓÇ║ Text Editor calibration bar keeps its width and anchored resize behavior (4.5s)
+  Γ£ô  79 [chromium] ΓÇ║ tests\smoke.spec.js:1154:1 ΓÇ║ Student sidebar includes the full button set (1.4s)
+  Γ£ô  82 [chromium] ΓÇ║ tests\smoke.spec.js:1310:1 ΓÇ║ TNT-visible day cell is disabled until its texture has cleared (334ms)
+  Γ£ô  80 [chromium] ΓÇ║ tests\smoke.spec.js:1165:1 ΓÇ║ Rewards button opens full-screen rewards page (1.5s)
+  Γ£ô  83 [chromium] ΓÇ║ tests\smoke.spec.js:1336:1 ΓÇ║ TNT explosion remains scoped to its clicked month and day cell (351ms)
+  Γ£ô  84 [chromium] ΓÇ║ tests\smoke.spec.js:1353:1 ΓÇ║ day numbers stay fully inside the upper-left corner of each calendar box (227ms)
+  Γ£ô  81 [chromium] ΓÇ║ tests\smoke.spec.js:1276:1 ΓÇ║ Student sidebar navigation selects its destination and returns from Games (1.8s)
+  Γ£ô  85 [chromium] ΓÇ║ tests\smoke.spec.js:1384:1 ΓÇ║ Text Editor navigation bar has 16px button clearance and no red edge (275ms)
+  Γ£ÿ  86 [chromium] ΓÇ║ tests\smoke.spec.js:1429:1 ΓÇ║ Text Editor Home and Back buttons sit inside the navigation bar (299ms)
+  Γ£ÿ  78 [chromium] ΓÇ║ tests\smoke.spec.js:1117:1 ΓÇ║ Back and Home buttons depress on click and glow while held (5.4s)
+  Γ£ÿ  63 [chromium] ΓÇ║ tests\smoke.spec.js:424:1 ΓÇ║ Math gold coin progress, celebration and first-only rewards (30.0s)
+  Γ£ÿ  64 [chromium] ΓÇ║ tests\smoke.spec.js:511:2 ΓÇ║ Parent math thumbnails have exact dimensions and gaps at 1280px (30.0s)
+  Γ£ÿ  69 [chromium] ΓÇ║ tests\smoke.spec.js:735:1 ΓÇ║ Text Editor calibration bar converts pixels to calibrated ruler units (30.0s)
+  Γ£ÿ  73 [chromium] ΓÇ║ tests\smoke.spec.js:876:1 ΓÇ║ Margins create numeric paper insets, toggle guides, and restore with saved shells (30.0s)
+  Γ£ÿ  87 [chromium] ΓÇ║ tests\smoke.spec.js:1461:1 ΓÇ║ Text Editor navigation controls stay aligned with the New menu (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-panel').getByRole('button', { name: 'Font Styles', exact: true })
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="styles" id="text-editor-font-styles-button" class="text-editor-font-styles-button"> Font Styles </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        55 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      44 | 	await page.getByRole("button", { name: "Tools" }).click();
+      45 | 	const fontsPanel = page.locator("#text-editor-fonts-panel");
+    > 46 | 	await fontsPanel.getByRole("button", { name: "Font Styles", exact: true }).click();
+         | 	                                                                           ^
+      47 | 	await fontsPanel.getByRole("button", { name: "Font Color", exact: true }).click();
+      48 | 	await fontsPanel.getByRole("button", { name: "Font Size", exact: true }).click();
+      49 | 	await page.locator("#text-editor-template-new-button").dispatchEvent("click");
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:46:77
+
+    Error Context: test-results\font-style-typing-nested-f-db0fb-r-when-the-New-menu-is-open-chromium\error-context.md
+
+  2) [chromium] ΓÇ║ tests\font-style-typing.spec.js:100:1 ΓÇ║ repeated letters keep stable font features across every font style 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-panel').getByRole('button', { name: 'Font Styles', exact: true })
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="styles" id="text-editor-font-styles-button" class="text-editor-font-styles-button"> Font Styles </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        55 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      105 | 		.locator("#text-editor-fonts-panel")
+      106 | 		.getByRole("button", { name: "Font Styles", exact: true })
+    > 107 | 		.click();
+          | 		 ^
+      108 |
+      109 | 	const fontStyles = [
+      110 | 		["Minecraft 1 Reg", "MinecraftRegular1"],
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:107:4
+
+    Error Context: test-results\font-style-typing-repeated-98ffd-res-across-every-font-style-chromium\error-context.md
+
+  3) [chromium] ΓÇ║ tests\font-style-typing.spec.js:145:1 ΓÇ║ font styles affect highlighted text and text typed afterward only 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-panel').getByRole('button', { name: 'Font Styles', exact: true })
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="styles" id="text-editor-font-styles-button" class="text-editor-font-styles-button"> Font Styles </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        55 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+
+
+      162 | 		.locator("#text-editor-fonts-panel")
+      163 | 		.getByRole("button", { name: "Font Styles", exact: true })
+    > 164 | 		.click();
+          | 		 ^
+      165 | 	const firstFontButton = page.getByRole("button", { name: "Minecraft 1 Reg" });
+      166 | 	const secondFontButton = page.getByRole("button", { name: "Minecraft 2 Reg", exact: true });
+      167 | 	await firstFontButton.click();
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:164:4
+
+    Error Context: test-results\font-style-typing-font-sty-bcbd5-d-text-typed-afterward-only-chromium\error-context.md
+
+  4) [chromium] ΓÇ║ tests\font-style-typing.spec.js:231:1 ΓÇ║ Font Styles stays depressed with the Font Color glow until toggled off 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-styles-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="styles" id="text-editor-font-styles-button" class="text-editor-font-styles-button"> Font Styles </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        55 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+
+
+      235 | 	const stylesButton = page.locator("#text-editor-font-styles-button");
+      236 | 	const colorButton = page.locator("#text-editor-font-color-button");
+    > 237 | 	await stylesButton.click();
+          | 	                   ^
+      238 | 	await expect(stylesButton).toHaveAttribute("aria-pressed", "true");
+      239 | 	await expect(stylesButton).toHaveClass(/text-editor-font-styles-button--depressed/);
+      240 |
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:237:21
+
+    Error Context: test-results\font-style-typing-Font-Sty-9b12e-olor-glow-until-toggled-off-chromium\error-context.md
+
+  5) [chromium] ΓÇ║ tests\font-style-typing.spec.js:260:1 ΓÇ║ Font Size stays depressed until toggled off 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-size-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="font-size" id="text-editor-font-size-button" class="text-editor-font-size-button"> Font Size </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        55 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+
+
+      264 | 	const sizeButton = page.locator("#text-editor-font-size-button");
+      265 | 	const stylesButton = page.locator("#text-editor-font-styles-button");
+    > 266 | 	await sizeButton.click();
+          | 	                 ^
+      267 | 	await expect(sizeButton).toHaveAttribute("aria-pressed", "true");
+      268 | 	await expect(sizeButton).toHaveClass(/text-editor-font-size-button--depressed/);
+      269 | 	expect(await sizeButton.evaluate((element) => getComputedStyle(element).transform)).not.toBe("none");
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:266:19
+
+    Error Context: test-results\font-style-typing-Font-Siz-2b863-depressed-until-toggled-off-chromium\error-context.md
+
+  6) [chromium] ΓÇ║ tests\font-style-typing.spec.js:281:1 ΓÇ║ Font Size menu matches Font Color width and label inset 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-color-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="color" id="text-editor-font-color-button" class="text-editor-font-color-button"> Font Color </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        55 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+
+
+      284 |
+      285 | 	const colorButton = page.locator("#text-editor-font-color-button");
+    > 286 | 	await colorButton.click();
+          | 	                  ^
+      287 | 	const colorWidth = await page.locator("#text-editor-font-color-menu").evaluate(
+      288 | 		(element) => element.getBoundingClientRect().width,
+      289 | 	);
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:286:20
+
+    Error Context: test-results\font-style-typing-Font-Siz-d1f76-Color-width-and-label-inset-chromium\error-context.md
+
+  7) [chromium] ΓÇ║ tests\font-style-typing.spec.js:322:1 ΓÇ║ Font Size menu sits below the active Font Styles or Font Color menu 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-styles-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="styles" id="text-editor-font-styles-button" class="text-editor-font-styles-button"> Font Styles </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        55 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      341 | 	};
+      342 |
+    > 343 | 	await stylesButton.click();
+          | 	                   ^
+      344 | 	await sizeButton.click();
+      345 | 	await expectSizeBelow("#text-editor-font-styles-menu");
+      346 | 	await sizeButton.click();
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:343:21
+
+    Error Context: test-results\font-style-typing-Font-Siz-1fd8c-t-Styles-or-Font-Color-menu-chromium\error-context.md
+
+  8) [chromium] ΓÇ║ tests\font-style-typing.spec.js:362:1 ΓÇ║ Font Size input accepts at most three digits 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-size-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="font-size" id="text-editor-font-size-button" class="text-editor-font-size-button"> Font Size </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        54 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      363 | 	await openEditablePaperTemplate(page);
+      364 | 	await page.getByRole("button", { name: "Tools" }).click();
+    > 365 | 	await page.locator("#text-editor-font-size-button").click();
+          | 	                                                    ^
+      366 |
+      367 | 	const input = page.getByRole("textbox", { name: "Font size in points" });
+      368 | 	await expect(input).toHaveAttribute("inputmode", "numeric");
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:365:54
+
+    Error Context: test-results\font-style-typing-Font-Siz-a6026-ccepts-at-most-three-digits-chromium\error-context.md
+
+  9) [chromium] ΓÇ║ tests\font-style-typing.spec.js:376:1 ΓÇ║ Font Size Commit matches Font Color Commit styling 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-color-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="color" id="text-editor-font-color-button" class="text-editor-font-color-button"> Font Color </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        53 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+
+
+      379 |
+      380 | 	const colorButton = page.locator("#text-editor-font-color-button");
+    > 381 | 	await colorButton.click();
+          | 	                  ^
+      382 | 	const colorCommit = page.locator("#text-editor-font-color-commit-button");
+      383 | 	const readButtonStyle = (button) => button.evaluate((element) => {
+      384 | 		const style = getComputedStyle(element);
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:381:20
+
+    Error Context: test-results\font-style-typing-Font-Siz-b45a9-s-Font-Color-Commit-styling-chromium\error-context.md
+
+  10) [chromium] ΓÇ║ tests\font-style-typing.spec.js:416:1 ΓÇ║ Font Size changes selected text and future typing only 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-size-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="font-size" id="text-editor-font-size-button" class="text-editor-font-size-button"> Font Size </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        53 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+
+
+      428 |
+      429 | 	await page.getByRole("button", { name: "Tools" }).click();
+    > 430 | 	await page.locator("#text-editor-font-size-button").click();
+          | 	                                                    ^
+      431 | 	await page.getByRole("textbox", { name: "Font size in points" }).fill("18");
+      432 | 	await page.locator("#text-editor-font-size-commit-button").click();
+      433 |
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:430:54
+
+    Error Context: test-results\font-style-typing-Font-Siz-88e1c-text-and-future-typing-only-chromium\error-context.md
+
+  11) [chromium] ΓÇ║ tests\font-style-typing.spec.js:461:1 ΓÇ║ font style buttons use the requested 16px spacing and centered text 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-panel').getByRole('button', { name: 'Font Styles', exact: true })
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="styles" id="text-editor-font-styles-button" class="text-editor-font-styles-button"> Font Styles </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        53 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+      470 | 		.locator("#text-editor-fonts-panel")
+      471 | 		.getByRole("button", { name: "Font Styles", exact: true })
+    > 472 | 		.click();
+          | 		 ^
+      473 | 	expect(await page.locator(".text-editor-font-style-button").allTextContents()).toEqual([
+      474 | 		"Minecraft 1 Reg",
+      475 | 		"Minecraft 2 Reg",
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:472:4
+
+    Error Context: test-results\font-style-typing-font-sty-00166-x-spacing-and-centered-text-chromium\error-context.md
+
+  12) [chromium] ΓÇ║ tests\font-style-typing.spec.js:536:1 ΓÇ║ font color picker commits a color that persists across font styles 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-font-color-button')
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="color" id="text-editor-font-color-button" class="text-editor-font-color-button"> Font Color </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        54 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+
+
+      539 |
+      540 | 	const colorButton = page.locator("#text-editor-font-color-button");
+    > 541 | 	await colorButton.click();
+          | 	                  ^
+      542 | 	await expect(colorButton).toHaveAttribute("aria-pressed", "true");
+      543 | 	const pressedShadow = await colorButton.evaluate((button) => getComputedStyle(button).boxShadow);
+      544 | 	expect(pressedShadow).toContain("rgba(0, 149, 255");
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:541:20
+
+    Error Context: test-results\font-style-typing-font-col-a7fdf-persists-across-font-styles-chromium\error-context.md
+
+  13) [chromium] ΓÇ║ tests\font-style-typing.spec.js:662:1 ΓÇ║ alignment changes the current line and preserves its caret 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-alignment-left-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-alignment-left-button" class="text-editor-font-styles-button text-editor-alignment-choice-button"> Left </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        54 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      668 | 	const existingText = await editor.textContent();
+      669 | 	await page.getByRole("button", { name: "Tools" }).click();
+    > 670 | 	await page.locator("#text-editor-alignment-left-button").click();
+          | 	                                                         ^
+      671 |
+      672 | 	const caretState = await editor.evaluate((element) => {
+      673 | 		const selection = window.getSelection();
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:670:59
+
+    Error Context: test-results\font-style-typing-alignmen-c1467-ine-and-preserves-its-caret-chromium\error-context.md
+
+  14) [chromium] ΓÇ║ tests\font-style-typing.spec.js:703:1 ΓÇ║ alignment moves selected text without changing surrounding text 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-alignment-center-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-alignment-center-button" class="text-editor-font-styles-button text-editor-alignment-choice-button"> Center </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        54 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      716 | 	});
+      717 | 	await page.getByRole("button", { name: "Tools" }).click();
+    > 718 | 	await page.locator("#text-editor-alignment-center-button").click();
+          | 	                                                           ^
+      719 |
+      720 | 	const alignedSelection = await editor.evaluate((element) => {
+      721 | 		const selectedBlock = Array.from(element.children).find(
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:718:61
+
+    Error Context: test-results\font-style-typing-alignmen-3e762-t-changing-surrounding-text-chromium\error-context.md
+
+  15) [chromium] ΓÇ║ tests\font-style-typing.spec.js:746:1 ΓÇ║ selected alignment applies to loaded and newly created templates 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-alignment-center-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-alignment-center-button" class="text-editor-font-styles-button text-editor-alignment-choice-button"> Center </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        54 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      788 | 	await expect(editor).toHaveCSS("text-align", "right");
+      789 | 	await page.getByRole("button", { name: "Tools" }).click();
+    > 790 | 	await page.locator("#text-editor-alignment-center-button").click();
+          | 	                                                           ^
+      791 | 	await expect(editor).toHaveCSS("text-align", "center");
+      792 | 	await expect(editor.locator("[data-text-editor-alignment-caret]")).toHaveCount(0);
+      793 | 	await page.locator("#text-editor-workflow-back-button").click();
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:790:61
+
+    Error Context: test-results\font-style-typing-selected-d64ae-and-newly-created-templates-chromium\error-context.md
+
+  16) [chromium] ΓÇ║ tests\font-style-typing.spec.js:806:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-alignment-left-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-alignment-left-button" class="text-editor-font-styles-button text-editor-alignment-choice-button"> Left </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - element is outside of the viewport
+        - retrying click action
+          - waiting 100ms
+        54 ├ù waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - element is outside of the viewport
+         - retrying click action
+           - waiting 500ms
+      - element was detached from the DOM, retrying
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      814 | 	const readShadow = (button) => button.evaluate((element) => getComputedStyle(element).boxShadow);
+      815 |
+    > 816 | 	await left.click();
+          | 	           ^
+      817 | 	await expect(left).toHaveAttribute("aria-pressed", "true");
+      818 | 	await expect(left).toHaveClass(/text-editor-alignment-choice-button--depressed/);
+      819 | 	expect(await readShadow(left)).toBe(await readShadow(toolsButton));
+        at C:\zoologistExplorer02\tests\font-style-typing.spec.js:816:13
+
+    Error Context: test-results\font-style-typing-alignmen-f755a-usively-with-the-Tools-glow-chromium\error-context.md
+
+  17) [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.type: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.print-preview-paper-editor')
+        - locator resolved to <div role="textbox" contenteditable="true" aria-label="Paper template text" class="print-preview-paper-editor">ΓÇª</div>
+
+
+      47 |
+      48 | 	for (let index = 0; index < 100; index += 1) {
+    > 49 | 		await editor.type(`Line ${index + 1}`);
+         | 		             ^
+      50 | 		const beforeEnter = await editor.evaluate((element) => element.innerHTML);
+      51 | 		await page.keyboard.press("Enter");
+      52 | 		const afterEnter = await editor.evaluate((element) => element.innerHTML);
+        at C:\zoologistExplorer02\tests\paper-template-keys.spec.js:49:16
+
+    Error Context: test-results\paper-template-keys-loaded-41b29-eserve-keyboard-line-bounds-chromium\error-context.md
+
+  18) [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1080
+    Received: 592
+
+      129 | 		expect(toolsPanelMetrics.leftGap).toBeCloseTo(16, 0);
+      130 | 		expect(toolsPanelMetrics.width).toBe(480);
+    > 131 | 		expect(toolsPanelMetrics.height).toBe(1080);
+          | 		                                 ^
+      132 | 		const initialTop = await toolsPanel.evaluate((element) => element.getBoundingClientRect().top);
+      133 |
+      134 | 		await expect(newButton).toHaveAttribute("aria-pressed", "true");
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:131:36
+
+    Error Context: test-results\saved-templates-opening-Ne-54401-l-in-shell-or-template-mode-chromium\error-context.md
+
+  19) [chromium] ΓÇ║ tests\saved-templates.spec.js:154:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-template-new-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-template-new-button" name="text-editor-template-new-button" data-button-name="text-editor-template-new-button" class="text-editor-template-new-button text-editor-print-preview-button"> New + </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+
+
+      162 |
+      163 | 	for (const optionName of ["Create A Shell", "Create A Template"]) {
+    > 164 | 		await newButton.click();
+          | 		                ^
+      165 | 		await page.getByRole("button", { name: optionName, exact: true }).click();
+      166 | 		await expect(page.locator("#text-editor-print-preview-panel")).toBeVisible();
+      167 |
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:164:19
+
+    Error Context: test-results\saved-templates-New-can-re-f0fe6--the-data-loss-confirmation-chromium\error-context.md
+
+  20) [chromium] ΓÇ║ tests\saved-templates.spec.js:192:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-workflow-back-button')
+        - locator resolved to <button type="button" title="Back to Text Editor menu" id="text-editor-workflow-back-button" aria-label="Back to Text Editor menu" name="text-editor-workflow-back-button" data-button-name="text-editor-workflow-back-button" class="text-editor-workflow-back-button nav-button nav-button--pressed"> Back </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+
+
+      241 | 		await expect(page.locator("#text-editor-print-preview-panel")).toBeVisible();
+      242 |
+    > 243 | 		await backButton.click();
+          | 		                 ^
+      244 | 		await dialog.getByRole("button", { name: "Leave" }).click();
+      245 | 		await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
+      246 | 		await expect(page.locator("#text-editor-template-load-button")).toBeVisible();
+        at confirmBackAfterEdit (C:\zoologistExplorer02\tests\saved-templates.spec.js:243:20)
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:252:2
+
+    Error Context: test-results\saved-templates-workflow-B-5df52-reated-shells-and-templates-chromium\error-context.md
+
+  21) [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+
+    ReferenceError: alignmentChoiceButtons is not defined
+
+      301 | 	const alignmentPanel = page.locator("#text-editor-alignment-panel");
+      302 | 	await expect(alignmentPanel).toBeVisible();
+    > 303 | 	const alignmentChoiceClasses = await alignmentChoiceButtons.evaluateAll((buttons) =>
+          | 	                               ^
+      304 | 		buttons.map((button) => button.classList.contains("text-editor-font-styles-button")),
+      305 | 	);
+      306 | 	expect(alignmentChoiceClasses).toEqual([true, true, true]);
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:303:33
+
+    Error Context: test-results\saved-templates-Tools-in-t-5c9c6--opens-the-editing-controls-chromium\error-context.md
+
+  22) [chromium] ΓÇ║ tests\saved-templates.spec.js:375:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+
+    Error: expect(received).toBeGreaterThan(expected)
+
+    Expected: > 424
+    Received:   424
+
+      414 | 		expect(paperAfter.gap).toBe(16);
+      415 | 		expect(paperAfter.left).toBe(paperBefore.left);
+    > 416 | 		expect(paperAfter.width).toBeGreaterThan(paperBefore.width);
+          | 		                         ^
+      417 | 	}
+      418 | });
+      419 |
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:416:28
+
+    Error Context: test-results\saved-templates-template-a-1a361--fixed-when-width-increases-chromium\error-context.md
+
+  23) [chromium] ΓÇ║ tests\saved-templates.spec.js:420:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Create A Shell', exact: true })
+        - locator resolved to <button type="button" id="text-editor-new-create-shell-button" name="text-editor-new-create-shell-button" class="text-editor-new-create-shell-button" data-button-name="text-editor-new-create-shell-button"> Create A Shell </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+      - element was detached from the DOM, retrying
+
+
+      534 |
+      535 | 	await page.getByRole("button", { name: "New +" }).click();
+    > 536 | 	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+          | 	                                                                        ^
+      537 | 	editor = page.locator(".print-preview-paper-editor");
+      538 | 	await expect(editor).toHaveAttribute("contenteditable", "false");
+      539 | 	await expect(editor).toBeEmpty();
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:536:74
+
+    Error Context: test-results\saved-templates-loading-sa-986e3-eir-settings-and-shell-mode-chromium\error-context.md
+
+  24) [chromium] ΓÇ║ tests\saved-templates.spec.js:563:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-template-save-button')
+        - locator resolved to <button type="button" id="text-editor-template-save-button" name="text-editor-template-save-button" class="text-editor-template-save-button" data-button-name="text-editor-template-save-button"> Save </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+      - element was detached from the DOM, retrying
+
+
+      588 | 	const saveButton = page.locator("#text-editor-template-save-button");
+      589 | 	const prompt = page.locator("#text-editor-template-name-prompt");
+    > 590 | 	await saveButton.click();
+          | 	                 ^
+      591 | 	await expect(prompt).toBeVisible();
+      592 | 	await expect(prompt.getByText("Template's Name")).toBeVisible();
+      593 | 	const saveBox = await saveButton.boundingBox();
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:590:19
+
+    Error Context: test-results\saved-templates-saved-temp-40a9e-d-restore-their-paper-state-chromium\error-context.md
+
+  25) [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: subtract-numbers teaches its topic through all ten levels 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Back to games', exact: true })
+        - locator resolved to <button disabled type="button" data-v-c6b4628f="" id="math-game-back-to-gallery-button" class="rounded border-2 border-black bg-white px-4 py-2 disabled:opacity-60">Back to games</button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        3 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      400 | 		}
+      401 | 		await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
+    > 402 | 		await page.getByRole("button", { name: "Back to games", exact: true }).click();
+          | 		                                                                       ^
+      403 | 		await expect(page.locator(`[data-game-id="${gameId}"]`)).toContainText("10 / 10");
+      404 | 	});
+      405 | }
+        at C:\zoologistExplorer02\tests\smoke.spec.js:402:74
+
+    Error Context: test-results\smoke-Math-minigame-subtra-3b64f-opic-through-all-ten-levels-chromium\error-context.md
+
+  26) [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: subtract-word teaches its topic through all ten levels 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Back to games', exact: true })
+        - locator resolved to <button disabled type="button" data-v-c6b4628f="" id="math-game-back-to-gallery-button" class="rounded border-2 border-black bg-white px-4 py-2 disabled:opacity-60">Back to games</button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        3 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      400 | 		}
+      401 | 		await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
+    > 402 | 		await page.getByRole("button", { name: "Back to games", exact: true }).click();
+          | 		                                                                       ^
+      403 | 		await expect(page.locator(`[data-game-id="${gameId}"]`)).toContainText("10 / 10");
+      404 | 	});
+      405 | }
+        at C:\zoologistExplorer02\tests\smoke.spec.js:402:74
+
+    Error Context: test-results\smoke-Math-minigame-subtra-6e1f5-opic-through-all-ten-levels-chromium\error-context.md
+
+  27) [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: compare-word teaches its topic through all ten levels 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Back to games', exact: true })
+        - locator resolved to <button disabled type="button" data-v-c6b4628f="" id="math-game-back-to-gallery-button" class="rounded border-2 border-black bg-white px-4 py-2 disabled:opacity-60">Back to games</button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+          - waiting 100ms
+        - waiting for element to be visible, enabled and stable
+        - element is not enabled
+      - retrying click action
+        - waiting 500ms
+      - element was detached from the DOM, retrying
+
+
+      400 | 		}
+      401 | 		await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
+    > 402 | 		await page.getByRole("button", { name: "Back to games", exact: true }).click();
+          | 		                                                                       ^
+      403 | 		await expect(page.locator(`[data-game-id="${gameId}"]`)).toContainText("10 / 10");
+      404 | 	});
+      405 | }
+        at C:\zoologistExplorer02\tests\smoke.spec.js:402:74
+
+    Error Context: test-results\smoke-Math-minigame-compar-e1de6-opic-through-all-ten-levels-chromium\error-context.md
+
+  28) [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: sum-difference teaches its topic through all ten levels 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Games', exact: true })
+        - locator resolved to <button type="button" name="games-tab" class="games-tab" id="parent-games-tab" data-button-name="games-tab"> Games </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        2 ├ù waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+          - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      301 | 		await page.goto("./");
+      302 | 		await page.getByRole("button", { name: "Open parent section" }).click();
+    > 303 | 		await page.getByRole("button", { name: "Games", exact: true }).click();
+          | 		                                                               ^
+      304 | 		await page.getByRole("button", { name: "Math", exact: true }).click();
+      305 | 		await expect(page.locator("[data-game-id]")).toHaveCount(24);
+      306 | 		const thumbnail = page.locator(`[data-game-id="${gameId}"]`);
+        at C:\zoologistExplorer02\tests\smoke.spec.js:303:66
+
+    Error Context: test-results\smoke-Math-minigame-sum-di-e7dee-opic-through-all-ten-levels-chromium\error-context.md
+
+  29) [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums teaches its topic through all ten levels 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Back to games', exact: true })
+        - locator resolved to <button disabled type="button" data-v-c6b4628f="" id="math-game-back-to-gallery-button" class="rounded border-2 border-black bg-white px-4 py-2 disabled:opacity-60">Back to games</button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is not enabled
+      - retrying click action
+        - waiting 100ms
+      - element was detached from the DOM, retrying
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      400 | 		}
+      401 | 		await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
+    > 402 | 		await page.getByRole("button", { name: "Back to games", exact: true }).click();
+          | 		                                                                       ^
+      403 | 		await expect(page.locator(`[data-game-id="${gameId}"]`)).toContainText("10 / 10");
+      404 | 	});
+      405 | }
+        at C:\zoologistExplorer02\tests\smoke.spec.js:402:74
+
+    Error Context: test-results\smoke-Math-minigame-estima-b6a98-opic-through-all-ten-levels-chromium\error-context.md
+
+  30) [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums-word teaches its topic through all ten levels 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Back to games', exact: true })
+        - locator resolved to <button disabled type="button" data-v-c6b4628f="" id="math-game-back-to-gallery-button" class="rounded border-2 border-black bg-white px-4 py-2 disabled:opacity-60">Back to games</button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is not enabled
+        - retrying click action
+        - waiting 20ms
+        - waiting for element to be visible, enabled and stable
+        - element is not enabled
+      - retrying click action
+        - waiting 100ms
+      - element was detached from the DOM, retrying
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      400 | 		}
+      401 | 		await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
+    > 402 | 		await page.getByRole("button", { name: "Back to games", exact: true }).click();
+          | 		                                                                       ^
+      403 | 		await expect(page.locator(`[data-game-id="${gameId}"]`)).toContainText("10 / 10");
+      404 | 	});
+      405 | }
+        at C:\zoologistExplorer02\tests\smoke.spec.js:402:74
+
+    Error Context: test-results\smoke-Math-minigame-estima-ae4d6-opic-through-all-ten-levels-chromium\error-context.md
+
+  31) [chromium] ΓÇ║ tests\smoke.spec.js:424:1 ΓÇ║ Math gold coin progress, celebration and first-only rewards 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-game-id="place-names"]')
+        - locator resolved to <button type="button" data-v-c6b4628f="" data-game-id="place-names" id="math-game-place-names-button" title="Week 1: Place value names" aria-label="Place-Value Treehouse" data-game-topic="Place value names" class="relative flex h-[218px] w-[218px] shrink-0 flex-col items-center rounded-lg border-2 border-cyan-800 bg-white p-2 text-black focus-visible:outline-4 focus-visible:outline-cyan-800 student-math-game-thumbnail">ΓÇª</button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        3 ├ù waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+          - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      440 | 		await page.setViewportSize(run ? { width: 375, height: 812 } : { width: 1280, height: 720 });
+      441 | 		for (let stage = 0; stage < 10; stage += 1) {
+    > 442 | 			if (run === 0 || stage === 0) await thumbnail.click();
+          | 			                                              ^
+      443 | 			await expect(page.getByText(`Level ${stage + 1} of 10`, { exact: true })).toBeVisible();
+      444 | 			await page.getByRole("button", { name: mathPlaceNames[mathTargetPlaces[stage]], exact: true }).click();
+      445 | 			if (stage === 9) {
+        at C:\zoologistExplorer02\tests\smoke.spec.js:442:50
+
+    Error Context: test-results\smoke-Math-gold-coin-progr-b0853-tion-and-first-only-rewards-chromium\error-context.md
+
+  32) [chromium] ΓÇ║ tests\smoke.spec.js:511:2 ΓÇ║ Parent math thumbnails have exact dimensions and gaps at 1280px 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Back to home', exact: true })
+        - locator resolved to <button type="button" title="Back to home" aria-label="Back to home" id="parent-screen-back-button-parent" name="parent-screen-back-button-parent" class="parent-screen-back-button-parent" data-button-name="parent-screen-back-button-parent"> Back </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+      - element was detached from the DOM, retrying
+        3 ├ù waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+          - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      551 | 		expect(backBox.y).toBe(16);
+      552 | 		await page.screenshot({ path: testInfo.outputPath(`parent-math-${viewport.width}.png`) });
+    > 553 | 		await backButton.click();
+          | 		                 ^
+      554 | 		await expect(page.locator("#home-page-shell")).toBeVisible();
+      555 | 	});
+      556 | }
+        at C:\zoologistExplorer02\tests\smoke.spec.js:553:20
+
+    Error Context: test-results\smoke-Parent-math-thumbnai-e1a47-mensions-and-gaps-at-1280px-chromium\error-context.md
+
+  33) [chromium] ΓÇ║ tests\smoke.spec.js:594:1 ΓÇ║ Text Editor calibration bar keeps its width and anchored resize behavior 
+
+    Error: page.goto: net::ERR_ABORTED at http://127.0.0.1:5173/zoologistExplorer02/
+    Call log:
+      - navigating to "http://127.0.0.1:5173/zoologistExplorer02/", waiting until "load"
+
+
+      715 | 	await expect(calibrationBar).toHaveCSS("height", "620px");
+      716 |
+    > 717 | 	await page.goto("./");
+          | 	           ^
+      718 | 	await page.getByRole("button", { name: "Open parent section" }).click();
+      719 | 	await page.getByRole("button", { name: "Text Editor" }).click();
+      720 | 	await page.getByRole("button", { name: "Calibrate" }).click();
+        at C:\zoologistExplorer02\tests\smoke.spec.js:717:13
+
+    Error Context: test-results\smoke-Text-Editor-calibrat-e64ed-nd-anchored-resize-behavior-chromium\error-context.md
+
+  34) [chromium] ΓÇ║ tests\smoke.spec.js:735:1 ΓÇ║ Text Editor calibration bar converts pixels to calibrated ruler units 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Text Editor' })
+        - locator resolved to <button type="button" id="text-editor-tab" name="text-editor-tab" class="text-editor-tab" data-button-name="text-editor-tab"> Text Editor </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        2 ├ù waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+          - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      754 | 	await page.goto("./");
+      755 | 	await page.getByRole("button", { name: "Open parent section" }).click();
+    > 756 | 	await page.getByRole("button", { name: "Text Editor" }).click();
+          | 	                                                        ^
+      757 | 	await page.getByRole("button", { name: "Calibrate" }).click();
+      758 | 	await expect(counter).toContainText("10.00 cm");
+      759 | });
+        at C:\zoologistExplorer02\tests\smoke.spec.js:756:58
+
+    Error Context: test-results\smoke-Text-Editor-calibrat-a4a4f-s-to-calibrated-ruler-units-chromium\error-context.md
+
+  35) [chromium] ΓÇ║ tests\smoke.spec.js:761:1 ΓÇ║ Fonts menu stays above active Size and Margins menus 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+        16,
+        16,
+    -   16,
+    +   -92.78125,
+      ]
+
+      792 | 		};
+      793 | 	});
+    > 794 | 	expect(sectionOrder.gaps).toEqual([16, 16, 16]);
+          | 	                          ^
+      795 | 	expect(sectionOrder.allInside).toBe(true);
+      796 | });
+      797 |
+        at C:\zoologistExplorer02\tests\smoke.spec.js:794:28
+
+    Error Context: test-results\smoke-Fonts-menu-stays-above-active-Size-and-Margins-menus-chromium\error-context.md
+
+  36) [chromium] ΓÇ║ tests\smoke.spec.js:798:1 ΓÇ║ Size menu defaults to inches for both dimensions ΓöÇΓöÇΓöÇΓöÇ
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 480
+    Received: 216
+
+      833 | 		}),
+      834 | 	]);
+    > 835 | 	expect(sizeBounds.width).toBe(toolsBounds.width);
+          | 	                         ^
+      836 | 	expect(sizeBounds.y - toolsBounds.y - toolsBounds.height).toBe(16);
+      837 | 	expect(matchingFrameStyles.matchingFrameStyles).toBe(true);
+      838 | 	expect(matchingFrameStyles.widthLabelLeftGap).toBe(16);
+        at C:\zoologistExplorer02\tests\smoke.spec.js:835:27
+
+    Error Context: test-results\smoke-Size-menu-defaults-to-inches-for-both-dimensions-chromium\error-context.md
+
+  37) [chromium] ΓÇ║ tests\smoke.spec.js:848:1 ΓÇ║ Margins menu matches the Tools frame below Tools or Size 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 529
+    Received: undefined
+
+      859 | 	await expect(marginsPanel).toBeVisible();
+      860 | 	const marginsBounds = await marginsPanel.boundingBox();
+    > 861 | 	expect(marginsBounds.left).toBe(toolsBounds.x);
+          | 	                           ^
+      862 | 	const toolsStyle = await page.evaluate(() => {
+      863 | 		const tools = getComputedStyle(document.querySelector("#text-editor-tools-panel"));
+      864 | 		const margins = getComputedStyle(document.querySelector("#text-editor-margins-panel"));
+        at C:\zoologistExplorer02\tests\smoke.spec.js:861:29
+
+    Error Context: test-results\smoke-Margins-menu-matches-9f471-s-frame-below-Tools-or-Size-chromium\error-context.md
+
+  38) [chromium] ΓÇ║ tests\smoke.spec.js:876:1 ΓÇ║ Margins create numeric paper insets, toggle guides, and restore with saved shells 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-template-save-button')
+        - locator resolved to <button type="button" id="text-editor-template-save-button" name="text-editor-template-save-button" class="text-editor-template-save-button" data-button-name="text-editor-template-save-button"> Save </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+      - element was detached from the DOM, retrying
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      921 | 	await expect(page.locator(".print-preview-margin-guide")).toHaveCount(4);
+      922 |
+    > 923 | 	await page.locator("#text-editor-template-save-button").click();
+          | 	                                                        ^
+      924 | 	await page.locator("#text-editor-template-name-input").fill("Margins test shell");
+      925 | 	await page.getByRole("button", { name: "Save Template" }).click();
+      926 | 	const savedMargins = await page.evaluate(() => {
+        at C:\zoologistExplorer02\tests\smoke.spec.js:923:58
+
+    Error Context: test-results\smoke-Margins-create-numer-39cab-d-restore-with-saved-shells-chromium\error-context.md
+
+  39) [chromium] ΓÇ║ tests\smoke.spec.js:1013:1 ΓÇ║ Print Preview renders the paper template at the Size menu dimensions 
+
+    Error: expect(received).toBeCloseTo(expected, precision)
+
+    Expected: 872
+    Received: 424
+
+    Expected precision:    0
+    Expected difference: < 0.5
+    Received difference:   448
+
+      1052 | 	const inchBounds = await paper.boundingBox();
+      1053 | 	const inchSaveBounds = await saveButton.boundingBox();
+    > 1054 | 	expect(inchBounds.width).toBeCloseTo(872, 0);
+           | 	                         ^
+      1055 | 	expect(inchBounds.height).toBeCloseTo(1090, 0);
+      1056 | 	await expectSaveButtonAtViewportCorner(inchSaveBounds);
+      1057 |
+        at C:\zoologistExplorer02\tests\smoke.spec.js:1054:27
+
+    Error Context: test-results\smoke-Print-Preview-render-085cd-at-the-Size-menu-dimensions-chromium\error-context.md
+
+  40) [chromium] ΓÇ║ tests\smoke.spec.js:1117:1 ΓÇ║ Back and Home buttons depress on click and glow while held 
+
+    Error: expect(locator).toHaveClass(expected) failed
+
+    Locator: locator('#student-edits-screen-back-button')
+    Expected pattern: /nav-button--held-back/
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveClass" locator('#student-edits-screen-back-button') with timeout 5000ms
+      - waiting for locator('#student-edits-screen-back-button')
+        2 ├ù waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+          - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      1144 | 	await page.mouse.move(backCenterX, backCenterY);
+      1145 | 	await page.mouse.down();
+    > 1146 | 	await expect(backButton).toHaveClass(/nav-button--held-back/);
+           | 	                         ^
+      1147 | 	await expect(backButton).toHaveCSS("animation-duration", "8s");
+      1148 | 	await expect(backButton).toHaveCSS("animation-name", /sparkle|glow/i);
+      1149 | 	await page.mouse.up();
+        at C:\zoologistExplorer02\tests\smoke.spec.js:1146:27
+
+    Error Context: test-results\smoke-Back-and-Home-button-56bc6-n-click-and-glow-while-held-chromium\error-context.md
+
+  41) [chromium] ΓÇ║ tests\smoke.spec.js:1429:1 ΓÇ║ Text Editor Home and Back buttons sit inside the navigation bar 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+        "backCenterOffset": 0,
+        "backRightGap": 16,
+        "hasBack": true,
+        "hasHome": true,
+    -   "homeBackGap": 16,
+    +   "homeBackGap": 17,
+        "homeCenterOffset": 0,
+      }
+
+      1449 | 		};
+      1450 | 	});
+    > 1451 | 	expect(metrics).toEqual({
+           | 	                ^
+      1452 | 		hasHome: true,
+      1453 | 		hasBack: true,
+      1454 | 		backRightGap: 16,
+        at C:\zoologistExplorer02\tests\smoke.spec.js:1451:18
+
+    Error Context: test-results\smoke-Text-Editor-Home-and-a7816-t-inside-the-navigation-bar-chromium\error-context.md
+
+  42) [chromium] ΓÇ║ tests\smoke.spec.js:1461:1 ΓÇ║ Text Editor navigation controls stay aligned with the New menu 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Text Editor' })
+
+
+      1463 | 	await page.goto("./");
+      1464 | 	await page.getByRole("button", { name: "Open parent section" }).click();
+    > 1465 | 	await page.getByRole("button", { name: "Text Editor" }).click();
+           | 	                                                        ^
+      1466 |
+      1467 | 	const navigation = page.locator("#text-editor-navigation-bar");
+      1468 | 	const navMetrics = await navigation.evaluate((element) => {
+        at C:\zoologistExplorer02\tests\smoke.spec.js:1465:58
+
+    Error Context: test-results\smoke-Text-Editor-navigati-51b40-y-aligned-with-the-New-menu-chromium\error-context.md
+
+  42 failed
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:100:1 ΓÇ║ repeated letters keep stable font features across every font style 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:145:1 ΓÇ║ font styles affect highlighted text and text typed afterward only 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:231:1 ΓÇ║ Font Styles stays depressed with the Font Color glow until toggled off 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:260:1 ΓÇ║ Font Size stays depressed until toggled off 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:281:1 ΓÇ║ Font Size menu matches Font Color width and label inset 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:322:1 ΓÇ║ Font Size menu sits below the active Font Styles or Font Color menu 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:362:1 ΓÇ║ Font Size input accepts at most three digits 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:376:1 ΓÇ║ Font Size Commit matches Font Color Commit styling 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:416:1 ΓÇ║ Font Size changes selected text and future typing only 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:461:1 ΓÇ║ font style buttons use the requested 16px spacing and centered text 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:536:1 ΓÇ║ font color picker commits a color that persists across font styles 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:662:1 ΓÇ║ alignment changes the current line and preserves its caret 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:703:1 ΓÇ║ alignment moves selected text without changing surrounding text 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:746:1 ΓÇ║ selected alignment applies to loaded and newly created templates 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:806:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow 
+    [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:154:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:192:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:375:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:420:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:563:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+    [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: subtract-numbers teaches its topic through all ten levels 
+    [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: subtract-word teaches its topic through all ten levels 
+    [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: compare-word teaches its topic through all ten levels 
+    [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: sum-difference teaches its topic through all ten levels 
+    [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums teaches its topic through all ten levels 
+    [chromium] ΓÇ║ tests\smoke.spec.js:300:2 ΓÇ║ Math minigame: estimate-sums-word teaches its topic through all ten levels 
+    [chromium] ΓÇ║ tests\smoke.spec.js:424:1 ΓÇ║ Math gold coin progress, celebration and first-only rewards 
+    [chromium] ΓÇ║ tests\smoke.spec.js:511:2 ΓÇ║ Parent math thumbnails have exact dimensions and gaps at 1280px 
+    [chromium] ΓÇ║ tests\smoke.spec.js:594:1 ΓÇ║ Text Editor calibration bar keeps its width and anchored resize behavior 
+    [chromium] ΓÇ║ tests\smoke.spec.js:735:1 ΓÇ║ Text Editor calibration bar converts pixels to calibrated ruler units 
+    [chromium] ΓÇ║ tests\smoke.spec.js:761:1 ΓÇ║ Fonts menu stays above active Size and Margins menus ΓöÇΓöÇ
+    [chromium] ΓÇ║ tests\smoke.spec.js:798:1 ΓÇ║ Size menu defaults to inches for both dimensions ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    [chromium] ΓÇ║ tests\smoke.spec.js:848:1 ΓÇ║ Margins menu matches the Tools frame below Tools or Size 
+    [chromium] ΓÇ║ tests\smoke.spec.js:876:1 ΓÇ║ Margins create numeric paper insets, toggle guides, and restore with saved shells 
+    [chromium] ΓÇ║ tests\smoke.spec.js:1013:1 ΓÇ║ Print Preview renders the paper template at the Size menu dimensions 
+    [chromium] ΓÇ║ tests\smoke.spec.js:1117:1 ΓÇ║ Back and Home buttons depress on click and glow while held 
+    [chromium] ΓÇ║ tests\smoke.spec.js:1429:1 ΓÇ║ Text Editor Home and Back buttons sit inside the navigation bar 
+    [chromium] ΓÇ║ tests\smoke.spec.js:1461:1 ΓÇ║ Text Editor navigation controls stay aligned with the New menu 
+  45 passed (2.6m)

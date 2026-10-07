@@ -1,0 +1,24 @@
+﻿node.exe : npm notice run zoologistexplorer02@1.0.0 lint
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\jason\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run ...er02@1.0.0 lint 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice run eslint .
+
+C:\zoologistExplorer02\src\components\MathGamesView.vue
+  401:50  warning  Attribute ":id" should go before ":key"  vue/attributes-order
+  435:89  warning  Attribute ":id" should go before ":key"  vue/attributes-order
+  445:78  warning  Attribute ":id" should go before ":key"  vue/attributes-order
+
+C:\zoologistExplorer02\tests\saved-templates.spec.js
+  303:39  error  'alignmentChoiceButtons' is not defined  no-undef
+
+C:\zoologistExplorer02\tests\smoke.spec.js
+  863:9  error  'tools' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+Γ£û 5 problems (2 errors, 3 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+

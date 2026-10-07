@@ -1,0 +1,539 @@
+﻿npm notice run playwright test tests/saved-templates.spec.js 
+tests/font-style-typing.spec.js tests/paper-template-keys.spec.js
+
+Running 31 tests using 8 workers
+
+  Γ£ÿ   4 [chromium] ΓÇ║ tests\font-style-typing.spec.js:142:1 ΓÇ║ font styles affect highlighted text and text typed afterward only (30.0s)
+  Γ£ÿ   2 [chromium] ΓÇ║ tests\font-style-typing.spec.js:96:1 ΓÇ║ repeated letters keep stable font features across every font style (30.0s)
+  Γ£ÿ   1 [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open (30.0s)
+  Γ£ÿ   3 [chromium] ΓÇ║ tests\font-style-typing.spec.js:67:1 ΓÇ║ font selected before loading a template applies to new text (30.0s)
+  Γ£ÿ   6 [chromium] ΓÇ║ tests\font-style-typing.spec.js:229:1 ΓÇ║ Font Styles stays depressed with the Font Color glow until toggled off (30.0s)
+  Γ£ÿ   5 [chromium] ΓÇ║ tests\font-style-typing.spec.js:281:1 ΓÇ║ Font Size menu matches Font Color width and label inset (30.0s)
+  Γ£ÿ   8 [chromium] ΓÇ║ tests\font-style-typing.spec.js:323:1 ΓÇ║ Font Size menu sits below the active Font Styles or Font Color menu (30.1s)
+  Γ£ÿ   7 [chromium] ΓÇ║ tests\font-style-typing.spec.js:259:1 ΓÇ║ Font Size stays depressed until toggled off (30.0s)
+  Γ£ô  20 [chromium] ΓÇ║ tests\saved-templates.spec.js:3:1 ΓÇ║ New and Load menus reject conflicting activation with an illegal-action sound (2.0s)
+  Γ£ô  21 [chromium] ΓÇ║ tests\saved-templates.spec.js:69:1 ΓÇ║ New menu matches the Load menu position with separate identifiers (1.9s)
+  Γ£ÿ  23 [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode (1.7s)
+  Γ£ÿ  25 [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls (6.5s)
+  Γ£ÿ  17 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:79:1 ΓÇ║ new shells reject text while keeping size tools available (30.0s)
+  Γ£ÿ  18 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds (30.0s)
+  Γ£ÿ  19 [chromium] ΓÇ║ tests\font-style-typing.spec.js:830:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow (30.0s)
+  Γ£ÿ  22 [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation (30.0s)
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (30.0s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ô  21 [chromium] ΓÇ║ tests\saved-templates.spec.js:69:1 ΓÇ║ New menu matches the Load menu position with separate identifiers (1.9s)
+  Γ£ÿ  23 [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode (1.7s)
+  Γ£ÿ  25 [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls (6.5s)
+  Γ£ÿ  17 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:79:1 ΓÇ║ new shells reject text while keeping size tools available (30.0s)
+  Γ£ÿ  18 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds (30.0s)
+  Γ£ÿ  19 [chromium] ΓÇ║ tests\font-style-typing.spec.js:830:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow (30.0s)
+  Γ£ÿ  22 [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation (30.0s)
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (30.0s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  23 [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode (1.7s)
+  Γ£ÿ  25 [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls (6.5s)
+  Γ£ÿ  17 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:79:1 ΓÇ║ new shells reject text while keeping size tools available (30.0s)
+  Γ£ÿ  18 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds (30.0s)
+  Γ£ÿ  19 [chromium] ΓÇ║ tests\font-style-typing.spec.js:830:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow (30.0s)
+  Γ£ÿ  22 [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation (30.0s)
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (30.0s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+  Γ£ÿ  25 [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls (6.5s)
+  Γ£ÿ  17 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:79:1 ΓÇ║ new shells reject text while keeping size tools available (30.0s)
+  Γ£ÿ  18 [chromium] ΓÇ║ tests\paper-template-keys.spec.js:3:1 ΓÇ║ loaded editable paper templates preserve keyboard line bounds (30.0s)
+  Γ£ÿ  19 [chromium] ΓÇ║ tests\font-style-typing.spec.js:830:1 ΓÇ║ alignment choices toggle exclusively with the Tools glow (30.0s)
+  Γ£ÿ  22 [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation (30.0s)
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (30.0s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+  Γ£ÿ  22 [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation (30.0s)
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (30.0s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+  Γ£ÿ  24 [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates (30.0s)
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (30.0s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+  Γ£ÿ  26 [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings (30.0s)
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+  Γ£ô  31 [chromium] ΓÇ║ tests\saved-templates.spec.js:848:1 ΓÇ║ shell save prompt identifies the name as a shell (1.6s)
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+  Γ£ô  30 [chromium] ΓÇ║ tests\saved-templates.spec.js:863:1 ΓÇ║ saved shells appear in the Load Shells menu by their saved name (1.7s)
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Fonts', exact: true })
+  Γ£ÿ  27 [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases (30.0s)
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Fonts', exact: true })
+
+  Γ£ÿ  28 [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode (30.0s)
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Fonts', exact: true })
+
+
+  Γ£ÿ  29 [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state (30.0s)
+
+
+  1) [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Fonts', exact: true })
+
+
+      43 | 	await openEditablePaperTemplate(page);
+  20) [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 3
+
+      Object {
+    -   "leftGap": 0,
+    -   "rightGap": 0,
+    -   "width": 288,
+    +   "leftGap": 1246.5,
+    +   "rightGap": -1438.5,
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:130:29
+
+    Error Context: test-results\saved-templates-opening-Ne-54401-l-in-shell-or-template-mode-chromium\error-context.md
+
+  21) [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-template-new-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-template-new-button" name="text-editor-template-new-button" data-button-name="text-editor-template-new-button" class="text-editor-template-new-button text-editor-print-preview-button"> New + </button>
+      - attempting click action
+    Error Context: test-results\saved-templates-opening-Ne-54401-l-in-shell-or-template-mode-chromium\error-context.md
+
+  21) [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-template-new-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-template-new-button" name="text-editor-template-new-button" data-button-name="text-editor-template-new-button" class="text-editor-template-new-button text-editor-print-preview-button"> New + </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+  21) [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-template-new-button')
+        - locator resolved to <button type="button" aria-pressed="false" id="text-editor-template-new-button" name="text-editor-template-new-button" data-button-name="text-editor-template-new-button" class="text-editor-template-new-button text-editor-print-preview-button"> New + </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:163:19
+
+    Error Context: test-results\saved-templates-New-can-re-f0fe6--the-data-loss-confirmation-chromium\error-context.md
+
+  22) [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('dialog', { name: 'If You Leave Now Without Saving, Your Data Will Be Lost' }).getByRole('button', { name: 'Leave' })
+        - locator resolved to <button type="button" id="text-editor-unsaved-confirmation-leave-button" class="text-editor-unsaved-confirmation-leave-button"> Leave </button>
+      - attempting click action
+    Error Context: test-results\saved-templates-New-can-re-f0fe6--the-data-loss-confirmation-chromium\error-context.md
+
+  22) [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('dialog', { name: 'If You Leave Now Without Saving, Your Data Will Be Lost' }).getByRole('button', { name: 'Leave' })
+        - locator resolved to <button type="button" id="text-editor-unsaved-confirmation-leave-button" class="text-editor-unsaved-confirmation-leave-button"> Leave </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+  22) [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('dialog', { name: 'If You Leave Now Without Saving, Your Data Will Be Lost' }).getByRole('button', { name: 'Leave' })
+        - locator resolved to <button type="button" id="text-editor-unsaved-confirmation-leave-button" class="text-editor-unsaved-confirmation-leave-button"> Leave </button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        at confirmBackAfterEdit (C:\zoologistExplorer02\tests\saved-templates.spec.js:243:55)
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:251:2
+
+    Error Context: test-results\saved-templates-workflow-B-5df52-reated-shells-and-templates-chromium\error-context.md
+
+  23) [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#text-editor-size-menu-button')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:251:2
+
+    Error Context: test-results\saved-templates-workflow-B-5df52-reated-shells-and-templates-chromium\error-context.md
+
+  23) [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#text-editor-size-menu-button')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Error Context: test-results\saved-templates-workflow-B-5df52-reated-shells-and-templates-chromium\error-context.md
+
+  23) [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#text-editor-size-menu-button')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('#text-editor-size-menu-button') with timeout 5000ms
+  23) [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#text-editor-size-menu-button')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('#text-editor-size-menu-button') with timeout 5000ms
+      - waiting for locator('#text-editor-size-menu-button')
+
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:295:62
+
+    Error Context: test-results\saved-templates-Tools-in-t-5c9c6--opens-the-editing-controls-chromium\error-context.md
+
+  24) [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-button')
+
+
+    Error Context: test-results\saved-templates-Tools-in-t-5c9c6--opens-the-editing-controls-chromium\error-context.md
+
+  24) [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-button')
+
+
+      452 | 	await page.getByRole("button", { name: "Text Editor" }).click();
+      453 | 	await page.getByRole("button", { name: "Tools" }).click();
+  24) [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-button')
+
+
+      452 | 	await page.getByRole("button", { name: "Text Editor" }).click();
+      453 | 	await page.getByRole("button", { name: "Tools" }).click();
+    > 454 | 	await page.locator("#text-editor-fonts-button").click();
+          | 	                                                ^
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:454:50
+
+    Error Context: test-results\saved-templates-new-templa-c780a-e-shells-omit-font-settings-chromium\error-context.md
+
+  25) [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-size-menu-button')
+
+
+    Error Context: test-results\saved-templates-new-templa-c780a-e-shells-omit-font-settings-chromium\error-context.md
+
+  25) [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-size-menu-button')
+
+
+      513 | 		});
+      514 |
+  25) [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-size-menu-button')
+
+
+      513 | 		});
+      514 |
+    > 515 | 		await page.locator("#text-editor-size-menu-button").click();
+          | 		                                                    ^
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:515:55
+
+    Error Context: test-results\saved-templates-template-a-1a361--fixed-when-width-increases-chromium\error-context.md
+
+  26) [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-button')
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+    Error Context: test-results\saved-templates-template-a-1a361--fixed-when-width-increases-chromium\error-context.md
+
+  26) [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-button')
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+  26) [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#text-editor-fonts-button')
+        - waiting for "http://127.0.0.1:5173/zoologistExplorer02/" navigation to finish...
+        - navigated to "http://127.0.0.1:5173/zoologistExplorer02/"
+
+
+      609 | 	const originalBackStyle = await navigationButtonStyles("#parent-screen-back-button");
+      610 | 	await page.getByRole("button", { name: "Tools" }).click();
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:611:50
+
+    Error Context: test-results\saved-templates-loading-sa-986e3-eir-settings-and-shell-mode-chromium\error-context.md
+
+  27) [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Size' })
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="font-size" id="text-editor-font-size-button" class="text-editor-font-size-button"> Font Size </button>
+      - attempting click action
+    Error Context: test-results\saved-templates-loading-sa-986e3-eir-settings-and-shell-mode-chromium\error-context.md
+
+  27) [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Size' })
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="font-size" id="text-editor-font-size-button" class="text-editor-font-size-button"> Font Size </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+  27) [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Size' })
+        - locator resolved to <button type="button" aria-pressed="false" data-font-option="font-size" id="text-editor-font-size-button" class="text-editor-font-size-button"> Font Size </button>
+      - attempting click action
+        2 ├ù waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+        at C:\zoologistExplorer02\tests\saved-templates.spec.js:705:51
+
+    Error Context: test-results\saved-templates-saved-temp-40a9e-d-restore-their-paper-state-chromium\error-context.md
+
+  27 failed
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:67:1 ΓÇ║ font selected before loading a template applies to new text 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:96:1 ΓÇ║ repeated letters keep stable font features across every font style 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:142:1 ΓÇ║ font styles affect highlighted text and text typed afterward only 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:229:1 ΓÇ║ Font Styles stays depressed with the Font Color glow until toggled off 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:259:1 ΓÇ║ Font Size stays depressed until toggled off 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:281:1 ΓÇ║ Font Size menu matches Font Color width and label inset 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:323:1 ΓÇ║ Font Size menu sits below the active Font Styles or Font Color menu 
+    Error Context: test-results\saved-templates-saved-temp-40a9e-d-restore-their-paper-state-chromium\error-context.md
+
+  27 failed
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:42:1 ΓÇ║ nested font menus lower together when the New menu is open 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:67:1 ΓÇ║ font selected before loading a template applies to new text 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:96:1 ΓÇ║ repeated letters keep stable font features across every font style 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:142:1 ΓÇ║ font styles affect highlighted text and text typed afterward only 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:229:1 ΓÇ║ Font Styles stays depressed with the Font Color glow until toggled off 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:259:1 ΓÇ║ Font Size stays depressed until toggled off 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:281:1 ΓÇ║ Font Size menu matches Font Color width and label inset 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:323:1 ΓÇ║ Font Size menu sits below the active Font Styles or Font Color menu 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:363:1 ΓÇ║ Font Size input accepts at most three digits 
+    [chromium] ΓÇ║ tests\font-style-typing.spec.js:378:1 ΓÇ║ Font Size Commit matches Font Color Commit styling 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:106:1 ΓÇ║ opening New menu does not shift Tools panel in shell or template mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:153:1 ΓÇ║ New+ can reopen its menu without showing the data-loss confirmation 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:191:1 ΓÇ║ workflow Back confirms edits to loaded and created shells and templates 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:273:1 ΓÇ║ Tools in the top navigation opens the editing controls 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:449:1 ΓÇ║ new templates inherit Tools settings while shells omit font settings 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:491:1 ΓÇ║ template and shell paper left edges stay fixed when width increases 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:537:1 ΓÇ║ loading saved documents preserves their settings and shell mode 
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+    [chromium] ΓÇ║ tests\saved-templates.spec.js:682:1 ΓÇ║ saved templates stay available across reloads and restore their paper state 
+  4 passed (2.1m)
+

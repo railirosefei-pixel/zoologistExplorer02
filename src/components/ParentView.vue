@@ -86,6 +86,9 @@ const isMarginVisibilityOn = ref(true);
 const gridRowsAmount = ref("");
 const gridColumnsAmount = ref("");
 const selectedGridAlignment = ref(null);
+const gridMoveStep = ref(null);
+const gridNudgeX = ref(0);
+const gridNudgeY = ref(0);
 const gridShapeWidthInput = ref("");
 const gridShapeHeightInput = ref("");
 const currentGridShapeWidthInches = ref(null);
@@ -1234,6 +1237,18 @@ function toggleGridAlignment(alignment) {
 	selectedGridAlignment.value = selectedGridAlignment.value === alignment ? null : alignment;
 }
 
+function nudgeGrid(direction) {
+	if (direction === "left") {
+		gridNudgeX.value -= gridMoveStep.value;
+	} else if (direction === "right") {
+		gridNudgeX.value += gridMoveStep.value;
+	} else if (direction === "up") {
+		gridNudgeY.value -= gridMoveStep.value;
+	} else if (direction === "down") {
+		gridNudgeY.value += gridMoveStep.value;
+	}
+}
+
 function getGridAlignmentButtonState(alignment) {
 	return selectedGridAlignment.value === alignment
 		? "grid-menu-toggle-button--on"
@@ -1377,19 +1392,23 @@ const gridRenderedWidthPx = computed(() => gridPatternCellWidth.value * gridRend
 const gridRenderedHeightPx = computed(() => gridPatternCellHeight.value * gridRenderedRowCount.value);
 const gridRenderedOffsetX = computed(() => {
 	const remainingWidth = Math.max(0, gridAreaWidthPx.value - gridRenderedWidthPx.value);
+	let alignmentOffsetX = 0;
 	if (["right", "bottom-right", "top-right"].includes(selectedGridAlignment.value)) {
-		return remainingWidth;
+		alignmentOffsetX = remainingWidth;
+	} else if (["center", "bottom", "top"].includes(selectedGridAlignment.value)) {
+		alignmentOffsetX = remainingWidth / 2;
 	}
-	return ["center", "bottom", "top"].includes(selectedGridAlignment.value) ? remainingWidth / 2 : 0;
+	return alignmentOffsetX + gridNudgeX.value;
 });
 const gridRenderedOffsetY = computed(() => {
 	const remainingHeight = Math.max(0, gridAreaHeightPx.value - gridRenderedHeightPx.value);
+	let alignmentOffsetY = 0;
 	if (selectedGridAlignment.value === "center") {
-		return remainingHeight / 2;
+		alignmentOffsetY = remainingHeight / 2;
+	} else if (["bottom", "bottom-left", "bottom-right"].includes(selectedGridAlignment.value)) {
+		alignmentOffsetY = remainingHeight;
 	}
-	return ["bottom", "bottom-left", "bottom-right"].includes(selectedGridAlignment.value)
-		? remainingHeight
-		: 0;
+	return alignmentOffsetY + gridNudgeY.value;
 });
 const gridShapeOriginX = computed(
 	() => -gridShapeBounds.value.minX * gridShapeScaleX.value,
@@ -2185,6 +2204,72 @@ function handleCalibrationBarPointerUp() {
 					</div>
 					<div class="grid-menu-control-columns">
 						<div class="grid-menu-alignment-controls">
+							<div class="grid-menu-position-picker">
+								<div id="grid-menu-position-heading" class="grid-menu-position-heading">
+									Grid Position
+								</div>
+								<select
+									id="grid-move-step"
+									v-model.number="gridMoveStep"
+									class="grid-menu-position-step-select"
+									aria-label="Grid movement distance in pixels"
+								>
+									<option :value="null" disabled>Select</option>
+									<option v-for="pixelAmount in 10" :key="pixelAmount" :value="pixelAmount">
+										{{ pixelAmount }}
+									</option>
+								</select>
+								<span id="grid-move-unit" aria-hidden="true">px</span>
+							</div>
+							<div
+								v-if="gridMoveStep !== null"
+								id="grid-menu-move-directions"
+								class="grid-menu-position-controls"
+								aria-labelledby="grid-menu-position-heading"
+							>
+								<div class="grid-menu-position-directions" role="group" aria-label="Move grid">
+									<button
+										id="grid-move-up-button"
+										class="grid-menu-position-button"
+										type="button"
+										aria-label="Move grid up"
+										title="Move grid up"
+										@click="nudgeGrid('up')"
+									>
+										Up
+									</button>
+									<button
+										id="grid-move-down-button"
+										class="grid-menu-position-button"
+										type="button"
+										aria-label="Move grid down"
+										title="Move grid down"
+										@click="nudgeGrid('down')"
+									>
+										Down
+									</button>
+									<button
+										id="grid-move-left-button"
+										class="grid-menu-position-button"
+										type="button"
+										aria-label="Move grid left"
+										title="Move grid left"
+										@click="nudgeGrid('left')"
+									>
+										Left
+									</button>
+									<button
+										id="grid-move-right-button"
+										class="grid-menu-position-button"
+										type="button"
+										aria-label="Move grid right"
+										title="Move grid right"
+										@click="nudgeGrid('right')"
+									>
+										Right
+									</button>
+								</div>
+							</div>
 							<div class="grid-menu-alignment-controls-inner">
 								<details id="grid-menu-alignment-dropdown" open>
 									<summary>Grid Alignment</summary>

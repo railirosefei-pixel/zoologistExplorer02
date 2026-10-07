@@ -1,0 +1,15 @@
+﻿node.exe : npm notice run zoologistexplorer02@1.0.0 npx
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\jason\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run ...rer02@1.0.0 npx 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice run playwright test tests/font-style-typing.spec.js 
+tests/saved-templates.spec.js tests/smoke.spec.js 
+tests/paper-template-keys.spec.js
+
+Running 87 tests using 8 workers
+
+  Γ£ô   2 [chromium] ΓÇ║ tests\font-style-typing.spec.js:72:1 ΓÇ║ font selected before loading a template applies to new text (1.5s)
