@@ -62,7 +62,7 @@ function getNavigationButtonKind(button) {
 		return "home";
 	}
 
-	if (/back/.test(label)) {
+	if (/\bback\b/.test(label)) {
 		return "back";
 	}
 

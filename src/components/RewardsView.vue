@@ -10,8 +10,17 @@ import rewardBookOpening from "../../assets/animations/Sequence02.webm";
 import rewardBookOpeningCaptions from "../../assets/animations/bookOpeningCaptions.vtt";
 
 const emit = defineEmits(["back-to-student-menu"]);
+const props = defineProps({
+	goldCoinTotal: {
+		type: Number,
+		default: 0,
+	},
+});
 const isRewardChestHovered = ref(false);
 const isRewardChestClicked = ref(false);
+const isGoldBagHovered = ref(false);
+const isGoldBagOpen = ref(false);
+const isGoldCoinTotalVisible = ref(false);
 const rewardSequenceStage = ref("idle");
 const rewardsBackgroundImage = `url("${rewardsBackground}")`;
 
@@ -38,6 +47,20 @@ function handleRewardJournalArrival() {
 /** Keeps the video's final frame visible and moves it beside the chest. */
 function handleRewardBookAnimationEnded() {
 	rewardSequenceStage.value = "complete";
+}
+
+/** Opens the revealed pouch once and starts its coin-spill animation. */
+function handleGoldBagClick() {
+	if (isGoldBagOpen.value) {
+		return;
+	}
+
+	isGoldBagOpen.value = true;
+}
+
+/** Reveals the total after the final coin finishes spilling. */
+function handleGoldCoinSpillComplete() {
+	isGoldCoinTotalVisible.value = true;
 }
 </script>
 
@@ -128,6 +151,36 @@ function handleRewardBookAnimationEnded() {
 				/>
 			</video>
 		</div>
+		<button
+			v-if="rewardSequenceStage === 'complete'"
+			class="rewards-page-gold-bag"
+			:class="{ 'rewards-page-gold-bag--uncinched': isGoldBagHovered || isGoldBagOpen }"
+			type="button"
+			aria-label="Gold cinch bag"
+			:aria-expanded="isGoldBagOpen"
+			@mouseenter="isGoldBagHovered = true"
+			@mouseleave="isGoldBagHovered = false"
+			@focus="isGoldBagHovered = true"
+			@blur="isGoldBagHovered = false"
+			@click="handleGoldBagClick"
+		>
+			<span class="rewards-page-gold-bag-neck" aria-hidden="true" />
+			<span class="rewards-page-gold-bag-body" aria-hidden="true" />
+			<span class="rewards-page-gold-bag-tie" aria-hidden="true" />
+			<span v-if="isGoldBagOpen" class="rewards-page-gold-coins" aria-hidden="true">
+				<span class="rewards-page-gold-coin rewards-page-gold-coin--one" />
+				<span class="rewards-page-gold-coin rewards-page-gold-coin--two" />
+				<span class="rewards-page-gold-coin rewards-page-gold-coin--three" />
+				<span class="rewards-page-gold-coin rewards-page-gold-coin--four" />
+				<span
+					class="rewards-page-gold-coin rewards-page-gold-coin--five"
+					@animationend="handleGoldCoinSpillComplete"
+				/>
+			</span>
+		</button>
+		<p v-if="isGoldCoinTotalVisible" class="rewards-page-gold-total" role="status">
+			{{ props.goldCoinTotal }} gold coins
+		</p>
 	</main>
 </template>
 
@@ -204,6 +257,172 @@ function handleRewardBookAnimationEnded() {
 	animation: rewards-journal-emerge 1400ms cubic-bezier(0.16, 0.84, 0.3, 1) forwards;
 }
 
+.rewards-page-gold-bag {
+	position: absolute;
+	left: 76%;
+	top: 56%;
+	width: clamp(5rem, 12vw, 9rem);
+	aspect-ratio: 1;
+	transform: translate(-50%, -50%);
+	z-index: 2;
+	animation: rewards-gold-bag-emerge 1800ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+	transition: filter 150ms ease;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+}
+
+.rewards-page-gold-bag:hover {
+	filter: drop-shadow(0 0 8px #ffea00) drop-shadow(0 0 18px #ffea00);
+}
+
+.rewards-page-gold-bag-neck {
+	position: absolute;
+	top: 15%;
+	left: 29%;
+	width: 42%;
+	height: 26%;
+	border-radius: 42% 42% 18% 18%;
+	background: linear-gradient(110deg, #4b291c, #a36c48 48%, #603722);
+	transition: top 220ms ease, transform 220ms ease;
+}
+
+.rewards-page-gold-bag--uncinched .rewards-page-gold-bag-neck {
+	top: 7%;
+	transform: rotate(-12deg) scaleY(0.78);
+}
+
+.rewards-page-gold-bag-body {
+	position: absolute;
+	left: 12%;
+	bottom: 7%;
+	width: 76%;
+	height: 67%;
+	border: 3px solid #392216;
+	border-radius: 38% 38% 46% 46% / 28% 28% 56% 56%;
+	background:
+		repeating-linear-gradient(78deg, transparent 0 8px, #39221622 9px 10px),
+		radial-gradient(ellipse at 36% 25%, #b27c57 0, #805337 46%, #4b2c1e 100%);
+	box-shadow: inset 0 0 0 4px #9a6a4b, inset 0 -0.35rem 0.6rem #27150e88, 0 0.3rem 0 #352015;
+}
+
+.rewards-page-gold-bag-tie {
+	position: absolute;
+	top: 26%;
+	left: 43%;
+	width: 14%;
+	height: 13%;
+	border: 3px solid #4b291c;
+	border-radius: 50% 50% 35% 35%;
+	background: #bd8a5a;
+	transition: transform 220ms ease;
+}
+
+.rewards-page-gold-bag--uncinched .rewards-page-gold-bag-tie {
+	transform: translateY(-0.6rem) rotate(-24deg);
+}
+
+.rewards-page-gold-coins {
+	position: absolute;
+	left: 50%;
+	top: 36%;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.rewards-page-gold-coin {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1.5rem;
+	height: 0.8rem;
+	border: 2px solid #a85e05;
+	border-radius: 50%;
+	background: radial-gradient(ellipse at 35% 25%, #fff8ad, #f6c638 62%, #c77908);
+	box-shadow: inset 0 0 0 2px #f8d75f;
+	animation: rewards-gold-coin-spill 850ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--coin-delay) forwards;
+}
+
+.rewards-page-gold-coin--one {
+	--coin-x: -3rem;
+	--coin-y: -2rem;
+	--coin-delay: 0ms;
+}
+
+.rewards-page-gold-coin--two {
+	--coin-x: -1.5rem;
+	--coin-y: -4rem;
+	--coin-delay: 70ms;
+}
+
+.rewards-page-gold-coin--three {
+	--coin-x: 1.3rem;
+	--coin-y: -3.3rem;
+	--coin-delay: 140ms;
+}
+
+.rewards-page-gold-coin--four {
+	--coin-x: 2.8rem;
+	--coin-y: -1.7rem;
+	--coin-delay: 210ms;
+}
+
+.rewards-page-gold-coin--five {
+	--coin-x: 0.4rem;
+	--coin-y: -0.8rem;
+	--coin-delay: 280ms;
+}
+
+.rewards-page-gold-total {
+	position: absolute;
+	left: 76%;
+	top: 68%;
+	width: min(38vw, 18rem);
+	transform: translateX(-50%);
+	margin: 0;
+	color: #ffe25b;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.2rem;
+	text-align: center;
+	text-shadow: 0 0 0.35rem #ffea00, 0 0 0.8rem #d99600;
+}
+
+@keyframes rewards-gold-bag-emerge {
+	0% {
+		opacity: 0;
+		z-index: 0;
+		transform: translate(-50%, -50%) translate(-26vw, -6vh) scale(0.12) rotate(-720deg);
+	}
+
+	18% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 1;
+		z-index: 2;
+		transform: translate(-50%, -50%) scale(1) rotate(0);
+	}
+}
+
+@keyframes rewards-gold-coin-spill {
+	0% {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.2) rotate(0);
+	}
+
+	15% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate(calc(-50% + var(--coin-x)), calc(-50% + var(--coin-y))) scale(1) rotate(720deg);
+	}
+}
+
 @keyframes rewards-journal-emerge {
 	0% {
 		opacity: 0;
@@ -233,6 +452,15 @@ function handleRewardBookAnimationEnded() {
 
 	.rewards-page-journal {
 		animation-duration: 1ms;
+	}
+
+	.rewards-page-gold-bag {
+		animation-duration: 1ms;
+	}
+
+	.rewards-page-gold-coin {
+		animation-duration: 1ms;
+		animation-delay: 0ms;
 	}
 }
 </style>

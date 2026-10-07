@@ -3,9 +3,12 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch, w
 
 import { addSavedTemplate, buildTemplateEntry, loadSavedTemplates } from "../js/templateStorage.js";
 import { convertToPixels } from "../js/unitConversion.js";
+import MathGamesView from "./MathGamesView.vue";
 
 const emit = defineEmits(["open-student-edits", "back-to-home"]);
 const isTextEditorOpen = ref(false);
+const isGamesSidebarOpen = ref(false);
+const activeGamesButton = ref("");
 const textEditorButtonStates = ref({
 	printPreview: false,
 	grid: false,
@@ -22,6 +25,8 @@ const isEditingToolsOpen = ref(false);
 const isSizePanelOpen = ref(false);
 const isFontsPanelOpen = ref(false);
 const isMarginsPanelOpen = ref(false);
+const isAlignmentPanelOpen = ref(false);
+const globalTextAlignment = ref(null);
 
 /** Ids of the currently open Tools menus, in the order they were opened. Drives stack DOM order. */
 const toolsMenuOpenOrder = ref([]);
@@ -78,6 +83,94 @@ watch(isLeaveUnsavedPromptOpen, async (isOpen) => {
 const marginFields = ["top", "bottom", "left", "right"];
 const marginValues = reactive({ top: "0", bottom: "0", left: "0", right: "0" });
 const isMarginVisibilityOn = ref(true);
+const gridRowsAmount = ref("");
+const gridColumnsAmount = ref("");
+const selectedGridAlignment = ref(null);
+const gridShapeWidthInput = ref("");
+const gridShapeHeightInput = ref("");
+const currentGridShapeWidthInches = ref(null);
+const currentGridShapeHeightInches = ref(null);
+const selectedGridShapeSides = ref(null);
+const currentTemplateGridSides = ref(4);
+const pendingGridShapeSides = ref(null);
+const quadrilateralVariants = [
+	{ id: "square", label: "A.) Squares" },
+	{ id: "diamond", label: "B.) Squares (Diamond)" },
+	{ id: "vertical-rectangle", label: "C.) Rectangles (Vertical)" },
+	{ id: "horizontal-rectangle", label: "D.) Rectangles (Horizontal)" },
+];
+const selectedGridShapeVariant = ref("vertical-rectangle");
+const currentTemplateGridShapeVariant = ref("vertical-rectangle");
+const pendingGridShapeVariant = ref(null);
+const gridRowCount = computed(() => Math.max(1, Number.parseInt(gridRowsAmount.value, 10) || 3));
+const gridColumnCount = computed(() => Math.max(1, Number.parseInt(gridColumnsAmount.value, 10) || 4));
+const gridShapeSideCount = computed(() => currentTemplateGridSides.value);
+const gridShapeOptions = [
+	{ sides: 1, label: "1 Side: Circle" },
+	{ sides: 3, label: "3 Sides: Triangle" },
+	{ sides: 4, label: "4 Sides: Quadrilateral" },
+	{ sides: 5, label: "5 Sides: Pentagon" },
+	{ sides: 6, label: "6 Sides: Hexagon" },
+	{ sides: 7, label: "7 Sides: Heptagon" },
+	{ sides: 8, label: "8 Sides: Octagon" },
+	{ sides: 9, label: "9 Sides: Nonagon" },
+	{ sides: 10, label: "10 Sides: Decagon" },
+	{ sides: 11, label: "11 Sides: Hendecagon" },
+	{ sides: 12, label: "12 Sides: Dodecagon" },
+	{ sides: 13, label: "13 Sides: Triskaidecagon" },
+	{ sides: 14, label: "14 Sides: Tetradecagon" },
+	{ sides: 15, label: "15 Sides: Pentadecagon" },
+	{ sides: 16, label: "16 Sides: Hexadecagon" },
+	{ sides: 17, label: "17 Sides: Heptadecagon" },
+	{ sides: 18, label: "18 Sides: Octadecagon" },
+	{ sides: 19, label: "19 Sides: Enneadecagon" },
+	{ sides: 20, label: "20 Sides: Icosagon" },
+	{ sides: 21, label: "21 Sides: Icosihenagon" },
+	{ sides: 22, label: "22 Sides: Icosidigon" },
+	{ sides: 23, label: "23 Sides: Icositrigon" },
+	{ sides: 24, label: "24 Sides: Icositetragon" },
+	{ sides: 25, label: "25 Sides: Icosipentagon" },
+	{ sides: 26, label: "26 Sides: Icosihexagon" },
+	{ sides: 27, label: "27 Sides: Icosiheptagon" },
+	{ sides: 28, label: "28 Sides: Icosioctagon" },
+	{ sides: 29, label: "29 Sides: Icosienneagon" },
+	{ sides: 30, label: "30 Sides: Triacontagon" },
+	{ sides: 31, label: "31 Sides: Triacontahenagon" },
+	{ sides: 32, label: "32 Sides: Triacontadigon" },
+	{ sides: 33, label: "33 Sides: Triacontatrigon" },
+	{ sides: 34, label: "34 Sides: Triacontatetragon" },
+	{ sides: 35, label: "35 Sides: Triacontapentagon" },
+	{ sides: 36, label: "36 Sides: Triacontahexagon" },
+	{ sides: 37, label: "37 Sides: Triacontaheptagon" },
+	{ sides: 38, label: "38 Sides: Triacontaoctagon" },
+	{ sides: 39, label: "39 Sides: Triacontaenneagon" },
+	{ sides: 40, label: "40 Sides: Tetracontagon" },
+	{ sides: 41, label: "41 Sides: Tetracontahenagon" },
+	{ sides: 42, label: "42 Sides: Tetracontadigon" },
+	{ sides: 43, label: "43 Sides: Tetracontatrigon" },
+	{ sides: 44, label: "44 Sides: Tetracontatetragon" },
+	{ sides: 45, label: "45 Sides: Tetracontapentagon" },
+	{ sides: 46, label: "46 Sides: Tetracontahexagon" },
+	{ sides: 47, label: "47 Sides: Tetracontaheptagon" },
+	{ sides: 48, label: "48 Sides: Tetracontaoctagon" },
+	{ sides: 49, label: "49 Sides: Tetracontaenneagon" },
+	{ sides: 50, label: "50 Sides: Pentacontagon" },
+];
+const isApplyToMarginsOn = ref(false);
+const isGridApplied = ref(false);
+const isGridPrintable = ref(true);
+const isGridSelectionPromptOpen = ref(false);
+const isQuadrilateralPromptOpen = ref(false);
+const appliedGridConfiguration = computed(() =>
+	isGridApplied.value
+		? {
+				rows: gridRowsAmount.value,
+					columns: gridColumnsAmount.value,
+					sides: gridShapeSideCount.value,
+					applyToMargins: isApplyToMarginsOn.value,
+				}
+		: null,
+);
 const FONT_STYLE_STORAGE_KEY = "ze2.textEditor.fontStyle";
 const CALIBRATION_STORAGE_KEY = "ze2.textEditor.calibration";
 
@@ -266,6 +359,10 @@ function captureCurrentTemplate() {
 		heightUnit: heightUnit.value,
 		marginValues: { ...marginValues },
 		marginVisibility: isMarginVisibilityOn.value,
+		gridSides: currentTemplateGridSides.value,
+		gridShapeVariant: currentTemplateGridShapeVariant.value,
+		gridShapeWidthInches: currentGridShapeWidthInches.value,
+		gridShapeHeightInches: currentGridShapeHeightInches.value,
 		isShell: isShellMode.value,
 	};
 	if (!isShellMode.value) {
@@ -316,6 +413,9 @@ function confirmTemplateSave() {
 function handleTextEditorClose() {
 	isTextEditorOpen.value = false;
 	textEditorButtonStates.value.printPreview = false;
+	isGridApplied.value = false;
+	isGridSelectionPromptOpen.value = false;
+	isQuadrilateralPromptOpen.value = false;
 	isNewMenuOpen.value = false;
 	isUnsavedNewDocument.value = false;
 	isLeaveUnsavedPromptOpen.value = false;
@@ -347,6 +447,21 @@ function handleTextEditorWorkflowBack() {
 
 function handleTextEditorOpen() {
 	isTextEditorOpen.value = true;
+}
+
+function toggleGamesSidebar() {
+	isGamesSidebarOpen.value = !isGamesSidebarOpen.value;
+	if (!isGamesSidebarOpen.value) {
+		activeGamesButton.value = "";
+	}
+}
+
+function toggleGamesButton(buttonName) {
+	if (activeGamesButton.value === buttonName) {
+		activeGamesButton.value = "";
+		return;
+	}
+	activeGamesButton.value = buttonName;
 }
 
 function playIllegalActionFeedback() {
@@ -408,6 +523,7 @@ async function createTextEditorShell() {
 	isUnsavedNewDocument.value = true;
 	isShellMode.value = true;
 	textEditorButtonStates.value.printPreview = true;
+	activateTemplateGridSides();
 	await resetEditorForNewDocument();
 	savedDocumentBaseline.value = captureCurrentTemplate();
 }
@@ -417,6 +533,7 @@ async function createTextEditorTemplate() {
 	isUnsavedNewDocument.value = true;
 	isShellMode.value = false;
 	textEditorButtonStates.value.printPreview = true;
+	activateTemplateGridSides();
 	const editor = await resetEditorForNewDocument();
 	const fontOption = fontStyleOptions.find((option) => option.id === activeFontStyleId.value);
 	if (editor && fontOption) {
@@ -424,7 +541,11 @@ async function createTextEditorTemplate() {
 	}
 	if (editor) {
 		editor.style.color = committedFontColor.value;
-		selectEditorEnd(editor);
+		if (globalTextAlignment.value) {
+			applyGlobalTextAlignment(editor);
+		} else {
+			selectEditorEnd(editor);
+		}
 	}
 	savedDocumentBaseline.value = captureCurrentTemplate();
 }
@@ -433,6 +554,9 @@ function leaveUnsavedNewDocument() {
 	isLeaveUnsavedPromptOpen.value = false;
 	isNewMenuOpen.value = false;
 	isNewButtonPressed.value = false;
+	isGridApplied.value = false;
+	isGridSelectionPromptOpen.value = false;
+	isQuadrilateralPromptOpen.value = false;
 	isUnsavedNewDocument.value = false;
 	isShellMode.value = false;
 	savedDocumentBaseline.value = null;
@@ -518,6 +642,12 @@ async function loadSavedTemplate(entry) {
 		return;
 	}
 
+	activateTemplateGridSides(
+		entry.template.gridSides ?? 4,
+		entry.template.gridShapeVariant ?? "vertical-rectangle",
+	);
+	currentGridShapeWidthInches.value = entry.template.gridShapeWidthInches ?? null;
+	currentGridShapeHeightInches.value = entry.template.gridShapeHeightInches ?? null;
 	widthValue.value = entry.template.widthValue ?? widthValue.value;
 	widthUnit.value = entry.template.widthUnit ?? widthUnit.value;
 	heightValue.value = entry.template.heightValue ?? heightValue.value;
@@ -544,7 +674,11 @@ async function loadSavedTemplate(entry) {
 		if (fontOption) {
 			editor.style.fontFamily = fontOption.family;
 		}
-		selectEditorEnd(editor);
+		if (globalTextAlignment.value) {
+			applyGlobalTextAlignment(editor);
+		} else {
+			selectEditorEnd(editor);
+		}
 	}
 	savedDocumentBaseline.value = captureCurrentTemplate();
 }
@@ -555,6 +689,7 @@ function toggleEditingTools() {
 		isSizePanelOpen.value = false;
 		isFontsPanelOpen.value = false;
 		isMarginsPanelOpen.value = false;
+		isAlignmentPanelOpen.value = false;
 		toolsMenuOpenOrder.value = [];
 		isStylesMenuOpen.value = false;
 		isWidthMenuOpen.value = false;
@@ -838,6 +973,60 @@ function ensureEditorSelection(editor) {
 	selectEditorEnd(editor);
 }
 
+function applyTextAlignment(alignment) {
+	globalTextAlignment.value = globalTextAlignment.value === alignment ? null : alignment;
+	const editor = printPreviewPaperEditorRef.value;
+	if (!editor || isShellMode.value) {
+		return;
+	}
+	let range = window.getSelection()?.rangeCount ? window.getSelection().getRangeAt(0) : null;
+	if (!range || !editor.contains(range.commonAncestorContainer)) {
+		selectEditorEnd(editor);
+		range = window.getSelection()?.getRangeAt(0) ?? null;
+	}
+	if (range && !range.collapsed) {
+		const alignedText = document.createElement("div");
+		alignedText.style.textAlign = globalTextAlignment.value ?? "";
+		alignedText.append(range.extractContents());
+		range.insertNode(alignedText);
+		const selectedRange = document.createRange();
+		selectedRange.selectNodeContents(alignedText);
+		const selection = window.getSelection();
+		selection?.removeAllRanges();
+		selection?.addRange(selectedRange);
+		editor.focus();
+		return;
+	}
+	const target = getTextAlignmentTarget(editor, range?.startContainer);
+	target.style.textAlign = globalTextAlignment.value ?? "";
+	editor.focus();
+	if (range) {
+		const selection = window.getSelection();
+		selection?.removeAllRanges();
+		selection?.addRange(range);
+	}
+}
+
+function applyGlobalTextAlignment(editor) {
+	if (isShellMode.value || !globalTextAlignment.value) {
+		return;
+	}
+	selectEditorEnd(editor);
+	const range = window.getSelection()?.getRangeAt(0);
+	getTextAlignmentTarget(editor, range?.startContainer).style.textAlign = globalTextAlignment.value;
+}
+
+function getTextAlignmentTarget(editor, node) {
+	let element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
+	while (element && element !== editor) {
+		if (["BLOCKQUOTE", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "LI", "P", "PRE"].includes(element.tagName)) {
+			return element;
+		}
+		element = element.parentElement;
+	}
+	return editor;
+}
+
 function selectEditorEnd(editor) {
 	editor.focus();
 	const range = document.createRange();
@@ -885,6 +1074,11 @@ function toggleMarginsPanel() {
 	syncToolsMenuOrder("margins", isMarginsPanelOpen.value);
 }
 
+function toggleAlignmentPanel() {
+	isAlignmentPanelOpen.value = !isAlignmentPanelOpen.value;
+	syncToolsMenuOrder("alignment", isAlignmentPanelOpen.value);
+}
+
 function sanitizeMarginValue(value) {
 	const [whole = "", fraction] = String(value ?? "")
 		.replace(/[^\d.]/g, "")
@@ -926,6 +1120,142 @@ function toggleMarginVisibility() {
 	isMarginVisibilityOn.value = !isMarginVisibilityOn.value;
 }
 
+function sanitizeGridAmount(value) {
+	return value.replace(/\D/g, "").slice(0, 3);
+}
+
+function sanitizeGridDimension(value) {
+	const sanitizedValue = value.replace(/[^\d.]/g, "");
+	const decimalPosition = sanitizedValue.indexOf(".");
+	if (decimalPosition === -1) {
+		return sanitizedValue.slice(0, 4);
+	}
+	return `${sanitizedValue.slice(0, decimalPosition + 1)}${sanitizedValue
+		.slice(decimalPosition + 1)
+		.replaceAll(".", "")}`.slice(0, 4);
+}
+
+function updateGridShapeWidthInput(event) {
+	const sanitizedValue = sanitizeGridDimension(event.target.value);
+	gridShapeWidthInput.value = sanitizedValue;
+	event.target.value = sanitizedValue;
+}
+
+function updateGridShapeHeightInput(event) {
+	const sanitizedValue = sanitizeGridDimension(event.target.value);
+	gridShapeHeightInput.value = sanitizedValue;
+	event.target.value = sanitizedValue;
+}
+
+function commitGridShapeSize() {
+	const requestedWidth = Number.parseFloat(gridShapeWidthInput.value);
+	const requestedHeight = Number.parseFloat(gridShapeHeightInput.value);
+	const hasValidWidth = Number.isFinite(requestedWidth) && requestedWidth > 0;
+	const hasValidHeight = Number.isFinite(requestedHeight) && requestedHeight > 0;
+	if (!hasValidWidth && !hasValidHeight) {
+		return;
+	}
+	const committedWidth = hasValidWidth ? requestedWidth : requestedHeight;
+	const committedHeight = hasValidHeight ? requestedHeight : committedWidth;
+	currentGridShapeWidthInches.value = committedWidth;
+	currentGridShapeHeightInches.value = committedHeight;
+	gridShapeWidthInput.value = String(committedWidth);
+	gridShapeHeightInput.value = String(committedHeight);
+}
+
+function activateTemplateGridSides(templateSides = 4, templateVariant = "vertical-rectangle") {
+	const requestedSides = pendingGridShapeSides.value ?? templateSides;
+	const selectedOption = gridShapeOptions.find((shapeOption) => shapeOption.sides === requestedSides);
+	currentTemplateGridSides.value = selectedOption?.sides ?? 4;
+	selectedGridShapeSides.value = currentTemplateGridSides.value;
+	const requestedVariant = pendingGridShapeVariant.value ?? templateVariant;
+	const isKnownVariant = quadrilateralVariants.some((variant) => variant.id === requestedVariant);
+	currentTemplateGridShapeVariant.value =
+		currentTemplateGridSides.value === 4 && isKnownVariant ? requestedVariant : "diamond";
+	selectedGridShapeVariant.value = currentTemplateGridShapeVariant.value;
+	pendingGridShapeSides.value = null;
+	pendingGridShapeVariant.value = null;
+}
+
+function commitGridShapeSelection() {
+	const requestedSides = selectedGridShapeSides.value;
+	if (!gridShapeOptions.some((shapeOption) => shapeOption.sides === requestedSides)) {
+		return;
+	}
+	const requestedVariant =
+		requestedSides === 4
+			? quadrilateralVariants.some((variant) => variant.id === selectedGridShapeVariant.value)
+				? selectedGridShapeVariant.value
+				: "vertical-rectangle"
+			: "diamond";
+	if (textEditorButtonStates.value.printPreview) {
+		currentTemplateGridSides.value = requestedSides;
+		currentTemplateGridShapeVariant.value = requestedVariant;
+	} else if (textEditorButtonStates.value.grid) {
+		pendingGridShapeSides.value = requestedSides;
+		pendingGridShapeVariant.value = requestedVariant;
+	}
+}
+
+function selectGridShape(shapeOption) {
+	selectedGridShapeSides.value = shapeOption.sides;
+	if (shapeOption.sides === 4) {
+		selectedGridShapeVariant.value = "vertical-rectangle";
+		isQuadrilateralPromptOpen.value = true;
+	}
+}
+
+function selectGridShapeVariant(variant) {
+	selectedGridShapeSides.value = 4;
+	selectedGridShapeVariant.value = variant.id;
+}
+
+function closeQuadrilateralPrompt() {
+	isQuadrilateralPromptOpen.value = false;
+}
+
+function toggleApplyToMargins() {
+	isApplyToMarginsOn.value = !isApplyToMarginsOn.value;
+}
+
+function toggleGridApplied() {
+	if (isGridApplied.value) {
+		isGridApplied.value = false;
+		return;
+	}
+	if (!textEditorButtonStates.value.printPreview) {
+		isGridSelectionPromptOpen.value = true;
+		return;
+	}
+	isGridApplied.value = true;
+}
+
+function toggleGridAlignment(alignment) {
+	selectedGridAlignment.value = selectedGridAlignment.value === alignment ? null : alignment;
+}
+
+function getGridAlignmentButtonState(alignment) {
+	return selectedGridAlignment.value === alignment
+		? "grid-menu-toggle-button--on"
+		: "grid-menu-toggle-button--off";
+}
+
+function toggleGridPrintable() {
+	isGridPrintable.value = !isGridPrintable.value;
+}
+
+function handlePrintSelectedPaper() {
+	if (!printPreviewPaperRef.value) {
+		return;
+	}
+
+	window.print();
+}
+
+function closeGridSelectionPrompt() {
+	isGridSelectionPromptOpen.value = false;
+}
+
 function toggleUnitMenu(field) {
 	if (field === "width") {
 		isWidthMenuOpen.value = !isWidthMenuOpen.value;
@@ -954,6 +1284,132 @@ function updateUnit(field, unit) {
 /** Paper template dimensions in CSS px, derived from the Size menu entries. */
 const paperWidthPx = computed(() => convertToPixels(widthValue.value, widthUnit.value));
 const paperHeightPx = computed(() => convertToPixels(heightValue.value, heightUnit.value));
+function getGridMarginPixels(field) {
+	return isApplyToMarginsOn.value ? Number.parseFloat(marginValues[field]) || 0 : 0;
+}
+
+const gridAreaWidthPx = computed(() =>
+	Math.max(
+		1,
+		paperWidthPx.value - getGridMarginPixels("left") - getGridMarginPixels("right"),
+	),
+);
+const gridAreaHeightPx = computed(() =>
+	Math.max(
+		1,
+		paperHeightPx.value - getGridMarginPixels("top") - getGridMarginPixels("bottom"),
+	),
+);
+const gridShapeUnitVertices = computed(() => {
+	if (gridShapeSideCount.value === 1) {
+		return [];
+	}
+	if (gridShapeSideCount.value === 4) {
+		if (currentTemplateGridShapeVariant.value === "square") {
+			return [
+				{ x: -1, y: -1 },
+				{ x: 1, y: -1 },
+				{ x: 1, y: 1 },
+				{ x: -1, y: 1 },
+			];
+		}
+		if (currentTemplateGridShapeVariant.value === "vertical-rectangle") {
+			return [
+				{ x: -0.5, y: -1 },
+				{ x: 0.5, y: -1 },
+				{ x: 0.5, y: 1 },
+				{ x: -0.5, y: 1 },
+			];
+		}
+		if (currentTemplateGridShapeVariant.value === "horizontal-rectangle") {
+			return [
+				{ x: -1, y: -0.5 },
+				{ x: 1, y: -0.5 },
+				{ x: 1, y: 0.5 },
+				{ x: -1, y: 0.5 },
+			];
+		}
+	}
+	return Array.from({ length: gridShapeSideCount.value }, (_, index) => {
+		const angle = (Math.PI * 2 * index) / gridShapeSideCount.value - Math.PI / 2;
+		return { x: Math.cos(angle), y: Math.sin(angle) };
+	});
+});
+const gridShapeBounds = computed(() => {
+	if (gridShapeSideCount.value === 1) {
+		return { minX: -1, maxX: 1, minY: -1, maxY: 1, width: 2, height: 2 };
+	}
+	const xValues = gridShapeUnitVertices.value.map(({ x }) => x);
+	const yValues = gridShapeUnitVertices.value.map(({ y }) => y);
+	const minX = Math.min(...xValues);
+	const maxX = Math.max(...xValues);
+	const minY = Math.min(...yValues);
+	const maxY = Math.max(...yValues);
+	return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+});
+const gridShapeScaleX = computed(() =>
+	currentGridShapeWidthInches.value === null
+		? gridAreaWidthPx.value / (gridColumnCount.value * gridShapeBounds.value.width)
+		: convertToPixels(currentGridShapeWidthInches.value, "in") / gridShapeBounds.value.width,
+);
+const gridShapeScaleY = computed(() =>
+	currentGridShapeHeightInches.value === null
+		? gridAreaHeightPx.value / (gridRowCount.value * gridShapeBounds.value.height)
+		: convertToPixels(currentGridShapeHeightInches.value, "in") / gridShapeBounds.value.height,
+);
+const gridShapeCellWidth = computed(() => gridShapeBounds.value.width * gridShapeScaleX.value);
+const gridShapeCellHeight = computed(() => gridShapeBounds.value.height * gridShapeScaleY.value);
+const gridPatternCellWidth = computed(() => gridShapeCellWidth.value);
+const gridPatternCellHeight = computed(() => gridShapeCellHeight.value);
+const gridRenderedColumnCount = computed(() =>
+	Math.min(
+		gridColumnCount.value,
+		Math.floor((gridAreaWidthPx.value + 1e-6) / gridPatternCellWidth.value),
+	),
+);
+const gridRenderedRowCount = computed(() =>
+	Math.min(
+		gridRowCount.value,
+		Math.floor((gridAreaHeightPx.value + 1e-6) / gridPatternCellHeight.value),
+	),
+);
+const gridRenderedWidthPx = computed(() => gridPatternCellWidth.value * gridRenderedColumnCount.value);
+const gridRenderedHeightPx = computed(() => gridPatternCellHeight.value * gridRenderedRowCount.value);
+const gridRenderedOffsetX = computed(() => {
+	const remainingWidth = Math.max(0, gridAreaWidthPx.value - gridRenderedWidthPx.value);
+	if (["right", "bottom-right", "top-right"].includes(selectedGridAlignment.value)) {
+		return remainingWidth;
+	}
+	return ["center", "bottom", "top"].includes(selectedGridAlignment.value) ? remainingWidth / 2 : 0;
+});
+const gridRenderedOffsetY = computed(() => {
+	const remainingHeight = Math.max(0, gridAreaHeightPx.value - gridRenderedHeightPx.value);
+	if (selectedGridAlignment.value === "center") {
+		return remainingHeight / 2;
+	}
+	return ["bottom", "bottom-left", "bottom-right"].includes(selectedGridAlignment.value)
+		? remainingHeight
+		: 0;
+});
+const gridShapeOriginX = computed(
+	() => -gridShapeBounds.value.minX * gridShapeScaleX.value,
+);
+const gridShapeOriginY = computed(
+	() => -gridShapeBounds.value.minY * gridShapeScaleY.value,
+);
+const gridShapeViewBox = computed(
+	() => `0 0 ${gridAreaWidthPx.value} ${gridAreaHeightPx.value}`,
+);
+const gridShapePolygonPoints = computed(() =>
+	gridShapeUnitVertices.value
+		.map(
+			({ x, y }) =>
+					`${(gridShapeOriginX.value + x * gridShapeScaleX.value).toFixed(4)},${(
+					gridShapeOriginY.value + y * gridShapeScaleY.value
+				).toFixed(4)}`,
+		)
+		.join(" "),
+);
 const allSidesMarginValue = computed(() =>
 	marginFields.every((field) => marginValues[field] === marginValues.top)
 		? marginValues.top
@@ -1157,35 +1613,113 @@ function handleCalibrationBarPointerUp() {
 		aria-label="Parent screen"
 		title="Parent screen"
 	>
-		<nav
-			v-if="!isTextEditorOpen"
-			id="parent-screen-tab-rail"
-			class="parent-screen-tab-rail"
-			role="navigation"
-			aria-label="Parent navigation"
-			title="Parent navigation"
-		>
-			<button
-				id="student-edits-tab"
-				class="student-edits-tab"
-				type="button"
-				name="student-edits-tab"
-				data-button-name="student-edits-tab"
-				@click="handleStudentEditsOpen"
+		<template v-if="!isTextEditorOpen">
+			<nav
+				id="parent-screen-tab-rail"
+				class="parent-screen-tab-rail"
+				role="navigation"
+				aria-label="Parent navigation"
+				title="Parent navigation"
 			>
-				Student Edits
-			</button>
-			<button
-				id="text-editor-tab"
-				class="text-editor-tab"
-				type="button"
-				name="text-editor-tab"
-				data-button-name="text-editor-tab"
-				@click="handleTextEditorOpen"
+				<button
+					id="student-edits-tab"
+					class="student-edits-tab"
+					type="button"
+					name="student-edits-tab"
+					data-button-name="student-edits-tab"
+					@click="handleStudentEditsOpen"
+				>
+					Student Edits
+				</button>
+				<button
+					id="text-editor-tab"
+					class="text-editor-tab"
+					type="button"
+					name="text-editor-tab"
+					data-button-name="text-editor-tab"
+					@click="handleTextEditorOpen"
+				>
+					Text Editor
+				</button>
+				<button
+					id="games-tab"
+					class="games-tab"
+					type="button"
+					name="games-tab"
+					data-button-name="games-tab"
+					@click="toggleGamesSidebar"
+				>
+					Games
+				</button>
+			</nav>
+			<aside
+				v-if="isGamesSidebarOpen"
+				id="games-sidebar-panel"
+				class="games-sidebar-panel"
+				:class="{ 'games-sidebar-panel--compact': activeGamesButton }"
+				aria-label="Games sidebar"
+				title="Games sidebar"
 			>
-				Text Editor
-			</button>
-		</nav>
+				<button
+					class="games-sidebar-button games-sidebar-button--math"
+					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'math' }"
+					type="button"
+					name="math"
+					data-button-name="math"
+					:aria-pressed="activeGamesButton === 'math'"
+					@click="toggleGamesButton('math')"
+				>
+					Math
+				</button>
+				<button
+					class="games-sidebar-button games-sidebar-button--language-arts"
+					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'language-arts' }"
+					type="button"
+					name="language-arts"
+					data-button-name="language-arts"
+					:aria-pressed="activeGamesButton === 'language-arts'"
+					@click="toggleGamesButton('language-arts')"
+				>
+					Language Arts
+				</button>
+				<button
+					class="games-sidebar-button games-sidebar-button--social-studies"
+					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'social-studies' }"
+					type="button"
+					name="social-studies"
+					data-button-name="social-studies"
+					:aria-pressed="activeGamesButton === 'social-studies'"
+					@click="toggleGamesButton('social-studies')"
+				>
+					Social Studies
+				</button>
+				<button
+					class="games-sidebar-button games-sidebar-button--science"
+					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'science' }"
+					type="button"
+					name="science"
+					data-button-name="science"
+					:aria-pressed="activeGamesButton === 'science'"
+					@click="toggleGamesButton('science')"
+				>
+					Science
+				</button>
+				<button
+					class="games-sidebar-button games-sidebar-button--art"
+					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'art' }"
+					type="button"
+					name="art"
+					data-button-name="art"
+					:aria-pressed="activeGamesButton === 'art'"
+					@click="toggleGamesButton('art')"
+				>
+					Art
+				</button>
+			</aside>
+			<MathGamesView
+				v-if="isGamesSidebarOpen && activeGamesButton === 'math'"
+			/>
+		</template>
 		<section
 			v-else
 			id="text-editor-menu"
@@ -1263,6 +1797,16 @@ function handleCalibrationBarPointerUp() {
 					@click="toggleCalibrateButton"
 				>
 					Calibrate
+				</button>
+				<button
+					id="text-editor-print-button"
+					class="text-editor-print-button"
+					type="button"
+					name="text-editor-print-button"
+					data-button-name="text-editor-print-button"
+					@click="handlePrintSelectedPaper"
+				>
+					Print
 				</button>
 				<button
 					v-if="!isTextEditorWorkflowScreen"
@@ -1519,6 +2063,13 @@ function handleCalibrationBarPointerUp() {
 						ref="printPreviewPaperRef"
 						class="print-preview-paper"
 						data-element-name="print-preview-paper"
+						:data-grid-applied="isGridApplied ? 'true' : 'false'"
+						:data-grid-printable="isGridPrintable ? 'true' : 'false'"
+						:data-grid-rows="appliedGridConfiguration?.rows"
+						:data-grid-columns="appliedGridConfiguration?.columns"
+						:data-grid-sides="appliedGridConfiguration?.sides"
+						:data-grid-shape-variant="isGridApplied ? currentTemplateGridShapeVariant : undefined"
+						:data-grid-apply-to-margins="appliedGridConfiguration?.applyToMargins"
 					>
 						<div
 							ref="printPreviewPaperEditorRef"
@@ -1539,8 +2090,420 @@ function handleCalibrationBarPointerUp() {
 							<span class="print-preview-margin-guide print-preview-margin-guide--left" />
 							<span class="print-preview-margin-guide print-preview-margin-guide--right" />
 						</div>
+						<svg
+							v-if="isGridApplied"
+							id="print-preview-grid"
+							class="print-preview-grid"
+							:data-grid-rows="gridRowCount"
+							:data-grid-columns="gridColumnCount"
+							:data-grid-rendered-rows="gridRenderedRowCount"
+							:data-grid-rendered-columns="gridRenderedColumnCount"
+							:data-grid-sides="gridShapeSideCount"
+							:data-grid-shape-variant="currentTemplateGridShapeVariant"
+							:viewBox="gridShapeViewBox"
+							preserveAspectRatio="none"
+							aria-hidden="true"
+						>
+							<defs>
+								<pattern
+									id="print-preview-grid-shape-pattern"
+									:width="gridPatternCellWidth"
+									:height="gridPatternCellHeight"
+									patternUnits="userSpaceOnUse"
+									patternContentUnits="userSpaceOnUse"
+								>
+									<ellipse
+										v-if="gridShapeSideCount === 1"
+										:cx="gridShapeOriginX"
+										:cy="gridShapeOriginY"
+										:rx="gridShapeCellWidth / 2"
+										:ry="gridShapeCellHeight / 2"
+										fill="none"
+										stroke="#000000"
+										stroke-width="2"
+									/>
+									<polygon
+										v-else
+										:points="gridShapePolygonPoints"
+										fill="none"
+										stroke="#000000"
+										stroke-width="2"
+									/>
+								</pattern>
+							</defs>
+							<g :transform="`translate(${gridRenderedOffsetX} ${gridRenderedOffsetY})`">
+								<rect
+									data-grid-shape-area
+									:width="gridRenderedWidthPx"
+									:height="gridRenderedHeightPx"
+									fill="url(#print-preview-grid-shape-pattern)"
+								/>
+								<path
+									data-grid-outline
+									:d="`M 1 1 H ${Math.max(1, gridRenderedWidthPx - 1)} M 1 1 V ${Math.max(1, gridRenderedHeightPx - 1)} M ${Math.max(1, gridRenderedWidthPx - 1)} 1 V ${Math.max(1, gridRenderedHeightPx - 1)}`"
+									stroke="#000000"
+									stroke-width="2"
+									vector-effect="non-scaling-stroke"
+								/>
+							</g>
+						</svg>
 					</div>
 				</div>
+			</section>
+			<section
+				v-if="textEditorButtonStates.grid"
+				id="text-editor-grid-menu"
+				class="text-editor-grid-menu"
+				aria-label="Grid menu"
+				title="Grid menu"
+			>
+				<div class="grid-menu-control-row grid-menu-control-row--applied">
+					<span id="grid-applied-label" class="grid-menu-control-label">Grid Applied</span>
+					<button
+						id="grid-applied-button"
+						class="grid-menu-toggle-button"
+						:class="{
+							'grid-menu-toggle-button--on': isGridApplied,
+							'grid-menu-toggle-button--off': !isGridApplied,
+						}"
+						type="button"
+						:aria-label="isGridApplied ? 'Grid Applied: On' : 'Grid Applied: Off'"
+						:aria-pressed="isGridApplied"
+						@click="toggleGridApplied"
+					>
+						{{ isGridApplied ? "On" : "Off" }}
+					</button>
+				</div>
+				<div class="grid-menu-controls-layout">
+					<div class="grid-menu-control-headings">
+						<div id="grid-menu-alignment-heading" class="grid-menu-alignment-heading">
+							Alignment
+						</div>
+						<div id="grid-menu-size-heading" class="grid-menu-size-heading">
+							Size
+						</div>
+					</div>
+					<div class="grid-menu-control-columns">
+						<div class="grid-menu-alignment-controls">
+							<div class="grid-menu-alignment-controls-inner">
+								<details id="grid-menu-alignment-dropdown" open>
+									<summary>Grid Alignment</summary>
+									<fieldset
+										id="grid-menu-alignment-buttons"
+										class="grid-menu-alignment-buttons"
+										aria-label="Grid alignment"
+									>
+										<div class="grid-menu-alignment-row">
+										<button
+											id="grid-alignment-left-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off': selectedGridAlignment !== 'left',
+												'grid-menu-toggle-button--on': selectedGridAlignment === 'left',
+												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'left',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'left'"
+											@click="toggleGridAlignment('left')"
+										>
+											Left
+										</button>
+										<button
+											id="grid-alignment-center-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off': selectedGridAlignment !== 'center',
+												'grid-menu-toggle-button--on': selectedGridAlignment === 'center',
+												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'center',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'center'"
+											@click="toggleGridAlignment('center')"
+										>
+											Center
+										</button>
+										<button
+											id="grid-alignment-right-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off': selectedGridAlignment !== 'right',
+												'grid-menu-toggle-button--on': selectedGridAlignment === 'right',
+												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'right',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'right'"
+											@click="toggleGridAlignment('right')"
+										>
+											Right
+										</button>
+										</div>
+										<div class="grid-menu-alignment-row">
+										<button
+											id="grid-alignment-bottom-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off': selectedGridAlignment !== 'bottom',
+												'grid-menu-toggle-button--on': selectedGridAlignment === 'bottom',
+												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'bottom',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'bottom'"
+											@click="toggleGridAlignment('bottom')"
+										>
+											Bottom
+										</button>
+										<button
+											id="grid-alignment-top-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off': selectedGridAlignment !== 'top',
+												'grid-menu-toggle-button--on': selectedGridAlignment === 'top',
+												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'top',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'top'"
+											@click="toggleGridAlignment('top')"
+										>
+											Top
+										</button>
+										</div>
+										<div class="grid-menu-alignment-row">
+										<button
+											id="grid-alignment-bottom-left-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--bottom-left"
+											:class="getGridAlignmentButtonState('bottom-left')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'bottom-left'"
+											@click="toggleGridAlignment('bottom-left')"
+										>
+											Bottom Left
+										</button>
+										<button
+											id="grid-alignment-bottom-right-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--bottom-right"
+											:class="getGridAlignmentButtonState('bottom-right')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'bottom-right'"
+											@click="toggleGridAlignment('bottom-right')"
+										>
+											Bottom Right
+										</button>
+										</div>
+										<div class="grid-menu-alignment-row">
+										<button
+											id="grid-alignment-top-left-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--top-left"
+											:class="getGridAlignmentButtonState('top-left')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'top-left'"
+											@click="toggleGridAlignment('top-left')"
+										>
+											Top Left
+										</button>
+										<button
+											id="grid-alignment-top-right-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--top-right"
+											:class="getGridAlignmentButtonState('top-right')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'top-right'"
+											@click="toggleGridAlignment('top-right')"
+										>
+											Top Right
+										</button>
+										</div>
+									</fieldset>
+								</details>
+								<label class="grid-menu-control-row grid-menu-control-row--amount" for="grid-rows-amount">
+									<span id="grid-rows-amount-label" class="grid-menu-control-label">Rows Amount</span>
+									<input
+										id="grid-rows-amount"
+										class="grid-menu-amount-input"
+										type="text"
+										inputmode="numeric"
+										pattern="[0-9]*"
+										maxlength="3"
+										:value="gridRowsAmount"
+										@input="gridRowsAmount = sanitizeGridAmount($event.target.value)"
+									/>
+								</label>
+								<label class="grid-menu-control-row grid-menu-control-row--amount" for="grid-columns-amount">
+									<span id="grid-columns-amount-label" class="grid-menu-control-label">Columns Amount</span>
+									<input
+										id="grid-columns-amount"
+										class="grid-menu-amount-input"
+										type="text"
+										inputmode="numeric"
+										pattern="[0-9]*"
+										maxlength="3"
+										:value="gridColumnsAmount"
+										@input="gridColumnsAmount = sanitizeGridAmount($event.target.value)"
+									/>
+								</label>
+								<div class="grid-menu-control-row grid-menu-control-row--margins">
+									<span id="grid-apply-to-margins-label" class="grid-menu-control-label">
+										Apply to Margins
+									</span>
+									<button
+										id="grid-apply-to-margins-button"
+										class="grid-menu-toggle-button"
+										:class="isApplyToMarginsOn ? 'grid-menu-toggle-button--on' : 'grid-menu-toggle-button--off'"
+										type="button"
+										:aria-pressed="isApplyToMarginsOn"
+										@click="toggleApplyToMargins"
+									>
+										{{ isApplyToMarginsOn ? "On" : "Off" }}
+									</button>
+								</div>
+							</div>
+						</div>
+						<div id="grid-shape-size-row" class="grid-menu-size-dimensions-row">
+							<label id="grid-shape-width-label" class="grid-menu-size-width-label" for="grid-shape-width-input">
+								Width
+							</label>
+							<input
+								id="grid-shape-width-input"
+								class="grid-menu-size-width-input"
+								type="text"
+								inputmode="decimal"
+								pattern="[0-9]*[.]?[0-9]*"
+								maxlength="4"
+								:value="gridShapeWidthInput"
+								@input="updateGridShapeWidthInput"
+							/>
+							<span id="grid-shape-width-unit" class="grid-menu-size-width-unit">inches</span>
+							<label id="grid-shape-height-label" class="grid-menu-size-height-label" for="grid-shape-height-input">
+								Height
+							</label>
+							<input
+								id="grid-shape-height-input"
+								class="grid-menu-size-height-input"
+								type="text"
+								inputmode="decimal"
+								pattern="[0-9]*[.]?[0-9]*"
+								maxlength="4"
+								:value="gridShapeHeightInput"
+								@input="updateGridShapeHeightInput"
+							/>
+							<span id="grid-shape-height-unit" class="grid-menu-size-height-unit">inches</span>
+							<button
+								id="grid-shape-size-commit-button"
+								class="grid-menu-size-commit-button"
+								type="button"
+								@click="commitGridShapeSize"
+							>
+								Commit
+							</button>
+						</div>
+					</div>
+				</div>
+				<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">
+					Shapes
+				</div>
+				<div class="grid-menu-shapes-commit-group">
+					<ul
+						id="grid-menu-shapes-list"
+						class="grid-menu-shapes-list"
+						aria-labelledby="grid-menu-shapes-heading"
+					>
+						<li v-for="shapeOption in gridShapeOptions" :key="shapeOption.sides">
+							<button
+								class="grid-menu-shapes-option"
+								:class="{
+									'grid-menu-shapes-option--selected':
+										selectedGridShapeSides === shapeOption.sides,
+									'grid-menu-shapes-option--even': shapeOption.sides % 2 === 0,
+									'grid-menu-shapes-option--odd': shapeOption.sides % 2 !== 0,
+								}"
+								:data-side-count="shapeOption.sides"
+								:aria-pressed="selectedGridShapeSides === shapeOption.sides"
+								type="button"
+								@click="selectGridShape(shapeOption)"
+							>
+								{{ shapeOption.label }}
+							</button>
+							<ul
+								v-if="shapeOption.sides === 4"
+								class="grid-menu-quadrilateral-variants"
+								aria-label="Quadrilateral grid shapes"
+							>
+								<li v-for="variant in quadrilateralVariants" :key="variant.id">
+									<button
+										class="grid-menu-shapes-option"
+										:class="{
+											'grid-menu-shapes-option--selected':
+												selectedGridShapeSides === 4 &&
+												selectedGridShapeVariant === variant.id,
+											'grid-menu-shapes-option--even': true,
+										}"
+										:data-shape-variant="variant.id"
+										:aria-pressed="selectedGridShapeSides === 4 && selectedGridShapeVariant === variant.id"
+										type="button"
+										@click="selectGridShapeVariant(variant)"
+									>
+										{{ variant.label }}
+									</button>
+								</li>
+							</ul>
+						</li>
+					</ul>
+					<button
+						id="grid-sides-commit-button"
+						class="grid-menu-sides-commit-button"
+						type="button"
+						@click="commitGridShapeSelection"
+					>
+						Commit
+					</button>
+				</div>
+				<div id="grid-menu-lines-heading" class="grid-menu-lines-heading">
+					Lines
+				</div>
+				<button
+					id="grid-menu-printable-button"
+					class="grid-menu-printable-button"
+					:class="isGridPrintable ? 'grid-menu-printable-button--on' : 'grid-menu-printable-button--off'"
+					type="button"
+					:aria-pressed="isGridPrintable"
+					@click="toggleGridPrintable"
+				>
+					Printable
+				</button>
+				<dialog
+					v-if="isGridSelectionPromptOpen"
+					id="grid-menu-selection-prompt"
+					open
+					class="grid-menu-selection-prompt"
+					aria-labelledby="grid-menu-selection-prompt-message"
+				>
+					<p id="grid-menu-selection-prompt-message">
+						Load or Create a Template or Shell in Order to Switch the Grid on
+					</p>
+					<button
+						id="grid-menu-selection-prompt-back-button"
+						class="grid-menu-selection-prompt-back-button"
+						type="button"
+						@click="closeGridSelectionPrompt"
+					>
+						Back
+					</button>
+				</dialog>
+				<dialog
+					v-if="isQuadrilateralPromptOpen"
+					id="grid-menu-quadrilateral-prompt"
+					open
+					class="grid-menu-quadrilateral-prompt"
+					aria-labelledby="grid-menu-quadrilateral-prompt-message"
+				>
+					<p id="grid-menu-quadrilateral-prompt-message">Pick One of the Quadrilaterals</p>
+					<button
+						id="grid-menu-quadrilateral-prompt-back-button"
+						class="grid-menu-quadrilateral-prompt-back-button"
+						type="button"
+						@click="closeQuadrilateralPrompt"
+					>
+						Back
+					</button>
+				</dialog>
 			</section>
 			<section
 				v-if="textEditorButtonStates.calibrate"
@@ -1600,7 +2563,10 @@ function handleCalibrationBarPointerUp() {
 			>
 				<div class="text-editor-ribbon-group">
 					<div class="text-editor-size-action-row">
-						<div v-if="isEditingToolsOpen" class="text-editor-size-menu-row">
+						<div
+							v-if="isEditingToolsOpen"
+							class="text-editor-size-menu-row"
+						>
 							<div class="text-editor-size-menu-top-row">
 								<button
 									id="text-editor-size-menu-button"
@@ -1645,6 +2611,98 @@ function handleCalibrationBarPointerUp() {
 							>
 								Fonts
 							</button>
+							<button
+								id="text-editor-alignment-button"
+								class="text-editor-alignment-button text-editor-fonts-button text-editor-fonts-button--light-blue"
+								:class="{
+									'text-editor-alignment-button--depressed': isAlignmentPanelOpen,
+									'text-editor-alignment-button--below-size':
+										isSizePanelOpen && !isMarginsPanelOpen && !isFontsPanelOpen,
+									'text-editor-alignment-button--below-margins':
+										isMarginsPanelOpen && !isSizePanelOpen && !isFontsPanelOpen,
+									'text-editor-alignment-button--below-fonts':
+										isFontsPanelOpen && !isSizePanelOpen && !isMarginsPanelOpen,
+									'text-editor-alignment-button--below-size-and-margins':
+										isSizePanelOpen && isMarginsPanelOpen && !isFontsPanelOpen,
+									'text-editor-alignment-button--below-fonts-and-size':
+										isFontsPanelOpen && isSizePanelOpen && !isMarginsPanelOpen,
+									'text-editor-alignment-button--below-fonts-and-margins':
+										isFontsPanelOpen && isMarginsPanelOpen && !isSizePanelOpen,
+									'text-editor-alignment-button--below-all':
+										isFontsPanelOpen && isMarginsPanelOpen && isSizePanelOpen,
+								}"
+								type="button"
+								:aria-pressed="isAlignmentPanelOpen"
+								@click="toggleAlignmentPanel"
+							>
+								Alignment
+							</button>
+							<section
+								v-if="isAlignmentPanelOpen"
+								id="text-editor-alignment-panel"
+								class="text-editor-alignment-panel"
+								:class="{
+									'text-editor-alignment-panel--below-size':
+										isSizePanelOpen && !isMarginsPanelOpen && !isFontsPanelOpen,
+									'text-editor-alignment-panel--below-margins':
+										isMarginsPanelOpen && !isSizePanelOpen && !isFontsPanelOpen,
+									'text-editor-alignment-panel--below-fonts':
+										isFontsPanelOpen && !isSizePanelOpen && !isMarginsPanelOpen,
+									'text-editor-alignment-panel--below-size-and-margins':
+										isSizePanelOpen && isMarginsPanelOpen && !isFontsPanelOpen,
+									'text-editor-alignment-panel--below-fonts-and-size':
+										isFontsPanelOpen && isSizePanelOpen && !isMarginsPanelOpen,
+									'text-editor-alignment-panel--below-fonts-and-margins':
+										isFontsPanelOpen && isMarginsPanelOpen && !isSizePanelOpen,
+									'text-editor-alignment-panel--below-all':
+										isFontsPanelOpen && isMarginsPanelOpen && isSizePanelOpen,
+								}"
+								aria-label="Alignment options"
+								title="Alignment options"
+							>
+								<button
+									id="text-editor-alignment-left-button"
+									class="text-editor-font-styles-button text-editor-alignment-choice-button"
+									:class="{
+										'text-editor-alignment-choice-button--depressed':
+											globalTextAlignment === 'left',
+									}"
+									type="button"
+									:aria-pressed="globalTextAlignment === 'left'"
+									@mousedown.prevent
+									@click="applyTextAlignment('left')"
+								>
+									Left
+								</button>
+								<button
+									id="text-editor-alignment-center-button"
+									class="text-editor-font-styles-button text-editor-alignment-choice-button"
+									:class="{
+										'text-editor-alignment-choice-button--depressed':
+											globalTextAlignment === 'center',
+									}"
+									type="button"
+									:aria-pressed="globalTextAlignment === 'center'"
+									@mousedown.prevent
+									@click="applyTextAlignment('center')"
+								>
+									Center
+								</button>
+								<button
+									id="text-editor-alignment-right-button"
+									class="text-editor-font-styles-button text-editor-alignment-choice-button"
+									:class="{
+										'text-editor-alignment-choice-button--depressed':
+											globalTextAlignment === 'right',
+									}"
+									type="button"
+									:aria-pressed="globalTextAlignment === 'right'"
+									@mousedown.prevent
+									@click="applyTextAlignment('right')"
+								>
+									Right
+								</button>
+							</section>
 							<section
 								v-if="isFontsPanelOpen"
 								id="text-editor-fonts-panel"
@@ -1711,33 +2769,33 @@ function handleCalibrationBarPointerUp() {
 										<div class="text-editor-font-size-controls">
 											<div class="text-editor-font-size-label">Font Size</div>
 											<input
-											id="text-editor-font-size-input"
-											v-model="fontSizePoints"
-											class="text-editor-font-size-input"
-											type="text"
-											inputmode="numeric"
-											aria-label="Font size in points"
-											@input="sanitizeFontSizeInput"
-										/>
-										<span class="text-editor-font-size-unit">pt</span>
+												id="text-editor-font-size-input"
+												v-model="fontSizePoints"
+												class="text-editor-font-size-input"
+												type="text"
+												inputmode="numeric"
+												aria-label="Font size in points"
+												@input="sanitizeFontSizeInput"
+											/>
+											<span class="text-editor-font-size-unit">pt</span>
+										</div>
+										<button
+											id="text-editor-font-size-commit-button"
+											class="description-edits-commit-button text-editor-font-color-commit-button text-editor-font-size-commit-button"
+											type="button"
+											@click="commitFontSize"
+										>
+											Commit
+										</button>
 									</div>
-									<button
-										id="text-editor-font-size-commit-button"
-										class="description-edits-commit-button text-editor-font-color-commit-button text-editor-font-size-commit-button"
-										type="button"
-										@click="commitFontSize"
-									>
-										Commit
-									</button>
-								</div>
 								</section>
 								<section
 									v-if="isStylesMenuOpen"
 									id="text-editor-font-styles-menu"
 									class="text-editor-font-styles-menu"
 									:class="{
-									'text-editor-font-styles-menu--lowered': shouldLowerNestedFontMenus,
-								}"
+										'text-editor-font-styles-menu--lowered': shouldLowerNestedFontMenus,
+									}"
 									aria-label="Font styles"
 									title="Font styles"
 								>
@@ -1766,7 +2824,7 @@ function handleCalibrationBarPointerUp() {
 									:class="{
 										'text-editor-font-color-menu--above-styles': isStylesMenuOpen,
 										'text-editor-font-color-menu--left-of-fonts': !isStylesMenuOpen,
-									'text-editor-font-color-menu--lowered': shouldLowerNestedFontMenus,
+										'text-editor-font-color-menu--lowered': shouldLowerNestedFontMenus,
 									}"
 									aria-label="Font color"
 									title="Font color"
@@ -1787,8 +2845,6 @@ function handleCalibrationBarPointerUp() {
 											class="text-editor-font-color-preview"
 											width="40"
 											height="40"
-											role="img"
-											aria-label="Font color preview"
 										/>
 										<input
 											id="text-editor-font-color-hex-input"

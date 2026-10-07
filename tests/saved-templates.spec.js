@@ -293,16 +293,96 @@ test("Tools in the top navigation opens the editing controls", async ({ page }) 
 	await toolsButton.click();
 	await expect(page.locator("#text-editor-tools-panel")).toBeVisible();
 	await expect(page.locator("#text-editor-size-menu-button")).toBeVisible();
+	const alignmentButton = page.locator("#text-editor-alignment-button");
+	await expect(alignmentButton).toBeVisible();
+	await expect(alignmentButton).toHaveAttribute("aria-pressed", "false");
+	await alignmentButton.click();
+	await expect(alignmentButton).toHaveAttribute("aria-pressed", "true");
+	await expect(alignmentButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
+	await page.mouse.move(0, 0);
+	await expect(alignmentButton).toHaveCSS("background-color", "rgb(88, 191, 255)");
+	const alignmentPanel = page.locator("#text-editor-alignment-panel");
+	await expect(alignmentPanel).toBeVisible();
+	const matchingAlignmentFrame = await page.evaluate(() => {
+		const tools = getComputedStyle(document.querySelector("#text-editor-tools-panel"));
+		const panelElement = document.querySelector("#text-editor-alignment-panel");
+		const panel = getComputedStyle(panelElement);
+		return ["borderRadius", "backgroundColor", "boxShadow"].every(
+			(property) => tools[property] === panel[property],
+		);
+	});
+	expect(matchingAlignmentFrame).toBe(true);
+	await expect(alignmentPanel).toHaveCSS("width", "288px");
+	await expect(alignmentPanel).toHaveCSS("height", "64px");
+	const alignmentChoiceButtons = alignmentPanel.getByRole("button");
+	await expect(alignmentChoiceButtons).toHaveText(["Left", "Center", "Right"]);
+	const alignmentChoiceClasses = await alignmentChoiceButtons.evaluateAll((buttons) =>
+		buttons.map((button) => button.classList.contains("text-editor-font-styles-button")),
+	);
+	expect(alignmentChoiceClasses).toEqual([true, true, true]);
+	const alignmentChoiceMetrics = await page.evaluate(() => {
+		const panel = document.querySelector("#text-editor-alignment-panel").getBoundingClientRect();
+		const buttons = [...panelElementButtons()];
+		const bounds = buttons.map((button) => button.getBoundingClientRect());
+		return {
+			buttonHeights: bounds.map((button) => button.height),
+			leftGap: bounds[0].left - panel.left,
+			firstGap: bounds[1].left - bounds[0].right,
+			secondGap: bounds[2].left - bounds[1].right,
+		rightGap: panel.right - bounds[2].right,
+			topGap: bounds[0].top - panel.top,
+			bottomGap: panel.bottom - bounds[0].bottom,
+		};
+		function panelElementButtons() {
+			return document.querySelectorAll("#text-editor-alignment-panel button");
+		}
+	});
+	expect(alignmentChoiceMetrics).toEqual({
+		buttonHeights: [32, 32, 32],
+		leftGap: 16,
+		firstGap: 16,
+		secondGap: 16,
+		rightGap: 16,
+		topGap: 16,
+		bottomGap: 16,
+	});
+	await alignmentButton.click();
+	await expect(alignmentButton).toHaveAttribute("aria-pressed", "false");
+	await expect(alignmentPanel).toHaveCount(0);
+	await page.locator("#text-editor-size-menu-button").click();
+	await page.locator("#text-editor-margins-button").click();
+	await page.locator("#text-editor-fonts-button").click();
+	await expect(alignmentButton).toHaveCSS("position", "static");
+	await alignmentButton.click();
+	const alignmentPanelGap = await page.evaluate(() => {
+		const panel = document.querySelector("#text-editor-alignment-panel").getBoundingClientRect();
+		const openPanels = [
+			"#text-editor-size-panel",
+			"#text-editor-margins-panel",
+			"#text-editor-fonts-panel",
+		].map((selector) => document.querySelector(selector).getBoundingClientRect());
+		return panel.top - Math.max(...openPanels.map((openPanel) => openPanel.bottom));
+	});
+	expect(alignmentPanelGap).toBe(16);
+	await alignmentButton.click();
+	await expect(alignmentButton).toHaveAttribute("aria-pressed", "false");
+	await expect(alignmentPanel).toHaveCount(0);
+	await page.locator("#text-editor-fonts-button").click();
+	await page.locator("#text-editor-margins-button").click();
+	await page.locator("#text-editor-size-menu-button").click();
+	await page.mouse.move(0, 0);
+	await expect(alignmentButton).toHaveCSS("transform", "none");
 	const toolButtonBoxes = await Promise.all(
 		[
 			"#text-editor-size-menu-button",
 			"#text-editor-margins-button",
 			"#text-editor-fonts-button",
+			"#text-editor-alignment-button",
 		].map((selector) => page.locator(selector).boundingBox()),
 	);
 	const toolsPanelBox = await page.locator("#text-editor-tools-panel").boundingBox();
 	expect(toolButtonBoxes.map(({ width, height }) => ({ width, height }))).toEqual(
-		Array(3).fill({ width: 256, height: 64 }),
+		Array(4).fill({ width: 256, height: 64 }),
 	);
 	const sizeBackground = await page
 		.locator("#text-editor-size-menu-button")
@@ -322,16 +402,34 @@ test("Tools in the top navigation opens the editing controls", async ({ page }) 
 	expect(fontsBackground).toContain("rgb(213, 232, 245)");
 	expect(fontsBackground).toContain("rgb(201, 225, 241)");
 	expect(fontsBackground).toContain("rgb(189, 217, 236)");
+	const alignmentBackground = await page
+		.locator("#text-editor-alignment-button")
+		.evaluate((button) => getComputedStyle(button).backgroundImage);
+	await expect(alignmentButton).toHaveClass(/text-editor-fonts-button--light-blue/);
+	expect(alignmentBackground).toBe(fontsBackground);
 	const toolButtonTextColors = await Promise.all(
 		[
 			"#text-editor-size-menu-button",
 			"#text-editor-margins-button",
 			"#text-editor-fonts-button",
+			"#text-editor-alignment-button",
 		].map((selector) =>
 			page.locator(selector).evaluate((button) => getComputedStyle(button).color),
 		),
 	);
-	expect(toolButtonTextColors).toEqual(Array(3).fill("rgb(27, 27, 27)"));
+	expect(toolButtonTextColors).toEqual(Array(4).fill("rgb(27, 27, 27)"));
+	const fontsButton = page.locator("#text-editor-fonts-button");
+	await fontsButton.click();
+	const fontsPressedShadow = await fontsButton.evaluate(
+		(button) => getComputedStyle(button).boxShadow,
+	);
+	await fontsButton.click();
+	await alignmentButton.click();
+	const alignmentPressedShadow = await alignmentButton.evaluate(
+		(button) => getComputedStyle(button).boxShadow,
+	);
+	expect(alignmentPressedShadow).toBe(fontsPressedShadow);
+	await alignmentButton.click();
 	expect(toolButtonBoxes[0].x - toolsPanelBox.x).toBe(16);
 	expect(toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[0].x - toolButtonBoxes[0].width).toBe(16);
 	expect(toolButtonBoxes[0].y - toolsPanelBox.y).toBe(16);
@@ -339,7 +437,10 @@ test("Tools in the top navigation opens the editing controls", async ({ page }) 
 	expect(toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[1].x - toolButtonBoxes[1].width).toBe(16);
 	expect(toolButtonBoxes[1].y - toolButtonBoxes[0].y - toolButtonBoxes[0].height).toBe(16);
 	expect(toolButtonBoxes[2].y - toolButtonBoxes[1].y - toolButtonBoxes[1].height).toBe(16);
-	expect(toolsPanelBox.y + toolsPanelBox.height - toolButtonBoxes[2].y - toolButtonBoxes[2].height).toBe(16);
+	expect(toolButtonBoxes[3].y - toolButtonBoxes[2].y - toolButtonBoxes[2].height).toBe(16);
+	expect(toolButtonBoxes[3].x - toolsPanelBox.x).toBe(16);
+	expect(toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[3].x - toolButtonBoxes[3].width).toBe(16);
+	expect(toolsPanelBox.y + toolsPanelBox.height - toolButtonBoxes[3].y - toolButtonBoxes[3].height).toBe(16);
 	await expect(
 		page.locator("#text-editor-tools-panel #text-editor-editing-tools-button"),
 	).toHaveCount(0);
@@ -385,6 +486,52 @@ test("new templates inherit Tools settings while shells omit font settings", asy
 		"--print-preview-paper-width",
 		"545px",
 	);
+});
+
+test("template and shell paper left edges stay fixed when width increases", async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 1200 });
+
+	for (const action of ["Create A Shell", "Create A Template"]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Text Editor" }).click();
+		await page.getByRole("button", { name: "New +" }).click();
+		await page.getByRole("button", { name: action, exact: true }).click();
+		await page.getByRole("button", { name: "Tools" }).click();
+
+		const paper = page.locator("#print-preview-paper");
+		const paperBefore = await paper.evaluate((element) => {
+			const paperRect = element.getBoundingClientRect();
+			const toolsRect = document
+				.querySelector("#text-editor-tools-panel")
+				.getBoundingClientRect();
+			return {
+				left: paperRect.left,
+				width: paperRect.width,
+				gap: paperRect.left - toolsRect.right,
+			};
+		});
+
+		await page.locator("#text-editor-size-menu-button").click();
+		await page.locator("#text-editor-size-width").fill("10");
+
+		const paperAfter = await paper.evaluate((element) => {
+			const paperRect = element.getBoundingClientRect();
+			const toolsRect = document
+				.querySelector("#text-editor-tools-panel")
+				.getBoundingClientRect();
+			return {
+				left: paperRect.left,
+				width: paperRect.width,
+				gap: paperRect.left - toolsRect.right,
+			};
+		});
+
+		expect(paperBefore.gap).toBe(16);
+		expect(paperAfter.gap).toBe(16);
+		expect(paperAfter.left).toBe(paperBefore.left);
+		expect(paperAfter.width).toBeGreaterThan(paperBefore.width);
+	}
 });
 
 test("loading saved documents preserves their settings and shell mode", async ({ page }) => {
@@ -490,7 +637,10 @@ test("loading saved documents preserves their settings and shell mode", async ({
 	let editor = page.locator(".print-preview-paper-editor");
 	await expect(editor).toHaveAttribute("contenteditable", "true");
 	await expect(editor).toHaveText("Saved content");
-	await expect(editor).toHaveJSProperty("style.fontFamily", "Georgia");
+	await expect(editor).toHaveJSProperty(
+		"style.fontFamily",
+		'MinecraftRegular2, "Trebuchet MS", sans-serif',
+	);
 	await expect(editor).toHaveJSProperty("style.textAlign", "center");
 	await expect(page.locator("#print-preview-paper")).toHaveCSS(
 		"--print-preview-paper-width",

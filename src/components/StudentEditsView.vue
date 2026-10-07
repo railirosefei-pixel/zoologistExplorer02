@@ -8,10 +8,21 @@ import { computed, nextTick, ref, watch } from "vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 
-const emit = defineEmits(["open-curriculum-game", "back-to-parent-menu", "go-home"]);
+const emit = defineEmits([
+	"open-curriculum-game",
+	"open-math-curriculum-october",
+	"back-to-parent-menu",
+	"go-home",
+]);
+const props = defineProps({
+	initialDescriptionEditsOpen: {
+		type: Boolean,
+		default: false,
+	},
+});
 const isBlockEditsOpen = ref(false);
-const isBlocksMenuOpen = ref(false);
-const isDescriptionEditsOpen = ref(false);
+const isBlocksMenuOpen = ref(props.initialDescriptionEditsOpen);
+const isDescriptionEditsOpen = ref(props.initialDescriptionEditsOpen);
 const descriptionEditsDraft = ref("");
 const descriptionEditsPlayByPlayDraft = ref("");
 const descriptionEditsMode = ref(null);
@@ -244,10 +255,10 @@ const blockEditsSubjects = [
 
 const blockEditsBlocksPerSubject = [1, 2, 3];
 
-/** Months on the current calendar, September 2026 through December 2027. */
+/** Months on the current calendar, October 2026 through December 2027. */
 const descriptionEditsMonths = Array.from(
-	{ length: 16 },
-	(_, index) => new Date(2026, 8 + index, 1),
+	{ length: 15 },
+	(_, index) => new Date(2026, 9 + index, 1),
 );
 
 /** Years available on the current calendar. */
@@ -700,6 +711,10 @@ function handleStudentEditsScreenClose() {
 	emit("back-to-parent-menu");
 }
 
+function handleMathCurriculumOctoberOpen() {
+	emit("open-math-curriculum-october");
+}
+
 function handleStudentEditsScreenHome() {
 	emit("go-home");
 }
@@ -984,6 +999,27 @@ function handleStudentEditsScreenHome() {
 							id="description-edits-selection-block"
 							class="description-edits-selection-block"
 						>Block: {{ descriptionEditsSelectedBlock === "all" ? "All" : descriptionEditsSelectedBlock }}</span>
+					</div>
+					<div
+						id="play-by-play-math-curriculum-row"
+						class="play-by-play-math-curriculum-row"
+					>
+						<button
+							id="math-curriculum-october-button"
+							class="math-curriculum-october-button"
+							:class="{ 'math-curriculum-october-button--reserved': descriptionEditsMode !== 'play-by-play' }"
+							type="button"
+							name="math-curriculum-october-button"
+							data-button-name="math-curriculum-october-button"
+							aria-label="Math Curriculum (October)"
+							title="Math Curriculum (October)"
+							:aria-hidden="descriptionEditsMode !== 'play-by-play'"
+							:inert="descriptionEditsMode !== 'play-by-play'"
+							:disabled="descriptionEditsMode !== 'play-by-play'"
+							@click="handleMathCurriculumOctoberOpen"
+						>
+							Math Curriculum<br />(October)
+						</button>
 					</div>
 					<div
 						:id="descriptionEditsMode === 'description' ? 'description-edits-workflow-row' : 'play-by-play-edits-workflow-row'"

@@ -89,12 +89,12 @@ test("completed blocks persist across store reloads", async () => {
 	try {
 		const { blockCompletionStore: beforeReload } =
 			await import("../src/js/blockCompletionState.js?completion-persistence-write");
-		beforeReload.markBlockComplete("September 28, 2026", "Math", 1);
+		beforeReload.markBlockComplete("October 5, 2026", "Math", 1);
 
 		const { blockCompletionStore: afterReload } =
 			await import("../src/js/blockCompletionState.js?completion-persistence-read");
 		assert.equal(
-			afterReload.isBlockCompleteForDate("September 28, 2026", "Math", 1),
+			afterReload.isBlockCompleteForDate("October 5, 2026", "Math", 1),
 			true,
 			"a completed date-specific block should be restored after reload",
 		);

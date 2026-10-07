@@ -4,6 +4,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import progressMenuBackground from "../../assets/images/backgrounds/grasslands(Day)01Final.webp";
 import railiFront from "../../assets/images/characters/railiFront.webp";
 import ProgressXpBar from "./ProgressXpBar.vue";
+import MathGamesView from "./MathGamesView.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 
 const props = defineProps({
@@ -548,8 +549,7 @@ onMounted(() => {
 				aria-label="Games menu"
 				title="Games menu"
 			>
-				<h2>Games</h2>
-				<p>Pick a game to practice your skills.</p>
+				<MathGamesView layout="student" @close="activeStudentMenu = ''" />
 			</article>
 			<article
 				v-if="activeStudentMenu === 'extra-credit'"

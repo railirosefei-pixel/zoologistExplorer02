@@ -64,7 +64,7 @@ watch(totalXp, (xp) => {
 	state.level = Math.max(state.level, Math.floor(xp / XP_PER_LEVEL));
 });
 
-/** Normalize a date (or "September 28, 2026" label) into an ISO day key. */
+/** Normalize a date (or "Month D, YYYY" label) into an ISO day key. */
 function toDateKey(dateLabel) {
 	const parsed = dateLabel instanceof Date ? dateLabel : new Date(dateLabel);
 	if (!dateLabel || Number.isNaN(parsed.getTime())) {

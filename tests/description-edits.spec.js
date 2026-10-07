@@ -10,6 +10,25 @@ import { test, expect } from "@playwright/test";
 const COMMIT_TEXT = "Line one of the description.\n\nLine three after a blank line.";
 const PLAY_BY_PLAY_TEXT = "First step.\nSecond step.";
 
+test("Description month choices start with October 2026 and end with December 2027", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await clickOffscreenControl(page, "#description-edits-description-button");
+	await clickOffscreenControl(page, "#description-edits-date-dropdown-button");
+	await clickOffscreenControl(page, "#description-edits-month-dropdown-button");
+
+	const monthOptions = page.locator("#description-edits-month-options-list button");
+	await expect(monthOptions).toHaveCount(15);
+	await expect(monthOptions.first()).toHaveAttribute("aria-label", "Select month October 2026");
+	await expect(monthOptions.last()).toHaveAttribute("aria-label", "Select month December 2027");
+	await expect(page.locator("#description-edits-month-option-2026-8")).toHaveCount(0);
+});
+
 /** Click a control that sits inside the 96px bottom gap, below the 772px text box. */
 async function clickOffscreenControl(page, selector) {
 	await page.locator(selector).evaluate((element) => element.click());
@@ -167,6 +186,7 @@ test("Date selector row keeps the panel fixed with 16px gaps in both modes", asy
 			const bounds = (selector) => document.querySelector(selector).getBoundingClientRect();
 			const panel = bounds("#description-edits-panel-container");
 			const editor = bounds("#description-edits-text-box, #play-by-play-edits-text-box");
+			const curriculumRow = bounds("#play-by-play-math-curriculum-row");
 			const workflow = bounds(`#${modePrefix}-workflow-row`);
 			const actions = [...document.querySelectorAll("#description-edits-action-buttons button")]
 				.map((button) => button.getBoundingClientRect());
@@ -176,7 +196,11 @@ test("Date selector row keeps the panel fixed with 16px gaps in both modes", asy
 				bottomInset: panel.bottom - Math.max(...actions.map((button) => button.bottom)),
 				dateGaps: ["month", "day", "year"].map((field) => {
 					const date = bounds(`#${modePrefix}-${field}-dropdown-button`);
-					return { above: date.top - editor.bottom, below: workflow.top - date.bottom };
+					return {
+						above: date.top - editor.bottom,
+						toCurriculum: curriculumRow.top - date.bottom,
+						toWorkflow: workflow.top - curriculumRow.bottom,
+					};
 				}),
 			};
 		}, prefix);
@@ -185,7 +209,8 @@ test("Date selector row keeps the panel fixed with 16px gaps in both modes", asy
 		expect(geometry.bottomInset).toBe(16);
 		for (const gaps of geometry.dateGaps) {
 			expect(gaps.above).toBe(16);
-			expect(gaps.below).toBe(16);
+			expect(gaps.toCurriculum).toBe(16);
+			expect(gaps.toWorkflow).toBe(16);
 		}
 		await page.locator(`#${prefix}-date-dropdown-button`).click();
 		await expect(dateRow).toBeHidden();
@@ -225,7 +250,7 @@ test("Selecting date fields does not resize or shift the Description Edits panel
 		});
 
 		for (const [buttonSelector, optionSelector] of [
-			[`#${prefix}-month-dropdown-button`, `#${prefix}-month-option-2026-8`],
+			[`#${prefix}-month-dropdown-button`, `#${prefix}-month-option-2026-9`],
 			[`#${prefix}-day-dropdown-button`, `#${prefix}-day-option-15`],
 			[`#${prefix}-year-dropdown-button`, `#${prefix}-year-option-2026`],
 		]) {
@@ -236,6 +261,7 @@ test("Selecting date fields does not resize or shift the Description Edits panel
 					const { x, y, width, height } = element.getBoundingClientRect();
 					return { x, y, width, height };
 				};
+
 				return {
 					panel: bounds(document.querySelector("#description-edits-panel-container")),
 					editor: bounds(document.querySelector("#description-edits-text-box, #play-by-play-edits-text-box")),
@@ -260,7 +286,7 @@ test("Description and Play by Play keep independent selected dates", async ({ pa
 	await page.locator("#description-edits-date-dropdown-button").click();
 
 	for (const [buttonSelector, optionSelector] of [
-		["#description-edits-month-dropdown-button", "#description-edits-month-option-2026-8"],
+		["#description-edits-month-dropdown-button", "#description-edits-month-option-2026-9"],
 		["#description-edits-day-dropdown-button", "#description-edits-day-option-15"],
 		["#description-edits-year-dropdown-button", "#description-edits-year-option-2026"],
 	]) {
@@ -407,15 +433,20 @@ test("Description Edits panel expands on selection and stays fixed across conten
 	const initialGeometry = await panel.boundingBox();
 	const initialGaps = await page.evaluate(() => {
 		const editor = document.querySelector("#description-edits-text-box").getBoundingClientRect();
+		const curriculumButton = document
+			.querySelector("#math-curriculum-october-button")
+			.getBoundingClientRect();
 		const buttons = [...document.querySelectorAll("#description-edits-action-buttons button")]
 			.map((button) => button.getBoundingClientRect());
 		const panelBounds = document.querySelector("#description-edits-panel-container").getBoundingClientRect();
 		return {
-			top: Math.min(...buttons.map((button) => button.top)) - editor.bottom,
+			top: curriculumButton.top - editor.bottom,
+			toolbar: Math.min(...buttons.map((button) => button.top)) - curriculumButton.bottom,
 			bottom: panelBounds.bottom - Math.max(...buttons.map((button) => button.bottom)),
 		};
 	});
 	expect(initialGaps.top).toBeCloseTo(16, 0);
+	expect(initialGaps.toolbar).toBe(16);
 	expect(initialGaps.bottom).toBeCloseTo(16, 0);
 
 	let expandedGeometry;
@@ -496,7 +527,7 @@ for (const mode of [
 		for (const selection of [
 			{ name: "subject", label: mode.name === "Description" ? "Subject options" : "Play by Play Subject options", option: "math", width: 200 },
 			{ name: "block", label: mode.name === "Description" ? "Block options" : "Play by Play Block options", option: "1", width: 160 },
-			{ name: "month", label: mode.name === "Description" ? "Month options" : "Play by Play Month options", option: "2026-8", width: 180 },
+			{ name: "month", label: mode.name === "Description" ? "Month options" : "Play by Play Month options", option: "2026-9", width: 180 },
 			{ name: "day", label: mode.name === "Description" ? "Day options" : "Play by Play Day options", option: "1", width: 120 },
 			{ name: "year", label: mode.name === "Description" ? "Year options" : "Play by Play Year options", option: "2026", width: 120 },
 			{ name: "history", label: mode.history, width: 200 },
@@ -1057,8 +1088,8 @@ test.describe("Description selection summary", () => {
 		}
 		await page.locator("#description-edits-date-dropdown-button").click();
 		await page.locator("#description-edits-month-dropdown-button").click();
-		await page.locator("#description-edits-month-option-2026-8").click();
-		await expect(page.locator("#description-edits-selection-date")).toHaveText("Date: 09/01/27");
+		await page.locator("#description-edits-month-option-2026-9").click();
+		await expect(page.locator("#description-edits-selection-date")).toHaveText("Date: 10/01/27");
 	});
 });
 
@@ -1086,12 +1117,14 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await expect(descriptionEditsButton).toHaveClass(/description-edits-button--active/);
 	await expect(page.locator("#description-edits-text-box")).toBeVisible();
 	await expect(page.locator("#description-edits-commit-button")).toHaveCount(0);
+	await expect(page.locator("#math-curriculum-october-button")).toBeHidden();
+	await expect(page.locator("#math-curriculum-october-button")).toBeDisabled();
 	const defaultEditorGap = await page.evaluate(() => {
 		const textBox = document.querySelector("#description-edits-text-box").getBoundingClientRect();
-		const descriptionButton = document
-			.querySelector("#description-edits-description-button")
+		const curriculumButton = document
+			.querySelector("#math-curriculum-october-button")
 			.getBoundingClientRect();
-		return descriptionButton.top - textBox.bottom;
+		return curriculumButton.top - textBox.bottom;
 	});
 	expect(defaultEditorGap).toBe(16);
 
@@ -1102,7 +1135,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await clickOffscreenControl(page, "#description-edits-month-dropdown-button");
 	await page.locator("#description-edits-month-option-2026-9").click();
 	await clickOffscreenControl(page, "#description-edits-day-dropdown-button");
-	await page.locator("#description-edits-day-option-1").click();
+	await page.locator("#description-edits-day-option-5").click();
 	await clickOffscreenControl(page, "#description-edits-year-dropdown-button");
 	await page.locator("#description-edits-year-option-2026").click();
 	await clickOffscreenControl(page, "#description-edits-subject-dropdown-button");
@@ -1116,7 +1149,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	const storedDescriptions = await page.evaluate(() =>
 		JSON.parse(globalThis.localStorage.getItem("zoologistExplorer02.blockDescriptions")),
 	);
-	expect(storedDescriptions["2026-10-01::math::2"]).toBe(COMMIT_TEXT);
+	expect(storedDescriptions["2026-10-05::math::2"]).toBe(COMMIT_TEXT);
 
 	await clickOffscreenControl(page, "#description-edits-history-dropdown-button");
 	const historyList = page.locator("#description-edits-history-options-list");
@@ -1135,7 +1168,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await clickOffscreenControl(page, "#play-by-play-edits-month-dropdown-button");
 	await page.locator("#play-by-play-edits-month-option-2026-9").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-day-dropdown-button");
-	await page.locator("#play-by-play-edits-day-option-1").click();
+	await page.locator("#play-by-play-edits-day-option-5").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-year-dropdown-button");
 	await page.locator("#play-by-play-edits-year-option-2026").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-subject-dropdown-button");
@@ -1147,17 +1180,16 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	const storedPlayByPlay = await page.evaluate(() =>
 		JSON.parse(globalThis.localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 	);
-	expect(storedPlayByPlay["2026-10-01::math::2"]).toBe(PLAY_BY_PLAY_TEXT);
+	expect(storedPlayByPlay["2026-10-05::math::2"]).toBe(PLAY_BY_PLAY_TEXT);
 
 	await page.locator("#description-edits-button").click();
 	await page.locator("#blocks-menu-button").evaluate((element) => element.click());
 	await page.locator("#student-edits-screen-home-button").click();
 	await page.reload();
 	await page.getByRole("button", { name: "Open student section" }).click();
-	await page.getByRole("button", { name: "Show next month" }).click();
-	const octoberFirst = page.locator("#calendar-day-cell-October-2026-3");
-	await octoberFirst.click();
-	await octoberFirst.click();
+	const octoberFifth = page.locator("#calendar-day-cell-October-2026-7");
+	await octoberFifth.click();
+	await octoberFifth.click();
 
 	await page.locator("#daily-menu-math-button").click();
 	await page.locator("#daily-menu-math-block-2-button").click();
@@ -1200,4 +1232,116 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	expect(playByPlayGeometry.leftInset).toBe(16);
 	expect(playByPlayGeometry.rightInset).toBe(16);
 	expect(playByPlayGeometry.buttonGap).toBe(16);
+});
+
+test("Math Curriculum October opens grouped weekday buttons with independent toggle states", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.locator("#description-edits-play-by-play-button").click();
+
+	const curriculumButton = page.locator("#math-curriculum-october-button");
+	await expect(curriculumButton).toBeVisible();
+	const launchButtonLayout = await page.evaluate(() => {
+		const bounds = (selector) => document.querySelector(selector).getBoundingClientRect();
+		const curriculum = bounds("#math-curriculum-october-button");
+		const subject = bounds("#play-by-play-edits-subject-dropdown-button");
+		const block = bounds("#play-by-play-edits-block-dropdown-button");
+		const remove = bounds("#play-by-play-edits-remove-button");
+		const curriculumStyle = getComputedStyle(document.querySelector("#math-curriculum-october-button"));
+		const subjectStyle = getComputedStyle(document.querySelector("#play-by-play-edits-subject-dropdown-button"));
+		return {
+			left: curriculum.left,
+			right: curriculum.right,
+			blockLeft: block.left,
+			removeRight: remove.right,
+			gap: remove.top - curriculum.bottom,
+			heightRatio: curriculum.height / subject.height,
+			backgroundImageMatches: curriculumStyle.backgroundImage === subjectStyle.backgroundImage,
+			boxShadowMatches: curriculumStyle.boxShadow === subjectStyle.boxShadow,
+		};
+	});
+	expect(launchButtonLayout.left).toBe(launchButtonLayout.blockLeft);
+	expect(launchButtonLayout.right).toBe(launchButtonLayout.removeRight);
+	expect(launchButtonLayout.gap).toBe(16);
+	expect(launchButtonLayout.heightRatio).toBeCloseTo(2, 2);
+	expect(launchButtonLayout.backgroundImageMatches).toBe(true);
+	expect(launchButtonLayout.boxShadowMatches).toBe(true);
+	await curriculumButton.click();
+	const screen = page.locator("#math-curriculum-october-screen");
+	await expect(screen).toBeVisible();
+
+	const weeks = screen.locator(".math-curriculum-october-week");
+	await expect(weeks).toHaveCount(4);
+	for (const week of await weeks.all()) {
+		await expect(week.locator(".math-curriculum-october-date-button")).toHaveCount(5);
+	}
+
+	const labels = await screen.locator(".math-curriculum-october-date-button").evaluateAll((buttons) =>
+		buttons.map((button) => button.getAttribute("aria-label")),
+	);
+	expect(labels).toEqual([
+		"Math (October 5th, 2026)", "Math (October 6th, 2026)", "Math (October 7th, 2026)",
+		"Math (October 8th, 2026)", "Math (October 9th, 2026)", "Math (October 12th, 2026)",
+		"Math (October 13th, 2026)", "Math (October 14th, 2026)", "Math (October 15th, 2026)",
+		"Math (October 16th, 2026)", "Math (October 19th, 2026)", "Math (October 20th, 2026)",
+		"Math (October 21st, 2026)", "Math (October 22nd, 2026)", "Math (October 23rd, 2026)",
+		"Math (October 26th, 2026)", "Math (October 27th, 2026)", "Math (October 28th, 2026)",
+		"Math (October 29th, 2026)", "Math (October 30th, 2026)",
+	]);
+
+	const layout = await page.evaluate(() => {
+		const menu = document.querySelector("#math-curriculum-october-screen");
+		const weekList = document.querySelector("#math-curriculum-october-week-list");
+		const firstWeek = document.querySelector(".math-curriculum-october-week");
+		const firstButton = document.querySelector(".math-curriculum-october-date-button");
+		const buttonStyles = getComputedStyle(firstButton);
+		return {
+			background: getComputedStyle(menu).backgroundColor,
+			buttonColor: buttonStyles.color,
+			buttonRadius: buttonStyles.borderRadius,
+			weekGap: getComputedStyle(weekList).rowGap,
+			weekdayGap: getComputedStyle(firstWeek).columnGap,
+			labelsFit: [...document.querySelectorAll(".math-curriculum-october-date-button")]
+				.every((button) => button.scrollWidth <= button.clientWidth && button.scrollHeight <= button.clientHeight),
+		};
+	});
+	expect(layout.background).toBe("rgb(12, 59, 34)");
+	expect(layout.buttonColor).toBe("rgb(17, 17, 17)");
+	expect(layout.buttonRadius).toBe("9999px");
+	expect(layout.weekGap).toBe("16px");
+	expect(layout.weekdayGap).toBe("16px");
+	expect(layout.labelsFit).toBe(true);
+
+	const firstDateButton = screen.locator(".math-curriculum-october-date-button").first();
+	await firstDateButton.click();
+	await expect(firstDateButton).toHaveAttribute("aria-pressed", "true");
+	await expect(firstDateButton).toHaveCSS("box-shadow", /rgba\(255, 225, 0, 0\.98\)/);
+	await firstDateButton.click();
+	await expect(firstDateButton).toHaveAttribute("aria-pressed", "false");
+
+	await page.setViewportSize({ width: 390, height: 844 });
+	const mobileLayout = await page.evaluate(() => {
+		const screenElement = document.querySelector("#math-curriculum-october-screen");
+		const weekListElement = document.querySelector("#math-curriculum-october-week-list");
+		return {
+			pageFits: document.documentElement.scrollWidth <= window.innerWidth,
+			weekScrolls: weekListElement.scrollWidth > weekListElement.clientWidth,
+			buttonWidth: document.querySelector(".math-curriculum-october-date-button").getBoundingClientRect().width,
+			screenWidth: screenElement.clientWidth,
+		};
+	});
+	expect(mobileLayout.pageFits).toBe(true);
+	expect(mobileLayout.weekScrolls).toBe(true);
+	expect(mobileLayout.buttonWidth).toBeGreaterThanOrEqual(200);
+	expect(mobileLayout.screenWidth).toBe(390);
+
+	await page.locator("#math-curriculum-october-screen-back-button").click();
+	await expect(page.locator("#student-edits-screen")).toBeVisible();
+	await expect(page.locator("#blocks-menu-sidebar")).toBeVisible();
+	await expect(page.locator("#description-edits-button")).toHaveAttribute("aria-pressed", "true");
+	await expect(page.locator("#description-edits-position-wrapper")).toBeVisible();
 });

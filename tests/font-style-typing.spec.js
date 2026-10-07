@@ -679,3 +679,179 @@ test("font color picker commits a color that persists across font styles", async
 	await expect(colorButton).toHaveAttribute("aria-pressed", "false");
 	await expect(colorMenu).toBeHidden();
 });
+
+test("alignment changes the current line and preserves its caret", async ({ page }) => {
+	await openEditablePaperTemplate(page);
+	const editor = page.locator(".print-preview-paper-editor");
+	await editor.evaluate((element) => {
+		element.style.textAlign = "right";
+	});
+	const existingText = await editor.textContent();
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.locator("#text-editor-alignment-button").click();
+	await page.locator("#text-editor-alignment-left-button").click();
+
+	const caretState = await editor.evaluate((element) => {
+		const selection = window.getSelection();
+		return {
+			focused: document.activeElement === element,
+			collapsed: selection?.isCollapsed === true,
+			insideEditor: selection?.anchorNode ? element.contains(selection.anchorNode) : false,
+			caretAtEnd:
+				selection?.anchorNode === element && selection.anchorOffset === element.childNodes.length,
+			alignment: getComputedStyle(element).textAlign,
+			rootAlignment: getComputedStyle(element).textAlign,
+			text: element.textContent,
+			alignmentCaretCount: element.querySelectorAll("[data-text-editor-alignment-caret]").length,
+		};
+	});
+	expect(caretState).toEqual({
+		focused: true,
+		collapsed: true,
+		insideEditor: true,
+		caretAtEnd: true,
+		alignment: "left",
+		rootAlignment: "left",
+		text: existingText,
+		alignmentCaretCount: 0,
+	});
+
+	await page.locator("#text-editor-alignment-center-button").click();
+	await expect(editor).toHaveCSS("text-align", "center");
+	await page.locator("#text-editor-alignment-right-button").click();
+	await expect(editor).toHaveCSS("text-align", "right");
+});
+
+test("alignment moves selected text without changing surrounding text", async ({ page }) => {
+	await openEditablePaperTemplate(page);
+	const editor = page.locator(".print-preview-paper-editor");
+	await editor.evaluate((element) => {
+		element.textContent = "before selected after";
+		element.style.textAlign = "right";
+		const textNode = element.firstChild;
+		const range = document.createRange();
+		range.setStart(textNode, 7);
+		range.setEnd(textNode, 15);
+		const selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);
+	});
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.locator("#text-editor-alignment-button").click();
+	await page.locator("#text-editor-alignment-center-button").click();
+
+	const alignedSelection = await editor.evaluate((element) => {
+		const selectedBlock = Array.from(element.children).find(
+			(child) => child.textContent === "selected",
+		);
+		return {
+			text: element.textContent,
+			selectedText: selectedBlock?.textContent,
+			selectedAlignment: selectedBlock ? getComputedStyle(selectedBlock).textAlign : null,
+			remainingText: Array.from(element.childNodes)
+				.filter((node) => node.nodeType === Node.TEXT_NODE)
+				.map((node) => node.textContent)
+				.join(""),
+			rootAlignment: getComputedStyle(element).textAlign,
+			selectionText: window.getSelection()?.toString(),
+		};
+	});
+	expect(alignedSelection).toEqual({
+		text: "before selected after",
+		selectedText: "selected",
+		selectedAlignment: "center",
+		remainingText: "before  after",
+		rootAlignment: "right",
+		selectionText: "selected",
+	});
+});
+
+test("selected alignment applies to loaded and newly created templates", async ({ page }) => {
+	await page.addInitScript(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "alignment-first-template",
+					name: "First alignment template",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "First",
+						widthValue: "8",
+						widthUnit: "in",
+						heightValue: "10",
+						heightUnit: "in",
+						textAlign: "right",
+					},
+				},
+				{
+					id: "alignment-second-template",
+					name: "Second alignment template",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "Second",
+						widthValue: "8",
+						widthUnit: "in",
+						heightValue: "10",
+						heightUnit: "in",
+						textAlign: "left",
+					},
+				},
+			]),
+		);
+	});
+	await page.setViewportSize({ width: 1280, height: 1200 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "First alignment template" }).click();
+
+	const editor = page.locator(".print-preview-paper-editor");
+	await expect(editor).toHaveCSS("text-align", "right");
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.locator("#text-editor-alignment-button").click();
+	await page.locator("#text-editor-alignment-center-button").click();
+	await expect(editor).toHaveCSS("text-align", "center");
+	await expect(editor.locator("[data-text-editor-alignment-caret]")).toHaveCount(0);
+	await page.locator("#text-editor-workflow-back-button").click();
+	await page.getByRole("button", { name: "Leave", exact: true }).click();
+
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Second alignment template" }).click();
+	await expect(editor).toHaveCSS("text-align", "center");
+	await expect(editor.locator("[data-text-editor-alignment-caret]")).toHaveCount(0);
+
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Template", exact: true }).click();
+	await expect(editor).toHaveCSS("text-align", "center");
+});
+
+test("alignment choices toggle exclusively with the Tools glow", async ({ page }) => {
+	await openEditablePaperTemplate(page);
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.locator("#text-editor-alignment-button").click();
+
+	const left = page.locator("#text-editor-alignment-left-button");
+	const center = page.locator("#text-editor-alignment-center-button");
+	const right = page.locator("#text-editor-alignment-right-button");
+	const toolsButton = page.locator("#text-editor-editing-tools-button");
+	const readShadow = (button) => button.evaluate((element) => getComputedStyle(element).boxShadow);
+
+	await left.click();
+	await expect(left).toHaveAttribute("aria-pressed", "true");
+	await expect(left).toHaveClass(/text-editor-alignment-choice-button--depressed/);
+	expect(await readShadow(left)).toBe(await readShadow(toolsButton));
+
+	await center.click();
+	await expect(left).toHaveAttribute("aria-pressed", "false");
+	await expect(center).toHaveAttribute("aria-pressed", "true");
+	await expect(right).toHaveAttribute("aria-pressed", "false");
+	expect(await readShadow(center)).toBe(await readShadow(toolsButton));
+
+	await center.click();
+	await expect(center).toHaveAttribute("aria-pressed", "false");
+	await expect(left).toHaveAttribute("aria-pressed", "false");
+	await expect(right).toHaveAttribute("aria-pressed", "false");
+	await expect(page.locator("[data-text-editor-alignment-caret]")).toHaveCount(0);
+});

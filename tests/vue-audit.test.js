@@ -31,7 +31,7 @@ function collectVueFiles(directory) {
 function collectDuplicateIds(source) {
 	const idCounts = new Map();
 
-	for (const match of source.matchAll(/\bid\s*=\s*["']([^"']+)["']/g)) {
+	for (const match of source.matchAll(/(?:^|\s)id\s*=\s*["']([^"']+)["']/g)) {
 		const value = match[1];
 		idCounts.set(value, (idCounts.get(value) ?? 0) + 1);
 	}
@@ -217,8 +217,8 @@ test("Calendar subject panels include the required explorer copy for the specifi
 		"Amazing Work!  You did your best and it shows!",
 		"You’ve come so far and Assistant Daddy is sooooo proud of you!",
 		"Incredible! You’re unstoppable!",
-		"September 28, 2026",
-		"October 2, 2026",
+		"October 5, 2026",
+		"October 9, 2026",
 	];
 
 	const missingPhrases = requiredPhrases.filter((phrase) => !calendarViewSource.includes(phrase));
@@ -300,6 +300,8 @@ test("Vue files keep shared structure and style ownership consistent", () => {
 					"embedded-hardware-",
 				],
 				"HomeView.vue": ["home-"],
+				"MathGameArtwork.vue": [],
+				"MathGamesView.vue": ["math-games-"],
 				"RewardsView.vue": ["rewards-"],
 				"ProgressXpBar.vue": ["progress-xp-bar-"],
 				"StudentNavigation.vue": ["student-"],

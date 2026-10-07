@@ -18,6 +18,7 @@ import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 const emit = defineEmits(["go-home"]);
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
+const firstSchoolDay = new Date(2026, 9, 5);
 const year1TimelineStory = {
 	theme: "Expeditions into Blockland: The Obsidian Portal and the Never Ending Tales of Raili Rose",
 	paragraphs: [
@@ -44,8 +45,8 @@ const week1TimelineStory = {
 		"As you walk across the golden plains of the savanna, you notice a herd of tall giraffes gathered near a watering hole. Usually, these gentle giants stride calmly across the plains, but today they stand frozen in place, their ears twitching with worry. As you step closer, your Explorer Journal warms up in your hands and begins to glow with a soft light. Suddenly, the quiet murmurs across the grass turn into clear words...your journal is translating animal speech, and you can understand exactly what the giraffes are saying! Listening in, you hear the herd whispering anxiously. \"That pride of lions just won't budge. How will we ever get our calves to the watering hole or reach the Acacia trees on the other side? We'll starve!\"",
 	],
 };
-const calendarMonths = Array.from({ length: 16 }, (_, index) => {
-	const monthDate = new Date(2026, 8 + index, 1);
+const calendarMonths = Array.from({ length: 15 }, (_, index) => {
+	const monthDate = new Date(2026, 9 + index, 1);
 	const monthName = monthDate.toLocaleString("en-US", { month: "long" });
 	const year = monthDate.getFullYear();
 	const firstDay = new Date(year, monthDate.getMonth(), 1);
@@ -73,15 +74,8 @@ const selectedDailyMenuSubject = ref(null);
 const selectedDailyMenuBlock = ref(null);
 const activeStoryTimelineTab = ref(null);
 const hasDailyMenuContent = computed(() => {
-	const septemberDateMatch = selectedDailyMenuDateLabel.value.match(
-		/^September\s+(\d{1,2}),\s+2026$/,
-	);
-	if (!septemberDateMatch) {
-		return true;
-	}
-
-	const dayNumber = Number(septemberDateMatch[1]);
-	return dayNumber < 1 || dayNumber > 27;
+	const selectedDate = new Date(selectedDailyMenuDateLabel.value);
+	return !Number.isNaN(selectedDate.getTime()) && selectedDate >= firstSchoolDay;
 });
 const blockSubjectLabels = {
 	math: "Math",
@@ -139,19 +133,19 @@ const replacementColorClassesByDayCellKey = ref({});
 const explosionInstance = ref(0);
 const explosionDurationMs = 900;
 const explosionTextureHideDelayMs = 450;
-const september28StoryTheme = "The Journey to the Watering Hole";
-const september28StoryParagraphs = [
+const october5StoryTheme = "The Journey to the Watering Hole";
+const october5StoryParagraphs = [
 	'Towering above you, the giraffes stretch so high their heads seem to touch the clouds! You pause to count them: "1... 2... 3... 4..."—a complete herd of 15 giraffes. It is an amazing sight, but you keep your eyes on the quest. "My name is Raili Rose," you announce, stepping forward. "I\'ve come to help you. I overheard you whispering about your lion troubles. Tell me what you need."',
 	"\"Too many troubles to count, I'm afraid,\" whispers the tallest and oldest giraffe with a heavy sigh. \"Lions are driving us from the land our families have lived on for generations. I don't know if even an explorer like you can help... but our calves haven't had any food or water in a day. We can't risk visiting the watering hole with the pride hunting us. If you can help us find water, we will be forever grateful.\"",
 	'Suddenly, a warm glow hums from your vest pocket. You pull out your journal as its pages flutter wildly, snapping open to an exact map of the savanna around you. Before you can blink, a bright red dot pulses right where your boots hit the dirt. A crisp red line zips out from the dot, curling off to the right before locking in place beside clean, glowing text: 1027 ft. "The dot marks where I\'m standing," you realize, tracing the glowing path. "And that red line leads straight to another watering hole!" You look up at the herd with total confidence. "I know where to go. Follow me—it\'s not too far away." With no other choice, the giraffes place their trust in you, lining up single file to match your stride across the plains.',
 ];
-const september29StoryTheme = "The Journey to Acacia Grove";
-const september29StoryParagraphs = [
+const october6StoryTheme = "The Journey to Acacia Grove";
+const october6StoryParagraphs = [
 	'After the herd drinks deeply from the cool, sparkling watering hole, they bow their long necks in relief and gratitude. The oldest giraffe steps forward, his deep voice filled with respect. "You saved us today, Raili Rose," he rumbles softly. "You have proven yourself to be a true explorer. But our herd faces another desperate trial: we have not eaten in a couple of days. Lions are stalking our favorite Acacia trees, waiting to ambush us. Our calves are starving. Can you guide us to food?"',
 	'"Of course I\'ll help!" you answer eagerly. Right on cue, a bright yellow glow bursts from your vest pocket. You draw out your journal as its pages flutter rapidly, snapping open to a fresh map. The familiar red dot pulses beneath your boots. In a flash, a thin red line darts across the parchment, drawing a path straight to a cluster of tiny, ink-drawn trees. "A hidden Acacia grove—safe from the lions!" you realize with a grin. "I know just where to go!" You spin toward the open plains, journal in hand. Behind you, the giraffes turn as one and follow without hesitation. You are quickly becoming the true hero of the Whispering Giraffes.',
 ];
-const september30StoryTheme = "Handling the Lions with Pride";
-const september30StoryParagraphs = [
+const october7StoryTheme = "Handling the Lions with Pride";
+const october7StoryParagraphs = [
 	"Full bellies, sweet acacia leaves, and cool water. After days of exhaustion, the Whispering Giraffes were finally safe—thanks to you. While the leggy calves played tag across the clearing, the elders hummed low, rumbling stories of the old days. You couldn't help but smile. You had saved them. Then, the entire herd froze.",
 	"Dozens of long necks snapped upright. Ears swiveled toward the ridge. Every eye locked in the exact same direction, wide with terror.",
 	'"What\'s wrong?" you ask, stepping forward. "You look like you\'ve seen a ghost!"',
@@ -162,8 +156,8 @@ const september30StoryParagraphs = [
 	"\"Our legs are far too long and clumsy for a ledge that narrow. We'd fall. But we can't lose our new home, either. I don't know what to do,\" the oldest giraffe says.",
 	'You square your shoulders, stand tall, and smile. "Leave the climbing to me," you say proudly. "We made it this far, and I\'m not quitting now!"',
 ];
-const october1StoryTheme = "The Float of Crocodiles";
-const october1StoryParagraphs = [
+const october8StoryTheme = "The Float of Crocodiles";
+const october8StoryParagraphs = [
 	'"We can\'t thank you enough, Master Explorer Raili Rose," the oldest giraffe whispers, bowing his long neck. "Our bellies are full, our herd is safe, and the lions are gone."',
 	'"I\'m just glad I could help," you say, grinning. "I\'ve learned so much about you and your herd! That\'s all the thanks I need."',
 	'The elder tilts his head toward the sunset. "How about one last cool drink before dark? Would you like a ride?"',
@@ -185,8 +179,8 @@ const october1StoryParagraphs = [
 	"The hippos turn and murmur together in a quick, low rumble. A moment later, the giant leader steps forward, snapping his massive jaws shut with a solid THUD.",
 	'"We can," the leader grumbles. "The savanna fears crocodiles, but we do not. The crocodiles fear us. They know we never tolerate them in our water. Lead the way, Explorer. Let\'s go have a word with these crocs."',
 ];
-const october2StoryTheme = "The Towering Acacia Clinic";
-const october2StoryParagraphs = [
+const october9StoryTheme = "The Towering Acacia Clinic";
+const october9StoryParagraphs = [
 	'After a day of victory celebrations, exhaustion hits you all at once. You whisper "goodnight" to your gentle giraffe friends and curl up inside a cozy rock hollow near the acacia grove.',
 	"Cough! Hack! Achoo!",
 	"You snap awake in the pitch-dark. Grabbing your lantern, you sweep the beam across the tall grass. There, shivering and sniffling on the ground, are the two youngest calves.",
@@ -221,25 +215,25 @@ const october2StoryParagraphs = [
 
 /** Story content lookup keyed by the selected daily menu date label. */
 const storyContentByDateLabel = {
-	"September 28, 2026": {
-		theme: september28StoryTheme,
-		paragraphs: september28StoryParagraphs,
+	"October 5, 2026": {
+		theme: october5StoryTheme,
+		paragraphs: october5StoryParagraphs,
 	},
-	"September 29, 2026": {
-		theme: september29StoryTheme,
-		paragraphs: september29StoryParagraphs,
+	"October 6, 2026": {
+		theme: october6StoryTheme,
+		paragraphs: october6StoryParagraphs,
 	},
-	"September 30, 2026": {
-		theme: september30StoryTheme,
-		paragraphs: september30StoryParagraphs,
+	"October 7, 2026": {
+		theme: october7StoryTheme,
+		paragraphs: october7StoryParagraphs,
 	},
-	"October 1, 2026": {
-		theme: october1StoryTheme,
-		paragraphs: october1StoryParagraphs,
+	"October 8, 2026": {
+		theme: october8StoryTheme,
+		paragraphs: october8StoryParagraphs,
 	},
-	"October 2, 2026": {
-		theme: october2StoryTheme,
-		paragraphs: october2StoryParagraphs,
+	"October 9, 2026": {
+		theme: october9StoryTheme,
+		paragraphs: october9StoryParagraphs,
 	},
 };
 const selectedStoryContent = computed(
@@ -269,20 +263,20 @@ const explorerCopyBySubject = {
 	],
 };
 const allowedExplorerCopyDates = new Set([
-	"September 28, 2026",
-	"September 29, 2026",
-	"September 30, 2026",
-	"October 1, 2026",
-	"October 2, 2026",
+	"October 5, 2026",
+	"October 6, 2026",
+	"October 7, 2026",
+	"October 8, 2026",
+	"October 9, 2026",
 ]);
 const explorerCopyByDateAndSubject = {
-	"September 29, 2026": {
+	"October 6, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You did so much yesterday to bring the Whispering Giraffe Family to a new water hole, but there’s still much to do.  Complete the Quests today to help them find their way to food!",
 		],
 	},
-	"October 1, 2026": {
+	"October 8, 2026": {
 		math: [
 			"Explorer Raili!",
 			"Amazing job, blocking the lion’s path!  You really saved the day, but now it appears that the crocodiles are blocking the Whispering Giraffe Family’s path to their new found watering hold.  We can’t let that happen!  Continue your journey by completing the daily Quests and we will make our way to the hippos so they can help us save the giraffes",
@@ -300,7 +294,7 @@ const explorerCopyByDateAndSubject = {
 			"Unbelievable!  I never doubted you for second.  You’ve made it so far and I just know that if you keep doing your best, you’ll win every time!  Just a little farther to go and those crocodiles are sure to leave",
 		],
 	},
-	"October 2, 2026": {
+	"October 9, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You’ve brought the Whispering Giraffe Family to water and food.  You’ve blockaded the lions from getting to their new home, and even made friends with the hippos who helped you push the crocodiles out of their watering hole.  You’re a hero and loved by the giraffes.  But now the young giraffe calves are sick.  Luckily, the journal has given you a hint.  One last task.  Complete your journey and save the giraffe calves!",
@@ -318,7 +312,7 @@ const explorerCopyByDateAndSubject = {
 			"You’ve done it!  You got the herbs and saved the baby giraffes.  You are the best kid who every lived!  Every day, you have dedicated so much time to saving the Whispering Giraffes and did amazing things.  I can’t wait to see how far you go!  Congratulations!!!",
 		],
 	},
-	"September 30, 2026": {
+	"October 7, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You brought the Whispering Giraffe Family to water and to a whole new grove of Acacia trees while avoiding the pride of lions",
@@ -363,17 +357,17 @@ const selectedTimelineStory = computed(() => {
 	}
 	if (
 		activeStoryTimelineTab.value === "Quarter" &&
-		isStoryButtonAvailable(new Date(2026, 11, 21))
+		isStoryButtonAvailable(new Date(2026, 11, 28))
 	) {
 		return quarter1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Month" && isStoryButtonAvailable(new Date(2026, 9, 26))) {
+	if (activeStoryTimelineTab.value === "Month" && isStoryButtonAvailable(new Date(2026, 10, 2))) {
 		return month1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Week" && isStoryButtonAvailable(new Date(2026, 9, 5))) {
+	if (activeStoryTimelineTab.value === "Week" && isStoryButtonAvailable(new Date(2026, 9, 12))) {
 		return week1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Day" && isStoryButtonAvailable(new Date(2026, 9, 3))) {
+	if (activeStoryTimelineTab.value === "Day" && isStoryButtonAvailable(new Date(2026, 9, 10))) {
 		return storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null;
 	}
 	return null;
@@ -499,7 +493,7 @@ function isStoryButtonAvailable(endDate) {
 	const [, monthName, dayValue, yearValue] = match;
 	const monthIndex = new Date(`${monthName} 1, ${yearValue}`).getMonth();
 	const selectedDate = new Date(Number(yearValue), monthIndex, Number(dayValue));
-	const storyStartDate = new Date(2026, 8, 28);
+	const storyStartDate = firstSchoolDay;
 	const dayOfWeek = selectedDate.getDay();
 
 	return (
@@ -588,17 +582,17 @@ function clearDayCellExplosion() {
 	dayCellAnimationState.value = "idle";
 }
 
-function isDecorativeSeptemberDayCell(cell) {
-	if (!isCurrentMonthDayCell(cell) || currentMonth.value.monthName !== "September") {
+function isDecorativePreStartDayCell(cell) {
+	if (!isCurrentMonthDayCell(cell) || currentMonth.value.monthName !== "October") {
 		return false;
 	}
 
 	const dayNumber = Number(cell.value);
-	return dayNumber >= 1 && dayNumber <= 27;
+	return dayNumber >= 1 && dayNumber < 5;
 }
 
 function handleDayCellClick(cell) {
-	if (!isCurrentMonthDayCell(cell) || isDecorativeSeptemberDayCell(cell)) {
+	if (!isCurrentMonthDayCell(cell) || isDecorativePreStartDayCell(cell)) {
 		return;
 	}
 
@@ -854,16 +848,16 @@ onBeforeUnmount(() => {
 						{
 							'daily-menu-subject-panel-stack--story':
 								selectedDailyMenuSubject === 'story',
-							'daily-menu-subject-panel-stack--september-28':
-								selectedDailyMenuDateLabel === 'September 28, 2026',
-							'daily-menu-subject-panel-stack--september-29':
-								selectedDailyMenuDateLabel === 'September 29, 2026',
-							'daily-menu-subject-panel-stack--september-30':
-								selectedDailyMenuDateLabel === 'September 30, 2026',
-							'daily-menu-subject-panel-stack--october-1':
-								selectedDailyMenuDateLabel === 'October 1, 2026',
-							'daily-menu-subject-panel-stack--october-2':
-								selectedDailyMenuDateLabel === 'October 2, 2026',
+							'daily-menu-subject-panel-stack--october-5':
+								selectedDailyMenuDateLabel === 'October 5, 2026',
+							'daily-menu-subject-panel-stack--october-6':
+								selectedDailyMenuDateLabel === 'October 6, 2026',
+							'daily-menu-subject-panel-stack--october-7':
+								selectedDailyMenuDateLabel === 'October 7, 2026',
+							'daily-menu-subject-panel-stack--october-8':
+								selectedDailyMenuDateLabel === 'October 8, 2026',
+							'daily-menu-subject-panel-stack--october-9':
+								selectedDailyMenuDateLabel === 'October 9, 2026',
 						},
 					]"
 				>

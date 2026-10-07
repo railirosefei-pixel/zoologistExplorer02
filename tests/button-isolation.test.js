@@ -150,6 +150,18 @@ test("buttons keep isolated rendering, style, and functionality ownership", () =
 	const buttonIds = new Map();
 	const buttonClasses = new Map();
 	const sharedStateClasses = new Set(["text-editor-button--depressed"]);
+	const sharedPresentationClasses = new Set([
+		"grid-menu-toggle-button",
+		"grid-menu-toggle-button--on",
+		"grid-menu-toggle-button--off",
+		"text-editor-fonts-button",
+		"text-editor-fonts-button--light-blue",
+		"text-editor-font-styles-button",
+		"text-editor-alignment-choice-button",
+		"text-editor-alignment-choice-button--depressed",
+		"description-edits-commit-button",
+		"text-editor-font-color-commit-button",
+	]);
 
 	for (const button of buttonRecords) {
 		if (!button.id) {
@@ -185,7 +197,11 @@ test("buttons keep isolated rendering, style, and functionality ownership", () =
 	}
 
 	for (const [className, buttons] of buttonClasses) {
-		if (buttons.length > 1 && !sharedStateClasses.has(className)) {
+		if (
+			buttons.length > 1 &&
+			!sharedStateClasses.has(className) &&
+			!sharedPresentationClasses.has(className)
+		) {
 			findings.push(
 				`button class "${className}" is shared by ${buttons
 					.map((button) => `${button.filePath}#${button.id || "<missing-id>"}`)

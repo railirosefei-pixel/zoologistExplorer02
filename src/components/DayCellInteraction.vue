@@ -65,17 +65,16 @@ const isTextureSuppressed = computed(
 		props.hiddenDayCellKeys.includes(props.cellKey) &&
 		props.lastClickedDayCellKey !== props.cellKey,
 );
-const isDecorativeSeptemberGateCell = computed(
+const isDecorativePreStartDayCell = computed(
 	() =>
 		props.cell.isCurrentMonth &&
 		props.cell.value !== "" &&
-		/^calendar-day-cell-September-2026-(\d+)$/.test(props.cellId) &&
-		Number(props.cellId.match(/(\d+)$/)?.[1] ?? 0) >= 1 &&
-		Number(props.cellId.match(/(\d+)$/)?.[1] ?? 0) <= 27,
+		/^calendar-day-cell-October-2026-\d+$/.test(props.cellId) &&
+		Number(props.cell.value) < 5,
 );
 
 function handleDayCellClick() {
-	if (isCellLocked.value || isDecorativeSeptemberGateCell.value) {
+	if (isCellLocked.value || isDecorativePreStartDayCell.value) {
 		return;
 	}
 	emit("day-cell-click", props.cell);
@@ -87,7 +86,7 @@ function handleDayCellClick() {
 		:id="cellId"
 		class="calendar-day-cell"
 		type="button"
-		:disabled="isCellLocked || isDecorativeSeptemberGateCell"
+		:disabled="isCellLocked || isDecorativePreStartDayCell"
 		:class="{
 			'calendar-day-cell--empty': !cell.isCurrentMonth,
 			'calendar-day-cell--current-month': cell.isCurrentMonth,

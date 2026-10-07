@@ -8,6 +8,7 @@ import RewardsView from "./components/RewardsView.vue";
 import ParentView from "./components/ParentView.vue";
 import StudentEditsView from "./components/StudentEditsView.vue";
 import CurriculumGameView from "./components/CurriculumGameView.vue";
+import MathCurriculumOctoberView from "./components/MathCurriculumOctoberView.vue";
 
 const isStudentMenuOpen = ref(false);
 const isRewardsPageOpen = ref(false);
@@ -15,6 +16,7 @@ const activeStudentTab = ref("calendar");
 const activeParentScreen = ref("");
 const isExplorerPositionsModeActive = ref(false);
 const calendarViewRef = ref(null);
+const goldCoinTotal = ref(0);
 
 /** Home navigation pipeline boundary. */
 function handleStudentMenuOpen() {
@@ -32,6 +34,12 @@ function handleStudentMenuClose() {
 
 /** Rewards-page navigation pipeline boundary. */
 function handleRewardsPageOpen() {
+	try {
+		const savedProgress = JSON.parse(localStorage.getItem("zoologist-math-games-progress") || "{}");
+		goldCoinTotal.value = Object.values(savedProgress || {}).filter((completedLevels) => completedLevels === 10).length;
+	} catch {
+		goldCoinTotal.value = 0;
+	}
 	isStudentMenuOpen.value = false;
 	isRewardsPageOpen.value = true;
 }
@@ -78,6 +86,16 @@ function handleCurriculumGameClose() {
 	activeParentScreen.value = "student-edits";
 }
 
+/** October Math curriculum screen navigation pipeline boundary. */
+function handleMathCurriculumOctoberOpen() {
+	activeParentScreen.value = "math-curriculum-october";
+}
+
+/** October Math curriculum screen exit pipeline boundary. */
+function handleMathCurriculumOctoberClose() {
+	activeParentScreen.value = "description-edits";
+}
+
 /** Explorer Positions mode toggle pipeline boundary. */
 function handleExplorerPositionsToggle() {
 	isExplorerPositionsModeActive.value = !isExplorerPositionsModeActive.value;
@@ -103,8 +121,10 @@ function handleParentChainHome() {
 	/>
 
 	<StudentEditsView
-		v-else-if="activeParentScreen === 'student-edits'"
+		v-else-if="activeParentScreen === 'student-edits' || activeParentScreen === 'description-edits'"
+		:initial-description-edits-open="activeParentScreen === 'description-edits'"
 		@open-curriculum-game="handleCurriculumGameOpen"
+		@open-math-curriculum-october="handleMathCurriculumOctoberOpen"
 		@back-to-parent-menu="handleStudentEditsParentMenuClose"
 		@go-home="handleParentChainHome"
 	/>
@@ -114,6 +134,12 @@ function handleParentChainHome() {
 		:explorer-positions-mode-active="isExplorerPositionsModeActive"
 		@toggle-explorer-positions-mode="handleExplorerPositionsToggle"
 		@back-to-student-edits="handleCurriculumGameClose"
+		@go-home="handleParentChainHome"
+	/>
+
+	<MathCurriculumOctoberView
+		v-else-if="activeParentScreen === 'math-curriculum-october'"
+		@back-to-student-edits="handleMathCurriculumOctoberClose"
 		@go-home="handleParentChainHome"
 	/>
 
@@ -149,5 +175,5 @@ function handleParentChainHome() {
 		</section>
 	</main>
 
-	<RewardsView v-else @back-to-student-menu="handleRewardsPageClose" />
+	<RewardsView v-else :gold-coin-total="goldCoinTotal" @back-to-student-menu="handleRewardsPageClose" />
 </template>
