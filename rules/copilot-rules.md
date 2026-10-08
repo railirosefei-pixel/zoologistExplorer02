@@ -50,6 +50,14 @@ Treat SonarQube, provider validation, installation, and external network access 
 
 Use a predictable naming pattern
 
+Existing Home and Back controls share navigation presentation classes as an
+intentional exception to button-style isolation. Keep their individual IDs.
+Home returns to the home page; Back returns one screen or dialog level (the
+calendar's month Back returns one month page). Back is fixed 16px from the
+viewport top/right; Home is fixed 16px from the top and 16px left of Back.
+Only the active layer's existing controls are visible. Do not add controls to
+screens that do not already have them.
+
 component files: PascalCase
 
 view names: clear and feature-based

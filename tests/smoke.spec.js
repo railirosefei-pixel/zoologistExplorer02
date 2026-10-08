@@ -45,7 +45,9 @@ test("Parent Block Edits shows a Monday through Friday weekly panel set", async 
 	await blockEditsButton.click();
 	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "true");
 	await expect(blockEditsButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
-	const activeShadow = await blockEditsButton.evaluate((button) => getComputedStyle(button).boxShadow);
+	const activeShadow = await blockEditsButton.evaluate(
+		(button) => getComputedStyle(button).boxShadow,
+	);
 	expect(activeShadow).toContain("0, 255, 64");
 
 	const panels = page.locator(".block-edits-panel");
@@ -75,6 +77,669 @@ test("Text Editor Back returns to the Parent menu", async ({ page }) => {
 	await expect(page.locator("#student-menu-page")).toHaveCount(0);
 });
 
+test("Grid Applied defaults on and applies to the next template without a prompt", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1080 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-grid-button").click();
+
+	const appliedButton = page.locator("#grid-applied-button");
+	await expect(appliedButton).toHaveText("On");
+	await expect(appliedButton).toHaveAttribute("aria-pressed", "true");
+	await appliedButton.click();
+	await expect(appliedButton).toHaveText("Off");
+	await expect(page.locator("#grid-menu-selection-prompt")).toHaveCount(0);
+
+	await appliedButton.click();
+	await expect(appliedButton).toHaveText("On");
+	await page.locator("#text-editor-template-new-button").click();
+	await page.locator("#text-editor-new-create-template-button").click();
+	const paper = page.locator("#print-preview-paper");
+	await expect(paper).toBeVisible();
+	await expect(paper).toHaveAttribute("data-grid-applied", "true");
+});
+
+test("Shape Removal highlights applied template shapes in a green-yellow checkerboard", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1080 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-new-button").click();
+	await page.locator("#text-editor-new-create-template-button").click();
+	await page.locator("#text-editor-grid-button").click();
+	await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+
+	const shapeRemovalButton = page.locator("#grid-menu-shape-removal-button");
+	await shapeRemovalButton.click();
+	await expect(shapeRemovalButton).toHaveAttribute("aria-pressed", "true");
+
+	const highlightedArea = page.locator("[data-grid-shape-area]");
+	await expect(highlightedArea).toHaveAttribute("data-grid-removal-highlight", "true");
+	const highlightedShapes = page.locator(
+		"#print-preview-grid-removal-pattern [data-grid-highlight-row]",
+	);
+	await expect(highlightedShapes).toHaveCount(4);
+	await expect(highlightedShapes.nth(0)).toHaveAttribute("fill", "#00ff40");
+	await expect(highlightedShapes.nth(1)).toHaveAttribute("fill", "#ffff00");
+	await expect(highlightedShapes.nth(2)).toHaveAttribute("fill", "#ffff00");
+	await expect(highlightedShapes.nth(3)).toHaveAttribute("fill", "#00ff40");
+	for (let index = 0; index < 4; index += 1) {
+		await expect(highlightedShapes.nth(index)).toHaveAttribute("stroke", "#000000");
+	}
+
+	await shapeRemovalButton.click();
+	await expect(highlightedArea).toHaveAttribute("data-grid-removal-highlight", "false");
+	await expect(page.locator("#print-preview-grid-removal-pattern")).toHaveCount(0);
+});
+
+test("Shape Removal removes a clicked shape while retaining its outline and surrounding grid", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1080 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-new-button").click();
+	await page.locator("#text-editor-new-create-template-button").click();
+	await page.locator("#text-editor-grid-button").click();
+	await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+	await page.locator("#grid-menu-shape-removal-button").click();
+
+	const grid = page.locator("#print-preview-grid");
+	const gridBounds = await grid.boundingBox();
+	await grid.click({
+		position: { x: gridBounds.width / 8, y: gridBounds.height / 6 },
+	});
+
+	const removedShape = page.locator('#print-preview-grid [data-grid-removed-shape="base-0-0"]');
+	await expect(removedShape).toHaveAttribute("fill", "#ffffff");
+	await expect(removedShape).toHaveAttribute("stroke", "#000000");
+	await expect(page.locator("#print-preview-grid [data-grid-removed-shape]")).toHaveCount(1);
+	await expect(page.locator("[data-grid-shape-area]")).toHaveAttribute(
+		"data-grid-removal-highlight",
+		"true",
+	);
+	await page.locator("#grid-menu-shape-removal-button").click();
+	await expect(removedShape).toBeVisible();
+	await expect(page.locator("[data-grid-shape-area]")).toHaveAttribute(
+		"data-grid-removal-highlight",
+		"false",
+	);
+});
+
+test("Shape Addition highlights applied templates and shells in green-yellow checkerboards", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1080 });
+
+	for (const documentType of ["template", "shell"]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Text Editor" }).click();
+
+		if (documentType === "template") {
+			await page.locator("#text-editor-template-new-button").click();
+			await page.locator("#text-editor-new-create-template-button").click();
+		} else {
+			await page.getByRole("button", { name: "New +" }).click();
+			await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+		}
+
+		await page.locator("#text-editor-grid-button").click();
+		await expect(page.locator("#grid-applied-button")).toHaveAttribute("aria-pressed", "true");
+		await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+
+		const shapeAdditionButton = page.locator("#grid-menu-shape-addition-button");
+		const rowAdditionButton = page.locator("#grid-menu-shape-addition-row-button");
+		const columnAdditionButton = page.locator("#grid-menu-shape-addition-column-button");
+		await expect(rowAdditionButton).toHaveCount(0);
+		await expect(columnAdditionButton).toHaveCount(0);
+		await shapeAdditionButton.click();
+		await expect(shapeAdditionButton).toHaveAttribute("aria-pressed", "true");
+		await expect(rowAdditionButton).toBeVisible();
+		await expect(columnAdditionButton).toBeVisible();
+		const additionButtonRight = await shapeAdditionButton.evaluate(
+			(button) => button.getBoundingClientRect().right,
+		);
+		const rowButtonLeft = await rowAdditionButton.evaluate(
+			(button) => button.getBoundingClientRect().left,
+		);
+		expect(rowButtonLeft).toBeGreaterThan(additionButtonRight);
+
+		const highlightedArea = page.locator("[data-grid-shape-area]");
+		await expect(highlightedArea).toHaveAttribute("data-grid-addition-highlight", "true");
+		const highlightedShapes = page.locator(
+			"#print-preview-grid-removal-pattern [data-grid-highlight-row]",
+		);
+		await expect(highlightedShapes).toHaveCount(4);
+		await expect(highlightedShapes.nth(0)).toHaveAttribute("fill", "#00ff40");
+		await expect(highlightedShapes.nth(1)).toHaveAttribute("fill", "#ffff00");
+		await expect(highlightedShapes.nth(2)).toHaveAttribute("fill", "#ffff00");
+		await expect(highlightedShapes.nth(3)).toHaveAttribute("fill", "#00ff40");
+	}
+});
+
+test("Shape Addition inserts the selected shape at the end of a clicked row or column", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1280 });
+
+	for (const documentType of ["template", "shell"]) {
+		for (const direction of ["row", "column"]) {
+			await page.goto("./");
+			await page.getByRole("button", { name: "Open parent section" }).click();
+			await page.getByRole("button", { name: "Text Editor" }).click();
+
+			if (documentType === "template") {
+				await page.locator("#text-editor-template-new-button").click();
+				await page.locator("#text-editor-new-create-template-button").click();
+			} else {
+				await page.getByRole("button", { name: "New +" }).click();
+				await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+			}
+
+			await page.locator("#text-editor-grid-button").click();
+			await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+			await page.locator("#grid-menu-shape-addition-button").click();
+			await page.locator(`#grid-menu-shape-addition-${direction}-button`).click();
+
+			await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+			await page.locator("#grid-rows-amount").fill("4");
+			await page.locator("#grid-columns-amount").fill("4");
+			await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+
+			const shapeSelect = page.locator("#grid-menu-shape-addition-selection");
+			await expect(shapeSelect).toBeVisible();
+			const selectSize = await shapeSelect.evaluate((element) => {
+				const bounds = element.getBoundingClientRect();
+				return { width: bounds.width, height: bounds.height };
+			});
+			expect(selectSize).toEqual({ width: 218, height: 24 });
+			const shapeMenuOptions = await page
+				.locator("#grid-menu-shapes-list > li > button.grid-menu-shapes-option")
+				.allTextContents();
+			const additionOptions = await shapeSelect.locator("option").allTextContents();
+			expect(additionOptions.slice(1)).toEqual(shapeMenuOptions);
+			await shapeSelect.selectOption("3");
+
+			const grid = page.locator("#print-preview-grid");
+			const originalRows = await grid.getAttribute("data-grid-rows");
+			const originalColumns = await grid.getAttribute("data-grid-columns");
+			const area = grid.locator("[data-grid-shape-area]");
+			const originalWidth = await area.getAttribute("width");
+			const originalHeight = await area.getAttribute("height");
+			const pattern = grid.locator("#print-preview-grid-shape-pattern");
+			const originalCellWidth = await pattern.getAttribute("width");
+			const originalCellHeight = await pattern.getAttribute("height");
+			const gridBounds = await grid.boundingBox();
+			await grid.click({
+				position: { x: gridBounds.width / 8, y: gridBounds.height / 6 },
+			});
+
+			const addedShape = page.locator(`[data-grid-added-shape="${direction}"]`);
+			const packedBaseShapes = grid.locator("[data-grid-packed-base]");
+			await expect(addedShape).toHaveCount(1);
+			await expect(addedShape).toHaveAttribute("data-grid-added-sides", "3");
+			await expect(addedShape).toHaveAttribute(
+				direction === "row" ? "data-grid-added-row" : "data-grid-added-column",
+				"0",
+			);
+			await expect(grid).toHaveAttribute("data-grid-rows", originalRows);
+			await expect(grid).toHaveAttribute("data-grid-columns", originalColumns);
+			await expect(area).toHaveAttribute("width", originalWidth);
+			await expect(area).toHaveAttribute("height", originalHeight);
+			await expect(pattern).toHaveAttribute("width", originalCellWidth);
+			await expect(pattern).toHaveAttribute("height", originalCellHeight);
+			await expect(packedBaseShapes).toHaveCount(4);
+			if (direction === "row") {
+				const rowOverlay = page.locator('[data-grid-row-addition="0"]');
+				await expect(rowOverlay).toHaveCount(1);
+				const cellWidth = Number(
+					await rowOverlay.getAttribute("data-grid-addition-cell-width"),
+				);
+				const rowWidth = Number(await rowOverlay.getAttribute("width"));
+				expect(cellWidth).toBeCloseTo(rowWidth / 5, 3);
+				await expect(page.locator('[data-grid-row-addition="1"]')).toHaveCount(0);
+				for (let column = 0; column < 4; column += 1) {
+					const cell = grid.locator(`[data-grid-packed-base="base-0-${column}"]`);
+					const bounds = await cell.evaluate((shape) => {
+						const { x, width } = shape.getBBox();
+						return { x, width };
+					});
+					expect(bounds.x).toBeCloseTo(column * cellWidth, 3);
+					expect(bounds.width).toBeCloseTo(cellWidth, 3);
+				}
+			} else {
+				const columnOverlay = page.locator('[data-grid-column-addition="0"]');
+				await expect(columnOverlay).toHaveCount(1);
+				const cellHeight = Number(
+					await columnOverlay.getAttribute("data-grid-addition-cell-height"),
+				);
+				const columnHeight = Number(await columnOverlay.getAttribute("height"));
+				expect(cellHeight).toBeCloseTo(columnHeight / 5, 3);
+				await expect(page.locator('[data-grid-column-addition="1"]')).toHaveCount(0);
+				for (let row = 0; row < 4; row += 1) {
+					const cell = grid.locator(`[data-grid-packed-base="base-${row}-0"]`);
+					const bounds = await cell.evaluate((shape) => {
+						const { y, height } = shape.getBBox();
+						return { y, height };
+					});
+					expect(bounds.y).toBeCloseTo(row * cellHeight, 3);
+					expect(bounds.height).toBeCloseTo(cellHeight, 3);
+				}
+			}
+			await page.locator("#grid-menu-shape-addition-button").click();
+			await expect(addedShape).toHaveAttribute("fill", "none");
+			for (const shape of await packedBaseShapes.all()) {
+				await expect(shape).toHaveAttribute("fill", "none");
+				await expect(shape).toHaveAttribute("stroke", "#000000");
+				await expect(shape).toHaveAttribute("stroke-width", "2");
+			}
+		}
+	}
+});
+
+test("Shape Addition fitted shapes remain clickable and retain their outlines after removal", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1280 });
+
+	for (const direction of ["row", "column"]) {
+		for (const sides of ["4", "1"]) {
+			await page.goto("./");
+			await page.getByRole("button", { name: "Open parent section" }).click();
+			await page.getByRole("button", { name: "Text Editor" }).click();
+			await page.locator("#text-editor-template-new-button").click();
+			await page.locator("#text-editor-new-create-template-button").click();
+			await page.locator("#text-editor-grid-button").click();
+			await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+			await page.locator("#grid-rows-amount").fill("4");
+			await page.locator("#grid-columns-amount").fill("4");
+			await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+			await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+			await page.locator("#grid-menu-shape-addition-button").click();
+			await page.locator(`#grid-menu-shape-addition-${direction}-button`).click();
+			await page.locator("#grid-menu-shape-addition-selection").selectOption(sides);
+
+			const grid = page.locator("#print-preview-grid");
+			const gridBounds = await grid.boundingBox();
+			await grid.click({
+				position: { x: gridBounds.width / 8, y: gridBounds.height / 8 },
+			});
+			const addedShapes = grid.locator(`[data-grid-added-shape="${direction}"]`);
+			const packedBaseShape = grid.locator('[data-grid-packed-base="base-0-0"]');
+			await expect(addedShapes).toHaveCount(1);
+			await addedShapes.first().click();
+			await expect(addedShapes).toHaveCount(2);
+			await packedBaseShape.click();
+			await expect(addedShapes).toHaveCount(3);
+
+			await page.locator("#grid-menu-shape-addition-button").click();
+			await page.locator("#grid-menu-shape-removal-button").click();
+			if (sides === "1") {
+				const edgeClick = await addedShapes.first().evaluate((ellipse) => {
+					const bounds = ellipse.getBoundingClientRect();
+					const inverse = ellipse.getScreenCTM().inverse();
+					const halfAngle = Math.PI / 128;
+					for (let x = Math.ceil(bounds.left); x <= Math.floor(bounds.right); x += 1) {
+						for (let y = Math.ceil(bounds.top); y <= Math.floor(bounds.bottom); y += 1) {
+							const point = new DOMPoint(x, y).matrixTransform(inverse);
+							const localX = (point.x - ellipse.cx.baseVal.value) / ellipse.rx.baseVal.value;
+							const localY = (point.y - ellipse.cy.baseVal.value) / ellipse.ry.baseVal.value;
+							const radius = Math.hypot(localX, localY);
+							const angle = Math.atan2(localY, localX);
+							const edgeAngle = (Math.floor(angle / (2 * halfAngle)) + 0.5) * 2 * halfAngle;
+							const polygonRadius = Math.cos(halfAngle) / Math.cos(angle - edgeAngle);
+							if (radius < 1 && radius > polygonRadius) {
+								return { x, y };
+							}
+						}
+					}
+					return null;
+				});
+				expect(edgeClick).not.toBeNull();
+				await page.mouse.click(edgeClick.x, edgeClick.y);
+			} else {
+				await addedShapes.first().click();
+			}
+
+			const removedAddedShape = grid.locator('[data-grid-removed-shape^="addition-"]');
+			await expect(removedAddedShape).toHaveCount(1);
+			await expect(removedAddedShape).toHaveAttribute("fill", "#ffffff");
+			await expect(removedAddedShape).toHaveAttribute("stroke", "#000000");
+			await expect(removedAddedShape).toHaveAttribute("stroke-width", "2");
+			await expect(addedShapes.first()).toHaveAttribute("fill", "#ffffff");
+
+			await packedBaseShape.click();
+			const removedBaseShape = grid.locator('[data-grid-removed-shape="base-0-0"]');
+			await expect(removedBaseShape).toHaveAttribute("fill", "#ffffff");
+			await expect(removedBaseShape).toHaveAttribute("stroke", "#000000");
+			await expect(removedBaseShape).toHaveAttribute("stroke-width", "2");
+			await expect(removedBaseShape).toHaveAttribute(
+				"points",
+				await packedBaseShape.getAttribute("points"),
+			);
+			await expect(grid.locator("[data-grid-removed-shape]")).toHaveCount(2);
+			await page.locator("#grid-menu-shape-removal-button").click();
+			await expect(removedAddedShape).toBeVisible();
+			await expect(removedBaseShape).toBeVisible();
+		}
+	}
+});
+
+async function getGridPackedCoverage(grid) {
+	return grid.evaluate((svg) => {
+		const pointsOf = (polygon) =>
+			Array.from({ length: polygon.points.numberOfItems }, (_, index) => {
+				const { x, y } = polygon.points.getItem(index);
+				return { x, y };
+			});
+		const shapes = [...svg.querySelectorAll("[data-grid-packed-base], [data-grid-added-shape]")];
+		const polygons = shapes.map(pointsOf);
+		const maskPolygons = [...svg.querySelectorAll("#print-preview-grid-packed-mask polygon")]
+			.map(pointsOf);
+		const contains = (vertices, x, y) => {
+			let inside = false;
+			for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+				const a = vertices[i];
+				const b = vertices[j];
+				if (
+					a.y > y !== b.y > y &&
+					x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x
+				) {
+					inside = !inside;
+				}
+			}
+			return inside;
+		};
+		let overlaps = 0;
+		let holes = 0;
+		let covered = 0;
+		for (let row = 0; row < 47; row += 1) {
+			for (let column = 0; column < 53; column += 1) {
+				const x = ((column + 0.371) * svg.viewBox.baseVal.width) / 53;
+				const y = ((row + 0.619) * svg.viewBox.baseVal.height) / 47;
+				const owners = polygons.filter((polygon) => contains(polygon, x, y)).length;
+				const masked = maskPolygons.some((polygon) => contains(polygon, x, y));
+				overlaps += Number(owners > 1);
+				holes += Number(!masked || owners === 0);
+				covered += Number(owners === 1);
+			}
+		}
+		return {
+			overlaps,
+			holes,
+			covered,
+			shapeCount: shapes.length,
+			straightBorders: polygons.every(
+				(vertices) => vertices.length === 4 && vertices.every((vertex, index) => {
+					const next = vertices[(index + 1) % vertices.length];
+					return (vertex.x === next.x || vertex.y === next.y) &&
+						(vertex.x !== next.x || vertex.y !== next.y);
+				}),
+			),
+			allBordered: shapes.every(
+				(shape) => shape.getAttribute("stroke") === "#000000" &&
+					shape.getAttribute("stroke-width") === "2",
+			),
+		};
+	});
+}
+
+test("Shape Addition keeps mixed additions bordered without overlaps or empty tracks", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1280 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-new-button").click();
+	await page.locator("#text-editor-new-create-template-button").click();
+	await page.locator("#text-editor-grid-button").click();
+	await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+	await page.locator("#grid-menu-shape-addition-button").click();
+
+	const grid = page.locator("#print-preview-grid");
+	const gridBounds = await grid.boundingBox();
+	await page.locator("#grid-menu-shape-addition-row-button").click();
+	const shapeSelect = page.locator("#grid-menu-shape-addition-selection");
+	await shapeSelect.selectOption("4");
+	await grid.click({
+		position: { x: gridBounds.width * 0.625, y: gridBounds.height * 0.833 },
+	});
+	await grid.click({
+		position: { x: gridBounds.width * 0.5, y: gridBounds.height * 0.833 },
+	});
+
+	const rowOverlay = page.locator('[data-grid-row-addition="2"]');
+	await expect(rowOverlay).toHaveCount(1);
+	const rowCellWidthBeforeColumnAddition = Number(
+		await rowOverlay.getAttribute("data-grid-addition-cell-width"),
+	);
+	const rowShapes = grid.locator('[data-grid-added-shape="row"]');
+	await expect(rowShapes).toHaveCount(2);
+
+	await page.locator("#grid-menu-shape-addition-column-button").click();
+	await grid.click({
+		position: { x: gridBounds.width * 0.875, y: gridBounds.height * 0.5 },
+	});
+	await grid.click({
+		position: { x: gridBounds.width * 0.875, y: gridBounds.height * 0.375 },
+	});
+
+	const columnOverlay = page.locator('[data-grid-column-addition="3"]');
+	await expect(columnOverlay).toHaveCount(1);
+	const columnCellHeight = Number(
+		await columnOverlay.getAttribute("data-grid-addition-cell-height"),
+	);
+	const rowCellWidthAfterColumnAddition = Number(
+		await rowOverlay.getAttribute("data-grid-addition-cell-width"),
+	);
+	expect(rowCellWidthAfterColumnAddition).toBeCloseTo(rowCellWidthBeforeColumnAddition, 3);
+
+	const columnShapes = grid.locator('[data-grid-added-shape="column"]');
+	await expect(columnShapes).toHaveCount(2);
+	const baseCellCount = Number(await grid.getAttribute("data-grid-rows")) *
+		Number(await grid.getAttribute("data-grid-columns"));
+	await expect(grid.locator("[data-grid-packed-base]")).toHaveCount(baseCellCount);
+	const coverage = await getGridPackedCoverage(grid);
+	expect(coverage.overlaps).toBe(0);
+	expect(coverage.holes).toBe(0);
+	expect(coverage.covered).toBe(47 * 53);
+	expect(coverage.shapeCount).toBe(baseCellCount + 4);
+	expect(coverage.straightBorders).toBe(true);
+	expect(coverage.allBordered).toBe(true);
+	expect(columnCellHeight).toBeGreaterThan(0);
+});
+
+test("Shape Addition keeps mixed borders straight for interior tracks and either addition order", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1280 });
+
+	for (const directions of [["row", "column"], ["column", "row"]]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Text Editor" }).click();
+		await page.locator("#text-editor-template-new-button").click();
+		await page.locator("#text-editor-new-create-template-button").click();
+		await page.locator("#text-editor-grid-button").click();
+		await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+		await page.locator("#grid-rows-amount").fill("4");
+		await page.locator("#grid-columns-amount").fill("4");
+		await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+		await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+		await page.locator("#grid-menu-shape-addition-button").click();
+		await page.locator(`#grid-menu-shape-addition-${directions[0]}-button`).click();
+		await page.locator("#grid-menu-shape-addition-selection").selectOption("4");
+
+		const grid = page.locator("#print-preview-grid");
+		const gridBounds = await grid.boundingBox();
+		await grid.click({
+			position: { x: gridBounds.width * 0.625, y: gridBounds.height * 0.375 },
+		});
+		await page.locator(`#grid-menu-shape-addition-${directions[1]}-button`).click();
+		await grid.locator('[data-grid-packed-base="base-1-2"]').click();
+
+		for (const { direction, cells } of [
+			{ direction: "row", cells: ["base-1-2", "base-0-2"] },
+			{ direction: "column", cells: ["base-1-2", "base-1-2", "base-1-0"] },
+		]) {
+			const button = page.locator(`#grid-menu-shape-addition-${direction}-button`);
+			if (await button.getAttribute("aria-pressed") !== "true") {
+				await button.click();
+			}
+			for (const cell of cells) {
+				await grid.locator(`[data-grid-packed-base="${cell}"]`).click();
+			}
+		}
+
+		await expect(grid.locator("[data-grid-packed-base]")).toHaveCount(16);
+		await expect(grid.locator('[data-grid-added-shape="row"]')).toHaveCount(3);
+		await expect(grid.locator('[data-grid-added-row="0"]')).toHaveCount(1);
+		await expect(grid.locator('[data-grid-added-row="1"]')).toHaveCount(2);
+		await expect(grid.locator('[data-grid-added-shape="column"]')).toHaveCount(4);
+		await expect(grid.locator('[data-grid-added-column="0"]')).toHaveCount(1);
+		await expect(grid.locator('[data-grid-added-column="2"]')).toHaveCount(3);
+		expect(await getGridPackedCoverage(grid)).toEqual({
+			overlaps: 0,
+			holes: 0,
+			covered: 47 * 53,
+			shapeCount: 23,
+			straightBorders: true,
+			allBordered: true,
+		});
+
+		await page.locator("#grid-menu-shape-addition-row-button").click();
+		await page.locator("#grid-menu-shape-addition-selection").selectOption("1");
+		await grid.locator('[data-grid-packed-base="base-1-2"]').click();
+		const addedCircle = grid.locator('ellipse[data-grid-added-shape="row"][data-grid-added-sides="1"]');
+		await expect(addedCircle).toHaveCount(1);
+		await page.locator("#grid-menu-shape-addition-button").click();
+		await page.locator("#grid-menu-shape-removal-button").click();
+		await addedCircle.click();
+		const removedCircle = grid.locator('ellipse[data-grid-removed-shape="addition-row-1-2"]');
+		await expect(removedCircle).toHaveAttribute("fill", "#ffffff");
+		await expect(removedCircle).toHaveAttribute("stroke", "#000000");
+		await expect(removedCircle).toHaveAttribute("stroke-width", "2");
+	}
+});
+
+test("Shape Addition persists in a saved template", async ({ page }) => {
+	await page.setViewportSize({ width: 1920, height: 1280 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-new-button").click();
+	await page.locator("#text-editor-new-create-template-button").click();
+	await page.locator("#text-editor-grid-button").click();
+	await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+	await page.locator("#grid-menu-shape-addition-button").click();
+	await page.locator("#grid-menu-shape-addition-row-button").click();
+	await page.locator("#grid-menu-shape-addition-selection").selectOption("3");
+
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+	await page.locator("#grid-rows-amount").fill("4");
+	await page.locator("#grid-columns-amount").fill("4");
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+	const grid = page.locator("#print-preview-grid");
+	const gridBounds = await grid.boundingBox();
+	await grid.click({
+		position: { x: gridBounds.width / 8, y: gridBounds.height / 6 },
+	});
+	await expect(page.locator('[data-grid-row-addition="0"]')).toHaveCount(1);
+	await page.locator("#grid-menu-shape-addition-column-button").click();
+	await grid.click({
+		position: { x: gridBounds.width * 0.375, y: gridBounds.height * 0.375 },
+	});
+	await expect(grid.locator('[data-grid-added-shape="column"]')).toHaveCount(1);
+	const packedGeometry = await grid.locator("[data-grid-packed-base]").evaluateAll(
+		(shapes) => shapes.map((shape) => shape.getAttribute("points")),
+	);
+
+	await page.locator("#text-editor-grid-button").click();
+	await page.locator("#text-editor-template-save-button").click();
+	await page.locator("#text-editor-template-name-input").fill("Saved Shape Addition");
+	await page.getByRole("button", { name: "Save Template" }).click();
+	await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
+
+	await page.reload();
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Saved Shape Addition", exact: true }).click();
+	await expect(page.locator("#print-preview-grid")).toHaveAttribute("data-grid-rows", "4");
+	await expect(page.locator("#print-preview-grid")).toHaveAttribute("data-grid-columns", "4");
+	await expect(page.locator('[data-grid-row-addition="0"]')).toHaveCount(1);
+	await expect(page.locator('[data-grid-added-shape="row"]')).toHaveAttribute(
+		"data-grid-added-sides",
+		"3",
+	);
+	await expect(page.locator('[data-grid-added-shape="column"]')).toHaveCount(1);
+	expect(await page.locator("[data-grid-packed-base]").evaluateAll(
+		(shapes) => shapes.map((shape) => shape.getAttribute("points")),
+	)).toEqual(packedGeometry);
+});
+
+test("Shape Swap highlights applied templates and shells with bordered green-yellow alternation", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1080 });
+
+	for (const documentType of ["template", "shell"]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Text Editor" }).click();
+
+		if (documentType === "template") {
+			await page.locator("#text-editor-template-new-button").click();
+			await page.locator("#text-editor-new-create-template-button").click();
+		} else {
+			await page.getByRole("button", { name: "New +" }).click();
+			await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+		}
+
+		await page.locator("#text-editor-grid-button").click();
+		await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();
+
+		const shapeSwapButton = page.locator("#grid-menu-shape-swap-button");
+		await shapeSwapButton.click();
+		await expect(shapeSwapButton).toHaveAttribute("aria-pressed", "true");
+
+		const appliedButton = page.locator("#grid-applied-button");
+		const highlightedArea = page.locator("[data-grid-shape-area]");
+		await appliedButton.click();
+		await expect(page.locator("#print-preview-grid")).toHaveCount(0);
+		await expect(page.locator("#print-preview-grid-removal-pattern")).toHaveCount(0);
+
+		await appliedButton.click();
+		await expect(highlightedArea).toHaveAttribute("data-grid-swap-highlight", "true");
+		const pattern = page.locator("#print-preview-grid-removal-pattern");
+		const highlightedShapes = pattern.locator("[data-grid-highlight-row]");
+		await expect(highlightedShapes).toHaveCount(4);
+		const expectedCells = [
+			{ row: "0", column: "0", fill: "#00ff40" },
+			{ row: "0", column: "1", fill: "#ffff00" },
+			{ row: "1", column: "0", fill: "#ffff00" },
+			{ row: "1", column: "1", fill: "#00ff40" },
+		];
+
+		for (const [index, cell] of expectedCells.entries()) {
+			const shape = highlightedShapes.nth(index);
+			await expect(shape).toHaveAttribute("data-grid-highlight-row", cell.row);
+			await expect(shape).toHaveAttribute("data-grid-highlight-column", cell.column);
+			await expect(shape).toHaveAttribute("fill", cell.fill);
+			await expect(shape).toHaveAttribute("stroke", "#000000");
+			await expect(shape).toHaveAttribute("stroke-width", "2");
+		}
+	}
+});
+
 test("Text Editor prints only the selected paper and respects the grid Printable toggle", async ({
 	page,
 }) => {
@@ -96,30 +761,23 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 			const homeBounds = document.querySelector(homeSelector).getBoundingClientRect();
 			return homeBounds.left - printBounds.right;
 		}, selector);
-	expect(await measureHomeGap("#text-editor-home-button")).toBe(76);
-	const measureVerticalCenterDifference = (selector) =>
-		printButton.evaluate((button, targetSelector) => {
-			const printBounds = button.getBoundingClientRect();
-			const targetBounds = document.querySelector(targetSelector).getBoundingClientRect();
-			return Math.abs(
-				printBounds.top + printBounds.height / 2 - (targetBounds.top + targetBounds.height / 2),
-			);
-		}, selector);
-	expect(await measureVerticalCenterDifference("#text-editor-home-button")).toBeLessThan(0.1);
-	expect(await measureVerticalCenterDifference("#parent-screen-back-button")).toBeLessThan(0.1);
+	expect(await measureHomeGap("#text-editor-home-button")).toBe(17);
+	await expect(page.locator("#text-editor-home-button")).toHaveCSS("top", "16px");
+	await expect(page.locator("#parent-screen-back-button")).toHaveCSS("top", "16px");
 
 	await page.getByRole("button", { name: "New +" }).click();
 	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
 
-	expect(await measureHomeGap("#text-editor-workflow-home-button")).toBe(16);
+	expect(await measureHomeGap("#text-editor-workflow-home-button")).toBe(17);
 
 	await printButton.click();
 	expect(await page.evaluate(() => window.__printCallCount)).toBe(1);
 
 	await page.getByRole("button", { name: "Grid", exact: true }).click();
-	await page.locator("#grid-applied-button").click();
 	const grid = page.locator("#print-preview-grid");
 	await expect(grid).toBeVisible();
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+	await expect(page.locator("#grid-menu-dimensions-dropdown")).toHaveAttribute("open", "");
 	await page.locator("#grid-shape-width-input").fill("2.35");
 	await page.locator("#grid-shape-height-input").fill("3.35");
 	await page.locator("#grid-shape-size-commit-button").evaluate((button) => button.click());
@@ -134,9 +792,13 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 	const expectedBottomOffset = Math.max(0, gridAreaHeight - renderedGridHeight);
 	expect(expectedBottomOffset).toBeGreaterThan(0);
 	const getGridVerticalOffset = () =>
-		grid.locator("g").evaluate((group) =>
-			Number(group.getAttribute("transform").match(/translate\([^ ]+ ([^)]+)\)/)[1]),
-		);
+		grid
+			.locator("g")
+			.evaluate((group) =>
+				Number(group.getAttribute("transform").match(/translate\([^ ]+ ([^)]+)\)/)[1]),
+			);
+	await page.locator("#grid-menu-alignment-dropdown > summary").click();
+	await expect(page.locator("#grid-menu-alignment-dropdown")).toHaveAttribute("open", "");
 	await bottomAlignmentButton.click();
 	await expect(bottomAlignmentButton).toHaveAttribute("aria-pressed", "true");
 	expect(await getGridVerticalOffset()).toBeCloseTo(expectedBottomOffset, 4);
@@ -156,8 +818,8 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 			.map(Number);
 		const bounds = element.getBoundingClientRect();
 		return {
-			width: Number(pattern.getAttribute("width")) * bounds.width / viewBoxWidth / 96,
-			height: Number(pattern.getAttribute("height")) * bounds.height / viewBoxHeight / 96,
+			width: (Number(pattern.getAttribute("width")) * bounds.width) / viewBoxWidth / 96,
+			height: (Number(pattern.getAttribute("height")) * bounds.height) / viewBoxHeight / 96,
 		};
 	});
 	expect(printedGridSizeInches.width).toBeCloseTo(2.35, 2);
@@ -207,7 +869,9 @@ test("Parent menu includes a Games side panel and toggling buttons", async ({ pa
 	);
 });
 
-test("Math place-value game has ten self-paced levels and supports retry and replay", async ({ page }) => {
+test("Math place-value game has ten self-paced levels and supports retry and replay", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Games", exact: true }).click();
@@ -219,12 +883,27 @@ test("Math place-value game has ten self-paced levels and supports retry and rep
 	await expect(page.getByText("Level 1 of 10", { exact: true })).toBeVisible();
 	await page.getByRole("button", { name: "Hint", exact: true }).click();
 	await expect(page.getByText(/^From right to left:/)).toBeVisible();
-	const answers = ["Ones", "Tens", "Ones", "Hundreds", "Tens", "Thousands", "Hundreds", "Ten Thousands", "Hundred Thousands", "Millions"];
+	const answers = [
+		"Ones",
+		"Tens",
+		"Ones",
+		"Hundreds",
+		"Tens",
+		"Thousands",
+		"Hundreds",
+		"Ten Thousands",
+		"Hundred Thousands",
+		"Millions",
+	];
 	for (const [levelIndex, answer] of answers.entries()) {
-		await expect(page.getByText(`Level ${levelIndex + 1} of 10`, { exact: true })).toBeVisible();
+		await expect(
+			page.getByText(`Level ${levelIndex + 1} of 10`, { exact: true }),
+		).toBeVisible();
 		await page.getByRole("button", { name: answer, exact: true }).click();
 		await expect(page.getByRole("status")).toHaveText("Correct!");
-		await page.getByRole("button", { name: levelIndex === 9 ? "Finish" : "Next level", exact: true }).click();
+		await page
+			.getByRole("button", { name: levelIndex === 9 ? "Finish" : "Next level", exact: true })
+			.click();
 	}
 	await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
 	await page.getByRole("button", { name: "Play again", exact: true }).click();
@@ -235,9 +914,53 @@ const mathPlaceNumbers = [23, 47, 315, 682, 2437, 8169, 35428, 760915, 934862, 1
 const mathFirstNumbers = [24, 57, 126, 428, 1234, 5729, 12345, 42876, 135792, 246810];
 const mathSecondNumbers = [12, 24, 27, 156, 623, 1347, 6342, 17893, 62748, 135729];
 const mathTargetPlaces = [0, 1, 0, 2, 1, 3, 2, 4, 5, 6];
-const mathPlaceNames = ["Ones", "Tens", "Hundreds", "Thousands", "Ten Thousands", "Hundred Thousands", "Millions"];
-const mathWordAnswers = ["", "forty-seven", "", "six hundred eighty-two", "", "eight thousand one hundred sixty-nine", "", "seven hundred sixty thousand nine hundred fifteen", "", "one million"];
-const mathGameIds = ["place-names", "digit-values", "place-relations", "place-conversion", "expanded-form", "number-words", "compare-numbers", "compare-tables", "order-numbers", "round-place", "round-any", "round-puzzles", "add-numbers", "add-word", "subtract-numbers", "subtract-word", "compare-word", "sum-difference", "estimate-sums", "estimate-sums-word", "estimate-differences", "estimate-differences-word", "multi-step-word", "equation-word"];
+const mathPlaceNames = [
+	"Ones",
+	"Tens",
+	"Hundreds",
+	"Thousands",
+	"Ten Thousands",
+	"Hundred Thousands",
+	"Millions",
+];
+const mathWordAnswers = [
+	"",
+	"forty-seven",
+	"",
+	"six hundred eighty-two",
+	"",
+	"eight thousand one hundred sixty-nine",
+	"",
+	"seven hundred sixty thousand nine hundred fifteen",
+	"",
+	"one million",
+];
+const mathGameIds = [
+	"place-names",
+	"digit-values",
+	"place-relations",
+	"place-conversion",
+	"expanded-form",
+	"number-words",
+	"compare-numbers",
+	"compare-tables",
+	"order-numbers",
+	"round-place",
+	"round-any",
+	"round-puzzles",
+	"add-numbers",
+	"add-word",
+	"subtract-numbers",
+	"subtract-word",
+	"compare-word",
+	"sum-difference",
+	"estimate-sums",
+	"estimate-sums-word",
+	"estimate-differences",
+	"estimate-differences-word",
+	"multi-step-word",
+	"equation-word",
+];
 
 for (const gameId of mathGameIds) {
 	test(`Math minigame: ${gameId} teaches its topic through all ten levels`, async ({ page }) => {
@@ -247,14 +970,20 @@ for (const gameId of mathGameIds) {
 		await page.getByRole("button", { name: "Math", exact: true }).click();
 		await expect(page.locator("[data-game-id]")).toHaveCount(24);
 		const thumbnail = page.locator(`[data-game-id="${gameId}"]`);
-		const thumbnailArtwork = await thumbnail.locator("svg").first().evaluate((element) => ({
-			path: element.querySelector("path").getAttribute("d"),
-			symbol: element.querySelector("text").textContent,
-			background: element.querySelector("rect").getAttribute("fill"),
-		}));
+		const thumbnailArtwork = await thumbnail
+			.locator("svg")
+			.first()
+			.evaluate((element) => ({
+				path: element.querySelector("path").getAttribute("d"),
+				symbol: element.querySelector("text").textContent,
+				background: element.querySelector("rect").getAttribute("fill"),
+			}));
 		const gameTitle = await thumbnail.getAttribute("aria-label");
 		await thumbnail.click();
-		const firstLevelArtwork = page.getByRole("img", { name: `First-level image for ${gameTitle}`, exact: true });
+		const firstLevelArtwork = page.getByRole("img", {
+			name: `First-level image for ${gameTitle}`,
+			exact: true,
+		});
 		await expect(firstLevelArtwork).toBeVisible();
 		const gameArtwork = await firstLevelArtwork.evaluate((element) => ({
 			path: element.querySelector("path").getAttribute("d"),
@@ -271,18 +1000,32 @@ for (const gameId of mathGameIds) {
 			let choices = [];
 			let needsCheck = false;
 			switch (gameId) {
-				case "place-names": choices = [mathPlaceNames[mathTargetPlaces[stage]]]; break;
+				case "place-names":
+					choices = [mathPlaceNames[mathTargetPlaces[stage]]];
+					break;
 				case "digit-values": {
 					const digit = String(number).at(-1 - mathTargetPlaces[stage]);
-					choices = [`Digit ${digit} in the ${mathPlaceNames[mathTargetPlaces[stage]]} place`];
+					choices = [
+						`Digit ${digit} in the ${mathPlaceNames[mathTargetPlaces[stage]]} place`,
+					];
 					break;
 				}
-				case "place-relations": choices = [stage % 2 === 0 ? "10 times as much" : "One tenth as much"]; break;
-				case "place-conversion": answers = [[20, 30, 400, 500, 600, 700, 8000, 9000, 10000, 11000][stage]]; break;
+				case "place-relations":
+					choices = [stage % 2 === 0 ? "10 times as much" : "One tenth as much"];
+					break;
+				case "place-conversion":
+					answers = [[20, 30, 400, 500, 600, 700, 8000, 9000, 10000, 11000][stage]];
+					break;
 				case "expanded-form":
 					if (stage % 2) answers = [number];
 					else {
-						choices = [...String(number)].map((digit, digitIndex, digits) => Number(digit) * 10 ** (digits.length - 1 - digitIndex)).filter(Boolean).map((term) => term.toLocaleString("en-US"));
+						choices = [...String(number)]
+							.map(
+								(digit, digitIndex, digits) =>
+									Number(digit) * 10 ** (digits.length - 1 - digitIndex),
+							)
+							.filter(Boolean)
+							.map((term) => term.toLocaleString("en-US"));
 						needsCheck = true;
 					}
 					break;
@@ -291,16 +1034,29 @@ for (const gameId of mathGameIds) {
 					else choices = [mathWordAnswers[stage]];
 					break;
 				case "compare-numbers": {
-					const displayed = await page.getByLabel("Numbers to compare", { exact: true }).locator("span").allTextContents();
+					const displayed = await page
+						.getByLabel("Numbers to compare", { exact: true })
+						.locator("span")
+						.allTextContents();
 					for (const value of displayed.filter((text) => text !== "?")) {
 						expect(Number(value.replaceAll(",", ""))).toBeLessThanOrEqual(1000000);
 					}
-					choices = [stage % 3 === 0 ? "Less than" : stage % 3 === 1 ? "Equal to" : "Greater than"];
+					choices = [
+						stage % 3 === 0
+							? "Less than"
+							: stage % 3 === 1
+								? "Equal to"
+								: "Greater than",
+					];
 					break;
 				}
-				case "compare-tables": choices = [stage % 2 === 0 ? "Forest" : "Wetland"]; break;
+				case "compare-tables":
+					choices = [stage % 2 === 0 ? "Forest" : "Wetland"];
+					break;
 				case "order-numbers":
-					choices = [number - 3, number - 12, number - 1, number - 7].sort((left, right) => stage % 2 ? right - left : left - right).map((value) => value.toLocaleString("en-US"));
+					choices = [number - 3, number - 12, number - 1, number - 7]
+						.sort((left, right) => (stage % 2 ? right - left : left - right))
+						.map((value) => value.toLocaleString("en-US"));
 					needsCheck = true;
 					break;
 				case "round-place": {
@@ -313,33 +1069,60 @@ for (const gameId of mathGameIds) {
 					answers = [Math.round(first / unit) * unit];
 					break;
 				}
-				case "round-puzzles": choices = [first.toLocaleString("en-US")]; break;
-				case "add-numbers": case "add-word": answers = [first + second]; break;
-				case "subtract-numbers": case "subtract-word": answers = [first - second]; break;
-				case "compare-word": answers = [stage % 2 ? first - second : first + second]; break;
-				case "sum-difference": answers = [second, first]; break;
-				case "estimate-sums": case "estimate-sums-word": case "estimate-differences": case "estimate-differences-word": {
+				case "round-puzzles":
+					choices = [first.toLocaleString("en-US")];
+					break;
+				case "add-numbers":
+				case "add-word":
+					answers = [first + second];
+					break;
+				case "subtract-numbers":
+				case "subtract-word":
+					answers = [first - second];
+					break;
+				case "compare-word":
+					answers = [stage % 2 ? first - second : first + second];
+					break;
+				case "sum-difference":
+					answers = [second, first];
+					break;
+				case "estimate-sums":
+				case "estimate-sums-word":
+				case "estimate-differences":
+				case "estimate-differences-word": {
 					const unit = 10 ** (1 + Math.floor(stage / 3));
 					const roundedFirst = Math.round(first / unit) * unit;
 					const roundedSecond = Math.round(second / unit) * unit;
-					answers = [roundedFirst, roundedSecond, gameId.includes("sums") ? roundedFirst + roundedSecond : roundedFirst - roundedSecond];
+					answers = [
+						roundedFirst,
+						roundedSecond,
+						gameId.includes("sums")
+							? roundedFirst + roundedSecond
+							: roundedFirst - roundedSecond,
+					];
 					break;
 				}
-				case "multi-step-word": answers = [first + second, first + second - Math.floor(second / 2) - 1]; break;
+				case "multi-step-word":
+					answers = [first + second, first + second - Math.floor(second / 2) - 1];
+					break;
 				case "equation-word":
 					choices = [`x = (${first} + ${second}) - ${Math.floor(second / 2) + 1}`];
 					answers = [first + second - Math.floor(second / 2) - 1];
 					break;
 			}
-			for (const choice of choices) await page.getByRole("button", { name: choice, exact: true }).click();
-			for (const [answerIndex, answer] of answers.entries()) await page.locator(`#math-game-answer-${answerIndex}`).fill(String(answer));
+			for (const choice of choices)
+				await page.getByRole("button", { name: choice, exact: true }).click();
+			for (const [answerIndex, answer] of answers.entries())
+				await page.locator(`#math-game-answer-${answerIndex}`).fill(String(answer));
 			if (["add-numbers", "sum-difference"].includes(gameId)) {
 				await page.locator("#math-game-answer-0").press("Enter");
 			} else if (answers.length || needsCheck) {
 				await page.getByRole("button", { name: "Check answer", exact: true }).click();
 			}
 			await expect(page.getByRole("status")).toHaveText("Correct!");
-			await page.getByRole("button", { name: stage === 9 ? "Finish" : "Next level", exact: true }).click();
+			await page
+				.getByRole("button", { name: stage === 9 ? "Finish" : "Next level", exact: true })
+				.click();
 		}
 		await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
 		await page.getByRole("button", { name: "Back to games", exact: true }).click();
@@ -358,10 +1141,20 @@ async function revealGoldCoinTotal(page, expectedTotal) {
 	await page.locator(".rewards-page-journal").dispatchEvent("animationend");
 	await page.locator(".rewards-page-book-animation").dispatchEvent("ended");
 	const pouch = page.getByRole("button", { name: "Gold cinch bag", exact: true });
-	await pouch.evaluate((element) => element.getAnimations().forEach((animation) => animation.finish()));
+	await pouch.evaluate((element) =>
+		element.getAnimations().forEach((animation) => animation.finish()),
+	);
 	await pouch.click();
-	await page.locator(".rewards-page-gold-coin").evaluateAll((elements) => elements.forEach((element) => element.getAnimations().forEach((animation) => animation.finish())));
-	await expect(page.locator(".rewards-page-gold-total")).toHaveText(`${expectedTotal} gold coins`);
+	await page
+		.locator(".rewards-page-gold-coin")
+		.evaluateAll((elements) =>
+			elements.forEach((element) =>
+				element.getAnimations().forEach((animation) => animation.finish()),
+			),
+		);
+	await expect(page.locator(".rewards-page-gold-total")).toHaveText(
+		`${expectedTotal} gold coins`,
+	);
 }
 
 test("Math gold coin progress, celebration and first-only rewards", async ({ page }, testInfo) => {
@@ -380,18 +1173,24 @@ test("Math gold coin progress, celebration and first-only rewards", async ({ pag
 	await expect(thumbnail.locator("[data-game-shadow]")).toHaveAttribute("fill", "#111827");
 	await expect(thumbnail.locator("[data-game-shadow]")).toHaveAttribute("fill-opacity", "0.72");
 	for (let run = 0; run < 2; run += 1) {
-		await page.setViewportSize(run ? { width: 375, height: 812 } : { width: 1280, height: 720 });
+		await page.setViewportSize(
+			run ? { width: 375, height: 812 } : { width: 1280, height: 720 },
+		);
 		for (let stage = 0; stage < 10; stage += 1) {
 			if (run === 0 || stage === 0) await thumbnail.click();
 			await expect(page.getByText(`Level ${stage + 1} of 10`, { exact: true })).toBeVisible();
-			await page.getByRole("button", { name: mathPlaceNames[mathTargetPlaces[stage]], exact: true }).click();
+			await page
+				.getByRole("button", { name: mathPlaceNames[mathTargetPlaces[stage]], exact: true })
+				.click();
 			if (stage === 9) {
 				await page.getByRole("button", { name: "Finish", exact: true }).click();
 				const coin = page.getByRole("img", { name: "Winning gold coin", exact: true });
 				if (run === 0) {
 					await expect(coin).toBeVisible();
 					await expect(coin).toHaveCSS("animation-duration", "3s");
-					const keyframes = await coin.evaluate((element) => element.getAnimations()[0].effect.getKeyframes());
+					const keyframes = await coin.evaluate((element) =>
+						element.getAnimations()[0].effect.getKeyframes(),
+					);
 					expect(keyframes[0].transform).toContain("scale(0.5)");
 					expect(keyframes.at(-1).transform).toContain("rotateY(1080deg)");
 					expect(keyframes.at(-1).transform).toContain("scale(2.6)");
@@ -408,10 +1207,16 @@ test("Math gold coin progress, celebration and first-only rewards", async ({ pag
 						expect(coinBox.y).toBeGreaterThanOrEqual(0);
 						expect(coinBox.y + coinBox.height).toBeLessThanOrEqual(812);
 					}
-					await page.screenshot({ path: testInfo.outputPath(`winning-coin-run-${run}.png`) });
-					if (page.viewportSize().width === 375) await coin.evaluate((element) => element.getAnimations()[0].play());
+					await page.screenshot({
+						path: testInfo.outputPath(`winning-coin-run-${run}.png`),
+					});
+					if (page.viewportSize().width === 375)
+						await coin.evaluate((element) => element.getAnimations()[0].play());
 					await expect(coin).toHaveCount(0, { timeout: 5000 });
-					await expect(page.locator("#math-games-view")).toHaveAttribute("data-winning-sound", "played");
+					await expect(page.locator("#math-games-view")).toHaveAttribute(
+						"data-winning-sound",
+						"played",
+					);
 				} else {
 					await expect(coin).toHaveCount(0);
 				}
@@ -420,12 +1225,18 @@ test("Math gold coin progress, celebration and first-only rewards", async ({ pag
 			}
 			if (run === 0 || stage === 9) {
 				await page.getByRole("button", { name: "Back to games", exact: true }).click();
-				await expect(thumbnail.locator("[data-game-shadow]")).toHaveAttribute("fill-opacity", String(run ? 0 : 0.72 * (9 - stage) / 10));
+				await expect(thumbnail.locator("[data-game-shadow]")).toHaveAttribute(
+					"fill-opacity",
+					String(run ? 0 : (0.72 * (9 - stage)) / 10),
+				);
 			} else {
 				await page.getByRole("button", { name: "Next level", exact: true }).click();
 			}
 		}
-		await expect(thumbnail.locator(".math-games-thumbnail-coin")).toHaveCSS("filter", /drop-shadow/);
+		await expect(thumbnail.locator(".math-games-thumbnail-coin")).toHaveCSS(
+			"filter",
+			/drop-shadow/,
+		);
 		await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
 		await revealGoldCoinTotal(page, 1);
 		await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
@@ -433,7 +1244,10 @@ test("Math gold coin progress, celebration and first-only rewards", async ({ pag
 	}
 	await page.evaluate(() => {
 		const savedProgress = JSON.parse(localStorage.getItem("zoologist-math-games-progress"));
-		localStorage.setItem("zoologist-math-games-progress", JSON.stringify({ ...savedProgress, "digit-values": 9 }));
+		localStorage.setItem(
+			"zoologist-math-games-progress",
+			JSON.stringify({ ...savedProgress, "digit-values": 9 }),
+		);
 	});
 	await page.reload();
 	await openStudentMathGames(page);
@@ -441,7 +1255,9 @@ test("Math gold coin progress, celebration and first-only rewards", async ({ pag
 	await expect(page.getByText("Level 10 of 10", { exact: true })).toBeVisible();
 	await page.getByRole("button", { name: "Digit 1 in the Millions place", exact: true }).click();
 	await page.getByRole("button", { name: "Finish", exact: true }).click();
-	await expect(page.getByRole("img", { name: "Winning gold coin", exact: true })).toHaveCount(0, { timeout: 5000 });
+	await expect(page.getByRole("img", { name: "Winning gold coin", exact: true })).toHaveCount(0, {
+		timeout: 5000,
+	});
 	await page.getByRole("button", { name: "Back to games", exact: true }).click();
 	await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
 	await revealGoldCoinTotal(page, 2);
@@ -450,8 +1266,13 @@ test("Math gold coin progress, celebration and first-only rewards", async ({ pag
 	await revealGoldCoinTotal(page, 2);
 });
 
-for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 }]) {
-	test(`Parent math thumbnails have exact dimensions and gaps at ${viewport.width}px`, async ({ page }, testInfo) => {
+for (const viewport of [
+	{ width: 1280, height: 720 },
+	{ width: 375, height: 812 },
+]) {
+	test(`Parent math thumbnails have exact dimensions and gaps at ${viewport.width}px`, async ({
+		page,
+	}, testInfo) => {
 		await page.setViewportSize(viewport);
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open parent section" }).click();
@@ -460,11 +1281,16 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 
 		const thumbnails = page.locator(".parent-math-game-thumbnail");
 		await expect(thumbnails).toHaveCount(24);
 		await expect(page.locator("#math-games-view")).toHaveClass(/bg-purple-950/);
-		await expect(page.locator("#math-games-view")).toHaveCSS("background-color", "oklch(0.291 0.149 302.717)");
-		const boxes = await thumbnails.evaluateAll((elements) => elements.map((element) => {
-			const { x, y, width, height } = element.getBoundingClientRect();
-			return { x, y, width, height };
-		}));
+		await expect(page.locator("#math-games-view")).toHaveCSS(
+			"background-color",
+			"oklch(0.291 0.149 302.717)",
+		);
+		const boxes = await thumbnails.evaluateAll((elements) =>
+			elements.map((element) => {
+				const { x, y, width, height } = element.getBoundingClientRect();
+				return { x, y, width, height };
+			}),
+		);
 		for (const box of boxes) expect(box).toMatchObject({ width: 218, height: 218 });
 		const sidebar = await page.locator("#games-sidebar-panel").boundingBox();
 		expect(boxes[0].x - sidebar.x - sidebar.width).toBe(16);
@@ -476,8 +1302,11 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 
 		expect(viewport.width - gallery.x - gallery.width).toBe(16);
 		expect(viewport.height - gallery.y - gallery.height).toBe(16);
 		for (const axis of ["x", "y"]) {
-			const positions = [...new Set(boxes.map((box) => box[axis]))].sort((left, right) => left - right);
-			for (let position = 1; position < positions.length; position += 1) expect(positions[position] - positions[position - 1] - 218).toBe(16);
+			const positions = [...new Set(boxes.map((box) => box[axis]))].sort(
+				(left, right) => left - right,
+			);
+			for (let position = 1; position < positions.length; position += 1)
+				expect(positions[position] - positions[position - 1] - 218).toBe(16);
 		}
 		if (viewport.width <= 768) {
 			expect(sidebar.width).toBe(125);
@@ -486,7 +1315,15 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 
 				expect(box.x + box.width).toBeLessThanOrEqual(viewport.width - 16);
 			}
 		}
-		const captionsFit = await thumbnails.locator("[data-game-caption]").evaluateAll((elements) => elements.every((element) => element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth));
+		const captionsFit = await thumbnails
+			.locator("[data-game-caption]")
+			.evaluateAll((elements) =>
+				elements.every(
+					(element) =>
+						element.scrollHeight <= element.clientHeight &&
+						element.scrollWidth <= element.clientWidth,
+				),
+			);
 		expect(captionsFit).toBe(true);
 		const backButton = page.getByRole("button", { name: "Back to home", exact: true });
 		const backBox = await backButton.boundingBox();
@@ -494,22 +1331,30 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 
 		expect(backBox.y).toBe(16);
 		await page.screenshot({ path: testInfo.outputPath(`parent-math-${viewport.width}.png`) });
 		await backButton.click();
-		await expect(page.locator("#home-page-shell")).toBeVisible();
+		await expect(page.locator("#math-games-view")).toHaveCount(0);
+		await expect(page.locator("#parent-screen-tab-rail")).toBeVisible();
 	});
 }
 
-for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 }]) {
-	test(`Student math thumbnails have exact dimensions and gaps at ${viewport.width}px`, async ({ page }, testInfo) => {
+for (const viewport of [
+	{ width: 1280, height: 720 },
+	{ width: 375, height: 812 },
+]) {
+	test(`Student math thumbnails have exact dimensions and gaps at ${viewport.width}px`, async ({
+		page,
+	}, testInfo) => {
 		await page.setViewportSize(viewport);
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open student section" }).click();
 		await page.getByRole("button", { name: "Open Games tab", exact: true }).click();
 		const thumbnails = page.locator(".student-math-game-thumbnail");
 		await expect(thumbnails).toHaveCount(24);
-		const boxes = await thumbnails.evaluateAll((elements) => elements.map((element) => {
-			const { x, y, width, height } = element.getBoundingClientRect();
-			return { x, y, width, height };
-		}));
+		const boxes = await thumbnails.evaluateAll((elements) =>
+			elements.map((element) => {
+				const { x, y, width, height } = element.getBoundingClientRect();
+				return { x, y, width, height };
+			}),
+		);
 		for (const box of boxes) expect(box).toMatchObject({ width: 218, height: 218 });
 		expect(boxes[0]).toMatchObject({ x: 16, y: 16 });
 		const gallery = await page.locator("#math-games-view").boundingBox();
@@ -517,10 +1362,21 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 
 		expect(gallery.y).toBe(16);
 		expect(viewport.width - gallery.x - gallery.width).toBe(16);
 		for (const axis of ["x", "y"]) {
-			const positions = [...new Set(boxes.map((box) => box[axis]))].sort((left, right) => left - right);
-			for (let position = 1; position < positions.length; position += 1) expect(positions[position] - positions[position - 1] - 218).toBe(16);
+			const positions = [...new Set(boxes.map((box) => box[axis]))].sort(
+				(left, right) => left - right,
+			);
+			for (let position = 1; position < positions.length; position += 1)
+				expect(positions[position] - positions[position - 1] - 218).toBe(16);
 		}
-		const captionsFit = await thumbnails.locator("[data-game-caption]").evaluateAll((elements) => elements.every((element) => element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth));
+		const captionsFit = await thumbnails
+			.locator("[data-game-caption]")
+			.evaluateAll((elements) =>
+				elements.every(
+					(element) =>
+						element.scrollHeight <= element.clientHeight &&
+						element.scrollWidth <= element.clientWidth,
+				),
+			);
 		expect(captionsFit).toBe(true);
 		await page.screenshot({ path: testInfo.outputPath(`student-math-${viewport.width}.png`) });
 		await thumbnails.first().click();
@@ -530,7 +1386,9 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 375, height: 812 
 		await expect(thumbnails.first()).toContainText("1 / 10");
 		await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
 		await expect(page.locator("#student-submenu-panel")).toHaveCount(0);
-		await expect(page.getByRole("button", { name: "Back to home page", exact: true })).toBeVisible();
+		await expect(
+			page.getByRole("button", { name: "Back to home page", exact: true }),
+		).toBeVisible();
 	});
 }
 
@@ -710,7 +1568,6 @@ test("Alignment menu stays 16px below its button", async ({ page }) => {
 	await page.getByRole("button", { name: "Tools" }).click();
 
 	const alignmentButton = page.locator("#text-editor-alignment-button");
-	const alignmentPanel = page.locator("#text-editor-alignment-panel");
 	const menuButtons = {
 		size: page.locator("#text-editor-size-menu-button"),
 		margins: page.locator("#text-editor-margins-button"),
@@ -829,7 +1686,9 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 	expect(await getPressedStyles(fontsButton)).toEqual(marginFontStylesPressed);
 	await fontStylesButton.click();
 	const fontsToMarginsGap = await page.evaluate(() => {
-		const margins = document.querySelector("#text-editor-margins-panel").getBoundingClientRect();
+		const margins = document
+			.querySelector("#text-editor-margins-panel")
+			.getBoundingClientRect();
 		const fonts = document.querySelector("#text-editor-fonts-panel").getBoundingClientRect();
 		return margins.top - fonts.bottom;
 	});
@@ -843,7 +1702,9 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 	await fontsButton.click();
 	await expectAlignmentBelow("#text-editor-margins-panel");
 	const stackedFontsToSizeAndMarginsGaps = await page.evaluate(() => {
-		const margins = document.querySelector("#text-editor-margins-panel").getBoundingClientRect();
+		const margins = document
+			.querySelector("#text-editor-margins-panel")
+			.getBoundingClientRect();
 		const fonts = document.querySelector("#text-editor-fonts-panel").getBoundingClientRect();
 		const size = document.querySelector("#text-editor-size-panel").getBoundingClientRect();
 		return {
@@ -875,7 +1736,9 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 		const buttons = [...element.querySelectorAll("[data-font-option]")];
 		const buttonBounds = buttons.map((button) => button.getBoundingClientRect());
 		const buttonStyles = buttons.map((button) => getComputedStyle(button));
-		const toolsPanel = document.querySelector("#text-editor-tools-panel").getBoundingClientRect();
+		const toolsPanel = document
+			.querySelector("#text-editor-tools-panel")
+			.getBoundingClientRect();
 		return {
 			panel: {
 				horizontalOffset: panel.left - toolsPanel.left,
@@ -907,12 +1770,14 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 		width: 288,
 		height: 256,
 	});
-	expect(buttonMetrics.buttons.map(({ leftGap, width, height, borderRadius }) => ({
-		leftGap,
-		width,
-		height,
-		borderRadius,
-	}))).toEqual(Array(3).fill({ leftGap: 16, width: 256, height: 64, borderRadius: "999px" }));
+	expect(
+		buttonMetrics.buttons.map(({ leftGap, width, height, borderRadius }) => ({
+			leftGap,
+			width,
+			height,
+			borderRadius,
+		})),
+	).toEqual(Array(3).fill({ leftGap: 16, width: 256, height: 64, borderRadius: "999px" }));
 	expect(buttonMetrics.firstTopGap).toBe(16);
 	expect(buttonMetrics.verticalGaps).toEqual([16, 16]);
 	expect(buttonMetrics.lastBottomGap).toBe(16);
@@ -934,21 +1799,9 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 	}
 
 	await page.getByRole("button", { name: "New +", exact: true }).click();
-	const shellButtonMetrics = await page.locator("#text-editor-new-create-shell-button").evaluate((button) => {
-		const style = getComputedStyle(button);
-		const bounds = button.getBoundingClientRect();
-		return {
-			width: bounds.width,
-			height: bounds.height,
-			borderRadius: style.borderRadius,
-			fontFamily: style.fontFamily,
-			fontSize: style.fontSize,
-			fontWeight: style.fontWeight,
-			boxShadow: style.boxShadow,
-		};
-	});
-	const fontButtonMetrics = await fontsPanel.locator("[data-font-option]").evaluateAll((buttons) =>
-		buttons.map((button) => {
+	const shellButtonMetrics = await page
+		.locator("#text-editor-new-create-shell-button")
+		.evaluate((button) => {
 			const style = getComputedStyle(button);
 			const bounds = button.getBoundingClientRect();
 			return {
@@ -960,10 +1813,25 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 				fontWeight: style.fontWeight,
 				boxShadow: style.boxShadow,
 			};
-		}),
-	);
-	const normalizeShadow = (shadow) =>
-		shadow.replace(/rgba?\([^)]*\)|#[\da-f]{3,8}/gi, "<color>");
+		});
+	const fontButtonMetrics = await fontsPanel
+		.locator("[data-font-option]")
+		.evaluateAll((buttons) =>
+			buttons.map((button) => {
+				const style = getComputedStyle(button);
+				const bounds = button.getBoundingClientRect();
+				return {
+					width: bounds.width,
+					height: bounds.height,
+					borderRadius: style.borderRadius,
+					fontFamily: style.fontFamily,
+					fontSize: style.fontSize,
+					fontWeight: style.fontWeight,
+					boxShadow: style.boxShadow,
+				};
+			}),
+		);
+	const normalizeShadow = (shadow) => shadow.replace(/rgba?\([^)]*\)|#[\da-f]{3,8}/gi, "<color>");
 	for (const button of fontButtonMetrics) {
 		expect(button.width).toBe(shellButtonMetrics.width);
 		expect(button.height).toBe(shellButtonMetrics.height);
@@ -971,13 +1839,17 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 		expect(button.fontFamily).toBe(shellButtonMetrics.fontFamily);
 		expect(button.fontSize).toBe(shellButtonMetrics.fontSize);
 		expect(button.fontWeight).toBe(shellButtonMetrics.fontWeight);
-		expect(normalizeShadow(button.boxShadow)).toBe(normalizeShadow(shellButtonMetrics.boxShadow));
+		expect(normalizeShadow(button.boxShadow)).toBe(
+			normalizeShadow(shellButtonMetrics.boxShadow),
+		);
 	}
 	await page.getByRole("button", { name: "New +", exact: true }).click();
 
 	const geometry = await fontsPanel.evaluate((element) => {
 		const panel = element.getBoundingClientRect();
-		const toolsPanel = document.querySelector("#text-editor-tools-panel").getBoundingClientRect();
+		const toolsPanel = document
+			.querySelector("#text-editor-tools-panel")
+			.getBoundingClientRect();
 		return {
 			horizontalOffset: panel.left - toolsPanel.left,
 			verticalGap: panel.top - toolsPanel.bottom,
@@ -1083,7 +1955,9 @@ test("Margins menu matches the Tools frame below Tools or Size", async ({ page }
 	expect(matchingFrameStyles).toBe(true);
 });
 
-test("Margins create numeric paper insets, toggle guides, and restore with saved shells", async ({ page }) => {
+test("Margins create numeric paper insets, toggle guides, and restore with saved shells", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.evaluate(() => window.localStorage.clear());
 	await page.getByRole("button", { name: "Open parent section" }).click();
@@ -1211,7 +2085,9 @@ test("Margins inset the selected editable template", async ({ page }) => {
 				const range = document.createRange();
 				range.setStart(textNode, 0);
 				range.setEnd(textNode, 1);
-				offsets.push(range.getBoundingClientRect().left - element.getBoundingClientRect().left);
+				offsets.push(
+					range.getBoundingClientRect().left - element.getBoundingClientRect().left,
+				);
 			}
 		}
 		return offsets;
@@ -1238,7 +2114,7 @@ test("Print Preview renders the paper template at the Size menu dimensions", asy
 	await page.locator("#text-editor-size-height-px-option").click();
 	await page.locator("#text-editor-size-width").fill("100");
 	await page.locator("#text-editor-size-height").fill("50");
-	await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
+	await expect(page.locator("#text-editor-template-save-button")).toBeVisible();
 
 	const paper = page.locator("#print-preview-paper");
 	const saveButton = page.locator("#text-editor-template-save-button");
@@ -1274,7 +2150,9 @@ test("Print Preview renders the paper template at the Size menu dimensions", asy
 	await expectSaveButtonAtViewportCorner(largeSaveBounds);
 });
 
-test("October 2026 is first and hides Back without moving Calendar or Forward", async ({ page }) => {
+test("October 2026 is first and hides Back without moving Calendar or Forward", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -1462,11 +2340,16 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 		rewardChestButton.boundingBox(),
 		goldBag.boundingBox(),
 	]);
-	const bookOffsetX = bookBounds.x + bookBounds.width / 2 - (chestBounds.x + chestBounds.width / 2);
+	const bookOffsetX =
+		bookBounds.x + bookBounds.width / 2 - (chestBounds.x + chestBounds.width / 2);
 	const bagOffsetX = bagBounds.x + bagBounds.width / 2 - (chestBounds.x + chestBounds.width / 2);
-	const bookOffsetY = bookBounds.y + bookBounds.height / 2 - (chestBounds.y + chestBounds.height / 2);
-	const bagOffsetY = bagBounds.y + bagBounds.height / 2 - (chestBounds.y + chestBounds.height / 2);
-	expect(Math.abs(Math.hypot(bookOffsetX, bookOffsetY) - Math.hypot(bagOffsetX, bagOffsetY))).toBeLessThan(2);
+	const bookOffsetY =
+		bookBounds.y + bookBounds.height / 2 - (chestBounds.y + chestBounds.height / 2);
+	const bagOffsetY =
+		bagBounds.y + bagBounds.height / 2 - (chestBounds.y + chestBounds.height / 2);
+	expect(
+		Math.abs(Math.hypot(bookOffsetX, bookOffsetY) - Math.hypot(bagOffsetX, bagOffsetY)),
+	).toBeLessThan(2);
 	await goldBag.click();
 	await expect(goldBag).toHaveAttribute("aria-expanded", "true");
 	const spilledCoins = rewardsPage.locator(".rewards-page-gold-coin");
@@ -1487,7 +2370,9 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 	await expect(page.locator("#calendar-menu-heading")).toBeVisible();
 });
 
-test("Student sidebar navigation selects its destination and returns from Games", async ({ page }) => {
+test("Student sidebar navigation selects its destination and returns from Games", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -1617,7 +2502,8 @@ test("Text Editor navigation bar has 16px button clearance and no red edge", asy
 			boxShadow: style.boxShadow,
 			boxSizing: style.boxSizing,
 			buttonTopGap: element.querySelector("button").getBoundingClientRect().top - rect.top,
-			buttonBottomGap: rect.bottom - element.querySelector("button").getBoundingClientRect().bottom,
+			buttonBottomGap:
+				rect.bottom - element.querySelector("button").getBoundingClientRect().bottom,
 		};
 	});
 
@@ -1637,10 +2523,9 @@ test("Text Editor navigation bar has 16px button clearance and no red edge", asy
 		buttonTopGap: 16,
 		buttonBottomGap: 16,
 	});
-
 });
 
-test("Text Editor Home and Back buttons sit inside the navigation bar", async ({ page }) => {
+test("Text Editor Home and Back buttons use the shared viewport position", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
@@ -1656,10 +2541,8 @@ test("Text Editor Home and Back buttons sit inside the navigation bar", async ({
 			hasBack: Boolean(backButton),
 			backRightGap: navigationRect.right - backRect.right,
 			homeBackGap: backRect.left - homeRect.right,
-			homeCenterOffset: (homeRect.top + homeRect.bottom) / 2 -
-				(navigationRect.top + navigationRect.bottom) / 2,
-			backCenterOffset: (backRect.top + backRect.bottom) / 2 -
-				(navigationRect.top + navigationRect.bottom) / 2,
+			homeTop: homeRect.top,
+			backTop: backRect.top,
 		};
 	});
 	expect(metrics).toEqual({
@@ -1667,8 +2550,8 @@ test("Text Editor Home and Back buttons sit inside the navigation bar", async ({
 		hasBack: true,
 		backRightGap: 16,
 		homeBackGap: 16,
-		homeCenterOffset: 0,
-		backCenterOffset: 0,
+		homeTop: 16,
+		backTop: 16,
 	});
 });
 
@@ -1681,36 +2564,47 @@ test("Grid menu nudges the grid by the selected pixel amount", async ({ page }) 
 	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
 	await page.getByRole("button", { name: "Grid", exact: true }).click();
 
+	await expect(page.locator("#grid-menu-position-heading")).toHaveCount(0);
+	await page.locator("#grid-menu-alignment-dropdown > summary").click();
+	await expect(page.locator("#grid-menu-alignment-dropdown")).toHaveAttribute("open", "");
+	const customButton = page.locator("#grid-alignment-custom-button");
+	await customButton.click();
+	await expect(page.locator("#grid-menu-position-heading")).toBeVisible();
 	const headingLayout = await page.evaluate(() => {
 		const heading = document.querySelector("#grid-menu-position-heading");
 		const stepSelect = document.querySelector("#grid-move-step");
 		const stepUnit = document.querySelector("#grid-move-unit");
-		const alignment = document.querySelector("#grid-menu-alignment-heading");
+		const customButton = document.querySelector("#grid-alignment-custom-button");
+		const customPanel = document.querySelector("#grid-menu-custom-position");
+		const rowsAmount = document.querySelector("#grid-rows-amount-label");
 		const headingStyles = getComputedStyle(heading);
-		const alignmentStyles = getComputedStyle(alignment);
+		const rowsAmountStyles = getComputedStyle(rowsAmount);
 		return {
 			text: heading.textContent.trim(),
-			inAlignmentControls: heading.closest(".grid-menu-alignment-controls") !== null,
-			selectorGap: stepSelect.getBoundingClientRect().left - heading.getBoundingClientRect().right,
+			inCustomPanel: heading.closest("#grid-menu-custom-position") === customPanel,
+			customButtonGap:
+				heading.getBoundingClientRect().top - customButton.getBoundingClientRect().bottom,
+			selectorGap:
+				stepSelect.getBoundingClientRect().left - heading.getBoundingClientRect().right,
 			options: [...stepSelect.options]
 				.filter((option) => !option.disabled)
 				.map((option) => option.textContent.trim()),
 			unitText: stepUnit.textContent.trim(),
 			unitFollowsSelector: stepSelect.nextElementSibling === stepUnit,
-			matchingStyle: ["color", "fontFamily", "fontSize", "fontWeight", "lineHeight"].every(
-				(property) => headingStyles[property] === alignmentStyles[property],
+			matchingStyle: ["color", "fontFamily", "fontSize", "fontWeight", "fontStyle"].every(
+				(property) => headingStyles[property] === rowsAmountStyles[property],
 			),
 		};
 	});
 	expect(headingLayout.text).toBe("Grid Position");
-	expect(headingLayout.inAlignmentControls).toBe(true);
+	expect(headingLayout.inCustomPanel).toBe(true);
+	expect(headingLayout.customButtonGap).toBe(16);
 	expect(headingLayout.selectorGap).toBe(16);
 	expect(headingLayout.options).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
 	expect(headingLayout.unitText).toBe("px");
 	expect(headingLayout.unitFollowsSelector).toBe(true);
 	expect(headingLayout.matchingStyle).toBe(true);
 
-	await page.locator("#grid-applied-button").click();
 	const grid = page.locator("#print-preview-grid");
 	await expect(grid).toBeVisible();
 	const gridMoveStep = page.locator("#grid-move-step");
@@ -1842,20 +2736,120 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	const gridAppliedButton = page.locator("#grid-applied-button");
 	const gridAlignmentDropdown = page.locator("#grid-menu-alignment-dropdown");
 	await expect(gridAlignmentDropdown).toBeVisible();
+	await expect(gridAlignmentDropdown).not.toHaveAttribute("open", "");
+	await expect(gridAlignmentDropdown.locator("summary")).toHaveText("Full Grid Alignment");
+	const gridDimensionsDropdown = page.locator("#grid-menu-dimensions-dropdown");
+	await expect(gridDimensionsDropdown).toBeVisible();
+	await expect(gridDimensionsDropdown).not.toHaveAttribute("open", "");
+	await expect(gridDimensionsDropdown.locator("summary")).toHaveText("Grid Dimensions");
+	const singleShapeAlignmentDropdown = page.locator("#grid-menu-single-shape-alignment-dropdown");
+	await expect(singleShapeAlignmentDropdown).toBeVisible();
+	await expect(singleShapeAlignmentDropdown).not.toHaveAttribute("open", "");
+	await expect(singleShapeAlignmentDropdown.locator(":scope > summary")).toHaveText(
+		"Single Shape Alignment",
+	);
+	await expect(page.locator("#text-editor-grid-menu details[open]")).toHaveCount(0);
+	const matchingAlignmentDropdownStyles = await page.evaluate(() => {
+		const fullGridAlignment = getComputedStyle(
+			document.querySelector("#grid-menu-alignment-dropdown summary"),
+		);
+		const singleShapeAlignment = getComputedStyle(
+			document.querySelector("#grid-menu-single-shape-alignment-dropdown summary"),
+		);
+		return ["color", "fontFamily", "fontSize", "fontWeight", "lineHeight"].every(
+			(property) => fullGridAlignment[property] === singleShapeAlignment[property],
+		);
+	});
+	expect(matchingAlignmentDropdownStyles).toBe(true);
+	await singleShapeAlignmentDropdown.locator(":scope > summary").click();
+	await expect(singleShapeAlignmentDropdown).toHaveAttribute("open", "");
+	const singleShapeButtons = singleShapeAlignmentDropdown.locator(
+		"#grid-menu-shape-removal-button, #grid-menu-shape-addition-button, #grid-menu-shape-swap-button",
+	);
+	await expect(singleShapeButtons).toHaveCount(3);
+	await expect(singleShapeButtons).toHaveText(["Shape Removal", "Shape Addition", "Shape Swap"]);
+	const shapeRemovalButton = page.locator("#grid-menu-shape-removal-button");
+	const shapeAdditionButton = page.locator("#grid-menu-shape-addition-button");
+	const shapeSwapButton = page.locator("#grid-menu-shape-swap-button");
+	const shapeIndicators = singleShapeAlignmentDropdown.locator(
+		".grid-menu-single-shape-indicator",
+	);
+	await expect(shapeIndicators).toHaveCount(3);
+	for (let index = 0; index < 3; index += 1) {
+		await expect(shapeIndicators.nth(index)).toHaveCSS("background-color", "rgb(255, 48, 48)");
+	}
+	const removalLabelRight = await shapeRemovalButton
+		.locator(".grid-menu-single-shape-option-label")
+		.evaluate((label) => label.getBoundingClientRect().right);
+	const removalIndicatorBounds = await shapeRemovalButton
+		.locator(".grid-menu-single-shape-indicator")
+		.evaluate((indicator) => {
+			const bounds = indicator.getBoundingClientRect();
+			return { left: bounds.left, width: bounds.width, height: bounds.height };
+		});
+	expect(removalIndicatorBounds.left).toBeGreaterThan(removalLabelRight);
+	expect(removalIndicatorBounds.width).toBe(16);
+	expect(removalIndicatorBounds.height).toBe(16);
+	await shapeRemovalButton.click();
+	await expect(shapeRemovalButton).toHaveAttribute("aria-pressed", "true");
+	await expect(shapeRemovalButton).toHaveClass(/grid-menu-single-shape-option--depressed/);
+	await expect(shapeRemovalButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 3)");
+	await expect(shapeRemovalButton.locator(".grid-menu-single-shape-indicator")).toHaveCSS(
+		"background-color",
+		"rgb(0, 255, 64)",
+	);
+	await shapeAdditionButton.click();
+	await expect(shapeRemovalButton).toHaveAttribute("aria-pressed", "false");
+	await expect(shapeAdditionButton).toHaveAttribute("aria-pressed", "true");
+	await shapeSwapButton.click();
+	await expect(shapeAdditionButton).toHaveAttribute("aria-pressed", "false");
+	await expect(shapeSwapButton).toHaveAttribute("aria-pressed", "true");
+	await shapeSwapButton.click();
+	await expect(shapeSwapButton).toHaveAttribute("aria-pressed", "false");
+	const shapeManipulationDropdown = page.locator("#grid-menu-shape-manipulation-dropdown");
+	await expect(shapeManipulationDropdown).toBeVisible();
+	await expect(shapeManipulationDropdown.locator("summary")).toHaveText("Shape Manipulation");
+	await shapeManipulationDropdown.locator("summary").click();
+	await expect(shapeManipulationDropdown).toHaveAttribute("open", "");
+	await gridAlignmentDropdown.locator("summary").click();
 	await expect(gridAlignmentDropdown).toHaveAttribute("open", "");
-	await expect(gridAlignmentDropdown.locator("summary")).toHaveText("Grid Alignment");
+	await gridDimensionsDropdown.locator("summary").click();
+	await expect(gridDimensionsDropdown).toHaveAttribute("open", "");
+	await gridDimensionsDropdown.locator("summary").click();
+	await expect(gridDimensionsDropdown).not.toHaveAttribute("open", "");
+	await expect(gridDimensionsDropdown.locator("#grid-rows-amount")).toBeHidden();
+	await gridDimensionsDropdown.locator("summary").click();
+	await expect(gridDimensionsDropdown).toHaveAttribute("open", "");
+	await expect(gridDimensionsDropdown.locator("#grid-rows-amount")).toBeVisible();
+	await expect(gridDimensionsDropdown.locator("#grid-rows-amount")).toHaveCount(1);
+	await expect(gridDimensionsDropdown.locator("#grid-columns-amount")).toHaveCount(1);
+	await expect(gridDimensionsDropdown.locator("#grid-menu-size-heading")).toHaveCount(1);
+	await expect(gridDimensionsDropdown.locator("#grid-shape-size-row")).toHaveCount(1);
+	await expect(gridDimensionsDropdown.locator("#grid-shape-size-commit-button")).toHaveCount(1);
+	await expect(gridDimensionsDropdown.locator("#grid-apply-to-margins-button")).toHaveCount(0);
+	const gridDimensionsSummaryAboveRowsAmount = await page.evaluate(() => {
+		const summary = document
+			.querySelector("#grid-menu-dimensions-dropdown summary")
+			.getBoundingClientRect();
+		const rowsAmount = document
+			.querySelector("#grid-rows-amount-label")
+			.getBoundingClientRect();
+		return summary.bottom <= rowsAmount.top;
+	});
+	expect(gridDimensionsSummaryAboveRowsAmount).toBe(true);
 	const gridAlignmentButtons = page.locator("#grid-menu-alignment-buttons button");
-	await expect(gridAlignmentButtons).toHaveCount(9);
+	await expect(gridAlignmentButtons).toHaveCount(10);
 	expect((await gridAlignmentButtons.allTextContents()).map((label) => label.trim())).toEqual([
 		"Left",
 		"Center",
 		"Right",
-		"Bottom",
 		"Top",
-		"Bottom Left",
-		"Bottom Right",
 		"Top Left",
 		"Top Right",
+		"Bottom",
+		"Bottom Left",
+		"Bottom Right",
+		"Custom",
 	]);
 	const gridAlignmentLayout = await page.evaluate(() => {
 		const menu = document.querySelector("#text-editor-grid-menu").getBoundingClientRect();
@@ -1863,17 +2857,49 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		const referenceStyles = getComputedStyle(reference);
 		const buttons = [...document.querySelectorAll("#grid-menu-alignment-buttons button")];
 		const buttonBounds = buttons.map((button) => button.getBoundingClientRect());
-		const sizeControlsBounds = document.querySelector("#grid-shape-size-row").getBoundingClientRect();
 		const buttonStyles = buttons.map((button) => getComputedStyle(button));
+		const summaryStyles = getComputedStyle(
+			document.querySelector("#grid-menu-alignment-dropdown summary"),
+		);
+		const rowsAmountStyles = getComputedStyle(
+			document.querySelector("#grid-rows-amount-label"),
+		);
 		return {
 			leftInset: buttonBounds[0].left - menu.left,
-			gaps: buttonBounds.slice(1, 3).map((bounds, index) => bounds.left - buttonBounds[index].right),
-			sizeControlsGap: sizeControlsBounds.left - buttonBounds[2].right,
+			gaps: buttonBounds
+				.slice(1, 3)
+				.map((bounds, index) => bounds.left - buttonBounds[index].right),
+			summaryToButtonsGap:
+				buttonBounds[0].top -
+				document
+					.querySelector("#grid-menu-alignment-dropdown summary")
+					.getBoundingClientRect().bottom,
 			buttonHeights: buttonBounds.map((bounds) => bounds.height),
 			buttonTops: buttonBounds.map((bounds) => bounds.top),
 			buttonBottoms: buttonBounds.map((bounds) => bounds.bottom),
+			buttonLefts: buttonBounds.map((bounds) => bounds.left),
+			buttonRights: buttonBounds.map((bounds) => bounds.right),
+			horizontalGaps: [
+				buttonBounds[1].left - buttonBounds[0].right,
+				buttonBounds[2].left - buttonBounds[1].right,
+				buttonBounds[4].left - buttonBounds[3].right,
+				buttonBounds[5].left - buttonBounds[4].right,
+				buttonBounds[7].left - buttonBounds[6].right,
+				buttonBounds[8].left - buttonBounds[7].right,
+			],
+			verticalGaps: [
+				buttonBounds[3].top - buttonBounds[0].bottom,
+				buttonBounds[6].top - buttonBounds[3].bottom,
+				buttonBounds[9].top - buttonBounds[8].bottom,
+			],
 			buttonWidths: buttonBounds.map((bounds) => bounds.width),
 			fontSizes: buttonStyles.map((styles) => styles.fontSize),
+			summaryTypographyMatchesRowsAmount: [
+				"fontFamily",
+				"fontSize",
+				"fontWeight",
+				"fontStyle",
+			].every((property) => summaryStyles[property] === rowsAmountStyles[property]),
 			backgroundColors: buttonStyles.map((styles) => styles.backgroundColor),
 			borderRadii: buttonStyles.map((styles) => styles.borderRadius),
 			shadows: buttonStyles.map((styles) => styles.boxShadow),
@@ -1884,19 +2910,31 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	});
 	expect(gridAlignmentLayout.leftInset).toBe(16);
 	expect(gridAlignmentLayout.gaps).toEqual([16, 16]);
-	expect(gridAlignmentLayout.sizeControlsGap).toBe(76);
-	expect(gridAlignmentLayout.buttonHeights).toEqual(Array(9).fill(24));
-	expect(gridAlignmentLayout.fontSizes).toEqual(Array(9).fill("12px"));
+	expect(gridAlignmentLayout.summaryToButtonsGap).toBe(16);
+	expect(gridAlignmentLayout.buttonHeights).toEqual(Array(10).fill(24));
+	expect(gridAlignmentLayout.fontSizes).toEqual(Array(10).fill("12px"));
+	expect(gridAlignmentLayout.summaryTypographyMatchesRowsAmount).toBe(true);
 	expect(new Set(gridAlignmentLayout.buttonTops.slice(0, 3)).size).toBe(1);
 	expect(gridAlignmentLayout.buttonTops[3]).toBe(gridAlignmentLayout.buttonBottoms[0] + 16);
 	expect(gridAlignmentLayout.buttonTops[4]).toBe(gridAlignmentLayout.buttonTops[3]);
-	expect(gridAlignmentLayout.buttonTops[5]).toBe(gridAlignmentLayout.buttonBottoms[3] + 16);
-	expect(gridAlignmentLayout.buttonTops[6]).toBe(gridAlignmentLayout.buttonTops[5]);
-	expect(gridAlignmentLayout.buttonTops[7]).toBe(gridAlignmentLayout.buttonBottoms[5] + 16);
-	expect(gridAlignmentLayout.buttonTops[8]).toBe(gridAlignmentLayout.buttonTops[7]);
-	expect(gridAlignmentLayout.buttonWidths).toEqual([80, 80, 80, 80, 80, 120, 120, 80, 80]);
-	expect(gridAlignmentLayout.backgroundColors).toEqual(Array(9).fill("rgb(255, 48, 48)"));
+	expect(gridAlignmentLayout.buttonTops[5]).toBe(gridAlignmentLayout.buttonTops[3]);
+	expect(gridAlignmentLayout.buttonLefts[4]).toBe(gridAlignmentLayout.buttonRights[3] + 16);
+	expect(gridAlignmentLayout.buttonLefts[5]).toBe(gridAlignmentLayout.buttonRights[4] + 16);
+	expect(gridAlignmentLayout.buttonTops[6]).toBe(gridAlignmentLayout.buttonBottoms[5] + 16);
+	expect(gridAlignmentLayout.buttonLefts[6]).toBe(gridAlignmentLayout.buttonLefts[3]);
+	expect(gridAlignmentLayout.buttonTops[7]).toBe(gridAlignmentLayout.buttonTops[6]);
+	expect(gridAlignmentLayout.buttonTops[8]).toBe(gridAlignmentLayout.buttonTops[6]);
+	expect(gridAlignmentLayout.buttonLefts[7]).toBe(gridAlignmentLayout.buttonRights[6] + 16);
+	expect(gridAlignmentLayout.buttonLefts[8]).toBe(gridAlignmentLayout.buttonRights[7] + 16);
+	expect(gridAlignmentLayout.buttonTops[9]).toBe(gridAlignmentLayout.buttonBottoms[8] + 16);
+	expect(gridAlignmentLayout.buttonLefts[9]).toBe(gridAlignmentLayout.buttonLefts[3]);
+	expect(gridAlignmentLayout.buttonRights[9]).toBe(gridAlignmentLayout.buttonRights[8]);
+	expect(gridAlignmentLayout.buttonWidths).toEqual([80, 80, 80, 80, 80, 80, 80, 120, 120, 352]);
+	expect(gridAlignmentLayout.horizontalGaps).toEqual(Array(6).fill(16));
+	expect(gridAlignmentLayout.verticalGaps).toEqual([16, 16, 16]);
+	expect(gridAlignmentLayout.backgroundColors).toEqual(Array(10).fill("rgb(255, 48, 48)"));
 	expect(gridAlignmentLayout.borderRadii).toEqual([
+		gridAlignmentLayout.referenceBorderRadius,
 		gridAlignmentLayout.referenceBorderRadius,
 		gridAlignmentLayout.referenceBorderRadius,
 		gridAlignmentLayout.referenceBorderRadius,
@@ -1908,6 +2946,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		gridAlignmentLayout.referenceBorderRadius,
 	]);
 	expect(gridAlignmentLayout.shadows).toEqual([
+		gridAlignmentLayout.referenceShadow,
 		gridAlignmentLayout.referenceShadow,
 		gridAlignmentLayout.referenceShadow,
 		gridAlignmentLayout.referenceShadow,
@@ -1940,9 +2979,9 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await expect(leftAlignmentButton).toHaveAttribute("aria-pressed", "true");
 	await expect(leftAlignmentButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 3)");
 	await expect(leftAlignmentButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
-	expect(await leftAlignmentButton.evaluate((button) => getComputedStyle(button).boxShadow)).toContain(
-		"rgba(0, 255, 64, 0.85)",
-	);
+	expect(
+		await leftAlignmentButton.evaluate((button) => getComputedStyle(button).boxShadow),
+	).toContain("rgba(0, 255, 64, 0.85)");
 	await expect(leftAlignmentButton).toHaveText("Left");
 	await centerAlignmentButton.click();
 	await expect(leftAlignmentButton).toHaveAttribute("aria-pressed", "false");
@@ -1950,9 +2989,9 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await expect(centerAlignmentButton).toHaveAttribute("aria-pressed", "true");
 	await expect(centerAlignmentButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 3)");
 	await expect(centerAlignmentButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
-	expect(await centerAlignmentButton.evaluate((button) => getComputedStyle(button).boxShadow)).toContain(
-		"rgba(0, 255, 64, 0.85)",
-	);
+	expect(
+		await centerAlignmentButton.evaluate((button) => getComputedStyle(button).boxShadow),
+	).toContain("rgba(0, 255, 64, 0.85)");
 	await expect(centerAlignmentButton).toHaveText("Center");
 	await rightAlignmentButton.click();
 	await expect(centerAlignmentButton).toHaveAttribute("aria-pressed", "false");
@@ -1960,9 +2999,9 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await expect(rightAlignmentButton).toHaveAttribute("aria-pressed", "true");
 	await expect(rightAlignmentButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 3)");
 	await expect(rightAlignmentButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
-	expect(await rightAlignmentButton.evaluate((button) => getComputedStyle(button).boxShadow)).toContain(
-		"rgba(0, 255, 64, 0.85)",
-	);
+	expect(
+		await rightAlignmentButton.evaluate((button) => getComputedStyle(button).boxShadow),
+	).toContain("rgba(0, 255, 64, 0.85)");
 	await expect(rightAlignmentButton).toHaveText("Right");
 	await rightAlignmentButton.click();
 	await expect(rightAlignmentButton).toHaveAttribute("aria-pressed", "false");
@@ -1976,7 +3015,12 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	const amountInputEdges = await page.evaluate(() => {
 		const rows = document.querySelector("#grid-rows-amount").getBoundingClientRect();
 		const columns = document.querySelector("#grid-columns-amount").getBoundingClientRect();
-		return { rowsLeft: rows.left, rowsRight: rows.right, columnsLeft: columns.left, columnsRight: columns.right };
+		return {
+			rowsLeft: rows.left,
+			rowsRight: rows.right,
+			columnsLeft: columns.left,
+			columnsRight: columns.right,
+		};
 	});
 	expect(amountInputEdges.rowsLeft).toBe(amountInputEdges.columnsLeft);
 	expect(amountInputEdges.rowsRight).toBe(amountInputEdges.columnsRight);
@@ -2000,6 +3044,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		const shapes = document.querySelector("#grid-menu-shapes-heading");
 		const size = document.querySelector("#grid-menu-size-heading");
 		const sizeDimensions = document.querySelector("#grid-shape-size-row");
+		const dimensionsDropdown = document.querySelector("#grid-menu-dimensions-dropdown");
 		const commit = document.querySelector("#grid-sides-commit-button");
 		const alignmentStyles = getComputedStyle(alignment);
 		const linesStyles = getComputedStyle(lines);
@@ -2010,11 +3055,10 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			linesGap: lines.getBoundingClientRect().top - commit.getBoundingClientRect().bottom,
 			sizeDimensionsGap:
 				sizeDimensions.getBoundingClientRect().top - size.getBoundingClientRect().bottom,
-			headingsTopOffset: Math.abs(
-				size.getBoundingClientRect().top - alignment.getBoundingClientRect().top,
-			),
-			headingsHorizontalGap:
-				size.getBoundingClientRect().left - alignment.getBoundingClientRect().right,
+			sizeHeadingInsideDimensions:
+				size.closest("#grid-menu-dimensions-dropdown") === dimensionsDropdown,
+			sizeControlsInsideDimensions:
+				sizeDimensions.closest("#grid-menu-dimensions-dropdown") === dimensionsDropdown,
 			shapesGap: shapes.getBoundingClientRect().top - size.getBoundingClientRect().bottom,
 			sizeText: size.textContent.trim(),
 			linesTextAlign: linesStyles.textAlign,
@@ -2026,20 +3070,20 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(gridHeadingLayout.sizeText).toBe("Size");
 	expect(gridHeadingLayout.linesLeftOffset).toBe(16);
 	expect(gridHeadingLayout.shapesLeftOffset).toBe(16);
-	expect(gridHeadingLayout.headingsTopOffset).toBe(0);
-	expect(gridHeadingLayout.headingsHorizontalGap).toBe(185);
 	expect(gridHeadingLayout.sizeDimensionsGap).toBe(16);
+	expect(gridHeadingLayout.sizeHeadingInsideDimensions).toBe(true);
+	expect(gridHeadingLayout.sizeControlsInsideDimensions).toBe(true);
 	expect(gridHeadingLayout.shapesGap).toBeGreaterThan(0);
 	expect(gridHeadingLayout.linesTextAlign).toBe("left");
 	expect(gridHeadingLayout.matchingStyle).toBe(true);
-	await expect(gridAppliedButton).toHaveText("Off");
-	await expect(gridAppliedButton).toHaveCSS("background-color", "rgb(255, 48, 48)");
+	await expect(gridAppliedButton).toHaveText("On");
+	await expect(gridAppliedButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
 	const gridPrintableButton = page.locator("#grid-menu-printable-button");
 	await expect(gridPrintableButton).toHaveText("Printable");
 	await expect(gridPrintableButton).toHaveAttribute("aria-pressed", "true");
 	await expect(gridPrintableButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
-	const printableOnShadow = await gridPrintableButton.evaluate((button) =>
-		getComputedStyle(button).boxShadow,
+	const printableOnShadow = await gridPrintableButton.evaluate(
+		(button) => getComputedStyle(button).boxShadow,
 	);
 	expect(printableOnShadow).toContain("rgba(0, 255, 64, 0.85)");
 	await expect(gridPrintableButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 3)");
@@ -2078,17 +3122,19 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	});
 	expect(gridDimensionTypographyMatches).toBe(true);
 	const gridSizeCommitButton = page.locator("#grid-shape-size-commit-button");
-	const gridShapeCommitButtonStyles = await page.locator("#grid-sides-commit-button").evaluate((button) => {
-		const styles = getComputedStyle(button);
-		const bounds = button.getBoundingClientRect();
-		return {
-			width: bounds.width,
-			height: bounds.height,
-			borderRadius: styles.borderRadius,
-			backgroundImage: styles.backgroundImage,
-			boxShadow: styles.boxShadow,
-		};
-	});
+	const gridShapeCommitButtonStyles = await page
+		.locator("#grid-sides-commit-button")
+		.evaluate((button) => {
+			const styles = getComputedStyle(button);
+			const bounds = button.getBoundingClientRect();
+			return {
+				width: bounds.width,
+				height: bounds.height,
+				borderRadius: styles.borderRadius,
+				backgroundImage: styles.backgroundImage,
+				boxShadow: styles.boxShadow,
+			};
+		});
 	const gridSizeCommitButtonStyles = await gridSizeCommitButton.evaluate((button) => {
 		const styles = getComputedStyle(button);
 		const bounds = button.getBoundingClientRect();
@@ -2112,6 +3158,11 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			menuBounds.right -
 			Number.parseFloat(menuStyles.paddingRight) -
 			Number.parseFloat(menuStyles.borderRightWidth);
+		const rowsInput = document.querySelector("#grid-rows-amount").getBoundingClientRect();
+		const columnsInput = document.querySelector("#grid-columns-amount").getBoundingClientRect();
+		const sizeHeading = document
+			.querySelector("#grid-menu-size-heading")
+			.getBoundingClientRect();
 		const itemBounds = [
 			"#grid-shape-width-label",
 			"#grid-shape-width-input",
@@ -2123,7 +3174,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		].map((selector) => document.querySelector(selector).getBoundingClientRect());
 		const widthRow = itemBounds.slice(0, 3);
 		const heightRow = itemBounds.slice(3, 6);
-		const centerY = (bounds) => (bounds.top + bounds.bottom) / 2;
 		return {
 			widthRowHasReadableGaps: widthRow.every(
 				(bounds, index) => index === 0 || bounds.left - widthRow[index - 1].right >= 5,
@@ -2131,22 +3181,29 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			heightRowHasReadableGaps: heightRow.every(
 				(bounds, index) => index === 0 || bounds.left - heightRow[index - 1].right >= 5,
 			),
+			rowsToColumnsGap: columnsInput.top - rowsInput.bottom,
+			columnsToSizeHeadingGap: sizeHeading.top - columnsInput.bottom,
+			sizeHeadingToWidthGap:
+				Math.min(...widthRow.map((bounds) => bounds.top)) - sizeHeading.bottom,
 			verticalGap:
 				Math.min(...heightRow.map((bounds) => bounds.top)) -
 				Math.max(...widthRow.map((bounds) => bounds.bottom)),
-			commitGap: itemBounds[6].left - itemBounds[2].right,
-			commitCenterOffset:
-				centerY(itemBounds[6]) - (centerY(itemBounds[1]) + centerY(itemBounds[4])) / 2,
-			commitRight: itemBounds[6].right,
+			widthHeightInputsAligned:
+				itemBounds[1].left === itemBounds[4].left &&
+				itemBounds[1].right === itemBounds[4].right,
+			commitGap: itemBounds[6].top - Math.max(...heightRow.map((bounds) => bounds.bottom)),
 			menuContentRight,
 			commitFits: itemBounds[6].right <= menuContentRight,
 		};
 	});
 	expect(gridDimensionLayout.widthRowHasReadableGaps).toBe(true);
 	expect(gridDimensionLayout.heightRowHasReadableGaps).toBe(true);
+	expect(gridDimensionLayout.rowsToColumnsGap).toBe(16);
+	expect(gridDimensionLayout.columnsToSizeHeadingGap).toBe(16);
+	expect(gridDimensionLayout.sizeHeadingToWidthGap).toBe(16);
 	expect(gridDimensionLayout.verticalGap).toBe(16);
+	expect(gridDimensionLayout.widthHeightInputsAligned).toBe(true);
 	expect(gridDimensionLayout.commitGap).toBe(16);
-	expect(gridDimensionLayout.commitCenterOffset).toBeCloseTo(0, 0);
 	expect(gridDimensionLayout.commitFits).toBe(true);
 	await gridShapeWidthInput.fill("1a.2");
 	await expect(gridShapeWidthInput).toHaveValue("1.2");
@@ -2156,6 +3213,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await rowsAmount.pressSequentially("a23");
 	await expect(rowsAmount).toHaveValue("123");
 	await columnsAmount.fill("45");
+	await applyToMarginsButton.scrollIntoViewIfNeeded();
 	const applyToMarginsBounds = await applyToMarginsButton.boundingBox();
 	await page.mouse.move(
 		applyToMarginsBounds.x + applyToMarginsBounds.width / 2,
@@ -2167,6 +3225,11 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await expect(applyToMarginsButton).toHaveAttribute("aria-pressed", "true");
 	await expect(applyToMarginsButton).toHaveText("On");
 	await expect(applyToMarginsButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
+	await page.mouse.move(0, 0);
+	await expect(applyToMarginsButton).toHaveCSS("transform", "none");
+	await page.locator("#text-editor-grid-menu").evaluate((menu) => {
+		menu.scrollTop = 0;
+	});
 	const gridControlGaps = await page.evaluate(() => {
 		const menu = document.querySelector("#text-editor-grid-menu").getBoundingClientRect();
 		const heading = document.querySelector("#grid-menu-alignment-heading");
@@ -2179,9 +3242,22 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			"#grid-columns-amount-label",
 			"#grid-apply-to-margins-label",
 		].map((selector) => document.querySelector(selector).getBoundingClientRect());
+		const appliedButton = document
+			.querySelector("#grid-applied-button")
+			.getBoundingClientRect();
+		const marginsButton = document
+			.querySelector("#grid-apply-to-margins-button")
+			.getBoundingClientRect();
 		return {
 			left: labels[0].left - menu.left,
-			top: labels[0].top - menu.top,
+			top: appliedButton.top - menu.top,
+			appliedLabelCenterOffset:
+				labels[0].top +
+				labels[0].height / 2 -
+				(appliedButton.top + appliedButton.height / 2),
+			marginsLabelTopOffset: labels[4].top - labels[0].top,
+			marginsButtonTopOffset: marginsButton.top - appliedButton.top,
+			marginsRightOffset: labels[4].left - appliedButton.right,
 			verticalGaps: labels.slice(1).map((label, index) => label.top - labels[index].bottom),
 			headingFontSize: Number.parseFloat(headingStyles.fontSize),
 			headingColor: headingStyles.color,
@@ -2190,17 +3266,18 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	});
 	expect(gridControlGaps.left).toBe(16);
 	expect(gridControlGaps.top).toBe(16);
-	expect(gridControlGaps.verticalGaps).toEqual([71, 192, 16, 16]);
+	expect(gridControlGaps.appliedLabelCenterOffset).toBe(0);
+	expect(gridControlGaps.marginsLabelTopOffset).toBe(0);
+	expect(gridControlGaps.marginsButtonTopOffset).toBe(0);
+	expect(gridControlGaps.marginsRightOffset).toBeGreaterThan(0);
+	expect(gridControlGaps.verticalGaps[0]).toBe(67);
 	expect(gridControlGaps.headingFontSize).toBeCloseTo((22 * 96) / 72, 2);
 	expect(gridControlGaps.headingColor).toBe("rgb(0, 0, 0)");
 	await gridAppliedButton.click();
 	await expect(gridAppliedButton).toHaveText("Off");
-	await expect(page.locator("#grid-menu-selection-prompt")).toBeVisible();
-	await expect(
-		page.getByText("Load or Create a Template or Shell in Order to Switch the Grid on"),
-	).toBeVisible();
-	await page.locator("#grid-menu-selection-prompt-back-button").click();
 	await expect(page.locator("#grid-menu-selection-prompt")).toHaveCount(0);
+	await gridAppliedButton.click();
+	await expect(gridAppliedButton).toHaveText("On");
 	await gridShapesList.locator('[data-side-count="5"]').click();
 	await gridShapeCommitButton.click();
 	await newButton.click();
@@ -2212,6 +3289,8 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await page.locator("#text-editor-new-create-template-button").click();
 	await expect(page.locator("#print-preview-paper")).toBeVisible();
 	await page.locator("#text-editor-grid-button").click();
+	await gridAlignmentDropdown.locator("summary").click();
+	await gridDimensionsDropdown.locator("summary").click();
 	await rowsAmount.fill("");
 	await columnsAmount.fill("");
 	const templateGap = await page.evaluate(() => {
@@ -2220,7 +3299,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		return menu.left - paper.right;
 	});
 	expect(templateGap).toBe(16);
-	await page.locator("#grid-applied-button").click();
 	const paper = page.locator("#print-preview-paper");
 	await expect(paper).toHaveAttribute("data-grid-applied", "true");
 	await expect(paper).toHaveAttribute("data-grid-printable", "true");
@@ -2249,15 +3327,24 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await expect(grid).toBeVisible();
 	const gridOutline = grid.locator("[data-grid-outline]");
 	await expect(gridOutline).toHaveAttribute("stroke-width", "2");
-	await expect(gridOutline).toHaveAttribute("d", /^M 1 1 H [\d.]+ M 1 1 V [\d.]+ M [\d.]+ 1 V [\d.]+$/);
+	await expect(gridOutline).toHaveAttribute(
+		"d",
+		/^M 1 1 H [\d.]+ M 1 1 V [\d.]+ M [\d.]+ 1 V [\d.]+$/,
+	);
 	await expect(grid.locator("[data-grid-connection]")).toHaveCount(0);
 	const triangleCellBounds = await grid.locator("polygon").evaluate((polygon) => {
 		const points = polygon.points;
-		const vertices = Array.from({ length: points.numberOfItems }, (_, index) => points.getItem(index));
+		const vertices = Array.from({ length: points.numberOfItems }, (_, index) =>
+			points.getItem(index),
+		);
 		const pattern = polygon.ownerSVGElement.querySelector("pattern");
 		return {
-			width: Math.max(...vertices.map((point) => point.x)) - Math.min(...vertices.map((point) => point.x)),
-			height: Math.max(...vertices.map((point) => point.y)) - Math.min(...vertices.map((point) => point.y)),
+			width:
+				Math.max(...vertices.map((point) => point.x)) -
+				Math.min(...vertices.map((point) => point.x)),
+			height:
+				Math.max(...vertices.map((point) => point.y)) -
+				Math.min(...vertices.map((point) => point.y)),
 			cellWidth: Number(pattern.getAttribute("width")),
 			cellHeight: Number(pattern.getAttribute("height")),
 		};
@@ -2296,8 +3383,12 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			);
 			const pattern = polygon.ownerSVGElement.querySelector("pattern");
 			return {
-				width: Math.max(...vertices.map((point) => point.x)) - Math.min(...vertices.map((point) => point.x)),
-				height: Math.max(...vertices.map((point) => point.y)) - Math.min(...vertices.map((point) => point.y)),
+				width:
+					Math.max(...vertices.map((point) => point.x)) -
+					Math.min(...vertices.map((point) => point.x)),
+				height:
+					Math.max(...vertices.map((point) => point.y)) -
+					Math.min(...vertices.map((point) => point.y)),
 				topEdgeHorizontal: Math.abs(vertices[0].y - vertices[1].y) < 0.001,
 				cellWidth: Number(pattern.getAttribute("width")),
 				cellHeight: Number(pattern.getAttribute("height")),
@@ -2383,8 +3474,12 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			points.getItem(index),
 		);
 		return {
-			width: Math.max(...vertices.map((point) => point.x)) - Math.min(...vertices.map((point) => point.x)),
-			height: Math.max(...vertices.map((point) => point.y)) - Math.min(...vertices.map((point) => point.y)),
+			width:
+				Math.max(...vertices.map((point) => point.x)) -
+				Math.min(...vertices.map((point) => point.x)),
+			height:
+				Math.max(...vertices.map((point) => point.y)) -
+				Math.min(...vertices.map((point) => point.y)),
 		};
 	});
 	expect(sizeBeforeCommit.width).not.toBeCloseTo(1.2 * 109, 1);
@@ -2490,7 +3585,10 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	const bottomLeftWithoutMargins = await page.evaluate(() => {
 		const paperBounds = document.querySelector("#print-preview-paper").getBoundingClientRect();
 		const area = document.querySelector("[data-grid-shape-area]").getBoundingClientRect();
-		return { leftGap: area.left - paperBounds.left, bottomGap: paperBounds.bottom - area.bottom };
+		return {
+			leftGap: area.left - paperBounds.left,
+			bottomGap: paperBounds.bottom - area.bottom,
+		};
 	});
 	expect(Math.abs(bottomLeftWithoutMargins.leftGap)).toBeLessThan(0.1);
 	expect(Math.abs(bottomLeftWithoutMargins.bottomGap)).toBeLessThan(0.1);
@@ -2510,7 +3608,10 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	const bottomRightWithoutMargins = await page.evaluate(() => {
 		const paperBounds = document.querySelector("#print-preview-paper").getBoundingClientRect();
 		const area = document.querySelector("[data-grid-shape-area]").getBoundingClientRect();
-		return { rightGap: paperBounds.right - area.right, bottomGap: paperBounds.bottom - area.bottom };
+		return {
+			rightGap: paperBounds.right - area.right,
+			bottomGap: paperBounds.bottom - area.bottom,
+		};
 	});
 	expect(Math.abs(bottomRightWithoutMargins.rightGap)).toBeLessThan(0.1);
 	expect(Math.abs(bottomRightWithoutMargins.bottomGap)).toBeLessThan(0.1);

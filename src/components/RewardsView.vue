@@ -81,7 +81,7 @@ function handleGoldCoinSpillComplete() {
 		>
 			<button
 				id="rewards-page-back-button"
-				class="rewards-page-back-button"
+				class="rewards-page-back-button navigation-back-button"
 				type="button"
 				name="rewards-page-back-button"
 				data-button-name="rewards-page-back-button"
@@ -153,6 +153,7 @@ function handleGoldCoinSpillComplete() {
 		</div>
 		<button
 			v-if="rewardSequenceStage === 'complete'"
+			id="rewards-page-gold-bag-button"
 			class="rewards-page-gold-bag"
 			:class="{ 'rewards-page-gold-bag--uncinched': isGoldBagHovered || isGoldBagOpen }"
 			type="button"
@@ -178,9 +179,9 @@ function handleGoldCoinSpillComplete() {
 				/>
 			</span>
 		</button>
-		<p v-if="isGoldCoinTotalVisible" class="rewards-page-gold-total" role="status">
+		<output v-if="isGoldCoinTotalVisible" class="rewards-page-gold-total">
 			{{ props.goldCoinTotal }} gold coins
-		</p>
+		</output>
 	</main>
 </template>
 

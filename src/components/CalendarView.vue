@@ -394,6 +394,16 @@ function handleDailyMenuClose() {
 	activeStoryTimelineTab.value = null;
 }
 
+function handleDailyMenuBack() {
+	if (selectedDailyMenuSubject.value) {
+		selectedDailyMenuSubject.value = null;
+		selectedDailyMenuBlock.value = null;
+		activeStoryTimelineTab.value = null;
+	} else {
+		handleDailyMenuClose();
+	}
+}
+
 /** Daily-menu home-return pipeline boundary. */
 function handleDailyMenuHome() {
 	emit("go-home");
@@ -680,7 +690,7 @@ onBeforeUnmount(() => {
 				<button
 					v-if="0 < currentMonthIndex"
 					id="calendar-previous-month-button"
-					class="calendar-previous-month-button"
+					class="calendar-previous-month-button navigation-back-button"
 					type="button"
 					aria-label="Show previous month"
 					title="Show previous month"
@@ -688,7 +698,7 @@ onBeforeUnmount(() => {
 				>
 					Back
 				</button>
-				<span v-else class="calendar-previous-month-button invisible" aria-hidden="true" />
+				<span class="calendar-previous-month-button invisible" aria-hidden="true" />
 				<h1 id="calendar-menu-heading" class="student-menu-heading">Calendar</h1>
 				<button
 					v-if="currentMonthIndex < calendarMonths.length - 1"
@@ -723,14 +733,13 @@ onBeforeUnmount(() => {
 			v-else
 			id="daily-menu-panel"
 			class="daily-menu-panel"
-			role="region"
 			aria-label="Daily menu"
 			title="Daily menu"
 		>
 			<div class="daily-menu-navigation-controls">
 				<button
 					id="daily-menu-home-button"
-					class="daily-menu-home-button"
+					class="daily-menu-home-button navigation-home-button"
 					type="button"
 					aria-label="Return home"
 					title="Return home"
@@ -741,18 +750,18 @@ onBeforeUnmount(() => {
 				<button
 					v-if="selectedDailyMenuSubject !== 'story'"
 					id="daily-menu-back-button"
-					class="daily-menu-back-button"
+					class="daily-menu-back-button navigation-back-button"
 					type="button"
-					aria-label="Back to calendar"
-					title="Back to calendar"
-					@click="handleDailyMenuClose"
+					:aria-label="selectedDailyMenuSubject ? 'Back to daily menu' : 'Back to calendar'"
+					:title="selectedDailyMenuSubject ? 'Back to daily menu' : 'Back to calendar'"
+					@click="handleDailyMenuBack"
 				>
 					Back
 				</button>
 				<button
 					v-else
 					id="daily-menu-story-back-button"
-					class="daily-menu-story-back-button"
+					class="daily-menu-story-back-button navigation-back-button"
 					type="button"
 					aria-label="Back to daily menu"
 					title="Back to daily menu"

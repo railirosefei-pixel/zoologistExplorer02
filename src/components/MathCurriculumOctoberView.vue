@@ -70,7 +70,7 @@ function handleScreenHome() {
 	>
 		<button
 			id="math-curriculum-october-screen-home-button"
-			class="math-curriculum-october-screen-home-button"
+			class="math-curriculum-october-screen-home-button navigation-home-button"
 			type="button"
 			name="math-curriculum-october-screen-home-button"
 			data-button-name="math-curriculum-october-screen-home-button"
@@ -82,7 +82,7 @@ function handleScreenHome() {
 		</button>
 		<button
 			id="math-curriculum-october-screen-back-button"
-			class="math-curriculum-october-screen-back-button"
+			class="math-curriculum-october-screen-back-button navigation-back-button"
 			type="button"
 			name="math-curriculum-october-screen-back-button"
 			data-button-name="math-curriculum-october-screen-back-button"

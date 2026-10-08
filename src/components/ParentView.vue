@@ -1,5 +1,14 @@
 ﻿<script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch, watchEffect } from "vue";
+import {
+	computed,
+	nextTick,
+	onBeforeUnmount,
+	onMounted,
+	reactive,
+	ref,
+	watch,
+	watchEffect,
+} from "vue";
 
 import { addSavedTemplate, buildTemplateEntry, loadSavedTemplates } from "../js/templateStorage.js";
 import { convertToPixels } from "../js/unitConversion.js";
@@ -18,6 +27,8 @@ const isNewMenuOpen = ref(false);
 const isNewButtonPressed = ref(false);
 const isUnsavedNewDocument = ref(false);
 const savedDocumentBaseline = ref(null);
+const paperEditorMutationRevision = ref(0);
+let paperEditorMutationObserver = null;
 const isLeaveUnsavedPromptOpen = ref(false);
 const leaveUnsavedConfirmationDialogRef = ref(null);
 const isShellMode = ref(false);
@@ -86,6 +97,13 @@ const isMarginVisibilityOn = ref(true);
 const gridRowsAmount = ref("");
 const gridColumnsAmount = ref("");
 const selectedGridAlignment = ref(null);
+const selectedSingleShapeAction = ref(null);
+const removedGridShapeCells = ref([]);
+const selectedGridShapeAdditionDirection = ref(null);
+const selectedGridShapeAdditionSides = ref(null);
+const gridRowShapeAdditions = ref([]);
+const gridColumnShapeAdditions = ref([]);
+const isGridPositionCustomOpen = ref(false);
 const gridMoveStep = ref(null);
 const gridNudgeX = ref(0);
 const gridNudgeY = ref(0);
@@ -106,7 +124,9 @@ const selectedGridShapeVariant = ref("vertical-rectangle");
 const currentTemplateGridShapeVariant = ref("vertical-rectangle");
 const pendingGridShapeVariant = ref(null);
 const gridRowCount = computed(() => Math.max(1, Number.parseInt(gridRowsAmount.value, 10) || 3));
-const gridColumnCount = computed(() => Math.max(1, Number.parseInt(gridColumnsAmount.value, 10) || 4));
+const gridColumnCount = computed(() =>
+	Math.max(1, Number.parseInt(gridColumnsAmount.value, 10) || 4),
+);
 const gridShapeSideCount = computed(() => currentTemplateGridSides.value);
 const gridShapeOptions = [
 	{ sides: 1, label: "1 Side: Circle" },
@@ -160,20 +180,52 @@ const gridShapeOptions = [
 	{ sides: 50, label: "50 Sides: Pentacontagon" },
 ];
 const isApplyToMarginsOn = ref(false);
-const isGridApplied = ref(false);
+const isGridApplied = ref(true);
 const isGridPrintable = ref(true);
-const isGridSelectionPromptOpen = ref(false);
 const isQuadrilateralPromptOpen = ref(false);
 const appliedGridConfiguration = computed(() =>
 	isGridApplied.value
 		? {
 				rows: gridRowsAmount.value,
-					columns: gridColumnsAmount.value,
-					sides: gridShapeSideCount.value,
-					applyToMargins: isApplyToMarginsOn.value,
-				}
+				columns: gridColumnsAmount.value,
+				sides: gridShapeSideCount.value,
+				applyToMargins: isApplyToMarginsOn.value,
+			}
 		: null,
 );
+const isShapeRemovalHighlightActive = computed(
+	() =>
+		textEditorButtonStates.value.printPreview &&
+		isGridApplied.value &&
+		selectedSingleShapeAction.value === "removal",
+);
+const isShapeAdditionHighlightActive = computed(
+	() =>
+		textEditorButtonStates.value.printPreview &&
+		isGridApplied.value &&
+		selectedSingleShapeAction.value === "addition",
+);
+const isShapeSwapHighlightActive = computed(
+	() =>
+		textEditorButtonStates.value.printPreview &&
+		isGridApplied.value &&
+		selectedSingleShapeAction.value === "swap",
+);
+const isGridShapeHighlightActive = computed(
+	() =>
+		isShapeRemovalHighlightActive.value ||
+		isShapeAdditionHighlightActive.value ||
+		isShapeSwapHighlightActive.value,
+);
+const isGridShapeInteractionActive = computed(
+	() => isShapeRemovalHighlightActive.value || isShapeAdditionHighlightActive.value,
+);
+const gridSingleShapeHighlightPatternCells = [
+	{ row: 0, column: 0, color: "#00ff40" },
+	{ row: 0, column: 1, color: "#ffff00" },
+	{ row: 1, column: 0, color: "#ffff00" },
+	{ row: 1, column: 1, color: "#00ff40" },
+];
 const FONT_STYLE_STORAGE_KEY = "ze2.textEditor.fontStyle";
 const CALIBRATION_STORAGE_KEY = "ze2.textEditor.calibration";
 
@@ -288,6 +340,16 @@ function handleParentScreenClose() {
 	emit("back-to-home");
 }
 
+function handleParentScreenBack() {
+	if (activeGamesButton.value) {
+		activeGamesButton.value = "";
+	} else if (isGamesSidebarOpen.value) {
+		isGamesSidebarOpen.value = false;
+	} else {
+		handleParentScreenClose();
+	}
+}
+
 /** Block Enter when another line below the content or caret would exceed the paper bottom. */
 function handlePaperEditorKeydown(event) {
 	if (event.key === "Tab") {
@@ -355,7 +417,7 @@ function captureCurrentTemplate() {
 	}
 
 	const snapshot = {
-		html: editor.innerHTML,
+		html: editor.innerHTML === "<br>" ? "" : editor.innerHTML,
 		widthValue: widthValue.value,
 		widthUnit: widthUnit.value,
 		heightValue: heightValue.value,
@@ -366,6 +428,34 @@ function captureCurrentTemplate() {
 		gridShapeVariant: currentTemplateGridShapeVariant.value,
 		gridShapeWidthInches: currentGridShapeWidthInches.value,
 		gridShapeHeightInches: currentGridShapeHeightInches.value,
+		gridOptions: {
+			isApplied: isGridApplied.value,
+			isPrintable: isGridPrintable.value,
+			applyToMargins: isApplyToMarginsOn.value,
+			rows: gridRowsAmount.value,
+			columns: gridColumnsAmount.value,
+			alignment: selectedGridAlignment.value,
+			moveStep: gridMoveStep.value,
+			nudgeX: gridNudgeX.value,
+			nudgeY: gridNudgeY.value,
+			widthInput: gridShapeWidthInput.value,
+			heightInput: gridShapeHeightInput.value,
+			selectedShapeSides: selectedGridShapeSides.value,
+			selectedShapeVariant: selectedGridShapeVariant.value,
+			pendingShapeSides: pendingGridShapeSides.value,
+			pendingShapeVariant: pendingGridShapeVariant.value,
+		},
+		gridShapeEdits: {
+			removedCells: [...removedGridShapeCells.value],
+			rowAdditions: gridRowShapeAdditions.value.map((entry) => ({
+				row: entry.row,
+				shapes: entry.shapes.map((shape) => ({ ...shape })),
+			})),
+			columnAdditions: gridColumnShapeAdditions.value.map((entry) => ({
+				column: entry.column,
+				shapes: entry.shapes.map((shape) => ({ ...shape })),
+			})),
+		},
 		isShell: isShellMode.value,
 	};
 	if (!isShellMode.value) {
@@ -384,10 +474,14 @@ function captureCurrentTemplate() {
 function hasUnsavedDocumentChanges() {
 	const baseline = savedDocumentBaseline.value;
 	const current = captureCurrentTemplate();
-	return Boolean(
-		baseline && current && JSON.stringify(current) !== JSON.stringify(baseline),
-	);
+	return Boolean(baseline && current && JSON.stringify(current) !== JSON.stringify(baseline));
 }
+
+const isDocumentDirty = computed(() => {
+	// The contenteditable DOM is not reactive, so observe its mutation revision explicitly.
+	void paperEditorMutationRevision.value;
+	return hasUnsavedDocumentChanges();
+});
 
 function cancelTemplateSave() {
 	isTemplateNamePromptOpen.value = false;
@@ -416,8 +510,6 @@ function confirmTemplateSave() {
 function handleTextEditorClose() {
 	isTextEditorOpen.value = false;
 	textEditorButtonStates.value.printPreview = false;
-	isGridApplied.value = false;
-	isGridSelectionPromptOpen.value = false;
 	isQuadrilateralPromptOpen.value = false;
 	isNewMenuOpen.value = false;
 	isUnsavedNewDocument.value = false;
@@ -511,6 +603,11 @@ function toggleTextEditorButton(buttonName) {
 }
 
 async function resetEditorForNewDocument() {
+	removedGridShapeCells.value = [];
+	gridRowShapeAdditions.value = [];
+	gridColumnShapeAdditions.value = [];
+	selectedGridShapeAdditionDirection.value = null;
+	selectedGridShapeAdditionSides.value = null;
 	resetMarginSettings();
 	await nextTick();
 	const editor = printPreviewPaperEditorRef.value;
@@ -557,8 +654,6 @@ function leaveUnsavedNewDocument() {
 	isLeaveUnsavedPromptOpen.value = false;
 	isNewMenuOpen.value = false;
 	isNewButtonPressed.value = false;
-	isGridApplied.value = false;
-	isGridSelectionPromptOpen.value = false;
 	isQuadrilateralPromptOpen.value = false;
 	isUnsavedNewDocument.value = false;
 	isShellMode.value = false;
@@ -604,6 +699,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	document.removeEventListener("pointerdown", handleDocumentPointerDown);
 	document.removeEventListener("keydown", handleDocumentKeydown);
+	if (paperEditorMutationObserver) {
+		paperEditorMutationObserver.disconnect();
+	}
 });
 
 function toggleLoadMenu() {
@@ -645,6 +743,20 @@ async function loadSavedTemplate(entry) {
 		return;
 	}
 
+	selectedGridShapeAdditionDirection.value = null;
+	selectedGridShapeAdditionSides.value = null;
+	const gridShapeEdits = entry.template.gridShapeEdits ?? {};
+	removedGridShapeCells.value = Array.isArray(gridShapeEdits.removedCells)
+		? gridShapeEdits.removedCells.filter((key) => typeof key === "string")
+		: [];
+	gridRowShapeAdditions.value = Array.isArray(gridShapeEdits.rowAdditions)
+		? gridShapeEdits.rowAdditions
+		: [];
+	gridColumnShapeAdditions.value = Array.isArray(gridShapeEdits.columnAdditions)
+		? gridShapeEdits.columnAdditions
+		: [];
+	gridRowsAmount.value = entry.template.gridOptions?.rows ?? gridRowsAmount.value;
+	gridColumnsAmount.value = entry.template.gridOptions?.columns ?? gridColumnsAmount.value;
 	activateTemplateGridSides(
 		entry.template.gridSides ?? 4,
 		entry.template.gridShapeVariant ?? "vertical-rectangle",
@@ -865,7 +977,11 @@ function setSelectedFontColorFromHsv(hue, saturation, value) {
 		channels = [chroma, 0, secondary];
 	}
 	const hexColor = `#${channels
-		.map((channel) => Math.round((channel + offset) * 255).toString(16).padStart(2, "0"))
+		.map((channel) =>
+			Math.round((channel + offset) * 255)
+				.toString(16)
+				.padStart(2, "0"),
+		)
 		.join("")}`;
 	selectedFontColor.value = hexColor;
 	fontColorHexInput.value = hexColor;
@@ -879,7 +995,10 @@ function handleFontColorPickerPointer(event) {
 		event.currentTarget.setPointerCapture(event.pointerId);
 	}
 	const bounds = event.currentTarget.getBoundingClientRect();
-	const horizontalPosition = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+	const horizontalPosition = Math.min(
+		1,
+		Math.max(0, (event.clientX - bounds.left) / bounds.width),
+	);
 	const verticalPosition = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
 	const saturation = verticalPosition <= 0.5 ? verticalPosition * 2 : 1;
 	const value = verticalPosition <= 0.5 ? 1 : (1 - verticalPosition) * 2;
@@ -914,9 +1033,8 @@ function handleFontColorHexInput() {
 		return;
 	}
 	const digits = enteredColor.slice(1);
-	const expandedDigits = digits.length <= 4
-		? [...digits].map((digit) => digit + digit).join("")
-		: digits;
+	const expandedDigits =
+		digits.length <= 4 ? [...digits].map((digit) => digit + digit).join("") : digits;
 	selectedFontColor.value = `#${expandedDigits}`.toLowerCase();
 }
 
@@ -1016,13 +1134,18 @@ function applyGlobalTextAlignment(editor) {
 	}
 	selectEditorEnd(editor);
 	const range = window.getSelection()?.getRangeAt(0);
-	getTextAlignmentTarget(editor, range?.startContainer).style.textAlign = globalTextAlignment.value;
+	getTextAlignmentTarget(editor, range?.startContainer).style.textAlign =
+		globalTextAlignment.value;
 }
 
 function getTextAlignmentTarget(editor, node) {
 	let element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
 	while (element && element !== editor) {
-		if (["BLOCKQUOTE", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "LI", "P", "PRE"].includes(element.tagName)) {
+		if (
+			["BLOCKQUOTE", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "LI", "P", "PRE"].includes(
+				element.tagName,
+			)
+		) {
 			return element;
 		}
 		element = element.parentElement;
@@ -1168,7 +1291,9 @@ function commitGridShapeSize() {
 
 function activateTemplateGridSides(templateSides = 4, templateVariant = "vertical-rectangle") {
 	const requestedSides = pendingGridShapeSides.value ?? templateSides;
-	const selectedOption = gridShapeOptions.find((shapeOption) => shapeOption.sides === requestedSides);
+	const selectedOption = gridShapeOptions.find(
+		(shapeOption) => shapeOption.sides === requestedSides,
+	);
 	currentTemplateGridSides.value = selectedOption?.sides ?? 4;
 	selectedGridShapeSides.value = currentTemplateGridSides.value;
 	const requestedVariant = pendingGridShapeVariant.value ?? templateVariant;
@@ -1185,12 +1310,14 @@ function commitGridShapeSelection() {
 	if (!gridShapeOptions.some((shapeOption) => shapeOption.sides === requestedSides)) {
 		return;
 	}
-	const requestedVariant =
-		requestedSides === 4
-			? quadrilateralVariants.some((variant) => variant.id === selectedGridShapeVariant.value)
-				? selectedGridShapeVariant.value
-				: "vertical-rectangle"
-			: "diamond";
+	let requestedVariant = "diamond";
+	if (requestedSides === 4) {
+		requestedVariant = quadrilateralVariants.some(
+			(variant) => variant.id === selectedGridShapeVariant.value,
+		)
+			? selectedGridShapeVariant.value
+			: "vertical-rectangle";
+	}
 	if (textEditorButtonStates.value.printPreview) {
 		currentTemplateGridSides.value = requestedSides;
 		currentTemplateGridShapeVariant.value = requestedVariant;
@@ -1222,19 +1349,78 @@ function toggleApplyToMargins() {
 }
 
 function toggleGridApplied() {
-	if (isGridApplied.value) {
-		isGridApplied.value = false;
-		return;
-	}
-	if (!textEditorButtonStates.value.printPreview) {
-		isGridSelectionPromptOpen.value = true;
-		return;
-	}
-	isGridApplied.value = true;
+	isGridApplied.value = !isGridApplied.value;
 }
 
 function toggleGridAlignment(alignment) {
 	selectedGridAlignment.value = selectedGridAlignment.value === alignment ? null : alignment;
+}
+
+function toggleSingleShapeAction(action) {
+	selectedSingleShapeAction.value = selectedSingleShapeAction.value === action ? null : action;
+	if (selectedSingleShapeAction.value !== "addition") {
+		selectedGridShapeAdditionDirection.value = null;
+		selectedGridShapeAdditionSides.value = null;
+	}
+}
+
+function toggleGridShapeAdditionDirection(direction) {
+	selectedGridShapeAdditionDirection.value =
+		selectedGridShapeAdditionDirection.value === direction ? null : direction;
+}
+
+function isGridShapeCellRemoved(cell) {
+	return removedGridShapeCells.value.includes(cell.key);
+}
+
+function removeGridShape(cell) {
+	if (!isShapeRemovalHighlightActive.value || isGridShapeCellRemoved(cell)) {
+		return;
+	}
+	removedGridShapeCells.value = [...removedGridShapeCells.value, cell.key];
+}
+
+function addGridShape(cell) {
+	const direction = selectedGridShapeAdditionDirection.value;
+	const sides = selectedGridShapeAdditionSides.value;
+	if (
+		!isShapeAdditionHighlightActive.value ||
+		!direction ||
+		!gridShapeOptions.some((shapeOption) => shapeOption.sides === sides)
+	) {
+		return;
+	}
+
+	const groupIndex = direction === "row" ? cell.row : cell.column;
+	const groupLimit =
+		direction === "row" ? gridRenderedRowCount.value : gridRenderedColumnCount.value;
+	if (groupIndex < 0 || groupIndex >= groupLimit) {
+		return;
+	}
+	const additions =
+		direction === "row" ? gridRowShapeAdditions.value : gridColumnShapeAdditions.value;
+	const existingGroup = additions.find((entry) =>
+		direction === "row" ? entry.row === groupIndex : entry.column === groupIndex,
+	);
+	const existingShapes = existingGroup?.shapes ?? [];
+	const shape = {
+		id: `${direction}-${groupIndex}-${existingShapes.length}`,
+		sides,
+		variant: sides === 4 ? currentTemplateGridShapeVariant.value : "diamond",
+	};
+	const updatedGroup = {
+		...(existingGroup ?? (direction === "row" ? { row: groupIndex } : { column: groupIndex })),
+		shapes: [...existingShapes, shape],
+	};
+	if (direction === "row") {
+		gridRowShapeAdditions.value = existingGroup
+			? additions.map((entry) => (entry.row === groupIndex ? updatedGroup : entry))
+			: [...additions, updatedGroup];
+	} else {
+		gridColumnShapeAdditions.value = existingGroup
+			? additions.map((entry) => (entry.column === groupIndex ? updatedGroup : entry))
+			: [...additions, updatedGroup];
+	}
 }
 
 function nudgeGrid(direction) {
@@ -1265,10 +1451,6 @@ function handlePrintSelectedPaper() {
 	}
 
 	window.print();
-}
-
-function closeGridSelectionPrompt() {
-	isGridSelectionPromptOpen.value = false;
 }
 
 function toggleUnitMenu(field) {
@@ -1304,23 +1486,17 @@ function getGridMarginPixels(field) {
 }
 
 const gridAreaWidthPx = computed(() =>
-	Math.max(
-		1,
-		paperWidthPx.value - getGridMarginPixels("left") - getGridMarginPixels("right"),
-	),
+	Math.max(1, paperWidthPx.value - getGridMarginPixels("left") - getGridMarginPixels("right")),
 );
 const gridAreaHeightPx = computed(() =>
-	Math.max(
-		1,
-		paperHeightPx.value - getGridMarginPixels("top") - getGridMarginPixels("bottom"),
-	),
+	Math.max(1, paperHeightPx.value - getGridMarginPixels("top") - getGridMarginPixels("bottom")),
 );
-const gridShapeUnitVertices = computed(() => {
-	if (gridShapeSideCount.value === 1) {
+function getGridShapeUnitVertices(sides, variant) {
+	if (sides === 1) {
 		return [];
 	}
-	if (gridShapeSideCount.value === 4) {
-		if (currentTemplateGridShapeVariant.value === "square") {
+	if (sides === 4) {
+		if (variant === "square") {
 			return [
 				{ x: -1, y: -1 },
 				{ x: 1, y: -1 },
@@ -1328,7 +1504,7 @@ const gridShapeUnitVertices = computed(() => {
 				{ x: -1, y: 1 },
 			];
 		}
-		if (currentTemplateGridShapeVariant.value === "vertical-rectangle") {
+		if (variant === "vertical-rectangle") {
 			return [
 				{ x: -0.5, y: -1 },
 				{ x: 0.5, y: -1 },
@@ -1336,7 +1512,7 @@ const gridShapeUnitVertices = computed(() => {
 				{ x: -0.5, y: 1 },
 			];
 		}
-		if (currentTemplateGridShapeVariant.value === "horizontal-rectangle") {
+		if (variant === "horizontal-rectangle") {
 			return [
 				{ x: -1, y: -0.5 },
 				{ x: 1, y: -0.5 },
@@ -1345,33 +1521,54 @@ const gridShapeUnitVertices = computed(() => {
 			];
 		}
 	}
-	return Array.from({ length: gridShapeSideCount.value }, (_, index) => {
-		const angle = (Math.PI * 2 * index) / gridShapeSideCount.value - Math.PI / 2;
+	return Array.from({ length: sides }, (_, index) => {
+		const angle = (Math.PI * 2 * index) / sides - Math.PI / 2;
 		return { x: Math.cos(angle), y: Math.sin(angle) };
 	});
-});
-const gridShapeBounds = computed(() => {
-	if (gridShapeSideCount.value === 1) {
+}
+
+function getGridShapeBounds(sides, variant) {
+	if (sides === 1) {
 		return { minX: -1, maxX: 1, minY: -1, maxY: 1, width: 2, height: 2 };
 	}
-	const xValues = gridShapeUnitVertices.value.map(({ x }) => x);
-	const yValues = gridShapeUnitVertices.value.map(({ y }) => y);
+	const vertices = getGridShapeUnitVertices(sides, variant);
+	const xValues = vertices.map(({ x }) => x);
+	const yValues = vertices.map(({ y }) => y);
 	const minX = Math.min(...xValues);
 	const maxX = Math.max(...xValues);
 	const minY = Math.min(...yValues);
 	const maxY = Math.max(...yValues);
 	return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+}
+
+const gridShapeUnitVertices = computed(() => {
+	return getGridShapeUnitVertices(
+		gridShapeSideCount.value,
+		currentTemplateGridShapeVariant.value,
+	);
 });
-const gridShapeScaleX = computed(() =>
-	currentGridShapeWidthInches.value === null
-		? gridAreaWidthPx.value / (gridColumnCount.value * gridShapeBounds.value.width)
-		: convertToPixels(currentGridShapeWidthInches.value, "in") / gridShapeBounds.value.width,
+const gridShapeBounds = computed(() =>
+	getGridShapeBounds(gridShapeSideCount.value, currentTemplateGridShapeVariant.value),
 );
-const gridShapeScaleY = computed(() =>
-	currentGridShapeHeightInches.value === null
-		? gridAreaHeightPx.value / (gridRowCount.value * gridShapeBounds.value.height)
-		: convertToPixels(currentGridShapeHeightInches.value, "in") / gridShapeBounds.value.height,
-);
+const gridShapeScales = computed(() => {
+	const scaleX =
+		currentGridShapeWidthInches.value === null
+			? gridAreaWidthPx.value / (gridColumnCount.value * gridShapeBounds.value.width)
+			: convertToPixels(currentGridShapeWidthInches.value, "in") /
+				gridShapeBounds.value.width;
+	const scaleY =
+		currentGridShapeHeightInches.value === null
+			? gridAreaHeightPx.value / (gridRowCount.value * gridShapeBounds.value.height)
+			: convertToPixels(currentGridShapeHeightInches.value, "in") /
+				gridShapeBounds.value.height;
+	if (gridShapeSideCount.value <= 4) {
+		return { x: scaleX, y: scaleY };
+	}
+	const uniformScale = Math.min(scaleX, scaleY);
+	return { x: uniformScale, y: uniformScale };
+});
+const gridShapeScaleX = computed(() => gridShapeScales.value.x);
+const gridShapeScaleY = computed(() => gridShapeScales.value.y);
 const gridShapeCellWidth = computed(() => gridShapeBounds.value.width * gridShapeScaleX.value);
 const gridShapeCellHeight = computed(() => gridShapeBounds.value.height * gridShapeScaleY.value);
 const gridPatternCellWidth = computed(() => gridShapeCellWidth.value);
@@ -1388,10 +1585,187 @@ const gridRenderedRowCount = computed(() =>
 		Math.floor((gridAreaHeightPx.value + 1e-6) / gridPatternCellHeight.value),
 	),
 );
-const gridRenderedWidthPx = computed(() => gridPatternCellWidth.value * gridRenderedColumnCount.value);
-const gridRenderedHeightPx = computed(() => gridPatternCellHeight.value * gridRenderedRowCount.value);
+const gridRenderedWidthPx = computed(
+	() => gridPatternCellWidth.value * gridRenderedColumnCount.value,
+);
+const gridRenderedHeightPx = computed(
+	() => gridPatternCellHeight.value * gridRenderedRowCount.value,
+);
+const gridRenderedRowAdditions = computed(() =>
+	gridRowShapeAdditions.value
+		.filter(
+			(entry) =>
+				Number.isInteger(entry.row) &&
+				entry.row >= 0 &&
+				entry.row < gridRenderedRowCount.value &&
+				Array.isArray(entry.shapes) &&
+				entry.shapes.length > 0,
+		),
+);
+const gridRenderedColumnAdditions = computed(() =>
+	gridColumnShapeAdditions.value
+		.filter(
+			(entry) =>
+				Number.isInteger(entry.column) &&
+				entry.column >= 0 &&
+				entry.column < gridRenderedColumnCount.value &&
+				Array.isArray(entry.shapes) &&
+				entry.shapes.length > 0,
+		),
+);
+const hasMixedGridAdditions = computed(
+	() => gridRenderedRowAdditions.value.length > 0 && gridRenderedColumnAdditions.value.length > 0,
+);
+/** Mixed grids share rectangular slots; trailing cells fill unused space. */
+const gridMixedCellSize = computed(() => ({
+	width:
+		gridRenderedWidthPx.value /
+		(gridRenderedColumnCount.value +
+			Math.max(0, ...gridRenderedRowAdditions.value.map((entry) => entry.shapes.length))),
+	height:
+		gridRenderedHeightPx.value /
+		(gridRenderedRowCount.value +
+			Math.max(0, ...gridRenderedColumnAdditions.value.map((entry) => entry.shapes.length))),
+}));
+const gridRowAdditionLayouts = computed(() =>
+	gridRenderedRowAdditions.value.map((entry) => {
+		const cellWidth = hasMixedGridAdditions.value
+			? gridMixedCellSize.value.width
+			: gridRenderedWidthPx.value / (gridRenderedColumnCount.value + entry.shapes.length);
+		const cellHeight = hasMixedGridAdditions.value
+			? gridMixedCellSize.value.height
+			: gridPatternCellHeight.value;
+		const y = entry.row * cellHeight;
+		const height =
+			hasMixedGridAdditions.value && entry.row === gridRenderedRowCount.value - 1
+				? gridRenderedHeightPx.value - y
+				: cellHeight;
+		return {
+			row: entry.row,
+			cellWidth,
+			y,
+			height,
+			shapes: entry.shapes.map((shape, index) => {
+				const column = gridRenderedColumnCount.value + index;
+				const x = column * cellWidth;
+				return {
+					...shape,
+					row: entry.row,
+					column,
+					isAdded: true,
+					isPacked: true,
+					x,
+					y,
+					width:
+						hasMixedGridAdditions.value && index === entry.shapes.length - 1
+							? gridRenderedWidthPx.value - x
+							: cellWidth,
+					height,
+					key: `addition-${shape.id}`,
+					color: getGridHighlightColor(entry.row, column),
+				};
+			}),
+		};
+	}),
+);
+const gridColumnAdditionLayouts = computed(() =>
+	gridRenderedColumnAdditions.value.map((entry) => {
+		const cellWidth = hasMixedGridAdditions.value
+			? gridMixedCellSize.value.width
+			: gridPatternCellWidth.value;
+		const cellHeight = hasMixedGridAdditions.value
+			? gridMixedCellSize.value.height
+			: gridRenderedHeightPx.value / (gridRenderedRowCount.value + entry.shapes.length);
+		const x = entry.column * cellWidth;
+		// Last-row additions own the bottom-right space when both tracks extend.
+		const width =
+			hasMixedGridAdditions.value &&
+			entry.column === gridRenderedColumnCount.value - 1 &&
+			!gridRenderedRowAdditions.value.some((layout) => layout.row === gridRenderedRowCount.value - 1)
+				? gridRenderedWidthPx.value - x
+				: cellWidth;
+		return {
+			column: entry.column,
+			cellHeight,
+			x,
+			width,
+			shapes: entry.shapes.map((shape, index) => {
+				const row = gridRenderedRowCount.value + index;
+				const y = row * cellHeight;
+				return {
+					...shape,
+					row,
+					column: entry.column,
+					isAdded: true,
+					isPacked: true,
+					x,
+					y,
+					width,
+					height:
+						hasMixedGridAdditions.value && index === entry.shapes.length - 1
+							? gridRenderedHeightPx.value - y
+							: cellHeight,
+					key: `addition-${shape.id}`,
+					color: getGridHighlightColor(row, entry.column),
+				};
+			}),
+		};
+	}),
+);
+const gridRenderedContentWidthPx = computed(() => gridRenderedWidthPx.value);
+const gridRenderedContentHeightPx = computed(() => gridRenderedHeightPx.value);
+const gridPackedBaseCells = computed(() => {
+	if (hasMixedGridAdditions.value) {
+		return Array.from({ length: gridRenderedRowCount.value }, (_, row) =>
+			Array.from({ length: gridRenderedColumnCount.value }, (_, column) =>
+				createBaseGridShapeCell(row, column),
+			),
+		).flat();
+	}
+	const cells = new Map();
+	for (const layout of gridRowAdditionLayouts.value) {
+		for (let column = 0; column < gridRenderedColumnCount.value; column += 1) {
+			const cell = createBaseGridShapeCell(layout.row, column);
+			cells.set(cell.key, cell);
+		}
+	}
+	for (const layout of gridColumnAdditionLayouts.value) {
+		for (let row = 0; row < gridRenderedRowCount.value; row += 1) {
+			const cell = createBaseGridShapeCell(row, layout.column);
+			cells.set(cell.key, cell);
+		}
+	}
+	return [...cells.values()];
+});
+const gridPackedCells = computed(() =>
+	gridPackedBaseCells.value.concat(
+		gridRowAdditionLayouts.value.flatMap((layout) => layout.shapes),
+		gridColumnAdditionLayouts.value.flatMap((layout) => layout.shapes),
+	),
+);
+/** Share fitted cell boxes between shape borders, masking, and hit-testing. */
+function getGridPackedCellPoints(cell, outlineOnly = false) {
+	if (!outlineOnly) {
+		return getGridShapeCellPolygonPoints(
+			cell.sides,
+			cell.variant,
+			cell.width,
+			cell.height,
+			cell.x,
+			cell.y,
+		);
+	}
+	return [
+		[cell.x, cell.y],
+		[cell.x + cell.width, cell.y],
+		[cell.x + cell.width, cell.y + cell.height],
+		[cell.x, cell.y + cell.height],
+	]
+		.map(([x, y]) => `${x.toFixed(4)},${y.toFixed(4)}`)
+		.join(" ");
+}
 const gridRenderedOffsetX = computed(() => {
-	const remainingWidth = Math.max(0, gridAreaWidthPx.value - gridRenderedWidthPx.value);
+	const remainingWidth = Math.max(0, gridAreaWidthPx.value - gridRenderedContentWidthPx.value);
 	let alignmentOffsetX = 0;
 	if (["right", "bottom-right", "top-right"].includes(selectedGridAlignment.value)) {
 		alignmentOffsetX = remainingWidth;
@@ -1401,7 +1775,7 @@ const gridRenderedOffsetX = computed(() => {
 	return alignmentOffsetX + gridNudgeX.value;
 });
 const gridRenderedOffsetY = computed(() => {
-	const remainingHeight = Math.max(0, gridAreaHeightPx.value - gridRenderedHeightPx.value);
+	const remainingHeight = Math.max(0, gridAreaHeightPx.value - gridRenderedContentHeightPx.value);
 	let alignmentOffsetY = 0;
 	if (selectedGridAlignment.value === "center") {
 		alignmentOffsetY = remainingHeight / 2;
@@ -1410,33 +1784,226 @@ const gridRenderedOffsetY = computed(() => {
 	}
 	return alignmentOffsetY + gridNudgeY.value;
 });
-const gridShapeOriginX = computed(
-	() => -gridShapeBounds.value.minX * gridShapeScaleX.value,
-);
-const gridShapeOriginY = computed(
-	() => -gridShapeBounds.value.minY * gridShapeScaleY.value,
-);
-const gridShapeViewBox = computed(
-	() => `0 0 ${gridAreaWidthPx.value} ${gridAreaHeightPx.value}`,
-);
-const gridShapePolygonPoints = computed(() =>
-	gridShapeUnitVertices.value
+const gridShapeOriginX = computed(() => -gridShapeBounds.value.minX * gridShapeScaleX.value);
+const gridShapeOriginY = computed(() => -gridShapeBounds.value.minY * gridShapeScaleY.value);
+function getGridShapePolygonPoints(offsetX = 0, offsetY = 0) {
+	return gridShapeUnitVertices.value
 		.map(
 			({ x, y }) =>
-					`${(gridShapeOriginX.value + x * gridShapeScaleX.value).toFixed(4)},${(
-					gridShapeOriginY.value + y * gridShapeScaleY.value
+				`${(gridShapeOriginX.value + x * gridShapeScaleX.value + offsetX).toFixed(4)},${(
+					gridShapeOriginY.value +
+					y * gridShapeScaleY.value +
+					offsetY
 				).toFixed(4)}`,
 		)
-		.join(" "),
+		.join(" ");
+}
+function getGridShapeCellPolygonPoints(sides, variant, width, height, offsetX = 0, offsetY = 0) {
+	const bounds = getGridShapeBounds(sides, variant);
+	const uniformScale = sides > 4 ? Math.min(width / bounds.width, height / bounds.height) : null;
+	const scaleX = uniformScale ?? width / bounds.width;
+	const scaleY = uniformScale ?? height / bounds.height;
+	const shapeOffsetX = offsetX + (sides > 4 ? (width - bounds.width * scaleX) / 2 : 0);
+	const shapeOffsetY = offsetY + (sides > 4 ? (height - bounds.height * scaleY) / 2 : 0);
+	return getGridShapeUnitVertices(sides, variant)
+		.map(
+			({ x, y }) =>
+				`${(shapeOffsetX + (x - bounds.minX) * scaleX).toFixed(4)},${(
+					shapeOffsetY +
+					(y - bounds.minY) * scaleY
+				).toFixed(4)}`,
+		)
+		.join(" ");
+}
+function createBaseGridShapeCell(row, column) {
+	const rowLayout = gridRowAdditionLayouts.value.find((layout) => layout.row === row);
+	const columnLayout = gridColumnAdditionLayouts.value.find((layout) => layout.column === column);
+	const cellWidth = hasMixedGridAdditions.value
+		? gridMixedCellSize.value.width
+		: rowLayout?.cellWidth ?? gridPatternCellWidth.value;
+	const cellHeight = hasMixedGridAdditions.value
+		? gridMixedCellSize.value.height
+		: columnLayout?.cellHeight ?? gridPatternCellHeight.value;
+	const x = column * cellWidth;
+	const y = row * cellHeight;
+	const width =
+		hasMixedGridAdditions.value && column === gridRenderedColumnCount.value - 1 && !rowLayout
+			? gridRenderedWidthPx.value - x
+			: cellWidth;
+	const height =
+		hasMixedGridAdditions.value && row === gridRenderedRowCount.value - 1 && !columnLayout
+			? gridRenderedHeightPx.value - y
+			: cellHeight;
+	return {
+		key: `base-${row}-${column}`,
+		row,
+		column,
+		sides: gridShapeSideCount.value,
+		variant: currentTemplateGridShapeVariant.value,
+		x,
+		y,
+		width,
+		height,
+		isAdded: false,
+		isPacked: hasMixedGridAdditions.value || Boolean(rowLayout || columnLayout),
+	};
+}
+function getGridShapeCellAtPoint(x, y) {
+	const packedCell = gridPackedCells.value.find((cell) =>
+		isGridShapePointInsideCell(cell, x, y),
+	);
+	if (packedCell) {
+		return packedCell;
+	}
+	const row = Math.floor(y / gridPatternCellHeight.value);
+	const column = Math.floor(x / gridPatternCellWidth.value);
+	if (
+		row >= 0 &&
+		row < gridRenderedRowCount.value &&
+		column >= 0 &&
+		column < gridRenderedColumnCount.value
+	) {
+		const cell = createBaseGridShapeCell(row, column);
+		return cell.isPacked ? null : cell;
+	}
+	return null;
+}
+function getGridShapeCellByKey(key) {
+	const addedShape = gridRowAdditionLayouts.value
+		.flatMap((layout) => layout.shapes)
+		.concat(gridColumnAdditionLayouts.value.flatMap((layout) => layout.shapes))
+		.find((cell) => cell.key === key);
+	if (addedShape) {
+		return addedShape;
+	}
+	const match = /^base-(\d+)-(\d+)$/.exec(key);
+	if (!match) {
+		return null;
+	}
+	const row = Number.parseInt(match[1], 10);
+	const column = Number.parseInt(match[2], 10);
+	if (
+		row < 0 ||
+		row >= gridRenderedRowCount.value ||
+		column < 0 ||
+		column >= gridRenderedColumnCount.value
+	) {
+		return null;
+	}
+	return createBaseGridShapeCell(row, column);
+}
+function isGridShapePointInsideCell(cell, x, y) {
+	if (cell.isPacked && cell.sides !== 1) {
+		const vertices = getGridPackedCellPoints(cell).split(" ").map((point) => {
+			const [vertexX, vertexY] = point.split(",").map(Number);
+			return { x: vertexX, y: vertexY };
+		});
+		return isGridPointInsidePolygon({ x, y }, vertices);
+	}
+	const localX = (x - cell.x) / cell.width;
+	const localY = (y - cell.y) / cell.height;
+	if (cell.sides === 1) {
+		const distanceX = (localX - 0.5) * 2;
+		const distanceY = (localY - 0.5) * 2;
+		return distanceX * distanceX + distanceY * distanceY <= 1;
+	}
+	const bounds = getGridShapeBounds(cell.sides, cell.variant);
+	const point = {
+		x: bounds.minX + localX * bounds.width,
+		y: bounds.minY + localY * bounds.height,
+	};
+	const vertices = getGridShapeUnitVertices(cell.sides, cell.variant);
+	return isGridPointInsidePolygon(point, vertices);
+}
+function isGridPointInsidePolygon(point, vertices) {
+	let isInside = false;
+	for (
+		let index = 0, previousIndex = vertices.length - 1;
+		index < vertices.length;
+		previousIndex = index++
+	) {
+		const current = vertices[index];
+		const previous = vertices[previousIndex];
+		const crossesEdge =
+			current.y > point.y !== previous.y > point.y &&
+			point.x <
+				((previous.x - current.x) * (point.y - current.y)) / (previous.y - current.y) +
+					current.x;
+		if (crossesEdge) {
+			isInside = !isInside;
+		}
+	}
+	return isInside;
+}
+function handleGridShapeClick(event) {
+	if (!isShapeRemovalHighlightActive.value && !isShapeAdditionHighlightActive.value) {
+		return;
+	}
+	const svg = event.currentTarget;
+	const screenMatrix = svg.getScreenCTM();
+	if (!screenMatrix) {
+		return;
+	}
+	const svgPoint = svg.createSVGPoint();
+	svgPoint.x = event.clientX;
+	svgPoint.y = event.clientY;
+	const point = svgPoint.matrixTransform(screenMatrix.inverse());
+	const x = point.x - gridRenderedOffsetX.value;
+	const y = point.y - gridRenderedOffsetY.value;
+	if (
+		x < 0 ||
+		y < 0 ||
+		x >= gridRenderedContentWidthPx.value ||
+		y >= gridRenderedContentHeightPx.value
+	) {
+		return;
+	}
+	const cell = getGridShapeCellAtPoint(x, y);
+	if (!cell || !isGridShapePointInsideCell(cell, x, y)) {
+		return;
+	}
+	if (isShapeRemovalHighlightActive.value) {
+		removeGridShape(cell);
+	} else {
+		addGridShape(cell);
+	}
+}
+const gridRemovedShapeLayouts = computed(() =>
+	removedGridShapeCells.value.map((key) => getGridShapeCellByKey(key)).filter(Boolean),
 );
+function getGridHighlightColor(row, column) {
+	return (row + column) % 2 === 0 ? "#00ff40" : "#ffff00";
+}
+const gridShapeViewBox = computed(() => `0 0 ${gridAreaWidthPx.value} ${gridAreaHeightPx.value}`);
+const gridShapePolygonPoints = computed(() => getGridShapePolygonPoints());
 const allSidesMarginValue = computed(() =>
-	marginFields.every((field) => marginValues[field] === marginValues.top)
-		? marginValues.top
-		: "",
+	marginFields.every((field) => marginValues[field] === marginValues.top) ? marginValues.top : "",
 );
 
 const printPreviewPaperRef = ref(null);
 const printPreviewPaperEditorRef = ref(null);
+watch(
+	printPreviewPaperEditorRef,
+	(editor) => {
+		if (paperEditorMutationObserver) {
+			paperEditorMutationObserver.disconnect();
+			paperEditorMutationObserver = null;
+		}
+		if (!editor) {
+			return;
+		}
+		paperEditorMutationObserver = new MutationObserver(() => {
+			paperEditorMutationRevision.value += 1;
+		});
+		paperEditorMutationObserver.observe(editor, {
+			attributes: true,
+			characterData: true,
+			childList: true,
+			subtree: true,
+		});
+	},
+	{ flush: "post" },
+);
 const isTemplateNamePromptOpen = ref(false);
 const templateNameInput = ref("");
 const templateNameInputRef = ref(null);
@@ -1661,7 +2228,7 @@ function handleCalibrationBarPointerUp() {
 					Text Editor
 				</button>
 				<button
-					id="games-tab"
+					id="parent-games-tab"
 					class="games-tab"
 					type="button"
 					name="games-tab"
@@ -1680,6 +2247,7 @@ function handleCalibrationBarPointerUp() {
 				title="Games sidebar"
 			>
 				<button
+					id="games-sidebar-math-button"
 					class="games-sidebar-button games-sidebar-button--math"
 					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'math' }"
 					type="button"
@@ -1691,8 +2259,11 @@ function handleCalibrationBarPointerUp() {
 					Math
 				</button>
 				<button
+					id="games-sidebar-language-arts-button"
 					class="games-sidebar-button games-sidebar-button--language-arts"
-					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'language-arts' }"
+					:class="{
+						'games-sidebar-button--depressed': activeGamesButton === 'language-arts',
+					}"
 					type="button"
 					name="language-arts"
 					data-button-name="language-arts"
@@ -1702,8 +2273,11 @@ function handleCalibrationBarPointerUp() {
 					Language Arts
 				</button>
 				<button
+					id="games-sidebar-social-studies-button"
 					class="games-sidebar-button games-sidebar-button--social-studies"
-					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'social-studies' }"
+					:class="{
+						'games-sidebar-button--depressed': activeGamesButton === 'social-studies',
+					}"
 					type="button"
 					name="social-studies"
 					data-button-name="social-studies"
@@ -1713,6 +2287,7 @@ function handleCalibrationBarPointerUp() {
 					Social Studies
 				</button>
 				<button
+					id="games-sidebar-science-button"
 					class="games-sidebar-button games-sidebar-button--science"
 					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'science' }"
 					type="button"
@@ -1724,6 +2299,7 @@ function handleCalibrationBarPointerUp() {
 					Science
 				</button>
 				<button
+					id="games-sidebar-art-button"
 					class="games-sidebar-button games-sidebar-button--art"
 					:class="{ 'games-sidebar-button--depressed': activeGamesButton === 'art' }"
 					type="button"
@@ -1735,9 +2311,7 @@ function handleCalibrationBarPointerUp() {
 					Art
 				</button>
 			</aside>
-			<MathGamesView
-				v-if="isGamesSidebarOpen && activeGamesButton === 'math'"
-			/>
+			<MathGamesView v-if="isGamesSidebarOpen && activeGamesButton === 'math'" />
 		</template>
 		<section
 			v-else
@@ -1793,6 +2367,16 @@ function handleCalibrationBarPointerUp() {
 					Tools
 				</button>
 				<button
+					v-if="isDocumentDirty"
+					id="text-editor-document-save-button"
+					class="text-editor-navigation-tools-button text-editor-navigation-save-button"
+					type="button"
+					name="text-editor-document-save-button"
+					data-button-name="text-editor-document-save-button"
+				>
+					Save
+				</button>
+				<button
 					id="text-editor-grid-button"
 					class="text-editor-grid-button"
 					:class="{ 'text-editor-button--depressed': textEditorButtonStates.grid }"
@@ -1830,7 +2414,7 @@ function handleCalibrationBarPointerUp() {
 				<button
 					v-if="!isTextEditorWorkflowScreen"
 					id="text-editor-home-button"
-					class="text-editor-home-button"
+					class="text-editor-home-button navigation-home-button"
 					type="button"
 					name="text-editor-home-button"
 					data-button-name="text-editor-home-button"
@@ -1843,7 +2427,7 @@ function handleCalibrationBarPointerUp() {
 				<button
 					v-else
 					id="text-editor-workflow-home-button"
-					class="text-editor-workflow-home-button"
+					class="text-editor-workflow-home-button navigation-home-button"
 					type="button"
 					name="text-editor-workflow-home-button"
 					data-button-name="text-editor-workflow-home-button"
@@ -1856,7 +2440,7 @@ function handleCalibrationBarPointerUp() {
 				<button
 					v-if="!isTextEditorWorkflowScreen"
 					id="parent-screen-back-button"
-					class="parent-screen-back-button"
+					class="parent-screen-back-button navigation-back-button"
 					type="button"
 					name="parent-screen-back-button"
 					data-button-name="parent-screen-back-button"
@@ -1869,7 +2453,7 @@ function handleCalibrationBarPointerUp() {
 				<button
 					v-else
 					id="text-editor-workflow-back-button"
-					class="text-editor-workflow-back-button"
+					class="text-editor-workflow-back-button navigation-back-button"
 					type="button"
 					name="text-editor-workflow-back-button"
 					data-button-name="text-editor-workflow-back-button"
@@ -1923,7 +2507,9 @@ function handleCalibrationBarPointerUp() {
 						:aria-label="entry.name"
 						@click="loadSavedTemplate(entry)"
 					>
-						<span class="text-editor-saved-template-date">{{ formatSavedTemplateDate(entry.createdAt) }}</span>
+						<span class="text-editor-saved-template-date">{{
+							formatSavedTemplateDate(entry.createdAt)
+						}}</span>
 						<span>{{ entry.name }}</span>
 					</button>
 				</ul>
@@ -1943,7 +2529,9 @@ function handleCalibrationBarPointerUp() {
 						:aria-label="entry.name"
 						@click="loadSavedTemplate(entry)"
 					>
-						<span class="text-editor-saved-template-date">{{ formatSavedTemplateDate(entry.createdAt) }}</span>
+						<span class="text-editor-saved-template-date">{{
+							formatSavedTemplateDate(entry.createdAt)
+						}}</span>
 						<span>{{ entry.name }}</span>
 					</button>
 				</ul>
@@ -1976,10 +2564,7 @@ function handleCalibrationBarPointerUp() {
 					Create A Template
 				</button>
 			</section>
-			<div
-				v-if="isLeaveUnsavedPromptOpen"
-				class="text-editor-unsaved-confirmation-overlay"
-			>
+			<div v-if="isLeaveUnsavedPromptOpen" class="text-editor-unsaved-confirmation-overlay">
 				<dialog
 					id="text-editor-unsaved-confirmation"
 					ref="leaveUnsavedConfirmationDialogRef"
@@ -2087,7 +2672,9 @@ function handleCalibrationBarPointerUp() {
 						:data-grid-rows="appliedGridConfiguration?.rows"
 						:data-grid-columns="appliedGridConfiguration?.columns"
 						:data-grid-sides="appliedGridConfiguration?.sides"
-						:data-grid-shape-variant="isGridApplied ? currentTemplateGridShapeVariant : undefined"
+						:data-grid-shape-variant="
+							isGridApplied ? currentTemplateGridShapeVariant : undefined
+						"
 						:data-grid-apply-to-margins="appliedGridConfiguration?.applyToMargins"
 					>
 						<div
@@ -2104,10 +2691,18 @@ function handleCalibrationBarPointerUp() {
 							class="print-preview-margin-guides"
 							aria-hidden="true"
 						>
-							<span class="print-preview-margin-guide print-preview-margin-guide--top" />
-							<span class="print-preview-margin-guide print-preview-margin-guide--bottom" />
-							<span class="print-preview-margin-guide print-preview-margin-guide--left" />
-							<span class="print-preview-margin-guide print-preview-margin-guide--right" />
+							<span
+								class="print-preview-margin-guide print-preview-margin-guide--top"
+							/>
+							<span
+								class="print-preview-margin-guide print-preview-margin-guide--bottom"
+							/>
+							<span
+								class="print-preview-margin-guide print-preview-margin-guide--left"
+							/>
+							<span
+								class="print-preview-margin-guide print-preview-margin-guide--right"
+							/>
 						</div>
 						<svg
 							v-if="isGridApplied"
@@ -2117,11 +2712,18 @@ function handleCalibrationBarPointerUp() {
 							:data-grid-columns="gridColumnCount"
 							:data-grid-rendered-rows="gridRenderedRowCount"
 							:data-grid-rendered-columns="gridRenderedColumnCount"
+							:data-grid-content-width="gridRenderedContentWidthPx"
+							:data-grid-content-height="gridRenderedContentHeightPx"
 							:data-grid-sides="gridShapeSideCount"
 							:data-grid-shape-variant="currentTemplateGridShapeVariant"
 							:viewBox="gridShapeViewBox"
 							preserveAspectRatio="none"
-							aria-hidden="true"
+							:aria-hidden="!isGridShapeInteractionActive"
+							:class="{
+								'print-preview-grid--shape-interaction-active':
+									isGridShapeInteractionActive,
+							}"
+							@click="handleGridShapeClick"
 						>
 							<defs>
 								<pattern
@@ -2149,14 +2751,269 @@ function handleCalibrationBarPointerUp() {
 										stroke-width="2"
 									/>
 								</pattern>
+								<pattern
+									v-if="
+										isShapeRemovalHighlightActive ||
+											isShapeAdditionHighlightActive ||
+											isShapeSwapHighlightActive
+									"
+									id="print-preview-grid-removal-pattern"
+									:width="gridPatternCellWidth * 2"
+									:height="gridPatternCellHeight * 2"
+									patternUnits="userSpaceOnUse"
+									patternContentUnits="userSpaceOnUse"
+								>
+									<template
+										v-for="cell in gridSingleShapeHighlightPatternCells"
+										:key="`${cell.row}-${cell.column}`"
+									>
+										<ellipse
+											v-if="gridShapeSideCount === 1"
+											:data-grid-highlight-row="cell.row"
+											:data-grid-highlight-column="cell.column"
+											:cx="
+												gridShapeOriginX +
+													cell.column * gridPatternCellWidth
+											"
+											:cy="
+												gridShapeOriginY + cell.row * gridPatternCellHeight
+											"
+											:rx="gridShapeCellWidth / 2"
+											:ry="gridShapeCellHeight / 2"
+											:fill="cell.color"
+											stroke="#000000"
+											stroke-width="2"
+										/>
+										<polygon
+											v-else
+											:data-grid-highlight-row="cell.row"
+											:data-grid-highlight-column="cell.column"
+											:points="
+												getGridShapePolygonPoints(
+													cell.column * gridPatternCellWidth,
+													cell.row * gridPatternCellHeight,
+												)
+											"
+											:fill="cell.color"
+											stroke="#000000"
+											stroke-width="2"
+										/>
+									</template>
+								</pattern>
+								<mask
+									v-if="gridPackedCells.length"
+									id="print-preview-grid-packed-mask"
+									maskUnits="userSpaceOnUse"
+									x="0"
+									y="0"
+									:width="gridRenderedWidthPx"
+									:height="gridRenderedHeightPx"
+								>
+									<rect
+										:width="gridRenderedWidthPx"
+										:height="gridRenderedHeightPx"
+										fill="#ffffff"
+									/>
+									<polygon
+										v-for="cell in gridPackedCells"
+										:key="cell.key"
+										:points="getGridPackedCellPoints(cell, true)"
+										fill="#000000"
+									/>
+								</mask>
 							</defs>
-							<g :transform="`translate(${gridRenderedOffsetX} ${gridRenderedOffsetY})`">
+							<g
+								:transform="`translate(${gridRenderedOffsetX} ${gridRenderedOffsetY})`"
+							>
 								<rect
 									data-grid-shape-area
 									:width="gridRenderedWidthPx"
 									:height="gridRenderedHeightPx"
-									fill="url(#print-preview-grid-shape-pattern)"
+									:data-grid-removal-highlight="isShapeRemovalHighlightActive"
+									:data-grid-addition-highlight="isShapeAdditionHighlightActive"
+									:data-grid-swap-highlight="isShapeSwapHighlightActive"
+									:mask="
+										gridPackedCells.length
+											? 'url(#print-preview-grid-packed-mask)'
+											: undefined
+									"
+									:fill="
+										isShapeRemovalHighlightActive ||
+											isShapeAdditionHighlightActive ||
+											isShapeSwapHighlightActive
+											? 'url(#print-preview-grid-removal-pattern)'
+											: 'url(#print-preview-grid-shape-pattern)'
+									"
 								/>
+								<template v-for="cell in gridPackedBaseCells" :key="cell.key">
+									<ellipse
+										v-if="cell.sides === 1"
+										:data-grid-packed-base="cell.key"
+										:cx="cell.x + cell.width / 2"
+										:cy="cell.y + cell.height / 2"
+										:rx="cell.width / 2"
+										:ry="cell.height / 2"
+										:fill="
+											isGridShapeCellRemoved(cell)
+												? '#ffffff'
+												: isGridShapeHighlightActive
+													? getGridHighlightColor(cell.row, cell.column)
+													: 'none'
+										"
+										stroke="#000000"
+										stroke-width="2"
+									/>
+									<polygon
+										v-else
+										:data-grid-packed-base="cell.key"
+										:points="getGridPackedCellPoints(cell)"
+										:fill="
+											isGridShapeCellRemoved(cell)
+												? '#ffffff'
+												: isGridShapeHighlightActive
+													? getGridHighlightColor(cell.row, cell.column)
+													: 'none'
+										"
+										stroke="#000000"
+										stroke-width="2"
+									/>
+								</template>
+								<template
+									v-for="layout in gridRowAdditionLayouts"
+									:key="`row-${layout.row}`"
+								>
+									<rect
+										:data-grid-row-addition="layout.row"
+										:data-grid-addition-cell-width="layout.cellWidth"
+										:x="0"
+										:y="layout.y"
+										:width="gridRenderedContentWidthPx"
+										:height="layout.height"
+										fill="none"
+									/>
+									<template v-for="shape in layout.shapes" :key="shape.key">
+										<ellipse
+											v-if="shape.sides === 1"
+											data-grid-added-shape="row"
+											:data-grid-added-row="shape.row"
+											:data-grid-added-sides="shape.sides"
+											:cx="shape.x + shape.width / 2"
+											:cy="shape.y + shape.height / 2"
+											:rx="shape.width / 2"
+											:ry="shape.height / 2"
+											:fill="
+												isGridShapeCellRemoved(shape)
+													? '#ffffff'
+													: isGridShapeHighlightActive
+														? shape.color
+														: 'none'
+											"
+											stroke="#000000"
+											stroke-width="2"
+										/>
+										<polygon
+											v-else
+											data-grid-added-shape="row"
+											:data-grid-added-row="shape.row"
+											:data-grid-added-sides="shape.sides"
+											:points="getGridPackedCellPoints(shape)"
+											:fill="
+												isGridShapeCellRemoved(shape)
+													? '#ffffff'
+													: isGridShapeHighlightActive
+														? shape.color
+														: 'none'
+											"
+											stroke="#000000"
+											stroke-width="2"
+										/>
+									</template>
+								</template>
+								<template
+									v-for="layout in gridColumnAdditionLayouts"
+									:key="`column-${layout.column}`"
+								>
+									<rect
+										:data-grid-column-addition="layout.column"
+										:data-grid-addition-cell-height="layout.cellHeight"
+										:x="layout.x"
+										:y="0"
+										:width="layout.width"
+										:height="gridRenderedContentHeightPx"
+										fill="none"
+									/>
+									<template v-for="shape in layout.shapes" :key="shape.key">
+										<ellipse
+											v-if="shape.sides === 1"
+											data-grid-added-shape="column"
+											:data-grid-added-column="shape.column"
+											:data-grid-added-sides="shape.sides"
+											:cx="shape.x + shape.width / 2"
+											:cy="shape.y + shape.height / 2"
+											:rx="shape.width / 2"
+											:ry="shape.height / 2"
+											:fill="
+												isGridShapeCellRemoved(shape)
+													? '#ffffff'
+													: isGridShapeHighlightActive
+														? shape.color
+														: 'none'
+											"
+											stroke="#000000"
+											stroke-width="2"
+										/>
+										<polygon
+											v-else
+											data-grid-added-shape="column"
+											:data-grid-added-column="shape.column"
+											:data-grid-added-sides="shape.sides"
+											:points="getGridPackedCellPoints(shape)"
+											:fill="
+												isGridShapeCellRemoved(shape)
+													? '#ffffff'
+													: isGridShapeHighlightActive
+														? shape.color
+														: 'none'
+											"
+											stroke="#000000"
+											stroke-width="2"
+										/>
+									</template>
+								</template>
+								<template v-for="shape in gridRemovedShapeLayouts" :key="shape.key">
+									<ellipse
+										v-if="shape.sides === 1"
+										:data-grid-removed-shape="shape.key"
+										:cx="shape.x + shape.width / 2"
+										:cy="shape.y + shape.height / 2"
+										:rx="shape.width / 2"
+										:ry="shape.height / 2"
+										fill="#ffffff"
+										stroke="#000000"
+										stroke-width="2"
+										pointer-events="none"
+									/>
+									<polygon
+										v-else
+										:data-grid-removed-shape="shape.key"
+										:points="
+											shape.isPacked
+												? getGridPackedCellPoints(shape)
+												: getGridShapeCellPolygonPoints(
+													shape.sides,
+													shape.variant,
+													shape.width,
+													shape.height,
+													shape.x,
+													shape.y,
+												)
+										"
+										fill="#ffffff"
+										stroke="#000000"
+										stroke-width="2"
+										pointer-events="none"
+									/>
+								</template>
 								<path
 									data-grid-outline
 									:d="`M 1 1 H ${Math.max(1, gridRenderedWidthPx - 1)} M 1 1 V ${Math.max(1, gridRenderedHeightPx - 1)} M ${Math.max(1, gridRenderedWidthPx - 1)} 1 V ${Math.max(1, gridRenderedHeightPx - 1)}`"
@@ -2176,314 +3033,589 @@ function handleCalibrationBarPointerUp() {
 				aria-label="Grid menu"
 				title="Grid menu"
 			>
-				<div class="grid-menu-control-row grid-menu-control-row--applied">
-					<span id="grid-applied-label" class="grid-menu-control-label">Grid Applied</span>
-					<button
-						id="grid-applied-button"
-						class="grid-menu-toggle-button"
-						:class="{
-							'grid-menu-toggle-button--on': isGridApplied,
-							'grid-menu-toggle-button--off': !isGridApplied,
-						}"
-						type="button"
-						:aria-label="isGridApplied ? 'Grid Applied: On' : 'Grid Applied: Off'"
-						:aria-pressed="isGridApplied"
-						@click="toggleGridApplied"
-					>
-						{{ isGridApplied ? "On" : "Off" }}
-					</button>
+				<div class="grid-menu-top-control-row">
+					<div class="grid-menu-control-row grid-menu-control-row--applied">
+						<span id="grid-applied-label" class="grid-menu-control-label"
+						>Grid Applied</span
+						>
+						<button
+							id="grid-applied-button"
+							class="grid-menu-toggle-button"
+							:class="{
+								'grid-menu-toggle-button--on': isGridApplied,
+								'grid-menu-toggle-button--off': !isGridApplied,
+							}"
+							type="button"
+							:aria-label="isGridApplied ? 'Grid Applied: On' : 'Grid Applied: Off'"
+							:aria-pressed="isGridApplied"
+							@click="toggleGridApplied"
+						>
+							{{ isGridApplied ? "On" : "Off" }}
+						</button>
+					</div>
+					<div class="grid-menu-control-row grid-menu-control-row--margins">
+						<span id="grid-apply-to-margins-label" class="grid-menu-control-label">
+							Apply to Margins
+						</span>
+						<button
+							id="grid-apply-to-margins-button"
+							class="grid-menu-toggle-button"
+							:class="
+								isApplyToMarginsOn
+									? 'grid-menu-toggle-button--on'
+									: 'grid-menu-toggle-button--off'
+							"
+							type="button"
+							:aria-pressed="isApplyToMarginsOn"
+							@click="toggleApplyToMargins"
+						>
+							{{ isApplyToMarginsOn ? "On" : "Off" }}
+						</button>
+					</div>
 				</div>
 				<div class="grid-menu-controls-layout">
 					<div class="grid-menu-control-headings">
 						<div id="grid-menu-alignment-heading" class="grid-menu-alignment-heading">
 							Alignment
 						</div>
-						<div id="grid-menu-size-heading" class="grid-menu-size-heading">
-							Size
-						</div>
 					</div>
 					<div class="grid-menu-control-columns">
 						<div class="grid-menu-alignment-controls">
-							<div class="grid-menu-position-picker">
-								<div id="grid-menu-position-heading" class="grid-menu-position-heading">
-									Grid Position
-								</div>
-								<select
-									id="grid-move-step"
-									v-model.number="gridMoveStep"
-									class="grid-menu-position-step-select"
-									aria-label="Grid movement distance in pixels"
-								>
-									<option :value="null" disabled>Select</option>
-									<option v-for="pixelAmount in 10" :key="pixelAmount" :value="pixelAmount">
-										{{ pixelAmount }}
-									</option>
-								</select>
-								<span id="grid-move-unit" aria-hidden="true">px</span>
-							</div>
-							<div
-								v-if="gridMoveStep !== null"
-								id="grid-menu-move-directions"
-								class="grid-menu-position-controls"
-								aria-labelledby="grid-menu-position-heading"
-							>
-								<div class="grid-menu-position-directions" role="group" aria-label="Move grid">
-									<button
-										id="grid-move-up-button"
-										class="grid-menu-position-button"
-										type="button"
-										aria-label="Move grid up"
-										title="Move grid up"
-										@click="nudgeGrid('up')"
-									>
-										Up
-									</button>
-									<button
-										id="grid-move-down-button"
-										class="grid-menu-position-button"
-										type="button"
-										aria-label="Move grid down"
-										title="Move grid down"
-										@click="nudgeGrid('down')"
-									>
-										Down
-									</button>
-									<button
-										id="grid-move-left-button"
-										class="grid-menu-position-button"
-										type="button"
-										aria-label="Move grid left"
-										title="Move grid left"
-										@click="nudgeGrid('left')"
-									>
-										Left
-									</button>
-									<button
-										id="grid-move-right-button"
-										class="grid-menu-position-button"
-										type="button"
-										aria-label="Move grid right"
-										title="Move grid right"
-										@click="nudgeGrid('right')"
-									>
-										Right
-									</button>
-								</div>
-							</div>
 							<div class="grid-menu-alignment-controls-inner">
-								<details id="grid-menu-alignment-dropdown" open>
-									<summary>Grid Alignment</summary>
+								<details id="grid-menu-alignment-dropdown">
+									<summary class="grid-menu-control-label">
+										Full Grid Alignment
+									</summary>
 									<fieldset
 										id="grid-menu-alignment-buttons"
 										class="grid-menu-alignment-buttons"
 										aria-label="Grid alignment"
 									>
 										<div class="grid-menu-alignment-row">
-										<button
-											id="grid-alignment-left-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button"
-											:class="{
-												'grid-menu-toggle-button--off': selectedGridAlignment !== 'left',
-												'grid-menu-toggle-button--on': selectedGridAlignment === 'left',
-												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'left',
-											}"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'left'"
-											@click="toggleGridAlignment('left')"
-										>
-											Left
-										</button>
-										<button
-											id="grid-alignment-center-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button"
-											:class="{
-												'grid-menu-toggle-button--off': selectedGridAlignment !== 'center',
-												'grid-menu-toggle-button--on': selectedGridAlignment === 'center',
-												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'center',
-											}"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'center'"
-											@click="toggleGridAlignment('center')"
-										>
-											Center
-										</button>
-										<button
-											id="grid-alignment-right-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button"
-											:class="{
-												'grid-menu-toggle-button--off': selectedGridAlignment !== 'right',
-												'grid-menu-toggle-button--on': selectedGridAlignment === 'right',
-												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'right',
-											}"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'right'"
-											@click="toggleGridAlignment('right')"
-										>
-											Right
-										</button>
+											<button
+												id="grid-alignment-left-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button"
+												:class="{
+													'grid-menu-toggle-button--off':
+														selectedGridAlignment !== 'left',
+													'grid-menu-toggle-button--on':
+														selectedGridAlignment === 'left',
+													'grid-menu-alignment-button--depressed':
+														selectedGridAlignment === 'left',
+												}"
+												type="button"
+												:aria-pressed="selectedGridAlignment === 'left'"
+												@click="toggleGridAlignment('left')"
+											>
+												Left
+											</button>
+											<button
+												id="grid-alignment-center-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button"
+												:class="{
+													'grid-menu-toggle-button--off':
+														selectedGridAlignment !== 'center',
+													'grid-menu-toggle-button--on':
+														selectedGridAlignment === 'center',
+													'grid-menu-alignment-button--depressed':
+														selectedGridAlignment === 'center',
+												}"
+												type="button"
+												:aria-pressed="selectedGridAlignment === 'center'"
+												@click="toggleGridAlignment('center')"
+											>
+												Center
+											</button>
+											<button
+												id="grid-alignment-right-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button"
+												:class="{
+													'grid-menu-toggle-button--off':
+														selectedGridAlignment !== 'right',
+													'grid-menu-toggle-button--on':
+														selectedGridAlignment === 'right',
+													'grid-menu-alignment-button--depressed':
+														selectedGridAlignment === 'right',
+												}"
+												type="button"
+												:aria-pressed="selectedGridAlignment === 'right'"
+												@click="toggleGridAlignment('right')"
+											>
+												Right
+											</button>
 										</div>
 										<div class="grid-menu-alignment-row">
-										<button
-											id="grid-alignment-bottom-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button"
-											:class="{
-												'grid-menu-toggle-button--off': selectedGridAlignment !== 'bottom',
-												'grid-menu-toggle-button--on': selectedGridAlignment === 'bottom',
-												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'bottom',
-											}"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'bottom'"
-											@click="toggleGridAlignment('bottom')"
-										>
-											Bottom
-										</button>
-										<button
-											id="grid-alignment-top-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button"
-											:class="{
-												'grid-menu-toggle-button--off': selectedGridAlignment !== 'top',
-												'grid-menu-toggle-button--on': selectedGridAlignment === 'top',
-												'grid-menu-alignment-button--depressed': selectedGridAlignment === 'top',
-											}"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'top'"
-											@click="toggleGridAlignment('top')"
-										>
-											Top
-										</button>
+											<button
+												id="grid-alignment-top-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button"
+												:class="{
+													'grid-menu-toggle-button--off':
+														selectedGridAlignment !== 'top',
+													'grid-menu-toggle-button--on':
+														selectedGridAlignment === 'top',
+													'grid-menu-alignment-button--depressed':
+														selectedGridAlignment === 'top',
+												}"
+												type="button"
+												:aria-pressed="selectedGridAlignment === 'top'"
+												@click="toggleGridAlignment('top')"
+											>
+												Top
+											</button>
+											<button
+												id="grid-alignment-top-left-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button--top-left"
+												:class="getGridAlignmentButtonState('top-left')"
+												type="button"
+												:aria-pressed="selectedGridAlignment === 'top-left'"
+												@click="toggleGridAlignment('top-left')"
+											>
+												Top Left
+											</button>
+											<button
+												id="grid-alignment-top-right-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button--top-right"
+												:class="getGridAlignmentButtonState('top-right')"
+												type="button"
+												:aria-pressed="
+													selectedGridAlignment === 'top-right'
+												"
+												@click="toggleGridAlignment('top-right')"
+											>
+												Top Right
+											</button>
 										</div>
 										<div class="grid-menu-alignment-row">
-										<button
-											id="grid-alignment-bottom-left-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button--bottom-left"
-											:class="getGridAlignmentButtonState('bottom-left')"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'bottom-left'"
-											@click="toggleGridAlignment('bottom-left')"
-										>
-											Bottom Left
-										</button>
-										<button
-											id="grid-alignment-bottom-right-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button--bottom-right"
-											:class="getGridAlignmentButtonState('bottom-right')"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'bottom-right'"
-											@click="toggleGridAlignment('bottom-right')"
-										>
-											Bottom Right
-										</button>
+											<button
+												id="grid-alignment-bottom-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button"
+												:class="{
+													'grid-menu-toggle-button--off':
+														selectedGridAlignment !== 'bottom',
+													'grid-menu-toggle-button--on':
+														selectedGridAlignment === 'bottom',
+													'grid-menu-alignment-button--depressed':
+														selectedGridAlignment === 'bottom',
+												}"
+												type="button"
+												:aria-pressed="selectedGridAlignment === 'bottom'"
+												@click="toggleGridAlignment('bottom')"
+											>
+												Bottom
+											</button>
+											<button
+												id="grid-alignment-bottom-left-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button--bottom-left"
+												:class="getGridAlignmentButtonState('bottom-left')"
+												type="button"
+												:aria-pressed="
+													selectedGridAlignment === 'bottom-left'
+												"
+												@click="toggleGridAlignment('bottom-left')"
+											>
+												Bottom Left
+											</button>
+											<button
+												id="grid-alignment-bottom-right-button"
+												class="grid-menu-toggle-button grid-menu-alignment-button--bottom-right"
+												:class="getGridAlignmentButtonState('bottom-right')"
+												type="button"
+												:aria-pressed="
+													selectedGridAlignment === 'bottom-right'
+												"
+												@click="toggleGridAlignment('bottom-right')"
+											>
+												Bottom Right
+											</button>
 										</div>
-										<div class="grid-menu-alignment-row">
 										<button
-											id="grid-alignment-top-left-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button--top-left"
-											:class="getGridAlignmentButtonState('top-left')"
+											id="grid-alignment-custom-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button grid-menu-alignment-custom-button grid-menu-toggle-button--off"
 											type="button"
-											:aria-pressed="selectedGridAlignment === 'top-left'"
-											@click="toggleGridAlignment('top-left')"
+											:aria-expanded="isGridPositionCustomOpen"
+											aria-controls="grid-menu-custom-position"
+											@click="
+												isGridPositionCustomOpen = !isGridPositionCustomOpen
+											"
 										>
-											Top Left
+											Custom
 										</button>
-										<button
-											id="grid-alignment-top-right-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button--top-right"
-											:class="getGridAlignmentButtonState('top-right')"
-											type="button"
-											:aria-pressed="selectedGridAlignment === 'top-right'"
-											@click="toggleGridAlignment('top-right')"
+										<div
+											v-if="isGridPositionCustomOpen"
+											id="grid-menu-custom-position"
+											class="grid-menu-custom-position"
 										>
-											Top Right
-										</button>
+											<div class="grid-menu-position-picker">
+												<div
+													id="grid-menu-position-heading"
+													class="grid-menu-position-heading grid-menu-control-label"
+												>
+													Grid Position
+												</div>
+												<select
+													id="grid-move-step"
+													v-model.number="gridMoveStep"
+													class="grid-menu-position-step-select"
+													aria-label="Grid movement distance in pixels"
+												>
+													<option :value="null" disabled>Select</option>
+													<option
+														v-for="pixelAmount in 10"
+														:key="pixelAmount"
+														:value="pixelAmount"
+													>
+														{{ pixelAmount }}
+													</option>
+												</select>
+												<span id="grid-move-unit" aria-hidden="true"
+												>px</span
+												>
+											</div>
+											<div
+												v-if="gridMoveStep !== null"
+												id="grid-menu-move-directions"
+												class="grid-menu-position-controls"
+												aria-labelledby="grid-menu-position-heading"
+											>
+												<div
+													class="grid-menu-position-directions"
+													role="group"
+													aria-label="Move grid"
+												>
+													<button
+														id="grid-move-up-button"
+														class="grid-menu-position-button"
+														type="button"
+														aria-label="Move grid up"
+														title="Move grid up"
+														@click="nudgeGrid('up')"
+													>
+														Up
+													</button>
+													<button
+														id="grid-move-down-button"
+														class="grid-menu-position-button"
+														type="button"
+														aria-label="Move grid down"
+														title="Move grid down"
+														@click="nudgeGrid('down')"
+													>
+														Down
+													</button>
+													<button
+														id="grid-move-left-button"
+														class="grid-menu-position-button"
+														type="button"
+														aria-label="Move grid left"
+														title="Move grid left"
+														@click="nudgeGrid('left')"
+													>
+														Left
+													</button>
+													<button
+														id="grid-move-right-button"
+														class="grid-menu-position-button"
+														type="button"
+														aria-label="Move grid right"
+														title="Move grid right"
+														@click="nudgeGrid('right')"
+													>
+														Right
+													</button>
+												</div>
+											</div>
 										</div>
 									</fieldset>
 								</details>
-								<label class="grid-menu-control-row grid-menu-control-row--amount" for="grid-rows-amount">
-									<span id="grid-rows-amount-label" class="grid-menu-control-label">Rows Amount</span>
-									<input
-										id="grid-rows-amount"
-										class="grid-menu-amount-input"
-										type="text"
-										inputmode="numeric"
-										pattern="[0-9]*"
-										maxlength="3"
-										:value="gridRowsAmount"
-										@input="gridRowsAmount = sanitizeGridAmount($event.target.value)"
-									/>
-								</label>
-								<label class="grid-menu-control-row grid-menu-control-row--amount" for="grid-columns-amount">
-									<span id="grid-columns-amount-label" class="grid-menu-control-label">Columns Amount</span>
-									<input
-										id="grid-columns-amount"
-										class="grid-menu-amount-input"
-										type="text"
-										inputmode="numeric"
-										pattern="[0-9]*"
-										maxlength="3"
-										:value="gridColumnsAmount"
-										@input="gridColumnsAmount = sanitizeGridAmount($event.target.value)"
-									/>
-								</label>
-								<div class="grid-menu-control-row grid-menu-control-row--margins">
-									<span id="grid-apply-to-margins-label" class="grid-menu-control-label">
-										Apply to Margins
-									</span>
-									<button
-										id="grid-apply-to-margins-button"
-										class="grid-menu-toggle-button"
-										:class="isApplyToMarginsOn ? 'grid-menu-toggle-button--on' : 'grid-menu-toggle-button--off'"
-										type="button"
-										:aria-pressed="isApplyToMarginsOn"
-										@click="toggleApplyToMargins"
+								<details id="grid-menu-single-shape-alignment-dropdown">
+									<summary class="grid-menu-control-label">
+										Single Shape Alignment
+									</summary>
+									<div
+										id="grid-menu-single-shape-options"
+										class="grid-menu-single-shape-options"
+										role="group"
+										aria-label="Single shape actions"
 									>
-										{{ isApplyToMarginsOn ? "On" : "Off" }}
-									</button>
-								</div>
+										<button
+											id="grid-menu-shape-removal-button"
+											class="grid-menu-single-shape-option"
+											:class="{
+												'grid-menu-single-shape-option--depressed':
+													selectedSingleShapeAction === 'removal',
+											}"
+											type="button"
+											:aria-pressed="selectedSingleShapeAction === 'removal'"
+											@click="toggleSingleShapeAction('removal')"
+										>
+											<span class="grid-menu-single-shape-option-label"
+											>Shape Removal</span
+											>
+											<span
+												class="grid-menu-single-shape-indicator"
+												:class="{
+													'grid-menu-single-shape-indicator--on':
+														selectedSingleShapeAction === 'removal',
+												}"
+												aria-hidden="true"
+											/>
+										</button>
+										<div class="grid-menu-shape-addition-controls">
+											<button
+												id="grid-menu-shape-addition-button"
+												class="grid-menu-single-shape-option"
+												:class="{
+													'grid-menu-single-shape-option--depressed':
+														selectedSingleShapeAction === 'addition',
+												}"
+												type="button"
+												:aria-pressed="
+													selectedSingleShapeAction === 'addition'
+												"
+												@click="toggleSingleShapeAction('addition')"
+											>
+												<span class="grid-menu-single-shape-option-label"
+												>Shape Addition</span
+												>
+												<span
+													class="grid-menu-single-shape-indicator"
+													:class="{
+														'grid-menu-single-shape-indicator--on':
+															selectedSingleShapeAction ===
+															'addition',
+													}"
+													aria-hidden="true"
+												/>
+											</button>
+											<div
+												v-if="selectedSingleShapeAction === 'addition'"
+												class="grid-menu-shape-addition-selection"
+											>
+												<div
+													class="grid-menu-shape-addition-directions"
+													role="group"
+													aria-label="Shape addition direction"
+												>
+													<button
+														id="grid-menu-shape-addition-row-button"
+														class="grid-menu-shape-addition-axis-button"
+														:class="{
+															'grid-menu-single-shape-option--depressed':
+																selectedGridShapeAdditionDirection ===
+																'row',
+														}"
+														type="button"
+														:aria-pressed="
+															selectedGridShapeAdditionDirection ===
+																'row'
+														"
+														@click="
+															toggleGridShapeAdditionDirection('row')
+														"
+													>
+														Row
+													</button>
+													<button
+														id="grid-menu-shape-addition-column-button"
+														class="grid-menu-shape-addition-axis-button"
+														:class="{
+															'grid-menu-single-shape-option--depressed':
+																selectedGridShapeAdditionDirection ===
+																'column',
+														}"
+														type="button"
+														:aria-pressed="
+															selectedGridShapeAdditionDirection ===
+																'column'
+														"
+														@click="
+															toggleGridShapeAdditionDirection(
+																'column',
+															)
+														"
+													>
+														Column
+													</button>
+												</div>
+												<select
+													v-if="selectedGridShapeAdditionDirection"
+													id="grid-menu-shape-addition-selection"
+													v-model.number="selectedGridShapeAdditionSides"
+													class="grid-menu-shape-addition-select"
+													:aria-label="`Shape to add to selected ${selectedGridShapeAdditionDirection}`"
+												>
+													<option :value="null" disabled>
+														Select a shape
+													</option>
+													<option
+														v-for="shapeOption in gridShapeOptions"
+														:key="shapeOption.sides"
+														:value="shapeOption.sides"
+													>
+														{{ shapeOption.label }}
+													</option>
+												</select>
+											</div>
+										</div>
+										<button
+											id="grid-menu-shape-swap-button"
+											class="grid-menu-single-shape-option"
+											:class="{
+												'grid-menu-single-shape-option--depressed':
+													selectedSingleShapeAction === 'swap',
+											}"
+											type="button"
+											:aria-pressed="selectedSingleShapeAction === 'swap'"
+											@click="toggleSingleShapeAction('swap')"
+										>
+											<span class="grid-menu-single-shape-option-label"
+											>Shape Swap</span
+											>
+											<span
+												class="grid-menu-single-shape-indicator"
+												:class="{
+													'grid-menu-single-shape-indicator--on':
+														selectedSingleShapeAction === 'swap',
+												}"
+												aria-hidden="true"
+											/>
+										</button>
+										<details
+											id="grid-menu-shape-manipulation-dropdown"
+											class="grid-menu-shape-manipulation-dropdown"
+										>
+											<summary class="grid-menu-control-label">
+												Shape Manipulation
+											</summary>
+										</details>
+									</div>
+								</details>
+								<details id="grid-menu-dimensions-dropdown">
+									<summary class="grid-menu-control-label">
+										Grid Dimensions
+									</summary>
+									<div class="grid-menu-dimensions-content">
+										<label
+											class="grid-menu-control-row grid-menu-control-row--amount"
+											for="grid-rows-amount"
+										>
+											<span
+												id="grid-rows-amount-label"
+												class="grid-menu-control-label"
+											>
+												Rows Amount
+											</span>
+											<input
+												id="grid-rows-amount"
+												class="grid-menu-amount-input"
+												type="text"
+												inputmode="numeric"
+												pattern="[0-9]*"
+												maxlength="3"
+												:value="gridRowsAmount"
+												@input="
+													gridRowsAmount = sanitizeGridAmount(
+														$event.target.value,
+													)
+												"
+											/>
+										</label>
+										<label
+											class="grid-menu-control-row grid-menu-control-row--amount"
+											for="grid-columns-amount"
+										>
+											<span
+												id="grid-columns-amount-label"
+												class="grid-menu-control-label"
+											>
+												Columns Amount
+											</span>
+											<input
+												id="grid-columns-amount"
+												class="grid-menu-amount-input"
+												type="text"
+												inputmode="numeric"
+												pattern="[0-9]*"
+												maxlength="3"
+												:value="gridColumnsAmount"
+												@input="
+													gridColumnsAmount = sanitizeGridAmount(
+														$event.target.value,
+													)
+												"
+											/>
+										</label>
+										<div
+											id="grid-menu-size-heading"
+											class="grid-menu-size-heading"
+										>
+											Size
+										</div>
+										<div
+											id="grid-shape-size-row"
+											class="grid-menu-size-dimensions-row"
+										>
+											<label
+												id="grid-shape-width-label"
+												class="grid-menu-size-width-label"
+												for="grid-shape-width-input"
+											>
+												Width
+											</label>
+											<input
+												id="grid-shape-width-input"
+												class="grid-menu-size-width-input"
+												type="text"
+												inputmode="decimal"
+												pattern="[0-9]*[.]?[0-9]*"
+												maxlength="4"
+												:value="gridShapeWidthInput"
+												@input="updateGridShapeWidthInput"
+											/>
+											<span
+												id="grid-shape-width-unit"
+												class="grid-menu-size-width-unit"
+											>inches</span
+											>
+											<label
+												id="grid-shape-height-label"
+												class="grid-menu-size-height-label"
+												for="grid-shape-height-input"
+											>
+												Height
+											</label>
+											<input
+												id="grid-shape-height-input"
+												class="grid-menu-size-height-input"
+												type="text"
+												inputmode="decimal"
+												pattern="[0-9]*[.]?[0-9]*"
+												maxlength="4"
+												:value="gridShapeHeightInput"
+												@input="updateGridShapeHeightInput"
+											/>
+											<span
+												id="grid-shape-height-unit"
+												class="grid-menu-size-height-unit"
+											>
+												inches
+											</span>
+											<button
+												id="grid-shape-size-commit-button"
+												class="grid-menu-size-commit-button"
+												type="button"
+												@click="commitGridShapeSize"
+											>
+												Commit
+											</button>
+										</div>
+									</div>
+								</details>
 							</div>
-						</div>
-						<div id="grid-shape-size-row" class="grid-menu-size-dimensions-row">
-							<label id="grid-shape-width-label" class="grid-menu-size-width-label" for="grid-shape-width-input">
-								Width
-							</label>
-							<input
-								id="grid-shape-width-input"
-								class="grid-menu-size-width-input"
-								type="text"
-								inputmode="decimal"
-								pattern="[0-9]*[.]?[0-9]*"
-								maxlength="4"
-								:value="gridShapeWidthInput"
-								@input="updateGridShapeWidthInput"
-							/>
-							<span id="grid-shape-width-unit" class="grid-menu-size-width-unit">inches</span>
-							<label id="grid-shape-height-label" class="grid-menu-size-height-label" for="grid-shape-height-input">
-								Height
-							</label>
-							<input
-								id="grid-shape-height-input"
-								class="grid-menu-size-height-input"
-								type="text"
-								inputmode="decimal"
-								pattern="[0-9]*[.]?[0-9]*"
-								maxlength="4"
-								:value="gridShapeHeightInput"
-								@input="updateGridShapeHeightInput"
-							/>
-							<span id="grid-shape-height-unit" class="grid-menu-size-height-unit">inches</span>
-							<button
-								id="grid-shape-size-commit-button"
-								class="grid-menu-size-commit-button"
-								type="button"
-								@click="commitGridShapeSize"
-							>
-								Commit
-							</button>
 						</div>
 					</div>
 				</div>
-				<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">
-					Shapes
-				</div>
+				<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">Shapes</div>
 				<div class="grid-menu-shapes-commit-group">
 					<ul
 						id="grid-menu-shapes-list"
@@ -2492,6 +3624,7 @@ function handleCalibrationBarPointerUp() {
 					>
 						<li v-for="shapeOption in gridShapeOptions" :key="shapeOption.sides">
 							<button
+								:id="`grid-shape-option-${shapeOption.sides}`"
 								class="grid-menu-shapes-option"
 								:class="{
 									'grid-menu-shapes-option--selected':
@@ -2513,6 +3646,7 @@ function handleCalibrationBarPointerUp() {
 							>
 								<li v-for="variant in quadrilateralVariants" :key="variant.id">
 									<button
+										:id="`grid-quadrilateral-variant-${variant.id}`"
 										class="grid-menu-shapes-option"
 										:class="{
 											'grid-menu-shapes-option--selected':
@@ -2521,7 +3655,10 @@ function handleCalibrationBarPointerUp() {
 											'grid-menu-shapes-option--even': true,
 										}"
 										:data-shape-variant="variant.id"
-										:aria-pressed="selectedGridShapeSides === 4 && selectedGridShapeVariant === variant.id"
+										:aria-pressed="
+											selectedGridShapeSides === 4 &&
+												selectedGridShapeVariant === variant.id
+										"
 										type="button"
 										@click="selectGridShapeVariant(variant)"
 									>
@@ -2540,13 +3677,15 @@ function handleCalibrationBarPointerUp() {
 						Commit
 					</button>
 				</div>
-				<div id="grid-menu-lines-heading" class="grid-menu-lines-heading">
-					Lines
-				</div>
+				<div id="grid-menu-lines-heading" class="grid-menu-lines-heading">Lines</div>
 				<button
 					id="grid-menu-printable-button"
 					class="grid-menu-printable-button"
-					:class="isGridPrintable ? 'grid-menu-printable-button--on' : 'grid-menu-printable-button--off'"
+					:class="
+						isGridPrintable
+							? 'grid-menu-printable-button--on'
+							: 'grid-menu-printable-button--off'
+					"
 					type="button"
 					:aria-pressed="isGridPrintable"
 					@click="toggleGridPrintable"
@@ -2554,40 +3693,25 @@ function handleCalibrationBarPointerUp() {
 					Printable
 				</button>
 				<dialog
-					v-if="isGridSelectionPromptOpen"
-					id="grid-menu-selection-prompt"
-					open
-					class="grid-menu-selection-prompt"
-					aria-labelledby="grid-menu-selection-prompt-message"
-				>
-					<p id="grid-menu-selection-prompt-message">
-						Load or Create a Template or Shell in Order to Switch the Grid on
-					</p>
-					<button
-						id="grid-menu-selection-prompt-back-button"
-						class="grid-menu-selection-prompt-back-button"
-						type="button"
-						@click="closeGridSelectionPrompt"
-					>
-						Back
-					</button>
-				</dialog>
-				<dialog
 					v-if="isQuadrilateralPromptOpen"
 					id="grid-menu-quadrilateral-prompt"
 					open
 					class="grid-menu-quadrilateral-prompt"
 					aria-labelledby="grid-menu-quadrilateral-prompt-message"
 				>
-					<p id="grid-menu-quadrilateral-prompt-message">Pick One of the Quadrilaterals</p>
-					<button
-						id="grid-menu-quadrilateral-prompt-back-button"
-						class="grid-menu-quadrilateral-prompt-back-button"
-						type="button"
-						@click="closeQuadrilateralPrompt"
-					>
-						Back
-					</button>
+					<p id="grid-menu-quadrilateral-prompt-message">
+						Pick One of the Quadrilaterals
+					</p>
+					<Teleport to="body">
+						<button
+							id="grid-menu-quadrilateral-prompt-back-button"
+							class="grid-menu-quadrilateral-prompt-back-button navigation-back-button"
+							type="button"
+							@click="closeQuadrilateralPrompt"
+						>
+							Back
+						</button>
+					</Teleport>
 				</dialog>
 			</section>
 			<section
@@ -2640,18 +3764,14 @@ function handleCalibrationBarPointerUp() {
 				class="text-editor-tools-panel"
 				:class="{
 					'text-editor-tools-panel--shell': isShellMode,
-					'text-editor-tools-panel--template':
-						isUnsavedNewDocument && !isShellMode,
+					'text-editor-tools-panel--template': isUnsavedNewDocument && !isShellMode,
 				}"
 				aria-label="Editing tools"
 				title="Editing tools"
 			>
 				<div class="text-editor-ribbon-group">
 					<div class="text-editor-size-action-row">
-						<div
-							v-if="isEditingToolsOpen"
-							class="text-editor-size-menu-row"
-						>
+						<div v-if="isEditingToolsOpen" class="text-editor-size-menu-row">
 							<div class="text-editor-size-menu-top-row">
 								<button
 									id="text-editor-size-menu-button"
@@ -2799,7 +3919,8 @@ function handleCalibrationBarPointerUp() {
 									id="text-editor-font-styles-button"
 									class="text-editor-font-styles-button"
 									:class="{
-										'text-editor-font-styles-button--depressed': isStylesMenuOpen,
+										'text-editor-font-styles-button--depressed':
+											isStylesMenuOpen,
 									}"
 									data-font-option="styles"
 									type="button"
@@ -2812,7 +3933,8 @@ function handleCalibrationBarPointerUp() {
 									id="text-editor-font-color-button"
 									class="text-editor-font-color-button"
 									:class="{
-										'text-editor-font-color-button--depressed': isFontColorMenuOpen,
+										'text-editor-font-color-button--depressed':
+											isFontColorMenuOpen,
 									}"
 									data-font-option="color"
 									type="button"
@@ -2825,7 +3947,8 @@ function handleCalibrationBarPointerUp() {
 									id="text-editor-font-size-button"
 									class="text-editor-font-size-button"
 									:class="{
-										'text-editor-font-size-button--depressed': isFontSizeMenuOpen,
+										'text-editor-font-size-button--depressed':
+											isFontSizeMenuOpen,
 									}"
 									data-font-option="font-size"
 									type="button"
@@ -2840,12 +3963,14 @@ function handleCalibrationBarPointerUp() {
 									id="text-editor-font-size-menu"
 									class="text-editor-font-styles-menu text-editor-font-size-menu"
 									:class="{
-										'text-editor-font-size-menu--below-styles': isStylesMenuOpen,
+										'text-editor-font-size-menu--below-styles':
+											isStylesMenuOpen,
 										'text-editor-font-size-menu--below-color':
 											!isStylesMenuOpen && isFontColorMenuOpen,
 										'text-editor-font-size-menu--left-of-fonts':
 											!isStylesMenuOpen && !isFontColorMenuOpen,
-										'text-editor-font-size-menu--lowered': shouldLowerNestedFontMenus,
+										'text-editor-font-size-menu--lowered':
+											shouldLowerNestedFontMenus,
 									}"
 									aria-label="Font size"
 									title="Font size"
@@ -2879,7 +4004,8 @@ function handleCalibrationBarPointerUp() {
 									id="text-editor-font-styles-menu"
 									class="text-editor-font-styles-menu"
 									:class="{
-										'text-editor-font-styles-menu--lowered': shouldLowerNestedFontMenus,
+										'text-editor-font-styles-menu--lowered':
+											shouldLowerNestedFontMenus,
 									}"
 									aria-label="Font styles"
 									title="Font styles"
@@ -2907,9 +4033,12 @@ function handleCalibrationBarPointerUp() {
 									id="text-editor-font-color-menu"
 									class="text-editor-font-styles-menu text-editor-font-color-menu"
 									:class="{
-										'text-editor-font-color-menu--above-styles': isStylesMenuOpen,
-										'text-editor-font-color-menu--left-of-fonts': !isStylesMenuOpen,
-										'text-editor-font-color-menu--lowered': shouldLowerNestedFontMenus,
+										'text-editor-font-color-menu--above-styles':
+											isStylesMenuOpen,
+										'text-editor-font-color-menu--left-of-fonts':
+											!isStylesMenuOpen,
+										'text-editor-font-color-menu--lowered':
+											shouldLowerNestedFontMenus,
 									}"
 									aria-label="Font color"
 									title="Font color"
@@ -3136,7 +4265,10 @@ function handleCalibrationBarPointerUp() {
 								title="Margins"
 							>
 								<div class="text-editor-margin-controls">
-									<label class="text-editor-margin-row" for="text-editor-margin-top-input">
+									<label
+										class="text-editor-margin-row"
+										for="text-editor-margin-top-input"
+									>
 										<span>Top</span>
 										<input
 											id="text-editor-margin-top-input"
@@ -3148,7 +4280,10 @@ function handleCalibrationBarPointerUp() {
 											@input="updateMarginValue('top', $event)"
 										/>
 									</label>
-									<label class="text-editor-margin-row" for="text-editor-margin-bottom-input">
+									<label
+										class="text-editor-margin-row"
+										for="text-editor-margin-bottom-input"
+									>
 										<span>Bottom</span>
 										<input
 											id="text-editor-margin-bottom-input"
@@ -3160,7 +4295,10 @@ function handleCalibrationBarPointerUp() {
 											@input="updateMarginValue('bottom', $event)"
 										/>
 									</label>
-									<label class="text-editor-margin-row" for="text-editor-margin-left-input">
+									<label
+										class="text-editor-margin-row"
+										for="text-editor-margin-left-input"
+									>
 										<span>Left</span>
 										<input
 											id="text-editor-margin-left-input"
@@ -3172,7 +4310,10 @@ function handleCalibrationBarPointerUp() {
 											@input="updateMarginValue('left', $event)"
 										/>
 									</label>
-									<label class="text-editor-margin-row" for="text-editor-margin-right-input">
+									<label
+										class="text-editor-margin-row"
+										for="text-editor-margin-right-input"
+									>
 										<span>Right</span>
 										<input
 											id="text-editor-margin-right-input"
@@ -3184,7 +4325,10 @@ function handleCalibrationBarPointerUp() {
 											@input="updateMarginValue('right', $event)"
 										/>
 									</label>
-									<label class="text-editor-margin-row" for="text-editor-margin-all-sides-input">
+									<label
+										class="text-editor-margin-row"
+										for="text-editor-margin-all-sides-input"
+									>
 										<span>All Sides</span>
 										<input
 											id="text-editor-margin-all-sides-input"
@@ -3202,8 +4346,10 @@ function handleCalibrationBarPointerUp() {
 											id="text-editor-margin-visibility-button"
 											class="text-editor-margin-visibility-button"
 											:class="{
-												'text-editor-margin-visibility-button--on': isMarginVisibilityOn,
-												'text-editor-margin-visibility-button--off': !isMarginVisibilityOn,
+												'text-editor-margin-visibility-button--on':
+													isMarginVisibilityOn,
+												'text-editor-margin-visibility-button--off':
+													!isMarginVisibilityOn,
 											}"
 											type="button"
 											:aria-pressed="isMarginVisibilityOn"
@@ -3277,13 +4423,13 @@ function handleCalibrationBarPointerUp() {
 		<button
 			v-if="!isTextEditorOpen"
 			id="parent-screen-back-button-parent"
-			class="parent-screen-back-button-parent"
+			class="parent-screen-back-button-parent navigation-back-button"
 			type="button"
 			name="parent-screen-back-button-parent"
 			data-button-name="parent-screen-back-button-parent"
 			aria-label="Back to home"
 			title="Back to home"
-			@click="handleParentScreenClose"
+			@click="handleParentScreenBack"
 		>
 			Back
 		</button>

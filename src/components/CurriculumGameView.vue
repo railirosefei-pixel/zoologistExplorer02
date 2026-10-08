@@ -29,7 +29,6 @@ function handleCurriculumGameScreenHome() {
 		<aside
 			id="curriculum-game-sidebar"
 			class="curriculum-game-sidebar"
-			role="complementary"
 			aria-label="Curriculum Game sidebar"
 			title="Curriculum Game sidebar"
 		>
@@ -50,7 +49,7 @@ function handleCurriculumGameScreenHome() {
 		</aside>
 		<button
 			id="curriculum-game-screen-home-button"
-			class="curriculum-game-screen-home-button"
+			class="curriculum-game-screen-home-button navigation-home-button"
 			type="button"
 			name="curriculum-game-screen-home-button"
 			data-button-name="curriculum-game-screen-home-button"
@@ -62,7 +61,7 @@ function handleCurriculumGameScreenHome() {
 		</button>
 		<button
 			id="curriculum-game-screen-back-button"
-			class="curriculum-game-screen-back-button"
+			class="curriculum-game-screen-back-button navigation-back-button"
 			type="button"
 			name="curriculum-game-screen-back-button"
 			data-button-name="curriculum-game-screen-back-button"

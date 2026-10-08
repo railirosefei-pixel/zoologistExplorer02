@@ -429,7 +429,7 @@ onMounted(() => {
 		<button
 			v-if="!activeStudentMenu"
 			id="student-menu-back-button"
-			class="student-menu-back-button"
+			class="student-menu-back-button navigation-back-button"
 			type="button"
 			name="student-menu-back-button"
 			data-button-name="student-menu-back-button"
@@ -519,7 +519,7 @@ onMounted(() => {
 			<button
 				v-if="activeStudentMenu === 'progress'"
 				id="student-progress-back-button"
-				class="student-progress-back-button"
+				class="student-progress-back-button navigation-back-button"
 				type="button"
 				name="student-progress-back-button"
 				data-button-name="student-progress-back-button"
@@ -532,7 +532,7 @@ onMounted(() => {
 			<button
 				v-if="activeStudentMenu === 'progress'"
 				id="student-progress-home-button"
-				class="student-progress-home-button"
+				class="student-progress-home-button navigation-home-button"
 				type="button"
 				name="student-progress-home-button"
 				data-button-name="student-progress-home-button"
@@ -832,21 +832,19 @@ onMounted(() => {
 					@pointercancel="handleRailiResizeEnd"
 				/>
 			</div>
-			<div
+			<button
 				v-if="activeStudentMenu === 'progress' && isResizeModeActive"
 				id="student-progress-resize-commit-button"
 				class="student-progress-resize-commit-button"
-				role="button"
-				tabindex="0"
+				type="button"
 				name="student-progress-resize-commit-button"
 				data-button-name="student-progress-resize-commit-button"
 				aria-label="Commit Raili size"
 				title="Commit Raili size"
 				@click="handleResizeCommit"
-				@keydown.enter="handleResizeCommit"
 			>
 				Commit
-			</div>
+			</button>
 			<div
 				v-if="activeStudentMenu === 'progress' && explorerPositionsModeActive"
 				id="student-progress-resize-dock"
@@ -969,6 +967,7 @@ onMounted(() => {
 							type="text"
 							inputmode="numeric"
 							maxlength="3"
+							aria-label="Custom level reset days"
 							@keydown.enter.prevent="handleLevelResetSubmit"
 						/>
 					</div>
@@ -1024,6 +1023,7 @@ onMounted(() => {
 							type="text"
 							inputmode="numeric"
 							maxlength="3"
+							aria-label="Custom XP reset days"
 							@keydown.enter.prevent="handleXpResetSubmit"
 						/>
 					</div>

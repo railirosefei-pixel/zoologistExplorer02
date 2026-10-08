@@ -270,6 +270,134 @@ test("workflow Back confirms edits to loaded and created shells and templates", 
 	await confirmBackAfterEdit(async () => {});
 });
 
+test("navigation Save tracks new template text and new shell grid changes", async ({ page }) => {
+	await page.setViewportSize({ width: 2560, height: 1080 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+
+	const saveButton = page.locator("#text-editor-document-save-button");
+	const newButton = page.locator("#text-editor-template-new-button");
+	await expect(saveButton).toHaveCount(0);
+	await newButton.click();
+	await page.getByRole("button", { name: "Create A Template", exact: true }).click();
+	await expect(saveButton).toHaveCount(0);
+
+	const editor = page.locator(".print-preview-paper-editor");
+	await editor.fill("Unsaved template text");
+	await expect(saveButton).toBeVisible();
+	await editor.fill("");
+	await expect(saveButton).toHaveCount(0);
+
+	await newButton.click();
+	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+	await expect(saveButton).toHaveCount(0);
+	await page.locator("#text-editor-grid-button").click();
+	const appliedGridButton = page.locator("#grid-applied-button");
+	await appliedGridButton.click();
+	await expect(saveButton).toBeVisible();
+	await appliedGridButton.click();
+	await expect(saveButton).toHaveCount(0);
+
+	const rowsAmount = page.locator("#grid-rows-amount");
+	await rowsAmount.fill("8");
+	await expect(saveButton).toBeVisible();
+	await rowsAmount.fill("");
+	await expect(saveButton).toHaveCount(0);
+});
+
+test("navigation Save tracks loaded template content and loaded shell size", async ({ page }) => {
+	await page.goto("./");
+	await page.evaluate(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "save-button-template",
+					name: "Save button template",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "Original loaded text",
+						widthValue: "6",
+						widthUnit: "in",
+						heightValue: "9",
+						heightUnit: "in",
+						isShell: false,
+					},
+				},
+				{
+					id: "save-button-shell",
+					name: "Save button shell",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "",
+						widthValue: "7",
+						widthUnit: "in",
+						heightValue: "9",
+						heightUnit: "in",
+						isShell: true,
+					},
+				},
+			]),
+		);
+	});
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	const saveButton = page.locator("#text-editor-document-save-button");
+	const loadButton = page.locator("#text-editor-template-load-button");
+	await loadButton.click();
+	await page.getByRole("button", { name: "Save button template" }).click();
+	await expect(saveButton).toHaveCount(0);
+
+	const editor = page.locator(".print-preview-paper-editor");
+	await editor.fill("Edited loaded text");
+	await expect(saveButton).toBeVisible();
+	await editor.fill("Original loaded text");
+	await expect(saveButton).toHaveCount(0);
+	await page.locator("#text-editor-workflow-back-button").click();
+	await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
+
+	await loadButton.click();
+	await page.getByRole("button", { name: "Load Shells" }).click();
+	await page.getByRole("button", { name: "Save button shell" }).click();
+	await expect(saveButton).toHaveCount(0);
+	await page.locator("#text-editor-editing-tools-button").click();
+	await page.locator("#text-editor-size-menu-button").click();
+	const widthInput = page.locator("#text-editor-size-width");
+	await widthInput.fill("7.5");
+	await expect(saveButton).toBeVisible();
+
+	const buttonStyles = await page.evaluate(() => {
+		const tools = document.querySelector("#text-editor-editing-tools-button");
+		const save = document.querySelector("#text-editor-document-save-button");
+		const toolsBounds = tools.getBoundingClientRect();
+		const saveBounds = save.getBoundingClientRect();
+		const toolsStyle = getComputedStyle(tools);
+		const saveStyle = getComputedStyle(save);
+		return {
+			sameDimensions:
+				toolsBounds.width === saveBounds.width && toolsBounds.height === saveBounds.height,
+			sameFont:
+				toolsStyle.fontFamily === saveStyle.fontFamily &&
+				toolsStyle.fontSize === saveStyle.fontSize &&
+				toolsStyle.fontWeight === saveStyle.fontWeight,
+			sameRadius: toolsStyle.borderRadius === saveStyle.borderRadius,
+			toolsGradient: toolsStyle.backgroundImage,
+			saveGradient: saveStyle.backgroundImage,
+		};
+	});
+	expect(buttonStyles).toEqual({
+		sameDimensions: true,
+		sameFont: true,
+		sameRadius: true,
+		toolsGradient: "linear-gradient(90deg, rgb(255, 244, 194) 0%, rgb(245, 223, 138) 100%)",
+		saveGradient: "linear-gradient(90deg, rgb(217, 214, 255) 0%, rgb(182, 174, 240) 100%)",
+	});
+
+	await widthInput.fill("7");
+	await expect(saveButton).toHaveCount(0);
+});
+
 test("Tools in the top navigation opens the editing controls", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();

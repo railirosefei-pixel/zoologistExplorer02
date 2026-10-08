@@ -711,6 +711,17 @@ function handleStudentEditsScreenClose() {
 	emit("back-to-parent-menu");
 }
 
+function handleBlocksScreenBack() {
+	if (isDescriptionEditsOpen.value) {
+		isDescriptionEditsOpen.value = false;
+		descriptionEditsMode.value = null;
+	} else if (isBlockEditsOpen.value) {
+		isBlockEditsOpen.value = false;
+	} else {
+		isBlocksMenuOpen.value = false;
+	}
+}
+
 function handleMathCurriculumOctoberOpen() {
 	emit("open-math-curriculum-october");
 }
@@ -760,8 +771,9 @@ function handleStudentEditsScreenHome() {
 			</button>
 			<div class="student-edits-sidebar-actions">
 				<button
+					v-show="!isBlocksMenuOpen"
 					id="student-edits-screen-home-button"
-					class="student-edits-screen-home-button"
+					class="student-edits-screen-home-button navigation-home-button"
 					type="button"
 					name="student-edits-screen-home-button"
 					data-button-name="student-edits-screen-home-button"
@@ -772,8 +784,9 @@ function handleStudentEditsScreenHome() {
 					Home
 				</button>
 				<button
+					v-show="!isBlocksMenuOpen"
 					id="student-edits-screen-back-button"
-					class="student-edits-screen-back-button"
+					class="student-edits-screen-back-button navigation-back-button"
 					type="button"
 					name="student-edits-screen-back-button"
 					data-button-name="student-edits-screen-back-button"
@@ -823,7 +836,7 @@ function handleStudentEditsScreenHome() {
 			<div class="blocks-menu-sidebar-actions student-edits-sidebar-actions">
 				<button
 					id="blocks-screen-home-button"
-					class="blocks-screen-home-button"
+					class="blocks-screen-home-button navigation-home-button"
 					type="button"
 					name="blocks-screen-home-button"
 					data-button-name="blocks-screen-home-button"
@@ -835,13 +848,13 @@ function handleStudentEditsScreenHome() {
 				</button>
 				<button
 					id="blocks-screen-back-button"
-					class="blocks-screen-back-button"
+					class="blocks-screen-back-button navigation-back-button"
 					type="button"
 					name="blocks-screen-back-button"
 					data-button-name="blocks-screen-back-button"
-					aria-label="Back to parent"
-					title="Back to parent"
-					@click="handleStudentEditsScreenClose"
+					aria-label="Back one screen"
+					title="Back one screen"
+					@click="handleBlocksScreenBack"
 				>
 					Back
 				</button>

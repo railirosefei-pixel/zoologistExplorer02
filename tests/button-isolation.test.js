@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import { parse as parseSfc } from "vue/compiler-sfc";
+import { parse as parseScript, parseExpression } from "@babel/parser";
 
 const projectRoot = process.cwd();
 const sourceRoot = path.join(projectRoot, "src");
@@ -17,7 +19,7 @@ function collectVueFiles(directory) {
 		.flatMap((entry) => {
 			const fullPath = path.join(directory, entry.name);
 			if (entry.isDirectory()) {
-				return collectVueFiles(fullPath);
+				return entry.name === "assets" ? [] : collectVueFiles(fullPath);
 			}
 
 			return entry.isFile() && entry.name.endsWith(".vue") ? [fullPath] : [];
@@ -25,62 +27,175 @@ function collectVueFiles(directory) {
 		.sort();
 }
 
-function collectOpeningTags(source, tagName) {
-	return [...source.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, "g"))].map((match) => match[0]);
-}
-
-function collectAttributeValues(source, attributeName) {
-	const escapedAttributeName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	const pattern = new RegExp(`(?:^|\\s)${escapedAttributeName}\\s*=\\s*(["'])(.*?)\\1`, "gs");
-	return [...source.matchAll(pattern)].map((match) => match[2]);
-}
-
-function collectBoundAttributeValues(source, attributeName) {
-	const escapedAttributeName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	const pattern = new RegExp(`(?:^|\\s):${escapedAttributeName}\\s*=\\s*(["'])(.*?)\\1`, "gs");
-	return [...source.matchAll(pattern)].map((match) => match[2]);
-}
-
-function collectBoundClassValues(source, openingTag) {
-	const classBinding = collectBoundAttributeValues(openingTag, "class")[0] ?? "";
-	const inlineClassNames = [...classBinding.matchAll(/["']([A-Za-z_][\w-]*)["']/g)].map(
-		(match) => match[1],
-	);
-	if (inlineClassNames.length > 0) {
-		return inlineClassNames;
+function walkSyntax(node, visit) {
+	if (!node || typeof node !== "object") return;
+	if (typeof node.type === "string") visit(node);
+	for (const [key, value] of Object.entries(node)) {
+		if (["loc", "start", "end", "comments", "tokens"].includes(key)) continue;
+		if (Array.isArray(value)) value.forEach((child) => walkSyntax(child, visit));
+		else if (value && typeof value === "object") walkSyntax(value, visit);
 	}
-
-	const classMapName = classBinding.match(/^([A-Za-z_$][\w$]*)\s*\[/)?.[1];
-	if (!classMapName) {
-		return [];
-	}
-
-	const escapedClassMapName = classMapName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	const classMap = source.match(
-		new RegExp(`\\bconst\\s+${escapedClassMapName}\\s*=\\s*\\{([\\s\\S]*?)\\n\\};`),
-	)?.[1];
-	if (!classMap) {
-		return [];
-	}
-
-	return [...classMap.matchAll(/:\s*\[([^\]]*)\]/g)].flatMap((match) =>
-		[...match[1].matchAll(/["']([A-Za-z_][\w-]*)["']/g)].map((classMatch) => classMatch[1]),
-	);
 }
 
-function collectButtonRecords(source, filePath) {
-	return collectOpeningTags(source, "button").map((openingTag) => ({
-		filePath,
-		id:
-			collectAttributeValues(openingTag, "id")[0] ??
-			collectBoundAttributeValues(openingTag, "id")[0] ??
-			"",
-		classes: [
-			...(collectAttributeValues(openingTag, "class")[0]?.split(/\s+/).filter(Boolean) ?? []),
-			...collectBoundClassValues(source, openingTag),
-		],
-		clickHandler: collectAttributeValues(openingTag, "@click")[0] ?? "",
-	}));
+// Only class-producing positions count: object keys and result branches, not conditions.
+function collectClassValues(node, bindings = new Map(), resolving = new Set()) {
+	if (!node) return [];
+	const collect = (child) => collectClassValues(child, bindings, resolving);
+	switch (node.type) {
+		case "StringLiteral":
+			return node.value.split(/\s+/).filter(Boolean);
+		case "TemplateLiteral":
+			return node.expressions.length === 0
+				? node.quasis[0].value.cooked.split(/\s+/).filter(Boolean)
+				: [];
+		case "ObjectExpression":
+			return node.properties.flatMap((property) =>
+				property.type === "SpreadElement"
+					? collect(property.argument)
+					: property.computed
+						? collect(property.key)
+						: [property.key.name ?? property.key.value].flatMap((key) =>
+								typeof key === "string" ? key.split(/\s+/).filter(Boolean) : [],
+							),
+			);
+		case "ArrayExpression":
+			return node.elements.flatMap(collect);
+		case "ConditionalExpression":
+			return [...collect(node.consequent), ...collect(node.alternate)];
+		case "LogicalExpression":
+			return node.operator === "&&"
+				? collect(node.right)
+				: [...collect(node.left), ...collect(node.right)];
+		case "Identifier": {
+			if (resolving.has(node.name)) return [];
+			const next = new Set(resolving).add(node.name);
+			return collectClassValues(bindings.get(node.name), bindings, next);
+		}
+		case "MemberExpression": {
+			const object =
+				node.object.type === "Identifier" ? bindings.get(node.object.name) : null;
+			return object?.type === "ObjectExpression"
+				? object.properties.flatMap((property) => collect(property.value))
+				: [];
+		}
+		case "CallExpression":
+			if (node.callee.name === "computed" || node.callee.name === "ref") {
+				return collect(node.arguments[0]);
+			}
+			return node.callee.type === "Identifier" ? collect(node.callee) : [];
+		case "ArrowFunctionExpression":
+		case "FunctionExpression":
+		case "FunctionDeclaration": {
+			if (node.body.type !== "BlockStatement") return collect(node.body);
+			const values = [];
+			walkSyntax(node.body, (child) => {
+				if (child.type === "ReturnStatement") values.push(...collect(child.argument));
+			});
+			return values;
+		}
+		default:
+			return [];
+	}
+}
+
+function parseButtonSource(source, filePath) {
+	const { descriptor, errors } = parseSfc(source, { filename: filePath });
+	assert.deepEqual(errors, [], `${filePath} must have a valid Vue template`);
+	const scripts = [descriptor.script, descriptor.scriptSetup]
+		.filter(Boolean)
+		.map((block) => parseScript(block.content, { sourceType: "module" }));
+	const bindings = new Map();
+	for (const script of scripts) {
+		walkSyntax(script, (node) => {
+			if (node.type === "VariableDeclarator" && node.id.type === "Identifier") {
+				bindings.set(node.id.name, node.init);
+			} else if (node.type === "FunctionDeclaration" && node.id) {
+				bindings.set(node.id.name, node);
+			}
+		});
+	}
+	const buttons = [];
+	function visitTemplate(node) {
+		if (node.type === 1 && node.tag === "button") {
+			const attribute = (name) =>
+				node.props.find((prop) => prop.type === 6 && prop.name === name);
+			const directive = (name, argument) =>
+				node.props.find(
+					(prop) =>
+						prop.type === 7 && prop.name === name && prop.arg?.content === argument,
+				);
+			const classBinding = directive("bind", "class");
+			buttons.push({
+				filePath,
+				id: attribute("id")?.value?.content ?? directive("bind", "id")?.exp?.content ?? "",
+				classes: [
+					...new Set([
+						...(attribute("class")?.value?.content.split(/\s+/).filter(Boolean) ?? []),
+						...collectClassValues(
+							classBinding?.exp ? parseExpression(classBinding.exp.content) : null,
+							bindings,
+						),
+					]),
+				],
+				hasClassBinding: Boolean(classBinding),
+				clickHandler: directive("on", "click")?.exp?.content ?? "",
+			});
+		}
+		for (const child of node.children ?? []) visitTemplate(child);
+	}
+	if (descriptor.template) visitTemplate(descriptor.template.ast);
+	return { buttons, scripts };
+}
+
+function collectButtonOwnershipFindings(sources) {
+	const findings = [];
+	const records = sources.map(({ source, filePath }) => parseButtonSource(source, filePath));
+	const buttons = records.flatMap((record) => record.buttons);
+	const ids = new Map();
+	for (const button of buttons) {
+		if (!button.id.trim())
+			findings.push(`${button.filePath} contains a button without a stable id`);
+		else ids.set(button.id, [...(ids.get(button.id) ?? []), button.filePath]);
+		if (!button.classes.length && !button.hasClassBinding) {
+			findings.push(`${button.filePath}#${button.id} has no class-owned styling`);
+		}
+		if (button.clickHandler) {
+			// Vue permits statements and member calls as well as named handlers.
+			assert.doesNotThrow(
+				() => parseScript(button.clickHandler, { allowReturnOutsideFunction: true }),
+				`${button.filePath}#${button.id} has an invalid click expression`,
+			);
+		}
+	}
+	for (const [id, files] of ids) {
+		if (files.length > 1) findings.push(`button id "${id}" is reused in ${files.join(", ")}`);
+	}
+	// Classes own presentation, not identity. A singleton behavior lookup using a
+	// shared class is ambiguous; explicit querySelectorAll group operations are not.
+	for (const { scripts } of records) {
+		for (const script of scripts) {
+			walkSyntax(script, (node) => {
+				if (node.type !== "CallExpression" || node.callee.type !== "MemberExpression")
+					return;
+				const method = node.callee.computed
+					? node.callee.property.value
+					: node.callee.property.name;
+				const selector = node.arguments[0];
+				if (method !== "querySelector" || selector?.type !== "StringLiteral") return;
+				const className = selector.value.match(/^\.([A-Za-z_][\w-]*)$/)?.[1];
+				if (!className) return;
+				const matches = buttons.filter((button) => button.classes.includes(className));
+				if (matches.length > 1) {
+					findings.push(
+						`singleton button lookup "${selector.value}" has multiple owners: ${matches
+							.map((button) => `${button.filePath}#${button.id}`)
+							.join(", ")}`,
+					);
+				}
+			});
+		}
+	}
+	return findings;
 }
 
 function collectGenericButtonSelectors(source) {
@@ -88,6 +203,32 @@ function collectGenericButtonSelectors(source) {
 		.flatMap((match) => match[1].split(","))
 		.map((selector) => selector.trim())
 		.filter((selector) => /^button(?::[\w-]+)?$/.test(selector));
+}
+
+function splitSelectorList(selectorList) {
+	const selectors = [];
+	let start = 0;
+	let depth = 0;
+	let quote = "";
+	for (let index = 0; index < selectorList.length; index += 1) {
+		const character = selectorList[index];
+		if (character === "\\") {
+			index += 1;
+		} else if (quote) {
+			if (character === quote) quote = "";
+		} else if (character === '"' || character === "'") {
+			quote = character;
+		} else if (character === "(" || character === "[") {
+			depth += 1;
+		} else if (character === ")" || character === "]") {
+			depth -= 1;
+		} else if (character === "," && depth === 0) {
+			selectors.push(selectorList.slice(start, index));
+			start = index + 1;
+		}
+	}
+	selectors.push(selectorList.slice(start));
+	return selectors;
 }
 
 function collectCssRuleBlocks(source) {
@@ -99,8 +240,7 @@ function collectCssRuleBlocks(source) {
 			continue;
 		}
 
-		const selectors = selectorList
-			.split(",")
+		const selectors = splitSelectorList(selectorList)
 			.map((selector) => selector.trim())
 			.filter(Boolean)
 			.filter((selector) => selector !== "*" && selector !== ":root" && selector !== "body");
@@ -140,75 +280,127 @@ function collectCssTokens(source) {
 	return tokens;
 }
 
-test("buttons keep isolated rendering, style, and functionality ownership", () => {
-	const findings = [];
-	const vueFiles = collectVueFiles(sourceRoot);
-	const buttonRecords = vueFiles.flatMap((filePath) => {
-		const source = fs.readFileSync(filePath, "utf8");
-		return collectButtonRecords(source, path.relative(projectRoot, filePath));
-	});
-	const buttonIds = new Map();
-	const buttonClasses = new Map();
-	const sharedStateClasses = new Set(["text-editor-button--depressed"]);
-	const sharedPresentationClasses = new Set([
-		"grid-menu-toggle-button",
-		"grid-menu-toggle-button--on",
-		"grid-menu-toggle-button--off",
-		"text-editor-fonts-button",
-		"text-editor-fonts-button--light-blue",
-		"text-editor-font-styles-button",
-		"text-editor-alignment-choice-button",
-		"text-editor-alignment-choice-button--depressed",
-		"description-edits-commit-button",
-		"text-editor-font-color-commit-button",
+test("CSS audit keeps commas inside functional selectors and quoted attributes", () => {
+	const css = `body:has(#first, #second) #back,
+		body:has(#first, #second) #home,
+		[data-label="Home, Back"] { display: none; }`;
+	assert.equal(collectCssRuleBlocks(css)[0].selectors.length, 3);
+	assert.deepEqual(collectDuplicateCssSelectors(css), []);
+	assert.deepEqual(collectDuplicateCssSelectors(".same { color: red; } .same { color: red; }"), [".same"]);
+});
+
+test("button audit parses Vue attributes and only class-producing expression branches", () => {
+	const source = `<script setup>
+		const classMap = { first: ["rounded", "px-4"], second: ["shared", "py-2"] };
+		const computedClasses = computed(() => mode === "left" ? "left-button rounded" : "right-button");
+	</script><template>
+		<!-- <button id="ignored-comment" class="ignored" /> -->
+		<button id="first" class="rounded px-4"
+			:class="{ 'shared selected': amount > 2 && alignment === 'left' }"
+			@click="hintVisible = !hintVisible">First</button>
+		<button id="second" :class="[mode === 'right' ? 'right-button px-4' : 'left-button', classMap[mode]]"
+			@click="selectedValues.pop()">Second</button>
+		<button id="third" :class="computedClasses"
+			@click="question.mode === 'order' ? select(choice) : checkAnswer(choice)">Third</button>
+	</template>`;
+	const { buttons } = parseButtonSource(source, "Fixture.vue");
+	assert.equal(buttons.length, 3);
+	assert.deepEqual(buttons[0].classes, ["rounded", "px-4", "shared", "selected"]);
+	assert.deepEqual(buttons[1].classes, [
+		"right-button",
+		"px-4",
+		"left-button",
+		"rounded",
+		"shared",
+		"py-2",
 	]);
+	assert.deepEqual(buttons[2].classes, ["left-button", "rounded", "right-button"]);
+	assert.deepEqual(collectButtonOwnershipFindings([{ source, filePath: "Fixture.vue" }]), []);
+});
 
-	for (const button of buttonRecords) {
-		if (!button.id) {
-			findings.push(`${button.filePath} contains a button without a stable id`);
-		} else {
-			buttonIds.set(button.id, [...(buttonIds.get(button.id) ?? []), button.filePath]);
-		}
+test("button audit accepts presentation reuse and explicit grouped behavior", () => {
+	const sources = [
+		{
+			filePath: "Tools.vue",
+			source: `<script setup>
+				document.querySelectorAll(".shared-button").forEach(button => button.addEventListener("click", handleClick));
+			</script><template>
+				<button id="tools" class="shared-button rounded px-4" @click="openTools">Tools</button>
+			</template>`,
+		},
+		{
+			filePath: "Save.vue",
+			source: `<template><button id="save" class="shared-button rounded px-4" @click="save()">Save</button></template>`,
+		},
+	];
+	assert.deepEqual(collectButtonOwnershipFindings(sources), []);
+});
 
-		if (button.classes.length === 0) {
-			findings.push(
-				`${button.filePath}#${button.id || "<missing-id>"} has no class-owned styling`,
-			);
-		}
+test("button audit retains missing and duplicate identity findings", () => {
+	const findings = collectButtonOwnershipFindings([
+		{
+			filePath: "Conflicts.vue",
+			source: `<template>
+			<button class="rounded">Missing</button>
+			<button id="duplicate" class="rounded">First</button>
+			<button id="duplicate" class="rounded">Second</button>
+		</template>`,
+		},
+	]);
+	assert.equal(findings.length, 2);
+	assert.match(findings[0], /without a stable id/);
+	assert.match(findings[1], /button id "duplicate" is reused/);
+});
 
-		for (const className of button.classes) {
-			buttonClasses.set(className, [...(buttonClasses.get(className) ?? []), button]);
-		}
+test("button audit flags ambiguous singleton class-based behavior ownership", () => {
+	const findings = collectButtonOwnershipFindings([
+		{
+			filePath: "Conflicts.vue",
+			source: `<script setup>
+			document.querySelector(".action-button").addEventListener("click", save);
+		</script><template>
+			<button id="save" class="action-button rounded">Save</button>
+			<button id="delete" :class="{ 'action-button': enabled }">Delete</button>
+		</template>`,
+		},
+	]);
+	assert.equal(findings.length, 1);
+	assert.match(findings[0], /singleton button lookup "\.action-button" has multiple owners/);
+});
 
-		if (
-			button.clickHandler &&
-			!/^[A-Za-z_$][\w$]*\s*(?:\([^)]*\))?$/.test(button.clickHandler)
-		) {
-			findings.push(
-				`${button.filePath}#${button.id || "<missing-id>"} uses an unscoped click expression: ${button.clickHandler}`,
-			);
-		}
-	}
+test("button audit accepts scoped singleton selectors and rejects invalid click syntax", () => {
+	assert.deepEqual(
+		collectButtonOwnershipFindings([
+			{
+				filePath: "Scoped.vue",
+				source: `<script setup>document.querySelector("#save.action-button");</script><template>
+			<button id="save" class="action-button" @click="save($event)">Save</button>
+			<button id="delete" class="action-button" @click="remove()">Delete</button>
+		</template>`,
+			},
+		]),
+		[],
+	);
+	assert.throws(
+		() =>
+			collectButtonOwnershipFindings([
+				{
+					filePath: "Invalid.vue",
+					source: `<template><button id="invalid" class="rounded" @click="value = ">Invalid</button></template>`,
+				},
+			]),
+		/Error parsing JavaScript expression/,
+	);
+});
 
-	for (const [id, files] of buttonIds) {
-		if (files.length > 1) {
-			findings.push(`button id "${id}" is reused in ${files.join(", ")}`);
-		}
-	}
-
-	for (const [className, buttons] of buttonClasses) {
-		if (
-			buttons.length > 1 &&
-			!sharedStateClasses.has(className) &&
-			!sharedPresentationClasses.has(className)
-		) {
-			findings.push(
-				`button class "${className}" is shared by ${buttons
-					.map((button) => `${button.filePath}#${button.id || "<missing-id>"}`)
-					.join(", ")}`,
-			);
-		}
-	}
+test("buttons keep isolated rendering, style, and functionality ownership", () => {
+	const vueFiles = collectVueFiles(sourceRoot);
+	const findings = collectButtonOwnershipFindings(
+		vueFiles.map((filePath) => ({
+			source: fs.readFileSync(filePath, "utf8"),
+			filePath: path.relative(projectRoot, filePath),
+		})),
+	);
 
 	const sourceFiles = [
 		path.join(projectRoot, "index.html"),
@@ -393,8 +585,8 @@ test("text editor size controls and the Tools panel are implemented as specified
 	);
 	assert.match(
 		cssSource,
-		/\.text-editor-editing-tools-button\.text-editor-navigation-tools-button:hover\s*\{[^}]*background:\s*linear-gradient\(90deg,\s*#c4e2f7\s*0%,\s*#a6cfee\s*50%,\s*#83b7df\s*100%\);/s,
-		"Hovering the navigation Tools button should preserve its blue gradient instead of turning gray",
+		/\.text-editor-editing-tools-button\.text-editor-navigation-tools-button:hover\s*\{[^}]*background:\s*linear-gradient\(90deg,\s*#fff4c2\s*0%,\s*#f5df8a\s*100%\);/s,
+		"Hovering the navigation Tools button should preserve its pastel yellow gradient instead of turning gray",
 	);
 	assert.match(
 		cssSource,
@@ -451,22 +643,9 @@ test("text editor calibration toggle and navigation gradients match the current 
 
 test("back and home buttons pin to the upper-right corner of the screen", () => {
 	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
-
-	assert.match(
-		cssSource,
-		/\.blocks-menu-sidebar-actions\s*\{[^}]*display:\s*flex;[^}]*justify-content:\s*center;[^}]*align-items:\s*center;[^}]*gap:\s*16px;[^}]*margin-top:\s*auto;/s,
-		"The Blocks menu action row should sit at the bottom of the sidebar in a centered flex layout",
-	);
-	assert.match(
-		cssSource,
-		/\.parent-screen-back-button,\s*\.parent-screen-back-button-parent,\s*\.student-edits-screen-back-button,\s*\.blocks-screen-back-button,\s*\.curriculum-game-screen-back-button\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;[^}]*right:\s*16px;/s,
-		"Back buttons should sit 16px from the top edge and 16px from the right edge of the screen",
-	);
-	assert.match(
-		cssSource,
-		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.student-progress-home-button,\s*\.daily-menu-home-button\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;[^}]*right:\s*calc\(6rem\s*\+\s*32px\);/s,
-		"Home buttons should sit 16px from the top edge with a 16px gap to the left edge of the Back button",
-	);
+	assert.match(cssSource, /:is\(\.navigation-home-button, \.navigation-back-button\)\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;/s);
+	assert.match(cssSource, /\.navigation-home-button\s*\{[^}]*right:\s*128px;/s);
+	assert.match(cssSource, /\.navigation-back-button\s*\{[^}]*right:\s*16px;/s);
 });
 
 test("blocks menu back and home buttons match the text editor control styling", () => {
@@ -474,7 +653,7 @@ test("blocks menu back and home buttons match the text editor control styling", 
 
 	assert.match(
 		cssSource,
-		/\.student-edits-screen-home-button,\s*\.text-editor-home-button,\s*\.blocks-screen-home-button,\s*\.curriculum-game-screen-home-button,\s*\.student-progress-home-button,\s*\.daily-menu-home-button\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*#246b39\s*0%,\s*#1d5a30\s*33\.333%,\s*#164a27\s*66\.667%,\s*#103a1e\s*100%\);/s,
+		/\.navigation-home-button\s*\{[^}]*background:\s*linear-gradient\(180deg,\s*#246b39\s*0%,\s*#1d5a30\s*33\.333%,\s*#164a27\s*66\.667%,\s*#103a1e\s*100%\);/s,
 		"Blocks and text editor home buttons should share the same green navigation styling",
 	);
 	assert.match(

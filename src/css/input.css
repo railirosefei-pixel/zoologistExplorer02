@@ -1467,6 +1467,7 @@ body {
 	gap: 0;
 	align-items: flex-start;
 	padding: 15px;
+	overflow-y: auto;
 }
 
 .grid-menu-control-row {
@@ -1477,14 +1478,21 @@ body {
 	line-height: 20px;
 }
 
-.grid-menu-control-row--applied > .grid-menu-control-label {
-	align-self: flex-start;
+.grid-menu-top-control-row {
+	display: flex;
+	align-items: center;
+	gap: 32px;
+}
+
+.grid-menu-control-row--applied > .grid-menu-control-label,
+.grid-menu-control-row--margins > .grid-menu-control-label {
+	align-self: center;
 }
 
 .grid-menu-controls-layout {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 32px;
 	margin-top: 55px;
 }
 
@@ -1525,7 +1533,7 @@ body {
 	flex-direction: column;
 	gap: 16px;
 	min-width: 0;
-	margin: 0 0 16px;
+	margin: 16px 0 16px;
 	padding: 0;
 	border: 0;
 }
@@ -1540,6 +1548,12 @@ body {
 	height: 24px;
 	flex: 0 0 80px;
 	font-size: 0.75rem;
+}
+
+.grid-menu-toggle-button.grid-menu-alignment-button.grid-menu-alignment-custom-button {
+	width: 352px;
+	flex: 0 0 24px;
+	align-self: flex-start;
 }
 
 .grid-menu-alignment-button--depressed {
@@ -1633,6 +1647,7 @@ body {
 }
 
 .grid-menu-position-heading {
+	align-self: flex-start;
 	width: max-content;
 	margin: 0;
 	text-align: left;
@@ -1642,6 +1657,7 @@ body {
 	display: flex;
 	align-items: center;
 	gap: 16px;
+	margin-bottom: 32px;
 }
 
 .grid-menu-position-controls {
@@ -1728,10 +1744,8 @@ body {
 }
 
 .grid-menu-size-heading {
-	grid-column: 2;
-	grid-row: 1;
 	width: max-content;
-	margin: 8px 0 0;
+	margin: 0;
 	color: #000;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 22pt;
@@ -1739,21 +1753,27 @@ body {
 	line-height: 1.25;
 }
 
+.grid-menu-dimensions-content {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 16px;
+	margin-top: 16px;
+}
+
 .grid-menu-size-dimensions-row {
-	grid-column: 2;
-	grid-row: 1;
 	display: grid;
-	grid-template-columns: max-content max-content max-content max-content;
-	grid-template-rows: 28px 28px;
+	grid-template-columns: 144px 72px max-content;
+	grid-template-rows: 28px 28px auto;
 	align-items: center;
 	column-gap: 5px;
 	row-gap: 16px;
 	min-height: 28px;
-	margin-left: 0;
-	margin-top: 8px;
 }
 
 .grid-menu-size-width-label {
+	grid-column: 1;
+	grid-row: 1;
 	color: #eff5f7;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
@@ -1761,6 +1781,8 @@ body {
 }
 
 .grid-menu-size-width-input {
+	grid-column: 2;
+	grid-row: 1;
 	box-sizing: border-box;
 	width: 33px;
 	height: 28px;
@@ -1776,6 +1798,8 @@ body {
 }
 
 .grid-menu-size-width-unit {
+	grid-column: 3;
+	grid-row: 1;
 	color: #eff5f7;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
@@ -1783,6 +1807,8 @@ body {
 }
 
 .grid-menu-size-height-label {
+	grid-column: 1;
+	grid-row: 2;
 	color: #eff5f7;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
@@ -1790,6 +1816,8 @@ body {
 }
 
 .grid-menu-size-height-input {
+	grid-column: 2;
+	grid-row: 2;
 	box-sizing: border-box;
 	width: 33px;
 	height: 28px;
@@ -1805,6 +1833,8 @@ body {
 }
 
 .grid-menu-size-height-unit {
+	grid-column: 3;
+	grid-row: 2;
 	color: #eff5f7;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
@@ -1813,10 +1843,11 @@ body {
 
 .grid-menu-size-commit-button {
 	flex: 0 0 auto;
-	grid-column: 4;
-	grid-row: 1 / span 2;
-	align-self: center;
-	margin-left: 11px;
+	grid-column: 1 / -1;
+	grid-row: 3;
+	align-self: start;
+	justify-self: start;
+	margin-left: 0;
 	padding: 0.55rem 1.1rem;
 	border: 2px solid rgba(17, 116, 50, 0.5);
 	border-radius: 9999px;
@@ -1925,15 +1956,15 @@ body {
 	outline-offset: 1px;
 }
 
-.grid-menu-control-row--amount,
 .grid-menu-control-row--margins {
-	margin-top: 8px;
+	margin-top: 0;
 }
 
 .grid-menu-control-row--amount {
 	display: grid;
 	grid-template-columns: 144px 72px;
 	align-items: start;
+	margin-top: 0;
 }
 
 .grid-menu-control-row--amount > .grid-menu-control-label {
@@ -1945,6 +1976,115 @@ body {
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
 	font-weight: 700;
+}
+
+.grid-menu-single-shape-options {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.grid-menu-shape-addition-controls,
+.grid-menu-shape-addition-directions {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.grid-menu-shape-addition-selection {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+.grid-menu-shape-addition-axis-button {
+	box-sizing: border-box;
+	min-width: 64px;
+	min-height: 32px;
+	padding: 4px 8px;
+	border: 1px solid #8ba7c3;
+	border-radius: 3px;
+	background: #34495e;
+	color: #eff5f7;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 3px 0 rgba(0, 0, 0, 0.24);
+	transition:
+		transform 80ms ease,
+		box-shadow 80ms ease;
+}
+
+.grid-menu-shape-addition-axis-button:focus-visible {
+	outline: 2px solid #eff5f7;
+	outline-offset: 2px;
+}
+
+.grid-menu-shape-addition-select {
+	box-sizing: border-box;
+	width: 218px;
+	height: 24px;
+	overflow-y: auto;
+	scrollbar-gutter: stable;
+	direction: ltr;
+}
+
+.grid-menu-single-shape-option {
+	box-sizing: border-box;
+	display: flex;
+	width: 220px;
+	min-height: 32px;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 4px 8px;
+	border: 1px solid #8ba7c3;
+	border-radius: 3px;
+	background: #34495e;
+	color: #eff5f7;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 3px 0 rgba(0, 0, 0, 0.24);
+	transition:
+		transform 80ms ease,
+		box-shadow 80ms ease;
+}
+
+.grid-menu-single-shape-option:active,
+.grid-menu-single-shape-option--depressed {
+	transform: translateY(3px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.2),
+		inset 0 -3px 0 rgba(0, 0, 0, 0.22);
+}
+
+.grid-menu-single-shape-option:focus-visible {
+	outline: 2px solid #eff5f7;
+	outline-offset: 2px;
+}
+
+.grid-menu-single-shape-indicator {
+	box-sizing: border-box;
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	border: 1px solid #d71920;
+	background: #ff3030;
+}
+
+.grid-menu-single-shape-indicator--on {
+	border-color: #00c832;
+	background: #00ff40;
+}
+
+.grid-menu-shape-manipulation-dropdown {
+	margin-top: 8px;
 }
 
 .grid-menu-amount-input {
@@ -2003,50 +2143,6 @@ body {
 		0 3px 0 rgba(0, 0, 0, 0.24),
 		0 5px 7px rgba(0, 0, 0, 0.32),
 		0 0 12px 4px rgba(0, 255, 64, 0.85);
-}
-
-.grid-menu-selection-prompt {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	right: auto;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 16px;
-	box-sizing: border-box;
-	width: min(360px, calc(100% - 32px));
-	height: auto;
-	margin: 0;
-	padding: 16px;
-	border: 1px solid #8ba7c3;
-	border-radius: 8px;
-	background: #f2f7fa;
-	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-	color: #1b1b1b;
-	text-align: center;
-	transform: translate(-50%, -50%);
-}
-
-.grid-menu-selection-prompt p {
-	margin: 0;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-}
-
-.grid-menu-selection-prompt-back-button {
-	min-width: 96px;
-	min-height: 36px;
-	padding: 4px 12px;
-	border: 1px solid #729bc4;
-	border-radius: 4px;
-	background: #c4e2f7;
-	color: #1b1b1b;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1rem;
-	font-weight: 700;
-	cursor: pointer;
 }
 
 .grid-menu-quadrilateral-prompt {
@@ -3468,6 +3564,10 @@ body {
 	pointer-events: none;
 }
 
+.print-preview-grid--shape-interaction-active {
+	pointer-events: auto;
+}
+
 .print-preview-paper[data-grid-apply-to-margins="true"] .print-preview-grid {
 	inset:
 		var(--print-preview-margin-top, 0px)
@@ -3786,9 +3886,9 @@ body {
 	height: 64px;
 	flex: 0 0 136px;
 	padding: 0;
-	border: 1px solid #729bc4;
+	border: 1px solid #d5bd63;
 	border-radius: 999px;
-	background: linear-gradient(90deg, #c4e2f7 0%, #a6cfee 50%, #83b7df 100%);
+	background: linear-gradient(90deg, #fff4c2 0%, #f5df8a 100%);
 	color: #1b1b1b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1rem;
@@ -3797,13 +3897,34 @@ body {
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.45),
 		inset 0 -5px 0 rgba(0, 0, 0, 0.24),
-		0 4px 0 #729bc4,
+		0 4px 0 #d5bd63,
 		0 8px 10px rgba(0, 0, 0, 0.32);
 }
 
 .text-editor-editing-tools-button.text-editor-navigation-tools-button:hover {
-	background: linear-gradient(90deg, #c4e2f7 0%, #a6cfee 50%, #83b7df 100%);
-	border-color: #729bc4;
+	background: linear-gradient(90deg, #fff4c2 0%, #f5df8a 100%);
+	border-color: #d5bd63;
+}
+
+.text-editor-editing-tools-button.text-editor-navigation-tools-button.text-editor-editing-tools-button--depressed,
+.text-editor-editing-tools-button.text-editor-navigation-tools-button.text-editor-editing-tools-button--depressed:hover {
+	background: linear-gradient(90deg, #fff4c2 0%, #f5df8a 100%);
+	border-color: #d5bd63;
+}
+
+.text-editor-navigation-save-button {
+	border-color: #8179c7;
+	background: linear-gradient(90deg, #d9d6ff 0%, #b6aef0 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.45),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.24),
+		0 4px 0 #8179c7,
+		0 8px 10px rgba(0, 0, 0, 0.32);
+}
+
+.text-editor-navigation-save-button:hover {
+	border-color: #8179c7;
+	background: linear-gradient(90deg, #d9d6ff 0%, #b6aef0 100%);
 }
 
 .text-editor-grid-button {
@@ -4044,6 +4165,78 @@ body {
 		transform 120ms ease,
 		box-shadow 120ms ease,
 		filter 120ms ease;
+}
+
+/* Shared navigation overrides view-specific layout and inherited typography. */
+:is(#app, body) :is(.navigation-home-button, .navigation-back-button) {
+	position: fixed;
+	top: 16px;
+	bottom: auto;
+	left: auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 96px;
+	height: 44px;
+	min-width: 96px;
+	min-height: 44px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid;
+	border-radius: 8px;
+	color: #fff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 20px;
+	letter-spacing: normal;
+	text-align: center;
+	cursor: pointer;
+	transform: none;
+	z-index: 1000;
+	transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+:is(#app, body) .navigation-home-button {
+	right: 128px;
+	border-color: #0c2e18;
+	background: linear-gradient(180deg, #246b39 0%, #1d5a30 33.333%, #164a27 66.667%, #103a1e 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #0b2814,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+:is(#app, body) .navigation-back-button {
+	right: 16px;
+	border-color: #0b2035;
+	background: linear-gradient(180deg, #235b91 0%, #1d4c7a 33.333%, #173e64 66.667%, #112f4e 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #091c2e,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+:is(#app, body) :is(.navigation-home-button, .navigation-back-button):hover {
+	transform: translateY(-1px);
+	filter: brightness(1.03);
+}
+
+:is(#app, body) :is(.navigation-home-button, .navigation-back-button):is(:active, .nav-button--pressed) {
+	transform: translateY(4px);
+	filter: brightness(0.98);
+}
+
+#app:has(#calendar-previous-month-button, #daily-menu-panel) #student-menu-back-button,
+#student-menu-page:has(#student-submenu-panel) #calendar-panel .navigation-back-button,
+#student-menu-page:has(#student-submenu-panel) #calendar-panel .navigation-home-button,
+#app:has(#math-games-current-level, #math-games-complete) #parent-screen-back-button-parent,
+body:has(#grid-menu-quadrilateral-prompt) #parent-screen-back-button,
+body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
+	display: none;
 }
 
 .nav-button {
@@ -7284,8 +7477,10 @@ body {
 	bottom: 8px;
 	width: 60px;
 	height: 25px;
+	padding: 0;
 	border: 1px solid #14532d;
 	border-radius: 6px;
+	appearance: none;
 	background: #22c55e;
 	color: #000000;
 	font: inherit;
