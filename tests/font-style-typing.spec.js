@@ -30,10 +30,7 @@ async function openEditablePaperTemplate(page, selectTemplate = true) {
 		await expect(editor).toBeFocused();
 		const hasCollapsedCaret = await editor.evaluate((element) => {
 			const selection = window.getSelection();
-			return (
-				selection?.isCollapsed &&
-				element.contains(selection.anchorNode)
-			);
+			return selection?.isCollapsed && element.contains(selection.anchorNode);
 		});
 		expect(hasCollapsedCaret).toBe(true);
 	}
@@ -52,8 +49,12 @@ test("nested font menus lower together when the New menu is open", async ({ page
 
 	const menuGaps = await page.evaluate(() => {
 		const fonts = document.querySelector("#text-editor-fonts-panel").getBoundingClientRect();
-		const color = document.querySelector("#text-editor-font-color-menu").getBoundingClientRect();
-		const styles = document.querySelector("#text-editor-font-styles-menu").getBoundingClientRect();
+		const color = document
+			.querySelector("#text-editor-font-color-menu")
+			.getBoundingClientRect();
+		const styles = document
+			.querySelector("#text-editor-font-styles-menu")
+			.getBoundingClientRect();
 		const size = document.querySelector("#text-editor-font-size-menu").getBoundingClientRect();
 		return {
 			colorToFonts: color.top - fonts.top,
@@ -129,7 +130,10 @@ test("repeated letters keep stable font features across every font style", async
 			while (walker.nextNode()) {
 				if (walker.currentNode.textContent.endsWith("aaaaaaaa")) {
 					const style = getComputedStyle(walker.currentNode.parentElement);
-					return { fontFamily: style.fontFamily, fontFeatureSettings: style.fontFeatureSettings };
+					return {
+						fontFamily: style.fontFamily,
+						fontFeatureSettings: style.fontFeatureSettings,
+					};
 				}
 			}
 			return null;
@@ -240,15 +244,16 @@ test("Font Styles stays depressed with the Font Color glow until toggled off", a
 	await colorButton.click();
 	await expect(stylesButton).toHaveAttribute("aria-pressed", "true");
 	await page.mouse.move(1270, 1180);
-	const readPressedStyle = (button) => button.evaluate((element) => {
-		const style = getComputedStyle(element);
-		return {
-			backgroundColor: style.backgroundColor,
-			borderColor: style.borderColor,
-			boxShadow: style.boxShadow,
-			transform: style.transform,
-		};
-	});
+	const readPressedStyle = (button) =>
+		button.evaluate((element) => {
+			const style = getComputedStyle(element);
+			return {
+				backgroundColor: style.backgroundColor,
+				borderColor: style.borderColor,
+				boxShadow: style.boxShadow,
+				transform: style.transform,
+			};
+		});
 	expect(await readPressedStyle(stylesButton)).toEqual(await readPressedStyle(colorButton));
 
 	await stylesButton.click();
@@ -266,10 +271,14 @@ test("Font Size stays depressed until toggled off", async ({ page }) => {
 	await sizeButton.click();
 	await expect(sizeButton).toHaveAttribute("aria-pressed", "true");
 	await expect(sizeButton).toHaveClass(/text-editor-font-size-button--depressed/);
-	expect(await sizeButton.evaluate((element) => getComputedStyle(element).transform)).not.toBe("none");
+	expect(await sizeButton.evaluate((element) => getComputedStyle(element).transform)).not.toBe(
+		"none",
+	);
 	await stylesButton.click();
 	const sizeShadow = await sizeButton.evaluate((element) => getComputedStyle(element).boxShadow);
-	const stylesShadow = await stylesButton.evaluate((element) => getComputedStyle(element).boxShadow);
+	const stylesShadow = await stylesButton.evaluate(
+		(element) => getComputedStyle(element).boxShadow,
+	);
 	expect(sizeShadow).toBe(stylesShadow);
 	await stylesButton.click();
 
@@ -285,9 +294,9 @@ test("Font Size menu matches Font Color width and label inset", async ({ page })
 
 	const colorButton = page.locator("#text-editor-font-color-button");
 	await colorButton.click();
-	const colorWidth = await page.locator("#text-editor-font-color-menu").evaluate(
-		(element) => element.getBoundingClientRect().width,
-	);
+	const colorWidth = await page
+		.locator("#text-editor-font-color-menu")
+		.evaluate((element) => element.getBoundingClientRect().width);
 	await colorButton.press("Enter");
 	await expect(colorButton).toHaveAttribute("aria-pressed", "false");
 
@@ -383,22 +392,23 @@ test("Font Size Commit matches Font Color Commit styling", async ({ page }) => {
 	const colorButton = page.locator("#text-editor-font-color-button");
 	await colorButton.click();
 	const colorCommit = page.locator("#text-editor-font-color-commit-button");
-	const readButtonStyle = (button) => button.evaluate((element) => {
-		const style = getComputedStyle(element);
-		const bounds = element.getBoundingClientRect();
-		return {
-			width: bounds.width,
-			height: bounds.height,
-			border: style.border,
-			borderRadius: style.borderRadius,
-			background: style.background,
-			color: style.color,
-			boxShadow: style.boxShadow,
-			padding: style.padding,
-			font: style.font,
-			textTransform: style.textTransform,
-		};
-	});
+	const readButtonStyle = (button) =>
+		button.evaluate((element) => {
+			const style = getComputedStyle(element);
+			const bounds = element.getBoundingClientRect();
+			return {
+				width: bounds.width,
+				height: bounds.height,
+				border: style.border,
+				borderRadius: style.borderRadius,
+				background: style.background,
+				color: style.color,
+				boxShadow: style.boxShadow,
+				padding: style.padding,
+				font: style.font,
+				textTransform: style.textTransform,
+			};
+		});
 	const colorStyle = await readButtonStyle(colorCommit);
 	await colorButton.click();
 	await page.locator("#text-editor-font-size-button").click();
@@ -407,7 +417,9 @@ test("Font Size Commit matches Font Color Commit styling", async ({ page }) => {
 	expect(await readButtonStyle(sizeCommit)).toEqual(colorStyle);
 	const commitGaps = await sizeCommit.evaluate((button) => {
 		const buttonBounds = button.getBoundingClientRect();
-		const menuBounds = document.querySelector("#text-editor-font-size-menu").getBoundingClientRect();
+		const menuBounds = document
+			.querySelector("#text-editor-font-size-menu")
+			.getBoundingClientRect();
 		return {
 			rightGap: menuBounds.right - buttonBounds.right,
 			bottomGap: menuBounds.bottom - buttonBounds.bottom,
@@ -536,7 +548,7 @@ test("font style buttons use the requested 16px spacing and centered text", asyn
 				alignItems: style.alignItems,
 				textAlign: style.textAlign,
 			};
-		})
+		}),
 	);
 
 	expect(metrics[0].width).toBeGreaterThan(110);
@@ -562,7 +574,9 @@ test("font color picker commits a color that persists across font styles", async
 	const colorButton = page.locator("#text-editor-font-color-button");
 	await colorButton.click();
 	await expect(colorButton).toHaveAttribute("aria-pressed", "true");
-	const pressedShadow = await colorButton.evaluate((button) => getComputedStyle(button).boxShadow);
+	const pressedShadow = await colorButton.evaluate(
+		(button) => getComputedStyle(button).boxShadow,
+	);
 	expect(pressedShadow).toContain("rgba(0, 149, 255");
 	const colorPreview = page.locator("#text-editor-font-color-preview");
 	const readPreviewRgb = () =>
@@ -603,15 +617,21 @@ test("font color picker commits a color that persists across font styles", async
 	const stylesButton = page.locator("#text-editor-font-styles-button");
 	await stylesButton.click();
 	const placementMetrics = await page.evaluate(() => {
-		const color = document.querySelector("#text-editor-font-color-menu").getBoundingClientRect();
-		const styles = document.querySelector("#text-editor-font-styles-menu").getBoundingClientRect();
+		const color = document
+			.querySelector("#text-editor-font-color-menu")
+			.getBoundingClientRect();
+		const styles = document
+			.querySelector("#text-editor-font-styles-menu")
+			.getBoundingClientRect();
 		return styles.top - color.bottom;
 	});
 	expect(placementMetrics).toBe(16);
 	await stylesButton.click();
 	const fontsGap = await page.evaluate(() => {
 		const fonts = document.querySelector("#text-editor-fonts-panel").getBoundingClientRect();
-		const color = document.querySelector("#text-editor-font-color-menu").getBoundingClientRect();
+		const color = document
+			.querySelector("#text-editor-font-color-menu")
+			.getBoundingClientRect();
 		return fonts.left - color.right;
 	});
 	expect(fontsGap).toBe(16);
@@ -698,11 +718,13 @@ test("alignment changes the current line and preserves its caret", async ({ page
 			collapsed: selection?.isCollapsed === true,
 			insideEditor: selection?.anchorNode ? element.contains(selection.anchorNode) : false,
 			caretAtEnd:
-				selection?.anchorNode === element && selection.anchorOffset === element.childNodes.length,
+				selection?.anchorNode === element &&
+				selection.anchorOffset === element.childNodes.length,
 			alignment: getComputedStyle(element).textAlign,
 			rootAlignment: getComputedStyle(element).textAlign,
 			text: element.textContent,
-			alignmentCaretCount: element.querySelectorAll("[data-text-editor-alignment-caret]").length,
+			alignmentCaretCount: element.querySelectorAll("[data-text-editor-alignment-caret]")
+				.length,
 		};
 	});
 	expect(caretState).toEqual({
@@ -836,7 +858,8 @@ test("alignment choices toggle exclusively with the Tools glow", async ({ page }
 	const center = page.locator("#text-editor-alignment-center-button");
 	const right = page.locator("#text-editor-alignment-right-button");
 	const toolsButton = page.locator("#text-editor-editing-tools-button");
-	const readShadow = (button) => button.evaluate((element) => getComputedStyle(element).boxShadow);
+	const readShadow = (button) =>
+		button.evaluate((element) => getComputedStyle(element).boxShadow);
 
 	await left.click();
 	await expect(left).toHaveAttribute("aria-pressed", "true");

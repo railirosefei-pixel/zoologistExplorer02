@@ -286,7 +286,9 @@ test("CSS audit keeps commas inside functional selectors and quoted attributes",
 		[data-label="Home, Back"] { display: none; }`;
 	assert.equal(collectCssRuleBlocks(css)[0].selectors.length, 3);
 	assert.deepEqual(collectDuplicateCssSelectors(css), []);
-	assert.deepEqual(collectDuplicateCssSelectors(".same { color: red; } .same { color: red; }"), [".same"]);
+	assert.deepEqual(collectDuplicateCssSelectors(".same { color: red; } .same { color: red; }"), [
+		".same",
+	]);
 });
 
 test("button audit parses Vue attributes and only class-producing expression branches", () => {
@@ -643,7 +645,10 @@ test("text editor calibration toggle and navigation gradients match the current 
 
 test("back and home buttons pin to the upper-right corner of the screen", () => {
 	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
-	assert.match(cssSource, /:is\(\.navigation-home-button, \.navigation-back-button\)\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;/s);
+	assert.match(
+		cssSource,
+		/:is\(\.navigation-home-button, \.navigation-back-button\)\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;/s,
+	);
 	assert.match(cssSource, /\.navigation-home-button\s*\{[^}]*right:\s*128px;/s);
 	assert.match(cssSource, /\.navigation-back-button\s*\{[^}]*right:\s*16px;/s);
 });

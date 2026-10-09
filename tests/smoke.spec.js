@@ -387,13 +387,20 @@ test("Shape Addition fitted shapes remain clickable and retain their outlines af
 					const inverse = ellipse.getScreenCTM().inverse();
 					const halfAngle = Math.PI / 128;
 					for (let x = Math.ceil(bounds.left); x <= Math.floor(bounds.right); x += 1) {
-						for (let y = Math.ceil(bounds.top); y <= Math.floor(bounds.bottom); y += 1) {
+						for (
+							let y = Math.ceil(bounds.top);
+							y <= Math.floor(bounds.bottom);
+							y += 1
+						) {
 							const point = new DOMPoint(x, y).matrixTransform(inverse);
-							const localX = (point.x - ellipse.cx.baseVal.value) / ellipse.rx.baseVal.value;
-							const localY = (point.y - ellipse.cy.baseVal.value) / ellipse.ry.baseVal.value;
+							const localX =
+								(point.x - ellipse.cx.baseVal.value) / ellipse.rx.baseVal.value;
+							const localY =
+								(point.y - ellipse.cy.baseVal.value) / ellipse.ry.baseVal.value;
 							const radius = Math.hypot(localX, localY);
 							const angle = Math.atan2(localY, localX);
-							const edgeAngle = (Math.floor(angle / (2 * halfAngle)) + 0.5) * 2 * halfAngle;
+							const edgeAngle =
+								(Math.floor(angle / (2 * halfAngle)) + 0.5) * 2 * halfAngle;
 							const polygonRadius = Math.cos(halfAngle) / Math.cos(angle - edgeAngle);
 							if (radius < 1 && radius > polygonRadius) {
 								return { x, y };
@@ -439,19 +446,19 @@ async function getGridPackedCoverage(grid) {
 				const { x, y } = polygon.points.getItem(index);
 				return { x, y };
 			});
-		const shapes = [...svg.querySelectorAll("[data-grid-packed-base], [data-grid-added-shape]")];
+		const shapes = [
+			...svg.querySelectorAll("[data-grid-packed-base], [data-grid-added-shape]"),
+		];
 		const polygons = shapes.map(pointsOf);
-		const maskPolygons = [...svg.querySelectorAll("#print-preview-grid-packed-mask polygon")]
-			.map(pointsOf);
+		const maskPolygons = [
+			...svg.querySelectorAll("#print-preview-grid-packed-mask polygon"),
+		].map(pointsOf);
 		const contains = (vertices, x, y) => {
 			let inside = false;
 			for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
 				const a = vertices[i];
 				const b = vertices[j];
-				if (
-					a.y > y !== b.y > y &&
-					x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x
-				) {
+				if (a.y > y !== b.y > y && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) {
 					inside = !inside;
 				}
 			}
@@ -477,14 +484,19 @@ async function getGridPackedCoverage(grid) {
 			covered,
 			shapeCount: shapes.length,
 			straightBorders: polygons.every(
-				(vertices) => vertices.length === 4 && vertices.every((vertex, index) => {
-					const next = vertices[(index + 1) % vertices.length];
-					return (vertex.x === next.x || vertex.y === next.y) &&
-						(vertex.x !== next.x || vertex.y !== next.y);
-				}),
+				(vertices) =>
+					vertices.length === 4 &&
+					vertices.every((vertex, index) => {
+						const next = vertices[(index + 1) % vertices.length];
+						return (
+							(vertex.x === next.x || vertex.y === next.y) &&
+							(vertex.x !== next.x || vertex.y !== next.y)
+						);
+					}),
 			),
 			allBordered: shapes.every(
-				(shape) => shape.getAttribute("stroke") === "#000000" &&
+				(shape) =>
+					shape.getAttribute("stroke") === "#000000" &&
 					shape.getAttribute("stroke-width") === "2",
 			),
 		};
@@ -544,7 +556,8 @@ test("Shape Addition keeps mixed additions bordered without overlaps or empty tr
 
 	const columnShapes = grid.locator('[data-grid-added-shape="column"]');
 	await expect(columnShapes).toHaveCount(2);
-	const baseCellCount = Number(await grid.getAttribute("data-grid-rows")) *
+	const baseCellCount =
+		Number(await grid.getAttribute("data-grid-rows")) *
 		Number(await grid.getAttribute("data-grid-columns"));
 	await expect(grid.locator("[data-grid-packed-base]")).toHaveCount(baseCellCount);
 	const coverage = await getGridPackedCoverage(grid);
@@ -562,7 +575,10 @@ test("Shape Addition keeps mixed borders straight for interior tracks and either
 }) => {
 	await page.setViewportSize({ width: 1920, height: 1280 });
 
-	for (const directions of [["row", "column"], ["column", "row"]]) {
+	for (const directions of [
+		["row", "column"],
+		["column", "row"],
+	]) {
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Text Editor" }).click();
@@ -591,7 +607,7 @@ test("Shape Addition keeps mixed borders straight for interior tracks and either
 			{ direction: "column", cells: ["base-1-2", "base-1-2", "base-1-0"] },
 		]) {
 			const button = page.locator(`#grid-menu-shape-addition-${direction}-button`);
-			if (await button.getAttribute("aria-pressed") !== "true") {
+			if ((await button.getAttribute("aria-pressed")) !== "true") {
 				await button.click();
 			}
 			for (const cell of cells) {
@@ -618,7 +634,9 @@ test("Shape Addition keeps mixed borders straight for interior tracks and either
 		await page.locator("#grid-menu-shape-addition-row-button").click();
 		await page.locator("#grid-menu-shape-addition-selection").selectOption("1");
 		await grid.locator('[data-grid-packed-base="base-1-2"]').click();
-		const addedCircle = grid.locator('ellipse[data-grid-added-shape="row"][data-grid-added-sides="1"]');
+		const addedCircle = grid.locator(
+			'ellipse[data-grid-added-shape="row"][data-grid-added-sides="1"]',
+		);
 		await expect(addedCircle).toHaveCount(1);
 		await page.locator("#grid-menu-shape-addition-button").click();
 		await page.locator("#grid-menu-shape-removal-button").click();
@@ -658,9 +676,9 @@ test("Shape Addition persists in a saved template", async ({ page }) => {
 		position: { x: gridBounds.width * 0.375, y: gridBounds.height * 0.375 },
 	});
 	await expect(grid.locator('[data-grid-added-shape="column"]')).toHaveCount(1);
-	const packedGeometry = await grid.locator("[data-grid-packed-base]").evaluateAll(
-		(shapes) => shapes.map((shape) => shape.getAttribute("points")),
-	);
+	const packedGeometry = await grid
+		.locator("[data-grid-packed-base]")
+		.evaluateAll((shapes) => shapes.map((shape) => shape.getAttribute("points")));
 
 	await page.locator("#text-editor-grid-button").click();
 	await page.locator("#text-editor-template-save-button").click();
@@ -681,9 +699,11 @@ test("Shape Addition persists in a saved template", async ({ page }) => {
 		"3",
 	);
 	await expect(page.locator('[data-grid-added-shape="column"]')).toHaveCount(1);
-	expect(await page.locator("[data-grid-packed-base]").evaluateAll(
-		(shapes) => shapes.map((shape) => shape.getAttribute("points")),
-	)).toEqual(packedGeometry);
+	expect(
+		await page
+			.locator("[data-grid-packed-base]")
+			.evaluateAll((shapes) => shapes.map((shape) => shape.getAttribute("points"))),
+	).toEqual(packedGeometry);
 });
 
 test("Shape Swap highlights applied templates and shells with bordered green-yellow alternation", async ({
@@ -1117,6 +1137,21 @@ async function openStudentMathGames(page) {
 	await page.getByRole("button", { name: "Open Games tab", exact: true }).click();
 }
 
+test("Student Games menu and gallery use pastel green and blue backgrounds", async ({ page }) => {
+	await page.goto("./");
+	await openStudentMathGames(page);
+	await expect(page.locator("#student-submenu-panel")).toHaveCSS(
+		"background-color",
+		"rgb(191, 233, 190)",
+	);
+	await expect(page.locator("#games-menu")).toHaveCount(0);
+	await expect(page.locator("#student-games-top-navigation")).toBeVisible();
+	await expect(page.locator("#math-games-view")).toHaveCSS(
+		"background-color",
+		"rgb(191, 233, 190)",
+	);
+});
+
 async function revealGoldCoinTotal(page, expectedTotal) {
 	await page.getByRole("button", { name: "Open Rewards tab", exact: true }).click();
 	await page.getByRole("button", { name: "Open reward chest", exact: true }).click();
@@ -1335,18 +1370,24 @@ for (const viewport of [
 				return { x, y, width, height };
 			}),
 		);
-		for (const box of boxes) expect(box).toMatchObject({ width: 218, height: 218 });
-		expect(boxes[0]).toMatchObject({ x: 16, y: 16 });
+		for (const box of boxes) expect(box.width).toBe(box.height);
+		const sidebar = await page.locator("#student-menu-navigation").boundingBox();
+		expect(boxes[0].x - (sidebar.x + sidebar.width)).toBe(16);
+		const navigation = await page.locator("#student-games-top-navigation").boundingBox();
 		const gallery = await page.locator("#math-games-view").boundingBox();
-		expect(gallery.x).toBe(16);
-		expect(gallery.y).toBe(16);
+		expect(gallery.x).toBe(sidebar.x + sidebar.width + 16);
+		expect(gallery.y - (navigation.y + navigation.height)).toBe(16);
+		expect(boxes[0].y).toBe(gallery.y);
 		expect(viewport.width - gallery.x - gallery.width).toBe(16);
+		expect(viewport.height - gallery.y - gallery.height).toBe(32);
+		expect(Math.max(...boxes.map((box) => box.x + box.width))).toBe(viewport.width - 16);
 		for (const axis of ["x", "y"]) {
 			const positions = [...new Set(boxes.map((box) => box[axis]))].sort(
 				(left, right) => left - right,
 			);
+			const tileSize = axis === "x" ? boxes[0].width : boxes[0].height;
 			for (let position = 1; position < positions.length; position += 1)
-				expect(positions[position] - positions[position - 1] - 218).toBe(16);
+				expect(positions[position] - positions[position - 1] - tileSize).toBe(16);
 		}
 		const captionsFit = await thumbnails
 			.locator("[data-game-caption]")
@@ -2322,7 +2363,7 @@ test("Student sidebar navigation selects its destination and returns from Games"
 	await page.getByRole("button", { name: "Open student section" }).click();
 
 	const destinations = [
-		{ button: "Games", panel: "#games-menu" },
+		{ button: "Games", panel: "#student-games-top-navigation" },
 		{ button: "Extra Credit", panel: "#extra-credit-menu" },
 		{ button: "Progress", panel: "#student-submenu-panel" },
 	];
@@ -2333,13 +2374,13 @@ test("Student sidebar navigation selects its destination and returns from Games"
 		await expect(page.locator(destination.panel)).toBeVisible();
 		if (destination.button === "Games") {
 			await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
-			await expect(page.locator("#games-menu")).toHaveCount(0);
+			await expect(page.locator("#student-games-top-navigation")).toHaveCount(0);
 		}
 		await button.click();
 		await expect(page.locator(destination.panel)).toBeVisible();
 		if (destination.button === "Games") {
 			await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
-			await expect(page.locator("#games-menu")).toHaveCount(0);
+			await expect(page.locator("#student-games-top-navigation")).toHaveCount(0);
 		}
 	}
 

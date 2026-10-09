@@ -125,8 +125,7 @@ test("pages and containers keep unique identification, role, and title metadata"
 				);
 			}
 
-			const hasImplicitRegionRole =
-				tagName === "section" && Boolean(label || labelledBy);
+			const hasImplicitRegionRole = tagName === "section" && Boolean(label || labelledBy);
 			if (
 				["main", "section"].includes(tagName) &&
 				!/main|region|complementary|article|tabpanel/i.test(role) &&

@@ -123,7 +123,9 @@ test("opening New menu does not shift Tools panel in shell or template mode", as
 			const toolsRect = document
 				.querySelector("#text-editor-editing-tools-button")
 				.getBoundingClientRect();
-			const gridRect = document.querySelector("#text-editor-grid-button").getBoundingClientRect();
+			const gridRect = document
+				.querySelector("#text-editor-grid-button")
+				.getBoundingClientRect();
 			return {
 				leftGap: panelRect.left - toolsRect.left,
 				rightGap: gridRect.right - panelRect.right,
@@ -131,7 +133,9 @@ test("opening New menu does not shift Tools panel in shell or template mode", as
 			};
 		});
 		expect(toolsPanelMetrics).toEqual({ leftGap: 0, rightGap: 0, width: 288 });
-		const initialTop = await toolsPanel.evaluate((element) => element.getBoundingClientRect().top);
+		const initialTop = await toolsPanel.evaluate(
+			(element) => element.getBoundingClientRect().top,
+		);
 
 		await expect(newButton).toHaveAttribute("aria-pressed", "true");
 		await newButton.click();
@@ -191,7 +195,9 @@ test("New+ can reopen its menu without showing the data-loss confirmation", asyn
 	}
 });
 
-test("workflow Back confirms edits to loaded and created shells and templates", async ({ page }) => {
+test("workflow Back confirms edits to loaded and created shells and templates", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.evaluate(() => {
 		window.localStorage.setItem(
@@ -361,8 +367,10 @@ test("navigation Save names and stores template settings in Load Templates", asy
 			labelFollowsSave: Boolean(
 				save.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING,
 			),
-			inputIsRightOfSave: input.getBoundingClientRect().left >= save.getBoundingClientRect().right,
-			inputFollowsLabel: label.querySelector("span").getBoundingClientRect().left <
+			inputIsRightOfSave:
+				input.getBoundingClientRect().left >= save.getBoundingClientRect().right,
+			inputFollowsLabel:
+				label.querySelector("span").getBoundingClientRect().left <
 				input.getBoundingClientRect().left,
 		};
 	});
@@ -393,7 +401,9 @@ test("navigation Save names and stores template settings in Load Templates", asy
 	await expect(saveNameInput).toHaveCount(0);
 	await page.locator("#text-editor-template-load-button").click();
 	await expect(page.locator("#text-editor-saved-templates-list")).toBeVisible();
-	await expect(page.getByRole("button", { name: "Navigation Template", exact: true })).toBeVisible();
+	await expect(
+		page.getByRole("button", { name: "Navigation Template", exact: true }),
+	).toBeVisible();
 	await page.getByRole("button", { name: "Navigation Template", exact: true }).click();
 	await expect(page.locator(".print-preview-paper-editor")).toHaveText(
 		"Navigation-saved template",
@@ -586,7 +596,9 @@ test("Tools in the top navigation opens the editing controls", async ({ page }) 
 	);
 	expect(alignmentChoiceClasses).toEqual([true, true, true]);
 	const alignmentChoiceMetrics = await page.evaluate(() => {
-		const panel = document.querySelector("#text-editor-alignment-panel").getBoundingClientRect();
+		const panel = document
+			.querySelector("#text-editor-alignment-panel")
+			.getBoundingClientRect();
 		const buttons = [...panelElementButtons()];
 		const bounds = buttons.map((button) => button.getBoundingClientRect());
 		return {
@@ -594,7 +606,7 @@ test("Tools in the top navigation opens the editing controls", async ({ page }) 
 			leftGap: bounds[0].left - panel.left,
 			firstGap: bounds[1].left - bounds[0].right,
 			secondGap: bounds[2].left - bounds[1].right,
-		rightGap: panel.right - bounds[2].right,
+			rightGap: panel.right - bounds[2].right,
 			topGap: bounds[0].top - panel.top,
 			bottomGap: panel.bottom - bounds[0].bottom,
 		};
@@ -620,7 +632,9 @@ test("Tools in the top navigation opens the editing controls", async ({ page }) 
 	await expect(alignmentButton).toHaveCSS("position", "absolute");
 	await alignmentButton.click();
 	const alignmentPanelGap = await page.evaluate(() => {
-		const panel = document.querySelector("#text-editor-alignment-panel").getBoundingClientRect();
+		const panel = document
+			.querySelector("#text-editor-alignment-panel")
+			.getBoundingClientRect();
 		const otherPanels = [
 			"#text-editor-size-panel",
 			"#text-editor-margins-panel",
@@ -696,16 +710,24 @@ test("Tools in the top navigation opens the editing controls", async ({ page }) 
 	expect(alignmentPressedShadow).toBe(fontsPressedShadow);
 	await alignmentButton.click();
 	expect(toolButtonBoxes[0].x - toolsPanelBox.x).toBe(16);
-	expect(toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[0].x - toolButtonBoxes[0].width).toBe(16);
+	expect(
+		toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[0].x - toolButtonBoxes[0].width,
+	).toBe(16);
 	expect(toolButtonBoxes[0].y - toolsPanelBox.y).toBe(16);
 	expect(toolButtonBoxes[1].x - toolsPanelBox.x).toBe(16);
-	expect(toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[1].x - toolButtonBoxes[1].width).toBe(16);
+	expect(
+		toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[1].x - toolButtonBoxes[1].width,
+	).toBe(16);
 	expect(toolButtonBoxes[1].y - toolButtonBoxes[0].y - toolButtonBoxes[0].height).toBe(16);
 	expect(toolButtonBoxes[2].y - toolButtonBoxes[1].y - toolButtonBoxes[1].height).toBe(16);
 	expect(toolButtonBoxes[3].y - toolButtonBoxes[2].y - toolButtonBoxes[2].height).toBe(16);
 	expect(toolButtonBoxes[3].x - toolsPanelBox.x).toBe(16);
-	expect(toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[3].x - toolButtonBoxes[3].width).toBe(16);
-	expect(toolsPanelBox.y + toolsPanelBox.height - toolButtonBoxes[3].y - toolButtonBoxes[3].height).toBe(16);
+	expect(
+		toolsPanelBox.x + toolsPanelBox.width - toolButtonBoxes[3].x - toolButtonBoxes[3].width,
+	).toBe(16);
+	expect(
+		toolsPanelBox.y + toolsPanelBox.height - toolButtonBoxes[3].y - toolButtonBoxes[3].height,
+	).toBe(16);
 	await expect(
 		page.locator("#text-editor-tools-panel #text-editor-editing-tools-button"),
 	).toHaveCount(0);
@@ -993,9 +1015,7 @@ test("saved templates stay available across reloads and restore their paper stat
 	await expect(loadButton).toHaveAttribute("aria-pressed", "true");
 	const loadMenu = page.locator("#text-editor-load-menu");
 	const loadMenuShellsButton = page.locator("#text-editor-load-menu-shells-button");
-	const loadMenuTemplatesButton = page.locator(
-		"#text-editor-load-menu-templates-button",
-	);
+	const loadMenuTemplatesButton = page.locator("#text-editor-load-menu-templates-button");
 	const savedList = page.locator("#text-editor-saved-templates-list");
 	await expect(savedList).toBeVisible();
 	await expect(loadMenuShellsButton).toBeVisible();
@@ -1005,8 +1025,14 @@ test("saved templates stay available across reloads and restore their paper stat
 	await loadMenuTemplatesButton.click();
 	await expect(savedList).toBeVisible();
 	await expect(page.getByRole("button", { name: "Alphabet 5in", exact: true })).toBeVisible();
-	await expect(loadMenuShellsButton).toHaveAttribute("class", "text-editor-load-menu-shells-button");
-	await expect(loadMenuShellsButton).toHaveAttribute("name", "text-editor-load-menu-shells-button");
+	await expect(loadMenuShellsButton).toHaveAttribute(
+		"class",
+		"text-editor-load-menu-shells-button",
+	);
+	await expect(loadMenuShellsButton).toHaveAttribute(
+		"name",
+		"text-editor-load-menu-shells-button",
+	);
 	await expect(loadMenuShellsButton).toHaveAttribute(
 		"data-button-name",
 		"text-editor-load-menu-shells-button",
@@ -1177,10 +1203,7 @@ test("Remove mode confirms template deletion and Keep preserves the template", a
 		width: templatesButtonBox.width,
 		height: templatesButtonBox.height,
 	});
-	await expect(removeButton).toHaveCSS(
-		"background-image",
-		/255, 37, 37/,
-	);
+	await expect(removeButton).toHaveCSS("background-image", /255, 37, 37/);
 
 	await removeButton.click();
 	await expect(removeButton).toHaveAttribute("aria-pressed", "true");

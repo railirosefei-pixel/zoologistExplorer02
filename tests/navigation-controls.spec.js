@@ -2,8 +2,10 @@ import { test, expect } from "@playwright/test";
 
 test.use({ viewport: { width: 2560, height: 1080 } });
 
-const homeGradient = "linear-gradient(rgb(36, 107, 57) 0%, rgb(29, 90, 48) 33.333%, rgb(22, 74, 39) 66.667%, rgb(16, 58, 30) 100%)";
-const backGradient = "linear-gradient(rgb(35, 91, 145) 0%, rgb(29, 76, 122) 33.333%, rgb(23, 62, 100) 66.667%, rgb(17, 47, 78) 100%)";
+const homeGradient =
+	"linear-gradient(rgb(36, 107, 57) 0%, rgb(29, 90, 48) 33.333%, rgb(22, 74, 39) 66.667%, rgb(16, 58, 30) 100%)";
+const backGradient =
+	"linear-gradient(rgb(35, 91, 145) 0%, rgb(29, 76, 122) 33.333%, rgb(23, 62, 100) 66.667%, rgb(17, 47, 78) 100%)";
 
 async function verifyNavigation(page, homeId, backId) {
 	await page.mouse.move(500, 500);
@@ -24,7 +26,12 @@ async function verifyNavigation(page, homeId, backId) {
 		await expect(button).toHaveCSS("transform", "none");
 		const geometry = await button.evaluate((element) => {
 			const bounds = element.getBoundingClientRect();
-			return { top: bounds.top, right: innerWidth - bounds.right, width: bounds.width, height: bounds.height };
+			return {
+				top: bounds.top,
+				right: innerWidth - bounds.right,
+				width: bounds.width,
+				height: bounds.height,
+			};
 		});
 		expect(geometry).toEqual({ top: 16, right, width: 96, height: 44 });
 	}
@@ -39,7 +46,11 @@ test("parent screens share navigation and Back returns one level", async ({ page
 	await openParent(page);
 	await verifyNavigation(page, null, "parent-screen-back-button-parent");
 	await page.getByRole("button", { name: "Student Edits", exact: true }).click();
-	await verifyNavigation(page, "student-edits-screen-home-button", "student-edits-screen-back-button");
+	await verifyNavigation(
+		page,
+		"student-edits-screen-home-button",
+		"student-edits-screen-back-button",
+	);
 	await page.getByRole("button", { name: "Open Blocks menu" }).click();
 	await verifyNavigation(page, "blocks-screen-home-button", "blocks-screen-back-button");
 	await page.getByRole("button", { name: "Toggle Description Edits" }).click();
@@ -48,9 +59,17 @@ test("parent screens share navigation and Back returns one level", async ({ page
 	await expect(page.locator("#blocks-menu-sidebar")).toBeVisible();
 	await page.locator("#blocks-screen-back-button").click();
 	await expect(page.locator("#blocks-menu-sidebar")).toHaveCount(0);
-	await verifyNavigation(page, "student-edits-screen-home-button", "student-edits-screen-back-button");
+	await verifyNavigation(
+		page,
+		"student-edits-screen-home-button",
+		"student-edits-screen-back-button",
+	);
 	await page.getByRole("button", { name: "Open Curriculum Game" }).click();
-	await verifyNavigation(page, "curriculum-game-screen-home-button", "curriculum-game-screen-back-button");
+	await verifyNavigation(
+		page,
+		"curriculum-game-screen-home-button",
+		"curriculum-game-screen-back-button",
+	);
 	await page.locator("#curriculum-game-screen-back-button").click();
 	await expect(page.locator("#student-edits-screen")).toBeVisible();
 	await page.locator("#student-edits-screen-home-button").click();
@@ -67,9 +86,17 @@ test("Text Editor and Grid controls keep the correct Back", async ({ page }) => 
 	await expect(page.locator("#grid-menu-selection-prompt")).toHaveCount(0);
 	await page.locator("#text-editor-template-new-button").click();
 	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
-	await verifyNavigation(page, "text-editor-workflow-home-button", "text-editor-workflow-back-button");
+	await verifyNavigation(
+		page,
+		"text-editor-workflow-home-button",
+		"text-editor-workflow-back-button",
+	);
 	await page.locator("#grid-shape-option-4").click();
-	await verifyNavigation(page, "text-editor-workflow-home-button", "grid-menu-quadrilateral-prompt-back-button");
+	await verifyNavigation(
+		page,
+		"text-editor-workflow-home-button",
+		"grid-menu-quadrilateral-prompt-back-button",
+	);
 	await page.locator("#grid-menu-quadrilateral-prompt-back-button").click();
 	await page.locator("#text-editor-workflow-back-button").click();
 	await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
@@ -110,7 +137,15 @@ test("student, Progress, Rewards, calendar pages and games share navigation", as
 	await verifyNavigation(page, null, "rewards-page-back-button");
 	await page.locator("#rewards-page-back-button").click();
 	await page.getByRole("button", { name: "Open Games tab" }).click();
-	await verifyNavigation(page, null, "student-math-games-back-button");
+	await verifyNavigation(
+		page,
+		"student-math-games-home-button",
+		"student-math-games-back-button",
+	);
+	await page.locator("#student-math-games-home-button").click();
+	await expect(page.getByRole("button", { name: "Open student section" })).toBeVisible();
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Open Games tab" }).click();
 	await page.locator("#math-game-place-names").click();
 	await verifyNavigation(page, null, "math-games-back-to-gallery-button");
 	await page.locator("#math-games-back-to-gallery-button").click();
@@ -121,7 +156,9 @@ test("student, Progress, Rewards, calendar pages and games share navigation", as
 	await expect(page.getByRole("button", { name: "Open student section" })).toBeVisible();
 });
 
-test("Daily subjects and Story return one screen while Home exits to the home page", async ({ page }) => {
+test("Daily subjects and Story return one screen while Home exits to the home page", async ({
+	page,
+}) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 	const day = page.locator("#calendar-day-cell-October-2026-7");
@@ -146,14 +183,20 @@ test("Daily subjects and Story return one screen while Home exits to the home pa
 	await expect(page.getByRole("button", { name: "Open student section" })).toBeVisible();
 });
 
-test("Math Curriculum controls match the shared position, styles, and Home destination", async ({ page }) => {
+test("Math Curriculum controls match the shared position, styles, and Home destination", async ({
+	page,
+}) => {
 	await openParent(page);
 	await page.getByRole("button", { name: "Student Edits", exact: true }).click();
 	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-play-by-play-button").click();
 	await page.locator("#math-curriculum-october-button").click();
-	await verifyNavigation(page, "math-curriculum-october-screen-home-button", "math-curriculum-october-screen-back-button");
+	await verifyNavigation(
+		page,
+		"math-curriculum-october-screen-home-button",
+		"math-curriculum-october-screen-back-button",
+	);
 	await page.locator("#math-curriculum-october-screen-back-button").click();
 	await expect(page.locator("#description-edits-position-wrapper")).toBeVisible();
 	await page.locator("#description-edits-play-by-play-button").click();

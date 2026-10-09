@@ -100,8 +100,8 @@ function handleDayCellClick() {
 		<span
 			v-if="
 				cell.isCurrentMonth &&
-					cell.value !== '' &&
-					!(isExploded && ['exploding', 'textureCleared'].includes(dayCellAnimationState))
+				cell.value !== '' &&
+				!(isExploded && ['exploding', 'textureCleared'].includes(dayCellAnimationState))
 			"
 			class="calendar-day-cell-number"
 		>
@@ -110,8 +110,8 @@ function handleDayCellClick() {
 		<img
 			v-if="
 				['exploding', 'textureCleared'].includes(dayCellAnimationState) &&
-					cell.isCurrentMonth &&
-					isExploded
+				cell.isCurrentMonth &&
+				isExploded
 			"
 			:key="`${cellKey}-${explosionInstance}`"
 			class="calendar-day-cell-explosion"

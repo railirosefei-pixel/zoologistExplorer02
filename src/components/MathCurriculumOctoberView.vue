@@ -115,7 +115,10 @@ function handleScreenHome() {
 					@click="handleDateToggle(date.dayOfMonth)"
 				>
 					<span>Math</span>
-					<span>(October {{ date.dayOfMonth }}{{ getOrdinalSuffix(date.dayOfMonth) }}, 2026)</span>
+					<span
+						>(October {{ date.dayOfMonth }}{{ getOrdinalSuffix(date.dayOfMonth) }},
+						2026)</span
+					>
 				</button>
 			</fieldset>
 		</div>

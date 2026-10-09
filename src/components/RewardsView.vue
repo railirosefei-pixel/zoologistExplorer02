@@ -206,7 +206,9 @@ function handleGoldCoinSpillComplete() {
 	height: 26%;
 	border-radius: 42% 42% 18% 18%;
 	background: linear-gradient(110deg, #4b291c, #a36c48 48%, #603722);
-	transition: top 220ms ease, transform 220ms ease;
+	transition:
+		top 220ms ease,
+		transform 220ms ease;
 }
 
 .rewards-page-gold-bag--uncinched .rewards-page-gold-bag-neck {
@@ -225,7 +227,10 @@ function handleGoldCoinSpillComplete() {
 	background:
 		repeating-linear-gradient(78deg, transparent 0 8px, #39221622 9px 10px),
 		radial-gradient(ellipse at 36% 25%, #b27c57 0, #805337 46%, #4b2c1e 100%);
-	box-shadow: inset 0 0 0 4px #9a6a4b, inset 0 -0.35rem 0.6rem #27150e88, 0 0.3rem 0 #352015;
+	box-shadow:
+		inset 0 0 0 4px #9a6a4b,
+		inset 0 -0.35rem 0.6rem #27150e88,
+		0 0.3rem 0 #352015;
 }
 
 .rewards-page-gold-bag-tie {
@@ -263,7 +268,8 @@ function handleGoldCoinSpillComplete() {
 	border-radius: 50%;
 	background: radial-gradient(ellipse at 35% 25%, #fff8ad, #f6c638 62%, #c77908);
 	box-shadow: inset 0 0 0 2px #f8d75f;
-	animation: rewards-gold-coin-spill 850ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--coin-delay) forwards;
+	animation: rewards-gold-coin-spill 850ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--coin-delay)
+		forwards;
 }
 
 .rewards-page-gold-coin--one {
@@ -307,7 +313,9 @@ function handleGoldCoinSpillComplete() {
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1.2rem;
 	text-align: center;
-	text-shadow: 0 0 0.35rem #ffea00, 0 0 0.8rem #d99600;
+	text-shadow:
+		0 0 0.35rem #ffea00,
+		0 0 0.8rem #d99600;
 }
 
 @keyframes rewards-gold-bag-emerge {
@@ -340,7 +348,8 @@ function handleGoldCoinSpillComplete() {
 
 	100% {
 		opacity: 1;
-		transform: translate(calc(-50% + var(--coin-x)), calc(-50% + var(--coin-y))) scale(1) rotate(720deg);
+		transform: translate(calc(-50% + var(--coin-x)), calc(-50% + var(--coin-y))) scale(1)
+			rotate(720deg);
 	}
 }
 

@@ -179,7 +179,12 @@ function commitDescription({ dateKey, subjectKey, blocks, text }) {
 
 function overwriteDescription({ dateKey, subjectKey, blockNumber, text }) {
 	const key = buildDescriptionKey(dateKey, subjectKey, blockNumber);
-	if (!key || typeof text !== "string" || !Object.hasOwn(state.descriptionsByKey, key) || state.descriptionsByKey[key] === text) {
+	if (
+		!key ||
+		typeof text !== "string" ||
+		!Object.hasOwn(state.descriptionsByKey, key) ||
+		state.descriptionsByKey[key] === text
+	) {
 		return false;
 	}
 	if (text.length > 0) {
@@ -232,7 +237,12 @@ function commitPlayByPlay({ dateKey, subjectKey, blocks, text }) {
 
 function overwritePlayByPlay({ dateKey, subjectKey, blockNumber, text }) {
 	const key = buildDescriptionKey(dateKey, subjectKey, blockNumber);
-	if (!key || typeof text !== "string" || !Object.hasOwn(state.playByPlayByKey, key) || state.playByPlayByKey[key] === text) {
+	if (
+		!key ||
+		typeof text !== "string" ||
+		!Object.hasOwn(state.playByPlayByKey, key) ||
+		state.playByPlayByKey[key] === text
+	) {
 		return false;
 	}
 	if (text.length > 0) {

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raili's Safari Place Value Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #FFD700 50%, #8B4513 100%);
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .minecraft-btn {
+            border: 4px solid #383838;
+            box-shadow: inset -4px -4px 0px 0px rgba(0,0,0,0.3), inset 4px 4px 0px 0px rgba(255,255,255,0.4);
+            transition: transform 0.1s;
+        }
+
+        .minecraft-btn:active {
+            transform: scale(0.95);
+            box-shadow: inset 4px 4px 0px 0px rgba(0,0,0,0.4);
+        }
+
+        .block-thousands { background-color: #5bcefa; color: #000; } /* Diamond/Ice look */
+        .block-hundreds { background-color: #f1c40f; color: #000; } /* Gold look */
+        .block-tens { background-color: #bdc3c7; color: #000; } /* Iron look */
+        .block-ones { background-color: #8b4513; color: #fff; } /* Dirt look */
+
+        .xp-bar-container {
+            border: 4px solid #383838;
+            background-color: #2d2d2d;
+            height: 30px;
+            width: 100%;
+            position: relative;
+        }
+
+        .xp-bar-fill {
+            background-color: #2ecc71; /* Green XP */
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+            box-shadow: inset 0px 4px 0px rgba(255,255,255,0.3);
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: absolute;
+            z-index: 50;
+            font-size: 2rem;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        #modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between p-4">
+
+    <header class="w-full max-w-3xl bg-white/90 p-4 rounded-xl shadow-lg border-4 border-amber-600 mb-4 flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-amber-800 pixel-font">Raili's Bestiary</h1>
+            <div class="text-xl">🦒 🦓 🐘</div>
+        </div>
+        
+        <div class="w-full">
+            <div class="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                <span>Explorer XP</span>
+                <span id="xp-display">0 / 100</span>
+            </div>
+            <div class="xp-bar-container rounded-md overflow-hidden">
+                <div id="xp-fill" class="xp-bar-fill"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-3xl flex-grow flex flex-col items-center justify-center gap-6">
+        
+        <!-- Target Goal -->
+        <div class="bg-white/95 p-6 rounded-2xl shadow-xl border-4 border-emerald-600 text-center w-full">
+            <h2 class="text-lg md:text-xl font-bold text-emerald-800 mb-2">The Whispering Giraffes need exactly:</h2>
+            <div id="target-number" class="text-5xl md:text-7xl font-bold text-emerald-600 pixel-font drop-shadow-md">
+                0
+            </div>
+            <p class="text-md text-emerald-700 mt-2 font-bold">Acacia Leaves 🍃</p>
+        </div>
+
+        <!-- Current Value Display -->
+        <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border-4 border-slate-900 text-center w-full text-white">
+            <h2 class="text-lg font-bold mb-2">Raili has gathered:</h2>
+            <div id="current-number" class="text-5xl md:text-7xl font-bold text-amber-400 pixel-font">
+                0
+            </div>
+            
+            <!-- Breakdown Grid -->
+            <div class="grid grid-cols-4 gap-2 mt-4 text-sm font-bold">
+                <div class="bg-sky-500/20 p-2 rounded"><span id="count-1000">0</span> Thousands</div>
+                <div class="bg-yellow-500/20 p-2 rounded"><span id="count-100">0</span> Hundreds</div>
+                <div class="bg-gray-400/20 p-2 rounded"><span id="count-10">0</span> Tens</div>
+                <div class="bg-amber-700/20 p-2 rounded"><span id="count-1">0</span> Ones</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+            <button onclick="addValue(1000)" class="minecraft-btn block-thousands rounded-xl p-4 flex flex-col items-center justify-center h-24 md:h-32">
+                <span class="text-2xl font-bold">+1000</span>
+                <span class="text-sm mt-1">Thousands</span>
+            </button>
+            <button onclick="addValue(100)" class="minecraft-btn block-hundreds rounded-xl p-4 flex flex-col items-center justify-center h-24 md:h-32">
+                <span class="text-2xl font-bold">+100</span>
+                <span class="text-sm mt-1">Hundreds</span>
+            </button>
+            <button onclick="addValue(10)" class="minecraft-btn block-tens rounded-xl p-4 flex flex-col items-center justify-center h-24 md:h-32">
+                <span class="text-2xl font-bold">+10</span>
+                <span class="text-sm mt-1">Tens</span>
+            </button>
+            <button onclick="addValue(1)" class="minecraft-btn block-ones rounded-xl p-4 flex flex-col items-center justify-center h-24 md:h-32">
+                <span class="text-2xl font-bold">+1</span>
+                <span class="text-sm mt-1">Ones</span>
+            </button>
+        </div>
+
+        <!-- Reset Button -->
+        <button onclick="resetCurrent()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg border-4 border-red-700 transition transform hover:scale-105 active:scale-95">
+            Oops! Start Over (Reset)
+        </button>
+
+    </main>
+
+    <div id="modal-overlay" class="fixed inset-0 hidden flex items-center justify-center z-40">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl border-4 border-amber-500 max-w-md text-center transform scale-95 transition-transform duration-300" id="modal-box">
+            <div class="text-6xl mb-4" id="modal-icon">🦒</div>
+            <h2 id="modal-title" class="text-3xl font-bold text-amber-800 mb-4 pixel-font">Wackadoo!</h2>
+            <p id="modal-message" class="text-xl text-gray-700 mb-6">You fed the giraffes!</p>
+            <button onclick="nextLevel()" class="minecraft-btn bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl text-xl w-full">
+                Next Quest!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let targetNumber = 0;
+        let currentNumber = 0;
+        let xp = 0;
+        const maxXP = 100;
+        
+        let counts = {
+            1000: 0,
+            100: 0,
+            10: 0,
+            1: 0
+        };
+
+        const targetDisplay = document.getElementById('target-number');
+        const currentDisplay = document.getElementById('current-number');
+        const xpFill = document.getElementById('xp-fill');
+        const xpDisplay = document.getElementById('xp-display');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalBox = document.getElementById('modal-box');
+
+        // Audio Context for soothing sounds (avoids external files)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playSoothingChime() {
+            initAudio();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // A soothing major chord arpeggio (C, E, G, C)
+            const frequencies = [261.63, 329.63, 392.00, 523.25]; 
+            
+            frequencies.forEach((freq, index) => {
+                setTimeout(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    osc.type = 'sine'; // Soft sine wave
+                    osc.frequency.value = freq;
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    // Fade in and out to make it gentle
+                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 1.5);
+                }, index * 150); // Play notes in sequence
+            });
+        }
+
+        function playPopSound() {
+            initAudio();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function generateTarget() {
+            // Adjust difficulty based on XP
+            let min = 10;
+            let max = 99;
+            
+            if (xp >= 20) { min = 100; max = 999; }
+            if (xp >= 50) { min = 1000; max = 9999; }
+
+            targetNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+            targetDisplay.innerText = targetNumber.toLocaleString();
+        }
+
+        function updateDisplay() {
+            currentDisplay.innerText = currentNumber.toLocaleString();
+            document.getElementById('count-1000').innerText = counts[1000];
+            document.getElementById('count-100').innerText = counts[100];
+            document.getElementById('count-10').innerText = counts[10];
+            document.getElementById('count-1').innerText = counts[1];
+
+            // Check win condition
+            if (currentNumber === targetNumber) {
+                handleWin();
+            } else if (currentNumber > targetNumber) {
+                // Friendly correction without alert
+                currentDisplay.style.color = "#ef4444"; // Red
+                setTimeout(() => {
+                    currentDisplay.style.color = "#fbbf24"; // Back to amber
+                }, 500);
+            }
+        }
+
+        function addValue(val) {
+            playPopSound();
+            currentNumber += val;
+            counts[val]++;
+            updateDisplay();
+        }
+
+        function resetCurrent() {
+            currentNumber = 0;
+            counts = { 1000: 0, 100: 0, 10: 0, 1: 0 };
+            updateDisplay();
+        }
+
+        function handleWin() {
+            playSoothingChime();
+            fireConfetti();
+            
+            // Add XP
+            xp += 10;
+            if(xp > maxXP) xp = maxXP;
+            
+            xpFill.style.width = `${(xp / maxXP) * 100}%`;
+            xpDisplay.innerText = `${xp} / ${maxXP}`;
+
+            // Show Modal
+            setTimeout(() => {
+                modalOverlay.classList.remove('hidden');
+                modalBox.style.transform = "scale(1)";
+                
+                if(xp >= maxXP) {
+                    document.getElementById('modal-title').innerText = "Hooray!";
+                    document.getElementById('modal-message').innerText = "You filled your Bestiary and saved the Savanna!";
+                }
+            }, 500);
+        }
+
+        function nextLevel() {
+            modalBox.style.transform = "scale(0.95)";
+            setTimeout(() => {
+                modalOverlay.classList.add('hidden');
+                resetCurrent();
+                
+                if(xp >= maxXP) {
+                    // Reset game if they reached max
+                    xp = 0;
+                    xpFill.style.width = `0%`;
+                    xpDisplay.innerText = `0 / ${maxXP}`;
+                }
+                
+                generateTarget();
+            }, 200);
+        }
+
+        function fireConfetti() {
+            const emojis = ['🍃', '🦒', '✨', '💎', '💛'];
+            for (let i = 0; i < 30; i++) {
+                const conf = document.createElement('div');
+                conf.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.top = -50 + 'px';
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(conf);
+                
+                // Cleanup
+                setTimeout(() => {
+                    conf.remove();
+                }, 4000);
+            }
+        }
+
+        // Start the game
+        window.onload = () => {
+            // First interaction required for audio API, handled by buttons
+            generateTarget();
+        };
+
+    </script>
+</body>
+</html>

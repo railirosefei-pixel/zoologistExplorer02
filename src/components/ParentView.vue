@@ -1634,26 +1634,24 @@ const gridRenderedHeightPx = computed(
 	() => gridPatternCellHeight.value * gridRenderedRowCount.value,
 );
 const gridRenderedRowAdditions = computed(() =>
-	gridRowShapeAdditions.value
-		.filter(
-			(entry) =>
-				Number.isInteger(entry.row) &&
-				entry.row >= 0 &&
-				entry.row < gridRenderedRowCount.value &&
-				Array.isArray(entry.shapes) &&
-				entry.shapes.length > 0,
-		),
+	gridRowShapeAdditions.value.filter(
+		(entry) =>
+			Number.isInteger(entry.row) &&
+			entry.row >= 0 &&
+			entry.row < gridRenderedRowCount.value &&
+			Array.isArray(entry.shapes) &&
+			entry.shapes.length > 0,
+	),
 );
 const gridRenderedColumnAdditions = computed(() =>
-	gridColumnShapeAdditions.value
-		.filter(
-			(entry) =>
-				Number.isInteger(entry.column) &&
-				entry.column >= 0 &&
-				entry.column < gridRenderedColumnCount.value &&
-				Array.isArray(entry.shapes) &&
-				entry.shapes.length > 0,
-		),
+	gridColumnShapeAdditions.value.filter(
+		(entry) =>
+			Number.isInteger(entry.column) &&
+			entry.column >= 0 &&
+			entry.column < gridRenderedColumnCount.value &&
+			Array.isArray(entry.shapes) &&
+			entry.shapes.length > 0,
+	),
 );
 const hasMixedGridAdditions = computed(
 	() => gridRenderedRowAdditions.value.length > 0 && gridRenderedColumnAdditions.value.length > 0,
@@ -1723,7 +1721,9 @@ const gridColumnAdditionLayouts = computed(() =>
 		const width =
 			hasMixedGridAdditions.value &&
 			entry.column === gridRenderedColumnCount.value - 1 &&
-			!gridRenderedRowAdditions.value.some((layout) => layout.row === gridRenderedRowCount.value - 1)
+			!gridRenderedRowAdditions.value.some(
+				(layout) => layout.row === gridRenderedRowCount.value - 1,
+			)
 				? gridRenderedWidthPx.value - x
 				: cellWidth;
 		return {
@@ -1862,10 +1862,10 @@ function createBaseGridShapeCell(row, column) {
 	const columnLayout = gridColumnAdditionLayouts.value.find((layout) => layout.column === column);
 	const cellWidth = hasMixedGridAdditions.value
 		? gridMixedCellSize.value.width
-		: rowLayout?.cellWidth ?? gridPatternCellWidth.value;
+		: (rowLayout?.cellWidth ?? gridPatternCellWidth.value);
 	const cellHeight = hasMixedGridAdditions.value
 		? gridMixedCellSize.value.height
-		: columnLayout?.cellHeight ?? gridPatternCellHeight.value;
+		: (columnLayout?.cellHeight ?? gridPatternCellHeight.value);
 	const x = column * cellWidth;
 	const y = row * cellHeight;
 	const width =
@@ -1891,9 +1891,7 @@ function createBaseGridShapeCell(row, column) {
 	};
 }
 function getGridShapeCellAtPoint(x, y) {
-	const packedCell = gridPackedCells.value.find((cell) =>
-		isGridShapePointInsideCell(cell, x, y),
-	);
+	const packedCell = gridPackedCells.value.find((cell) => isGridShapePointInsideCell(cell, x, y));
 	if (packedCell) {
 		return packedCell;
 	}
@@ -1936,10 +1934,12 @@ function getGridShapeCellByKey(key) {
 }
 function isGridShapePointInsideCell(cell, x, y) {
 	if (cell.isPacked && cell.sides !== 1) {
-		const vertices = getGridPackedCellPoints(cell).split(" ").map((point) => {
-			const [vertexX, vertexY] = point.split(",").map(Number);
-			return { x: vertexX, y: vertexY };
-		});
+		const vertices = getGridPackedCellPoints(cell)
+			.split(" ")
+			.map((point) => {
+				const [vertexX, vertexY] = point.split(",").map(Number);
+				return { x: vertexX, y: vertexY };
+			});
 		return isGridPointInsidePolygon({ x, y }, vertices);
 	}
 	const localX = (x - cell.x) / cell.width;
@@ -2707,7 +2707,11 @@ function handleCalibrationBarPointerUp() {
 						>
 							<span>
 								Are You Sure You Want to Delete this
-								{{ selectedSavedEntryForRemoval?.template?.isShell === true ? "Shell" : "Template" }}
+								{{
+									selectedSavedEntryForRemoval?.template?.isShell === true
+										? "Shell"
+										: "Template"
+								}}
 							</span>
 							<span>This is Permanent and Cannot be Undone</span>
 						</p>
@@ -2957,8 +2961,8 @@ function handleCalibrationBarPointerUp() {
 								<pattern
 									v-if="
 										isShapeRemovalHighlightActive ||
-											isShapeAdditionHighlightActive ||
-											isShapeSwapHighlightActive
+										isShapeAdditionHighlightActive ||
+										isShapeSwapHighlightActive
 									"
 									id="print-preview-grid-removal-pattern"
 									:width="gridPatternCellWidth * 2"
@@ -2976,7 +2980,7 @@ function handleCalibrationBarPointerUp() {
 											:data-grid-highlight-column="cell.column"
 											:cx="
 												gridShapeOriginX +
-													cell.column * gridPatternCellWidth
+												cell.column * gridPatternCellWidth
 											"
 											:cy="
 												gridShapeOriginY + cell.row * gridPatternCellHeight
@@ -3042,8 +3046,8 @@ function handleCalibrationBarPointerUp() {
 									"
 									:fill="
 										isShapeRemovalHighlightActive ||
-											isShapeAdditionHighlightActive ||
-											isShapeSwapHighlightActive
+										isShapeAdditionHighlightActive ||
+										isShapeSwapHighlightActive
 											? 'url(#print-preview-grid-removal-pattern)'
 											: 'url(#print-preview-grid-shape-pattern)'
 									"
@@ -3203,13 +3207,13 @@ function handleCalibrationBarPointerUp() {
 											shape.isPacked
 												? getGridPackedCellPoints(shape)
 												: getGridShapeCellPolygonPoints(
-													shape.sides,
-													shape.variant,
-													shape.width,
-													shape.height,
-													shape.x,
-													shape.y,
-												)
+														shape.sides,
+														shape.variant,
+														shape.width,
+														shape.height,
+														shape.x,
+														shape.y,
+													)
 										"
 										fill="#ffffff"
 										stroke="#000000"
@@ -3239,7 +3243,7 @@ function handleCalibrationBarPointerUp() {
 				<div class="grid-menu-top-control-row">
 					<div class="grid-menu-control-row grid-menu-control-row--applied">
 						<span id="grid-applied-label" class="grid-menu-control-label"
-						>Grid Applied</span
+							>Grid Applied</span
 						>
 						<button
 							id="grid-applied-button"
@@ -3280,586 +3284,564 @@ function handleCalibrationBarPointerUp() {
 					<div id="grid-menu-alignment-heading" class="grid-menu-alignment-heading">
 						Alignment
 					</div>
-					<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">
-						Shapes
-					</div>
+					<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">Shapes</div>
 					<div class="grid-menu-alignment-controls">
 						<div class="grid-menu-alignment-controls-inner">
-								<details id="grid-menu-alignment-dropdown">
-									<summary class="grid-menu-control-label">
-										Full Grid Alignment
-									</summary>
-									<fieldset
-										id="grid-menu-alignment-buttons"
-										class="grid-menu-alignment-buttons"
-										aria-label="Grid alignment"
-									>
-										<div class="grid-menu-alignment-row">
-											<button
-												id="grid-alignment-left-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button"
-												:class="{
-													'grid-menu-toggle-button--off':
-														selectedGridAlignment !== 'left',
-													'grid-menu-toggle-button--on':
-														selectedGridAlignment === 'left',
-													'grid-menu-alignment-button--depressed':
-														selectedGridAlignment === 'left',
-												}"
-												type="button"
-												:aria-pressed="selectedGridAlignment === 'left'"
-												@click="toggleGridAlignment('left')"
-											>
-												Left
-											</button>
-											<button
-												id="grid-alignment-center-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button"
-												:class="{
-													'grid-menu-toggle-button--off':
-														selectedGridAlignment !== 'center',
-													'grid-menu-toggle-button--on':
-														selectedGridAlignment === 'center',
-													'grid-menu-alignment-button--depressed':
-														selectedGridAlignment === 'center',
-												}"
-												type="button"
-												:aria-pressed="selectedGridAlignment === 'center'"
-												@click="toggleGridAlignment('center')"
-											>
-												Center
-											</button>
-											<button
-												id="grid-alignment-right-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button"
-												:class="{
-													'grid-menu-toggle-button--off':
-														selectedGridAlignment !== 'right',
-													'grid-menu-toggle-button--on':
-														selectedGridAlignment === 'right',
-													'grid-menu-alignment-button--depressed':
-														selectedGridAlignment === 'right',
-												}"
-												type="button"
-												:aria-pressed="selectedGridAlignment === 'right'"
-												@click="toggleGridAlignment('right')"
-											>
-												Right
-											</button>
-										</div>
-										<div class="grid-menu-alignment-row">
-											<button
-												id="grid-alignment-top-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button"
-												:class="{
-													'grid-menu-toggle-button--off':
-														selectedGridAlignment !== 'top',
-													'grid-menu-toggle-button--on':
-														selectedGridAlignment === 'top',
-													'grid-menu-alignment-button--depressed':
-														selectedGridAlignment === 'top',
-												}"
-												type="button"
-												:aria-pressed="selectedGridAlignment === 'top'"
-												@click="toggleGridAlignment('top')"
-											>
-												Top
-											</button>
-											<button
-												id="grid-alignment-top-left-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button--top-left"
-												:class="getGridAlignmentButtonState('top-left')"
-												type="button"
-												:aria-pressed="selectedGridAlignment === 'top-left'"
-												@click="toggleGridAlignment('top-left')"
-											>
-												Top Left
-											</button>
-											<button
-												id="grid-alignment-top-right-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button--top-right"
-												:class="getGridAlignmentButtonState('top-right')"
-												type="button"
-												:aria-pressed="
-													selectedGridAlignment === 'top-right'
-												"
-												@click="toggleGridAlignment('top-right')"
-											>
-												Top Right
-											</button>
-										</div>
-										<div class="grid-menu-alignment-row">
-											<button
-												id="grid-alignment-bottom-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button"
-												:class="{
-													'grid-menu-toggle-button--off':
-														selectedGridAlignment !== 'bottom',
-													'grid-menu-toggle-button--on':
-														selectedGridAlignment === 'bottom',
-													'grid-menu-alignment-button--depressed':
-														selectedGridAlignment === 'bottom',
-												}"
-												type="button"
-												:aria-pressed="selectedGridAlignment === 'bottom'"
-												@click="toggleGridAlignment('bottom')"
-											>
-												Bottom
-											</button>
-											<button
-												id="grid-alignment-bottom-left-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button--bottom-left"
-												:class="getGridAlignmentButtonState('bottom-left')"
-												type="button"
-												:aria-pressed="
-													selectedGridAlignment === 'bottom-left'
-												"
-												@click="toggleGridAlignment('bottom-left')"
-											>
-												Bottom Left
-											</button>
-											<button
-												id="grid-alignment-bottom-right-button"
-												class="grid-menu-toggle-button grid-menu-alignment-button--bottom-right"
-												:class="getGridAlignmentButtonState('bottom-right')"
-												type="button"
-												:aria-pressed="
-													selectedGridAlignment === 'bottom-right'
-												"
-												@click="toggleGridAlignment('bottom-right')"
-											>
-												Bottom Right
-											</button>
-										</div>
+							<details id="grid-menu-alignment-dropdown">
+								<summary class="grid-menu-control-label">
+									Full Grid Alignment
+								</summary>
+								<fieldset
+									id="grid-menu-alignment-buttons"
+									class="grid-menu-alignment-buttons"
+									aria-label="Grid alignment"
+								>
+									<div class="grid-menu-alignment-row">
 										<button
-											id="grid-alignment-custom-button"
-											class="grid-menu-toggle-button grid-menu-alignment-button grid-menu-alignment-custom-button grid-menu-toggle-button--off"
-											type="button"
-											:aria-expanded="isGridPositionCustomOpen"
-											aria-controls="grid-menu-custom-position"
-											@click="
-												isGridPositionCustomOpen = !isGridPositionCustomOpen
-											"
-										>
-											Custom
-										</button>
-										<div
-											v-if="isGridPositionCustomOpen"
-											id="grid-menu-custom-position"
-											class="grid-menu-custom-position"
-										>
-											<div class="grid-menu-position-picker">
-												<div
-													id="grid-menu-position-heading"
-													class="grid-menu-position-heading grid-menu-control-label"
-												>
-													Grid Position
-												</div>
-												<select
-													id="grid-move-step"
-													v-model.number="gridMoveStep"
-													class="grid-menu-position-step-select"
-													aria-label="Grid movement distance in pixels"
-												>
-													<option :value="null" disabled>Select</option>
-													<option
-														v-for="pixelAmount in 10"
-														:key="pixelAmount"
-														:value="pixelAmount"
-													>
-														{{ pixelAmount }}
-													</option>
-												</select>
-												<span id="grid-move-unit" aria-hidden="true"
-												>px</span
-												>
-											</div>
-											<div
-												v-if="gridMoveStep !== null"
-												id="grid-menu-move-directions"
-												class="grid-menu-position-controls"
-												aria-labelledby="grid-menu-position-heading"
-											>
-												<div
-													class="grid-menu-position-directions"
-													role="group"
-													aria-label="Move grid"
-												>
-													<button
-														id="grid-move-up-button"
-														class="grid-menu-position-button"
-														type="button"
-														aria-label="Move grid up"
-														title="Move grid up"
-														@click="nudgeGrid('up')"
-													>
-														Up
-													</button>
-													<button
-														id="grid-move-down-button"
-														class="grid-menu-position-button"
-														type="button"
-														aria-label="Move grid down"
-														title="Move grid down"
-														@click="nudgeGrid('down')"
-													>
-														Down
-													</button>
-													<button
-														id="grid-move-left-button"
-														class="grid-menu-position-button"
-														type="button"
-														aria-label="Move grid left"
-														title="Move grid left"
-														@click="nudgeGrid('left')"
-													>
-														Left
-													</button>
-													<button
-														id="grid-move-right-button"
-														class="grid-menu-position-button"
-														type="button"
-														aria-label="Move grid right"
-														title="Move grid right"
-														@click="nudgeGrid('right')"
-													>
-														Right
-													</button>
-												</div>
-											</div>
-										</div>
-									</fieldset>
-								</details>
-								<details id="grid-menu-single-shape-alignment-dropdown">
-									<summary class="grid-menu-control-label">
-										Single Shape Alignment
-									</summary>
-									<div
-										id="grid-menu-single-shape-options"
-										class="grid-menu-single-shape-options"
-										role="group"
-										aria-label="Single shape actions"
-									>
-										<button
-											id="grid-menu-shape-removal-button"
-											class="grid-menu-single-shape-option"
+											id="grid-alignment-left-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
 											:class="{
-												'grid-menu-single-shape-option--depressed':
+												'grid-menu-toggle-button--off':
+													selectedGridAlignment !== 'left',
+												'grid-menu-toggle-button--on':
+													selectedGridAlignment === 'left',
+												'grid-menu-alignment-button--depressed':
+													selectedGridAlignment === 'left',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'left'"
+											@click="toggleGridAlignment('left')"
+										>
+											Left
+										</button>
+										<button
+											id="grid-alignment-center-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off':
+													selectedGridAlignment !== 'center',
+												'grid-menu-toggle-button--on':
+													selectedGridAlignment === 'center',
+												'grid-menu-alignment-button--depressed':
+													selectedGridAlignment === 'center',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'center'"
+											@click="toggleGridAlignment('center')"
+										>
+											Center
+										</button>
+										<button
+											id="grid-alignment-right-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off':
+													selectedGridAlignment !== 'right',
+												'grid-menu-toggle-button--on':
+													selectedGridAlignment === 'right',
+												'grid-menu-alignment-button--depressed':
+													selectedGridAlignment === 'right',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'right'"
+											@click="toggleGridAlignment('right')"
+										>
+											Right
+										</button>
+									</div>
+									<div class="grid-menu-alignment-row">
+										<button
+											id="grid-alignment-top-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off':
+													selectedGridAlignment !== 'top',
+												'grid-menu-toggle-button--on':
+													selectedGridAlignment === 'top',
+												'grid-menu-alignment-button--depressed':
+													selectedGridAlignment === 'top',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'top'"
+											@click="toggleGridAlignment('top')"
+										>
+											Top
+										</button>
+										<button
+											id="grid-alignment-top-left-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--top-left"
+											:class="getGridAlignmentButtonState('top-left')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'top-left'"
+											@click="toggleGridAlignment('top-left')"
+										>
+											Top Left
+										</button>
+										<button
+											id="grid-alignment-top-right-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--top-right"
+											:class="getGridAlignmentButtonState('top-right')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'top-right'"
+											@click="toggleGridAlignment('top-right')"
+										>
+											Top Right
+										</button>
+									</div>
+									<div class="grid-menu-alignment-row">
+										<button
+											id="grid-alignment-bottom-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button"
+											:class="{
+												'grid-menu-toggle-button--off':
+													selectedGridAlignment !== 'bottom',
+												'grid-menu-toggle-button--on':
+													selectedGridAlignment === 'bottom',
+												'grid-menu-alignment-button--depressed':
+													selectedGridAlignment === 'bottom',
+											}"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'bottom'"
+											@click="toggleGridAlignment('bottom')"
+										>
+											Bottom
+										</button>
+										<button
+											id="grid-alignment-bottom-left-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--bottom-left"
+											:class="getGridAlignmentButtonState('bottom-left')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'bottom-left'"
+											@click="toggleGridAlignment('bottom-left')"
+										>
+											Bottom Left
+										</button>
+										<button
+											id="grid-alignment-bottom-right-button"
+											class="grid-menu-toggle-button grid-menu-alignment-button--bottom-right"
+											:class="getGridAlignmentButtonState('bottom-right')"
+											type="button"
+											:aria-pressed="selectedGridAlignment === 'bottom-right'"
+											@click="toggleGridAlignment('bottom-right')"
+										>
+											Bottom Right
+										</button>
+									</div>
+									<button
+										id="grid-alignment-custom-button"
+										class="grid-menu-toggle-button grid-menu-alignment-button grid-menu-alignment-custom-button grid-menu-toggle-button--off"
+										type="button"
+										:aria-expanded="isGridPositionCustomOpen"
+										aria-controls="grid-menu-custom-position"
+										@click="
+											isGridPositionCustomOpen = !isGridPositionCustomOpen
+										"
+									>
+										Custom
+									</button>
+									<div
+										v-if="isGridPositionCustomOpen"
+										id="grid-menu-custom-position"
+										class="grid-menu-custom-position"
+									>
+										<div class="grid-menu-position-picker">
+											<div
+												id="grid-menu-position-heading"
+												class="grid-menu-position-heading grid-menu-control-label"
+											>
+												Grid Position
+											</div>
+											<select
+												id="grid-move-step"
+												v-model.number="gridMoveStep"
+												class="grid-menu-position-step-select"
+												aria-label="Grid movement distance in pixels"
+											>
+												<option :value="null" disabled>Select</option>
+												<option
+													v-for="pixelAmount in 10"
+													:key="pixelAmount"
+													:value="pixelAmount"
+												>
+													{{ pixelAmount }}
+												</option>
+											</select>
+											<span id="grid-move-unit" aria-hidden="true">px</span>
+										</div>
+										<div
+											v-if="gridMoveStep !== null"
+											id="grid-menu-move-directions"
+											class="grid-menu-position-controls"
+											aria-labelledby="grid-menu-position-heading"
+										>
+											<div
+												class="grid-menu-position-directions"
+												role="group"
+												aria-label="Move grid"
+											>
+												<button
+													id="grid-move-up-button"
+													class="grid-menu-position-button"
+													type="button"
+													aria-label="Move grid up"
+													title="Move grid up"
+													@click="nudgeGrid('up')"
+												>
+													Up
+												</button>
+												<button
+													id="grid-move-down-button"
+													class="grid-menu-position-button"
+													type="button"
+													aria-label="Move grid down"
+													title="Move grid down"
+													@click="nudgeGrid('down')"
+												>
+													Down
+												</button>
+												<button
+													id="grid-move-left-button"
+													class="grid-menu-position-button"
+													type="button"
+													aria-label="Move grid left"
+													title="Move grid left"
+													@click="nudgeGrid('left')"
+												>
+													Left
+												</button>
+												<button
+													id="grid-move-right-button"
+													class="grid-menu-position-button"
+													type="button"
+													aria-label="Move grid right"
+													title="Move grid right"
+													@click="nudgeGrid('right')"
+												>
+													Right
+												</button>
+											</div>
+										</div>
+									</div>
+								</fieldset>
+							</details>
+							<details id="grid-menu-single-shape-alignment-dropdown">
+								<summary class="grid-menu-control-label">
+									Single Shape Alignment
+								</summary>
+								<div
+									id="grid-menu-single-shape-options"
+									class="grid-menu-single-shape-options"
+									role="group"
+									aria-label="Single shape actions"
+								>
+									<button
+										id="grid-menu-shape-removal-button"
+										class="grid-menu-single-shape-option"
+										:class="{
+											'grid-menu-single-shape-option--depressed':
+												selectedSingleShapeAction === 'removal',
+										}"
+										type="button"
+										:aria-pressed="selectedSingleShapeAction === 'removal'"
+										@click="toggleSingleShapeAction('removal')"
+									>
+										<span class="grid-menu-single-shape-option-label"
+											>Shape Removal</span
+										>
+										<span
+											class="grid-menu-single-shape-indicator"
+											:class="{
+												'grid-menu-single-shape-indicator--on':
 													selectedSingleShapeAction === 'removal',
 											}"
-											type="button"
-											:aria-pressed="selectedSingleShapeAction === 'removal'"
-											@click="toggleSingleShapeAction('removal')"
-										>
-											<span class="grid-menu-single-shape-option-label"
-											>Shape Removal</span
-											>
-											<span
-												class="grid-menu-single-shape-indicator"
-												:class="{
-													'grid-menu-single-shape-indicator--on':
-														selectedSingleShapeAction === 'removal',
-												}"
-												aria-hidden="true"
-											/>
-										</button>
-										<div class="grid-menu-shape-addition-controls">
-											<button
-												id="grid-menu-shape-addition-button"
-												class="grid-menu-single-shape-option"
-												:class="{
-													'grid-menu-single-shape-option--depressed':
-														selectedSingleShapeAction === 'addition',
-												}"
-												type="button"
-												:aria-pressed="
-													selectedSingleShapeAction === 'addition'
-												"
-												@click="toggleSingleShapeAction('addition')"
-											>
-												<span class="grid-menu-single-shape-option-label"
-												>Shape Addition</span
-												>
-												<span
-													class="grid-menu-single-shape-indicator"
-													:class="{
-														'grid-menu-single-shape-indicator--on':
-															selectedSingleShapeAction ===
-															'addition',
-													}"
-													aria-hidden="true"
-												/>
-											</button>
-											<div
-												v-if="selectedSingleShapeAction === 'addition'"
-												class="grid-menu-shape-addition-selection"
-											>
-												<div
-													class="grid-menu-shape-addition-directions"
-													role="group"
-													aria-label="Shape addition direction"
-												>
-													<button
-														id="grid-menu-shape-addition-row-button"
-														class="grid-menu-shape-addition-axis-button"
-														:class="{
-															'grid-menu-single-shape-option--depressed':
-																selectedGridShapeAdditionDirection ===
-																'row',
-														}"
-														type="button"
-														:aria-pressed="
-															selectedGridShapeAdditionDirection ===
-																'row'
-														"
-														@click="
-															toggleGridShapeAdditionDirection('row')
-														"
-													>
-														Row
-													</button>
-													<button
-														id="grid-menu-shape-addition-column-button"
-														class="grid-menu-shape-addition-axis-button"
-														:class="{
-															'grid-menu-single-shape-option--depressed':
-																selectedGridShapeAdditionDirection ===
-																'column',
-														}"
-														type="button"
-														:aria-pressed="
-															selectedGridShapeAdditionDirection ===
-																'column'
-														"
-														@click="
-															toggleGridShapeAdditionDirection(
-																'column',
-															)
-														"
-													>
-														Column
-													</button>
-												</div>
-												<select
-													v-if="selectedGridShapeAdditionDirection"
-													id="grid-menu-shape-addition-selection"
-													v-model.number="selectedGridShapeAdditionSides"
-													class="grid-menu-shape-addition-select"
-													:aria-label="`Shape to add to selected ${selectedGridShapeAdditionDirection}`"
-												>
-													<option :value="null" disabled>
-														Select a shape
-													</option>
-													<option
-														v-for="shapeOption in gridShapeOptions"
-														:key="shapeOption.sides"
-														:value="shapeOption.sides"
-													>
-														{{ shapeOption.label }}
-													</option>
-												</select>
-											</div>
-										</div>
+											aria-hidden="true"
+										/>
+									</button>
+									<div class="grid-menu-shape-addition-controls">
 										<button
-											id="grid-menu-shape-swap-button"
+											id="grid-menu-shape-addition-button"
 											class="grid-menu-single-shape-option"
 											:class="{
 												'grid-menu-single-shape-option--depressed':
-													selectedSingleShapeAction === 'swap',
+													selectedSingleShapeAction === 'addition',
 											}"
 											type="button"
-											:aria-pressed="selectedSingleShapeAction === 'swap'"
-											@click="toggleSingleShapeAction('swap')"
+											:aria-pressed="selectedSingleShapeAction === 'addition'"
+											@click="toggleSingleShapeAction('addition')"
 										>
 											<span class="grid-menu-single-shape-option-label"
-											>Shape Swap</span
+												>Shape Addition</span
 											>
 											<span
 												class="grid-menu-single-shape-indicator"
 												:class="{
 													'grid-menu-single-shape-indicator--on':
-														selectedSingleShapeAction === 'swap',
+														selectedSingleShapeAction === 'addition',
 												}"
 												aria-hidden="true"
 											/>
 										</button>
-										<details
-											id="grid-menu-shape-manipulation-dropdown"
-											class="grid-menu-shape-manipulation-dropdown"
-										>
-											<summary class="grid-menu-control-label">
-												Shape Manipulation
-											</summary>
-										</details>
-									</div>
-								</details>
-								<details id="grid-menu-dimensions-dropdown">
-									<summary class="grid-menu-control-label">
-										Grid Dimensions
-									</summary>
-									<div class="grid-menu-dimensions-content">
-										<label
-											class="grid-menu-control-row grid-menu-control-row--amount"
-											for="grid-rows-amount"
-										>
-											<span
-												id="grid-rows-amount-label"
-												class="grid-menu-control-label"
-											>
-												Rows Amount
-											</span>
-											<input
-												id="grid-rows-amount"
-												class="grid-menu-amount-input"
-												type="text"
-												inputmode="numeric"
-												pattern="[0-9]*"
-												maxlength="3"
-												:value="gridRowsAmount"
-												@input="
-													gridRowsAmount = sanitizeGridAmount(
-														$event.target.value,
-													)
-												"
-											/>
-										</label>
-										<label
-											class="grid-menu-control-row grid-menu-control-row--amount"
-											for="grid-columns-amount"
-										>
-											<span
-												id="grid-columns-amount-label"
-												class="grid-menu-control-label"
-											>
-												Columns Amount
-											</span>
-											<input
-												id="grid-columns-amount"
-												class="grid-menu-amount-input"
-												type="text"
-												inputmode="numeric"
-												pattern="[0-9]*"
-												maxlength="3"
-												:value="gridColumnsAmount"
-												@input="
-													gridColumnsAmount = sanitizeGridAmount(
-														$event.target.value,
-													)
-												"
-											/>
-										</label>
 										<div
-											id="grid-menu-size-heading"
-											class="grid-menu-size-heading"
+											v-if="selectedSingleShapeAction === 'addition'"
+											class="grid-menu-shape-addition-selection"
 										>
-											Size
+											<div
+												class="grid-menu-shape-addition-directions"
+												role="group"
+												aria-label="Shape addition direction"
+											>
+												<button
+													id="grid-menu-shape-addition-row-button"
+													class="grid-menu-shape-addition-axis-button"
+													:class="{
+														'grid-menu-single-shape-option--depressed':
+															selectedGridShapeAdditionDirection ===
+															'row',
+													}"
+													type="button"
+													:aria-pressed="
+														selectedGridShapeAdditionDirection === 'row'
+													"
+													@click="toggleGridShapeAdditionDirection('row')"
+												>
+													Row
+												</button>
+												<button
+													id="grid-menu-shape-addition-column-button"
+													class="grid-menu-shape-addition-axis-button"
+													:class="{
+														'grid-menu-single-shape-option--depressed':
+															selectedGridShapeAdditionDirection ===
+															'column',
+													}"
+													type="button"
+													:aria-pressed="
+														selectedGridShapeAdditionDirection ===
+														'column'
+													"
+													@click="
+														toggleGridShapeAdditionDirection('column')
+													"
+												>
+													Column
+												</button>
+											</div>
+											<select
+												v-if="selectedGridShapeAdditionDirection"
+												id="grid-menu-shape-addition-selection"
+												v-model.number="selectedGridShapeAdditionSides"
+												class="grid-menu-shape-addition-select"
+												:aria-label="`Shape to add to selected ${selectedGridShapeAdditionDirection}`"
+											>
+												<option :value="null" disabled>
+													Select a shape
+												</option>
+												<option
+													v-for="shapeOption in gridShapeOptions"
+													:key="shapeOption.sides"
+													:value="shapeOption.sides"
+												>
+													{{ shapeOption.label }}
+												</option>
+											</select>
 										</div>
-										<div
-											id="grid-shape-size-row"
-											class="grid-menu-size-dimensions-row"
+									</div>
+									<button
+										id="grid-menu-shape-swap-button"
+										class="grid-menu-single-shape-option"
+										:class="{
+											'grid-menu-single-shape-option--depressed':
+												selectedSingleShapeAction === 'swap',
+										}"
+										type="button"
+										:aria-pressed="selectedSingleShapeAction === 'swap'"
+										@click="toggleSingleShapeAction('swap')"
+									>
+										<span class="grid-menu-single-shape-option-label"
+											>Shape Swap</span
 										>
-											<label
-												id="grid-shape-width-label"
-												class="grid-menu-size-width-label"
-												for="grid-shape-width-input"
-											>
-												Width
-											</label>
-											<input
-												id="grid-shape-width-input"
-												class="grid-menu-size-width-input"
-												type="text"
-												inputmode="decimal"
-												pattern="[0-9]*[.]?[0-9]*"
-												maxlength="4"
-												:value="gridShapeWidthInput"
-												@input="updateGridShapeWidthInput"
-											/>
-											<span
-												id="grid-shape-width-unit"
-												class="grid-menu-size-width-unit"
+										<span
+											class="grid-menu-single-shape-indicator"
+											:class="{
+												'grid-menu-single-shape-indicator--on':
+													selectedSingleShapeAction === 'swap',
+											}"
+											aria-hidden="true"
+										/>
+									</button>
+									<details
+										id="grid-menu-shape-manipulation-dropdown"
+										class="grid-menu-shape-manipulation-dropdown"
+									>
+										<summary class="grid-menu-control-label">
+											Shape Manipulation
+										</summary>
+									</details>
+								</div>
+							</details>
+							<details id="grid-menu-dimensions-dropdown">
+								<summary class="grid-menu-control-label">Grid Dimensions</summary>
+								<div class="grid-menu-dimensions-content">
+									<label
+										class="grid-menu-control-row grid-menu-control-row--amount"
+										for="grid-rows-amount"
+									>
+										<span
+											id="grid-rows-amount-label"
+											class="grid-menu-control-label"
+										>
+											Rows Amount
+										</span>
+										<input
+											id="grid-rows-amount"
+											class="grid-menu-amount-input"
+											type="text"
+											inputmode="numeric"
+											pattern="[0-9]*"
+											maxlength="3"
+											:value="gridRowsAmount"
+											@input="
+												gridRowsAmount = sanitizeGridAmount(
+													$event.target.value,
+												)
+											"
+										/>
+									</label>
+									<label
+										class="grid-menu-control-row grid-menu-control-row--amount"
+										for="grid-columns-amount"
+									>
+										<span
+											id="grid-columns-amount-label"
+											class="grid-menu-control-label"
+										>
+											Columns Amount
+										</span>
+										<input
+											id="grid-columns-amount"
+											class="grid-menu-amount-input"
+											type="text"
+											inputmode="numeric"
+											pattern="[0-9]*"
+											maxlength="3"
+											:value="gridColumnsAmount"
+											@input="
+												gridColumnsAmount = sanitizeGridAmount(
+													$event.target.value,
+												)
+											"
+										/>
+									</label>
+									<div id="grid-menu-size-heading" class="grid-menu-size-heading">
+										Size
+									</div>
+									<div
+										id="grid-shape-size-row"
+										class="grid-menu-size-dimensions-row"
+									>
+										<label
+											id="grid-shape-width-label"
+											class="grid-menu-size-width-label"
+											for="grid-shape-width-input"
+										>
+											Width
+										</label>
+										<input
+											id="grid-shape-width-input"
+											class="grid-menu-size-width-input"
+											type="text"
+											inputmode="decimal"
+											pattern="[0-9]*[.]?[0-9]*"
+											maxlength="4"
+											:value="gridShapeWidthInput"
+											@input="updateGridShapeWidthInput"
+										/>
+										<span
+											id="grid-shape-width-unit"
+											class="grid-menu-size-width-unit"
 											>inches</span
-											>
-											<label
-												id="grid-shape-height-label"
-												class="grid-menu-size-height-label"
-												for="grid-shape-height-input"
-											>
-												Height
-											</label>
-											<input
-												id="grid-shape-height-input"
-												class="grid-menu-size-height-input"
-												type="text"
-												inputmode="decimal"
-												pattern="[0-9]*[.]?[0-9]*"
-												maxlength="4"
-												:value="gridShapeHeightInput"
-												@input="updateGridShapeHeightInput"
-											/>
-											<span
-												id="grid-shape-height-unit"
-												class="grid-menu-size-height-unit"
-											>
-												inches
-											</span>
-										</div>
+										>
+										<label
+											id="grid-shape-height-label"
+											class="grid-menu-size-height-label"
+											for="grid-shape-height-input"
+										>
+											Height
+										</label>
+										<input
+											id="grid-shape-height-input"
+											class="grid-menu-size-height-input"
+											type="text"
+											inputmode="decimal"
+											pattern="[0-9]*[.]?[0-9]*"
+											maxlength="4"
+											:value="gridShapeHeightInput"
+											@input="updateGridShapeHeightInput"
+										/>
+										<span
+											id="grid-shape-height-unit"
+											class="grid-menu-size-height-unit"
+										>
+											inches
+										</span>
 									</div>
-								</details>
+								</div>
+							</details>
 						</div>
 					</div>
 					<div class="grid-menu-shapes-group">
-					<ul
-						id="grid-menu-shapes-list"
-						class="grid-menu-shapes-list"
-						aria-labelledby="grid-menu-shapes-heading"
-					>
-						<li v-for="shapeOption in gridShapeOptions" :key="shapeOption.sides">
-							<button
-								:id="`grid-shape-option-${shapeOption.sides}`"
-								class="grid-menu-shapes-option"
-								:class="{
-									'grid-menu-shapes-option--selected':
-										selectedGridShapeSides === shapeOption.sides,
-									'grid-menu-shapes-option--even': shapeOption.sides % 2 === 0,
-									'grid-menu-shapes-option--odd': shapeOption.sides % 2 !== 0,
-								}"
-								:data-side-count="shapeOption.sides"
-								:aria-pressed="selectedGridShapeSides === shapeOption.sides"
-								type="button"
-								@click="selectGridShape(shapeOption)"
-							>
-								{{ shapeOption.label }}
-							</button>
-							<ul
-								v-if="shapeOption.sides === 4"
-								class="grid-menu-quadrilateral-variants"
-								aria-label="Quadrilateral grid shapes"
-							>
-								<li v-for="variant in quadrilateralVariants" :key="variant.id">
-									<button
-										:id="`grid-quadrilateral-variant-${variant.id}`"
-										class="grid-menu-shapes-option"
-										:class="{
-											'grid-menu-shapes-option--selected':
+						<ul
+							id="grid-menu-shapes-list"
+							class="grid-menu-shapes-list"
+							aria-labelledby="grid-menu-shapes-heading"
+						>
+							<li v-for="shapeOption in gridShapeOptions" :key="shapeOption.sides">
+								<button
+									:id="`grid-shape-option-${shapeOption.sides}`"
+									class="grid-menu-shapes-option"
+									:class="{
+										'grid-menu-shapes-option--selected':
+											selectedGridShapeSides === shapeOption.sides,
+										'grid-menu-shapes-option--even':
+											shapeOption.sides % 2 === 0,
+										'grid-menu-shapes-option--odd': shapeOption.sides % 2 !== 0,
+									}"
+									:data-side-count="shapeOption.sides"
+									:aria-pressed="selectedGridShapeSides === shapeOption.sides"
+									type="button"
+									@click="selectGridShape(shapeOption)"
+								>
+									{{ shapeOption.label }}
+								</button>
+								<ul
+									v-if="shapeOption.sides === 4"
+									class="grid-menu-quadrilateral-variants"
+									aria-label="Quadrilateral grid shapes"
+								>
+									<li v-for="variant in quadrilateralVariants" :key="variant.id">
+										<button
+											:id="`grid-quadrilateral-variant-${variant.id}`"
+											class="grid-menu-shapes-option"
+											:class="{
+												'grid-menu-shapes-option--selected':
+													selectedGridShapeSides === 4 &&
+													selectedGridShapeVariant === variant.id,
+												'grid-menu-shapes-option--even': true,
+											}"
+											:data-shape-variant="variant.id"
+											:aria-pressed="
 												selectedGridShapeSides === 4 &&
-												selectedGridShapeVariant === variant.id,
-											'grid-menu-shapes-option--even': true,
-										}"
-										:data-shape-variant="variant.id"
-										:aria-pressed="
-											selectedGridShapeSides === 4 &&
 												selectedGridShapeVariant === variant.id
-										"
-										type="button"
-										@click="selectGridShapeVariant(variant)"
-									>
-										{{ variant.label }}
-									</button>
-								</li>
-							</ul>
-						</li>
-					</ul>
+											"
+											type="button"
+											@click="selectGridShapeVariant(variant)"
+										>
+											{{ variant.label }}
+										</button>
+									</li>
+								</ul>
+							</li>
+						</ul>
 					</div>
 				</div>
 				<div id="grid-menu-lines-heading" class="grid-menu-lines-heading">Lines</div>
@@ -4266,7 +4248,7 @@ function handleCalibrationBarPointerUp() {
 										id="text-editor-size-width-label"
 										class="text-editor-size-label"
 										for="text-editor-size-width"
-									>Width</label
+										>Width</label
 									>
 									<input
 										id="text-editor-size-width"
@@ -4345,7 +4327,7 @@ function handleCalibrationBarPointerUp() {
 										id="text-editor-size-height-label"
 										class="text-editor-size-label"
 										for="text-editor-size-height"
-									>Height</label
+										>Height</label
 									>
 									<input
 										id="text-editor-size-height"

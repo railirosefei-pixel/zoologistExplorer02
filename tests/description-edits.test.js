@@ -103,9 +103,21 @@ test("Blocks Back closes one layer without invoking parent or Home navigation", 
 });
 
 for (const { name, label, handler } of [
-	{ name: "subject", label: "Subject options", handler: "handleDescriptionEditsSubjectSelect(subject)" },
-	{ name: "block", label: "Block options", handler: "handleDescriptionEditsBlockSelect(blockOption)" },
-	{ name: "history", label: "Description history options", handler: "handleDescriptionEditsHistorySelect(entry)" },
+	{
+		name: "subject",
+		label: "Subject options",
+		handler: "handleDescriptionEditsSubjectSelect(subject)",
+	},
+	{
+		name: "block",
+		label: "Block options",
+		handler: "handleDescriptionEditsBlockSelect(blockOption)",
+	},
+	{
+		name: "history",
+		label: "Description history options",
+		handler: "handleDescriptionEditsHistorySelect(entry)",
+	},
 	{ name: "month", label: "Month options", handler: "handleDescriptionEditsMonthSelect(month)" },
 	{ name: "day", label: "Day options", handler: "handleDescriptionEditsDaySelect(day)" },
 	{ name: "year", label: "Year options", handler: "handleDescriptionEditsYearSelect(year)" },
@@ -114,7 +126,9 @@ for (const { name, label, handler } of [
 		const source = readSource("src/components/StudentEditsView.vue");
 		const cssSource = readSource("src/css/input.css");
 		const selector = `description-edits-${name}-options-list`;
-		const group = source.match(new RegExp(`<fieldset\\s+[^>]*id="${selector}"[^>]*>[\\s\\S]*?</fieldset>`));
+		const group = source.match(
+			new RegExp(`<fieldset\\s+[^>]*id="${selector}"[^>]*>[\\s\\S]*?</fieldset>`),
+		);
 		assert.ok(group, `${selector} must be a native fieldset`);
 		assert.ok(group[0].includes(`class="${selector}"`));
 		const accessibleLabel = group[0].match(/:?aria-label="([^"]*)"/);
@@ -135,23 +149,54 @@ test("Description and Play by Play menus own separate controls and option-menu i
 	const cssSource = readSource("src/css/input.css");
 	const menuElements = [
 		"date-subrow",
-		"month-dropdown-wrapper", "month-dropdown-button", "month-options-list", "month-option-button",
-		"day-dropdown-wrapper", "day-dropdown-button", "day-options-list", "day-option-button",
-		"year-dropdown-wrapper", "year-dropdown-button", "year-options-list", "year-option-button",
-		"subject-dropdown-wrapper", "subject-dropdown-button", "subject-options-list", "subject-option-button",
-		"block-dropdown-wrapper", "block-dropdown-button", "block-options-list", "block-option-button",
-		"history-dropdown-wrapper", "history-dropdown-button", "history-options-list", "history-option-button",
+		"month-dropdown-wrapper",
+		"month-dropdown-button",
+		"month-options-list",
+		"month-option-button",
+		"day-dropdown-wrapper",
+		"day-dropdown-button",
+		"day-options-list",
+		"day-option-button",
+		"year-dropdown-wrapper",
+		"year-dropdown-button",
+		"year-options-list",
+		"year-option-button",
+		"subject-dropdown-wrapper",
+		"subject-dropdown-button",
+		"subject-options-list",
+		"subject-option-button",
+		"block-dropdown-wrapper",
+		"block-dropdown-button",
+		"block-options-list",
+		"block-option-button",
+		"history-dropdown-wrapper",
+		"history-dropdown-button",
+		"history-options-list",
+		"history-option-button",
 	];
 	const findTagWithClass = (className) =>
 		source.match(new RegExp(`<[^>]+class="${className}"[^>]*>`))?.[0] ?? "";
 	for (const elementName of menuElements) {
 		const descriptionTag = findTagWithClass(`description-edits-${elementName}`);
 		const playByPlayTag = findTagWithClass(`play-by-play-edits-${elementName}`);
-		for (const className of [`description-edits-${elementName}`, `play-by-play-edits-${elementName}`]) {
-			assert.match(cssSource, new RegExp(`^\\.${className}\\s*\\{`, "m"), `${className} must own an independent style rule`);
+		for (const className of [
+			`description-edits-${elementName}`,
+			`play-by-play-edits-${elementName}`,
+		]) {
+			assert.match(
+				cssSource,
+				new RegExp(`^\\.${className}\\s*\\{`, "m"),
+				`${className} must own an independent style rule`,
+			);
 		}
-		assert.ok(descriptionTag, `Description ${elementName} must have its own identified element`);
-		assert.ok(playByPlayTag, `Play by Play ${elementName} must have its own identified element`);
+		assert.ok(
+			descriptionTag,
+			`Description ${elementName} must have its own identified element`,
+		);
+		assert.ok(
+			playByPlayTag,
+			`Play by Play ${elementName} must have its own identified element`,
+		);
 		for (const [tag, prefix] of [
 			[descriptionTag, "description-edits"],
 			[playByPlayTag, "play-by-play-edits"],
@@ -163,19 +208,41 @@ test("Description and Play by Play menus own separate controls and option-menu i
 				assert.match(tag, /@click="handle[A-Za-z_$][\w$]*(?:\([^)]*\))?"/);
 			}
 		}
-		assert.notEqual(descriptionTag, playByPlayTag, `${elementName} must not share markup identity`);
+		assert.notEqual(
+			descriptionTag,
+			playByPlayTag,
+			`${elementName} must not share markup identity`,
+		);
 	}
 
-	for (const control of ["commit", "load", "date-dropdown", "subject-dropdown", "block-dropdown", "history-dropdown", "remove"]) {
-		const descriptionTag = source.match(new RegExp(`<button\\b[^>]*id="description-edits-${control}(?:-button)?"[^>]*>`))?.[0] ?? "";
-		const playByPlayTag = source.match(new RegExp(`<button\\b[^>]*id="play-by-play-edits-${control}(?:-button)?"[^>]*>`))?.[0] ?? "";
+	for (const control of [
+		"commit",
+		"load",
+		"date-dropdown",
+		"subject-dropdown",
+		"block-dropdown",
+		"history-dropdown",
+		"remove",
+	]) {
+		const descriptionTag =
+			source.match(
+				new RegExp(`<button\\b[^>]*id="description-edits-${control}(?:-button)?"[^>]*>`),
+			)?.[0] ?? "";
+		const playByPlayTag =
+			source.match(
+				new RegExp(`<button\\b[^>]*id="play-by-play-edits-${control}(?:-button)?"[^>]*>`),
+			)?.[0] ?? "";
 		assert.ok(descriptionTag, `Description ${control} button must exist independently`);
 		assert.ok(playByPlayTag, `Play by Play ${control} button must exist independently`);
 		const descriptionHandler = descriptionTag.match(/@click="([^"]+)"/)?.[1];
 		const playByPlayHandler = playByPlayTag.match(/@click="([^"]+)"/)?.[1];
 		assert.ok(descriptionHandler, `Description ${control} button must call a named handler`);
 		assert.ok(playByPlayHandler, `Play by Play ${control} button must call a named handler`);
-		assert.notEqual(descriptionHandler, playByPlayHandler, `${control} buttons must call separate handlers`);
+		assert.notEqual(
+			descriptionHandler,
+			playByPlayHandler,
+			`${control} buttons must call separate handlers`,
+		);
 		for (const [tag, prefix] of [
 			[descriptionTag, "description-edits"],
 			[playByPlayTag, "play-by-play-edits"],
@@ -211,9 +278,24 @@ test("Description Edits commit pipeline is wired in StudentEditsView.vue", () =>
 test("Description Load reopens saved text without writing until Save", async () => {
 	const dateKey = "2026-09-11";
 	const savedText = "Original description.\n\nKeep the spacing.";
-	blockDescriptionStore.commitDescription({ dateKey, subjectKey: "math", blocks: [1], text: savedText });
-	blockDescriptionStore.commitDescription({ dateKey, subjectKey: "math", blocks: [2], text: "Another block." });
-	blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "math", blocks: [1], text: "Separate Play by Play." });
+	blockDescriptionStore.commitDescription({
+		dateKey,
+		subjectKey: "math",
+		blocks: [1],
+		text: savedText,
+	});
+	blockDescriptionStore.commitDescription({
+		dateKey,
+		subjectKey: "math",
+		blocks: [2],
+		text: "Another block.",
+	});
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey: "math",
+		blocks: [1],
+		text: "Separate Play by Play.",
+	});
 	const historyCount = blockDescriptionStore.getHistory().length;
 	const view = await createDescriptionEditsView();
 	view.descriptionEditsMode.value = "description";
@@ -276,9 +358,24 @@ test("Description Commit keeps new-entry saving and requires complete Descriptio
 test("Play by Play Load independently reopens saved text and preserves it until Save", async () => {
 	const dateKey = "2026-09-13";
 	const savedText = "First step.\n\nKeep this blank line.";
-	blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "math", blocks: [1], text: savedText });
-	blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "math", blocks: [2], text: "Another block's steps." });
-	blockDescriptionStore.commitDescription({ dateKey, subjectKey: "math", blocks: [1], text: "Separate description." });
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey: "math",
+		blocks: [1],
+		text: savedText,
+	});
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey: "math",
+		blocks: [2],
+		text: "Another block's steps.",
+	});
+	blockDescriptionStore.commitDescription({
+		dateKey,
+		subjectKey: "math",
+		blocks: [1],
+		text: "Separate description.",
+	});
 	const historyCount = blockDescriptionStore.getHistory("play-by-play").length;
 	const view = await createDescriptionEditsView();
 	view.descriptionEditsMode.value = "play-by-play";
@@ -342,7 +439,9 @@ test("Play by Play Commit keeps new-entry saving and requires complete Play by P
 
 test("Description Save control retains its own selector and handler", () => {
 	const source = readSource("src/components/StudentEditsView.vue");
-	const button = source.match(/<button\b[^>]*id="description-edits-commit-button"[^>]*>[\s\S]*?<\/button>/);
+	const button = source.match(
+		/<button\b[^>]*id="description-edits-commit-button"[^>]*>[\s\S]*?<\/button>/,
+	);
 	assert.ok(button, "Description Save control must exist");
 	assert.match(button[0], /class="description-edits-commit-button"/);
 	assert.match(button[0], /aria-label="Save description"/);
@@ -353,7 +452,9 @@ test("Description Save control retains its own selector and handler", () => {
 
 test("Play by Play Save control retains its own selector and handler", () => {
 	const source = readSource("src/components/StudentEditsView.vue");
-	const button = source.match(/<button\b[^>]*id="play-by-play-edits-commit-button"[^>]*>[\s\S]*?<\/button>/);
+	const button = source.match(
+		/<button\b[^>]*id="play-by-play-edits-commit-button"[^>]*>[\s\S]*?<\/button>/,
+	);
 	assert.ok(button, "Play by Play Save control must exist");
 	assert.match(button[0], /class="play-by-play-edits-commit-button"/);
 	assert.match(button[0], /aria-label="Save Play by Play"/);
@@ -364,19 +465,37 @@ test("Play by Play Save control retains its own selector and handler", () => {
 
 test("Description and Play by Play Save controls use distinct read and save handlers", async () => {
 	const source = readSource("src/components/StudentEditsView.vue");
-	assert.match(source, /id="description-edits-commit-button"[^>]*@click="handleDescriptionEditsCommit"/);
-	assert.match(source, /id="play-by-play-edits-commit-button"[^>]*@click="handlePlayByPlayEditsCommit"/);
+	assert.match(
+		source,
+		/id="description-edits-commit-button"[^>]*@click="handleDescriptionEditsCommit"/,
+	);
+	assert.match(
+		source,
+		/id="play-by-play-edits-commit-button"[^>]*@click="handlePlayByPlayEditsCommit"/,
+	);
 	const view = await createDescriptionEditsView();
-	assert.doesNotMatch(view.handleDescriptionEditsLoad.toString(), /getPlayByPlay\(|playByPlayEditsLoadedFields/);
-	assert.doesNotMatch(view.handlePlayByPlayEditsLoad.toString(), /getDescription\(|descriptionEditsLoadedFields/);
+	assert.doesNotMatch(
+		view.handleDescriptionEditsLoad.toString(),
+		/getPlayByPlay\(|playByPlayEditsLoadedFields/,
+	);
+	assert.doesNotMatch(
+		view.handlePlayByPlayEditsLoad.toString(),
+		/getDescription\(|descriptionEditsLoadedFields/,
+	);
 	assert.match(view.handleDescriptionEditsLoad.toString(), /getDescription\(/);
 	assert.match(view.handleDescriptionEditsCommit.toString(), /overwriteDescription\(/);
 	assert.match(view.handleDescriptionEditsCommit.toString(), /commitDescription\(/);
-	assert.doesNotMatch(view.handleDescriptionEditsCommit.toString(), /getPlayByPlay\(|commitPlayByPlay\(/);
+	assert.doesNotMatch(
+		view.handleDescriptionEditsCommit.toString(),
+		/getPlayByPlay\(|commitPlayByPlay\(/,
+	);
 	assert.match(view.handlePlayByPlayEditsLoad.toString(), /getPlayByPlay\(/);
 	assert.match(view.handlePlayByPlayEditsCommit.toString(), /overwritePlayByPlay\(/);
 	assert.match(view.handlePlayByPlayEditsCommit.toString(), /commitPlayByPlay\(/);
-	assert.doesNotMatch(view.handlePlayByPlayEditsCommit.toString(), /getDescription\(|commitDescription\(/);
+	assert.doesNotMatch(
+		view.handlePlayByPlayEditsCommit.toString(),
+		/getDescription\(|commitDescription\(/,
+	);
 });
 
 test("Description Load gates selections, groups identical saved blocks, and Save clears and focuses", async () => {
@@ -392,10 +511,17 @@ test("Description Load gates selections, groups identical saved blocks, and Save
 	view.descriptionEditsSelectedSubject.value = { key: "math", label: "Math" };
 	assert.equal(view.isDescriptionEditsLoadEnabled.value, false);
 	view.descriptionEditsSelectedBlock.value = "all";
-	blockDescriptionStore.commitDescription({ dateKey, subjectKey: "math", blocks: [1, 3], text: "Same\n\ntext." });
+	blockDescriptionStore.commitDescription({
+		dateKey,
+		subjectKey: "math",
+		blocks: [1, 3],
+		text: "Same\n\ntext.",
+	});
 	assert.equal(view.isDescriptionEditsLoadEnabled.value, true);
 	view.handleDescriptionEditsLoad();
-	assert.deepEqual(view.descriptionEditsLoadedFields.value, [{ blocks: [1, 3], originalText: "Same\n\ntext.", text: "Same\n\ntext." }]);
+	assert.deepEqual(view.descriptionEditsLoadedFields.value, [
+		{ blocks: [1, 3], originalText: "Same\n\ntext.", text: "Same\n\ntext." },
+	]);
 	const historyCount = blockDescriptionStore.getHistory().length;
 	await view.handleDescriptionEditsCommit();
 	assert.equal(blockDescriptionStore.getHistory().length, historyCount);
@@ -403,10 +529,25 @@ test("Description Load gates selections, groups identical saved blocks, and Save
 	view.descriptionEditsLoadedFields.value[0].text = "Changed identical blocks.";
 	let focused = false;
 	let selection;
-	view.descriptionEditsEditor.value = { focus() { focused = true; }, setSelectionRange(...range) { selection = range; }, scrollTop: 40, scrollLeft: 20 };
+	view.descriptionEditsEditor.value = {
+		focus() {
+			focused = true;
+		},
+		setSelectionRange(...range) {
+			selection = range;
+		},
+		scrollTop: 40,
+		scrollLeft: 20,
+	};
 	await view.handleDescriptionEditsCommit();
-	assert.equal(blockDescriptionStore.getDescription(dateKey, "math", 1), "Changed identical blocks.");
-	assert.equal(blockDescriptionStore.getDescription(dateKey, "math", 3), "Changed identical blocks.");
+	assert.equal(
+		blockDescriptionStore.getDescription(dateKey, "math", 1),
+		"Changed identical blocks.",
+	);
+	assert.equal(
+		blockDescriptionStore.getDescription(dateKey, "math", 3),
+		"Changed identical blocks.",
+	);
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "math", 2), null);
 	assert.deepEqual(view.descriptionEditsLoadedFields.value, []);
 	assert.equal(view.descriptionEditsDraft.value, "");
@@ -419,16 +560,30 @@ test("Description Load gates selections, groups identical saved blocks, and Save
 
 test("Description Load has independent disabled styling, labeled editors, and a right-side overflow region", () => {
 	const source = readSource("src/components/StudentEditsView.vue");
-	const button = source.match(/<button\b[^>]*id="description-edits-load-button"[^>]*>[\s\S]*?<\/button>/);
+	const button = source.match(
+		/<button\b[^>]*id="description-edits-load-button"[^>]*>[\s\S]*?<\/button>/,
+	);
 	assert.ok(button);
 	assert.match(button[0], /description-edits-load-button/);
 	assert.match(button[0], /:disabled="!isDescriptionEditsLoadEnabled"/);
 	assert.match(button[0], /@click="handleDescriptionEditsLoad"/);
-	assert.match(readSource("src/css/input.css"), /\.description-edits-load-button:disabled\s*\{[^}]*background:\s*#d1d5db;[^}]*box-shadow:\s*none;/s);
-	assert.match(source, /description-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4/);
-	assert.match(source, /id="description-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/);
+	assert.match(
+		readSource("src/css/input.css"),
+		/\.description-edits-load-button:disabled\s*\{[^}]*background:\s*#d1d5db;[^}]*box-shadow:\s*none;/s,
+	);
+	assert.match(
+		source,
+		/description-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4/,
+	);
+	assert.match(
+		source,
+		/id="description-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/,
+	);
 	assert.match(source, /:for="`description-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"/);
-	assert.match(source, /:id="`description-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?v-model="field.text"/);
+	assert.match(
+		source,
+		/:id="`description-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?v-model="field.text"/,
+	);
 	assert.match(source, /id="description-edits-text-box"\s+ref="descriptionEditsEditor"/);
 });
 
@@ -442,20 +597,46 @@ test("Description All Blocks edits only changed original keys, including empty t
 	view.descriptionEditsSelectedSubject.value = { key: "science", label: "Science" };
 	view.descriptionEditsSelectedBlock.value = "all";
 	for (const blockNumber of [1, 2, 3]) {
-		blockDescriptionStore.commitDescription({ dateKey, subjectKey: "science", blocks: [blockNumber], text: `Description ${blockNumber}` });
+		blockDescriptionStore.commitDescription({
+			dateKey,
+			subjectKey: "science",
+			blocks: [blockNumber],
+			text: `Description ${blockNumber}`,
+		});
 	}
-	blockDescriptionStore.commitDescription({ dateKey, subjectKey: "math", blocks: [2], text: "Other subject" });
-	blockDescriptionStore.commitDescription({ dateKey: "2026-09-17", subjectKey: "science", blocks: [2], text: "Other date" });
-	blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "science", blocks: [2], text: "Other content" });
+	blockDescriptionStore.commitDescription({
+		dateKey,
+		subjectKey: "math",
+		blocks: [2],
+		text: "Other subject",
+	});
+	blockDescriptionStore.commitDescription({
+		dateKey: "2026-09-17",
+		subjectKey: "science",
+		blocks: [2],
+		text: "Other date",
+	});
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey: "science",
+		blocks: [2],
+		text: "Other content",
+	});
 	view.handleDescriptionEditsLoad();
-	assert.deepEqual(view.descriptionEditsLoadedFields.value.map((field) => field.blocks), [[1], [2], [3]]);
+	assert.deepEqual(
+		view.descriptionEditsLoadedFields.value.map((field) => field.blocks),
+		[[1], [2], [3]],
+	);
 	view.descriptionEditsLoadedFields.value[1].text = "Edited second block";
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "science", 2), "Description 2");
 	const historyCount = blockDescriptionStore.getHistory().length;
 	await view.handleDescriptionEditsCommit();
 	assert.equal(blockDescriptionStore.getHistory().length, historyCount + 1);
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "science", 1), "Description 1");
-	assert.equal(blockDescriptionStore.getDescription(dateKey, "science", 2), "Edited second block");
+	assert.equal(
+		blockDescriptionStore.getDescription(dateKey, "science", 2),
+		"Edited second block",
+	);
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "science", 3), "Description 3");
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "math", 2), "Other subject");
 	assert.equal(blockDescriptionStore.getDescription("2026-09-17", "science", 2), "Other date");
@@ -489,10 +670,17 @@ test("Play by Play Load gates selections, groups identical saved blocks, and Sav
 	view.descriptionEditsSelectedSubject.value = { key: "math", label: "Math" };
 	assert.equal(view.isPlayByPlayEditsLoadEnabled.value, false);
 	view.descriptionEditsSelectedBlock.value = "all";
-	blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "math", blocks: [1, 3], text: "Same\n\nsteps." });
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey: "math",
+		blocks: [1, 3],
+		text: "Same\n\nsteps.",
+	});
 	assert.equal(view.isPlayByPlayEditsLoadEnabled.value, true);
 	view.handlePlayByPlayEditsLoad();
-	assert.deepEqual(view.playByPlayEditsLoadedFields.value, [{ blocks: [1, 3], originalText: "Same\n\nsteps.", text: "Same\n\nsteps." }]);
+	assert.deepEqual(view.playByPlayEditsLoadedFields.value, [
+		{ blocks: [1, 3], originalText: "Same\n\nsteps.", text: "Same\n\nsteps." },
+	]);
 	const historyCount = blockDescriptionStore.getHistory("play-by-play").length;
 	await view.handlePlayByPlayEditsCommit();
 	assert.equal(blockDescriptionStore.getHistory("play-by-play").length, historyCount);
@@ -501,10 +689,25 @@ test("Play by Play Load gates selections, groups identical saved blocks, and Sav
 	view.descriptionEditsDraft.value = "Separate Description draft";
 	let focused = false;
 	let selection;
-	view.playByPlayEditsEditor.value = { focus() { focused = true; }, setSelectionRange(...range) { selection = range; }, scrollTop: 40, scrollLeft: 20 };
+	view.playByPlayEditsEditor.value = {
+		focus() {
+			focused = true;
+		},
+		setSelectionRange(...range) {
+			selection = range;
+		},
+		scrollTop: 40,
+		scrollLeft: 20,
+	};
 	await view.handlePlayByPlayEditsCommit();
-	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "math", 1), "Changed identical steps.");
-	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "math", 3), "Changed identical steps.");
+	assert.equal(
+		blockDescriptionStore.getPlayByPlay(dateKey, "math", 1),
+		"Changed identical steps.",
+	);
+	assert.equal(
+		blockDescriptionStore.getPlayByPlay(dateKey, "math", 3),
+		"Changed identical steps.",
+	);
 	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "math", 2), null);
 	assert.deepEqual(view.playByPlayEditsLoadedFields.value, []);
 	assert.equal(view.descriptionEditsPlayByPlayDraft.value, "");
@@ -518,16 +721,30 @@ test("Play by Play Load gates selections, groups identical saved blocks, and Sav
 
 test("Play by Play Load has independently disabled controls, labeled editors, and right-side scrolling", () => {
 	const source = readSource("src/components/StudentEditsView.vue");
-	const button = source.match(/<button\b[^>]*id="play-by-play-edits-load-button"[^>]*>[\s\S]*?<\/button>/);
+	const button = source.match(
+		/<button\b[^>]*id="play-by-play-edits-load-button"[^>]*>[\s\S]*?<\/button>/,
+	);
 	assert.ok(button);
 	assert.match(button[0], /play-by-play-edits-load-button/);
 	assert.match(button[0], /:disabled="!isPlayByPlayEditsLoadEnabled"/);
 	assert.match(button[0], /@click="handlePlayByPlayEditsLoad"/);
-	assert.match(readSource("src/css/input.css"), /\.play-by-play-edits-load-button:disabled\s*\{[^}]*background:\s*#d1d5db;[^}]*box-shadow:\s*none;/s);
-	assert.match(source, /play-by-play-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4/);
-	assert.match(source, /id="play-by-play-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/);
+	assert.match(
+		readSource("src/css/input.css"),
+		/\.play-by-play-edits-load-button:disabled\s*\{[^}]*background:\s*#d1d5db;[^}]*box-shadow:\s*none;/s,
+	);
+	assert.match(
+		source,
+		/play-by-play-edits-workflow-row col-span-full grid grid-cols-7 items-center justify-center gap-4/,
+	);
+	assert.match(
+		source,
+		/id="play-by-play-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/,
+	);
 	assert.match(source, /:for="`play-by-play-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"/);
-	assert.match(source, /:id="`play-by-play-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?v-model="field.text"/);
+	assert.match(
+		source,
+		/:id="`play-by-play-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?v-model="field.text"/,
+	);
 	assert.match(source, /id="play-by-play-edits-text-box"\s+ref="playByPlayEditsEditor"/);
 });
 
@@ -541,13 +758,36 @@ test("Play by Play All Blocks edits only changed original keys, including empty 
 	view.descriptionEditsSelectedSubject.value = { key: "science", label: "Science" };
 	view.descriptionEditsSelectedBlock.value = "all";
 	for (const blockNumber of [1, 2, 3]) {
-		blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "science", blocks: [blockNumber], text: `Steps ${blockNumber}` });
+		blockDescriptionStore.commitPlayByPlay({
+			dateKey,
+			subjectKey: "science",
+			blocks: [blockNumber],
+			text: `Steps ${blockNumber}`,
+		});
 	}
-	blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "math", blocks: [2], text: "Other subject steps" });
-	blockDescriptionStore.commitPlayByPlay({ dateKey: "2026-09-20", subjectKey: "science", blocks: [2], text: "Other date steps" });
-	blockDescriptionStore.commitDescription({ dateKey, subjectKey: "science", blocks: [2], text: "Other content description" });
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey: "math",
+		blocks: [2],
+		text: "Other subject steps",
+	});
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey: "2026-09-20",
+		subjectKey: "science",
+		blocks: [2],
+		text: "Other date steps",
+	});
+	blockDescriptionStore.commitDescription({
+		dateKey,
+		subjectKey: "science",
+		blocks: [2],
+		text: "Other content description",
+	});
 	view.handlePlayByPlayEditsLoad();
-	assert.deepEqual(view.playByPlayEditsLoadedFields.value.map((field) => field.blocks), [[1], [2], [3]]);
+	assert.deepEqual(
+		view.playByPlayEditsLoadedFields.value.map((field) => field.blocks),
+		[[1], [2], [3]],
+	);
 	view.playByPlayEditsLoadedFields.value[1].text = "Edited second steps";
 	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "science", 2), "Steps 2");
 	const historyCount = blockDescriptionStore.getHistory("play-by-play").length;
@@ -557,8 +797,14 @@ test("Play by Play All Blocks edits only changed original keys, including empty 
 	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "science", 2), "Edited second steps");
 	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "science", 3), "Steps 3");
 	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "math", 2), "Other subject steps");
-	assert.equal(blockDescriptionStore.getPlayByPlay("2026-09-20", "science", 2), "Other date steps");
-	assert.equal(blockDescriptionStore.getDescription(dateKey, "science", 2), "Other content description");
+	assert.equal(
+		blockDescriptionStore.getPlayByPlay("2026-09-20", "science", 2),
+		"Other date steps",
+	);
+	assert.equal(
+		blockDescriptionStore.getDescription(dateKey, "science", 2),
+		"Other content description",
+	);
 	view.handlePlayByPlayEditsLoad();
 	view.playByPlayEditsLoadedFields.value[1].text = "";
 	await view.handlePlayByPlayEditsCommit();
@@ -577,21 +823,67 @@ test("Play by Play All Blocks edits only changed original keys, including empty 
 
 test("Description overwrites persist only existing changed Description keys", () => {
 	const dateKey = "2098-10-01";
-	blockDescriptionStore.commitDescription({ dateKey, subjectKey: "art", blocks: [1, 2], text: "Original" });
+	blockDescriptionStore.commitDescription({
+		dateKey,
+		subjectKey: "art",
+		blocks: [1, 2],
+		text: "Original",
+	});
 	const previousStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
 	const writes = [];
-	Object.defineProperty(globalThis, "localStorage", { configurable: true, value: { setItem(key, value) { writes.push({ key, value }); } } });
+	Object.defineProperty(globalThis, "localStorage", {
+		configurable: true,
+		value: {
+			setItem(key, value) {
+				writes.push({ key, value });
+			},
+		},
+	});
 	try {
-		assert.equal(blockDescriptionStore.overwriteDescription({ dateKey, subjectKey: "art", blockNumber: 1, text: "Original" }), false);
-		assert.equal(blockDescriptionStore.overwriteDescription({ dateKey, subjectKey: "art", blockNumber: 3, text: "Missing" }), false);
+		assert.equal(
+			blockDescriptionStore.overwriteDescription({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 1,
+				text: "Original",
+			}),
+			false,
+		);
+		assert.equal(
+			blockDescriptionStore.overwriteDescription({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 3,
+				text: "Missing",
+			}),
+			false,
+		);
 		assert.equal(writes.length, 0);
-		assert.equal(blockDescriptionStore.overwriteDescription({ dateKey, subjectKey: "art", blockNumber: 1, text: "Edited" }), true);
-		const saved = JSON.parse(writes.find(({ key }) => key === "zoologistExplorer02.blockDescriptions").value);
+		assert.equal(
+			blockDescriptionStore.overwriteDescription({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 1,
+				text: "Edited",
+			}),
+			true,
+		);
+		const saved = JSON.parse(
+			writes.find(({ key }) => key === "zoologistExplorer02.blockDescriptions").value,
+		);
 		assert.equal(saved[`${dateKey}::art::1`], "Edited");
 		assert.equal(saved[`${dateKey}::art::2`], "Original");
 		assert.equal(saved[`${dateKey}::art::3`], undefined);
 		assert.ok(writes.every(({ key }) => key !== "zoologistExplorer02.blockPlayByPlay"));
-		assert.equal(blockDescriptionStore.overwriteDescription({ dateKey, subjectKey: "art", blockNumber: 1, text: "" }), true);
+		assert.equal(
+			blockDescriptionStore.overwriteDescription({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 1,
+				text: "",
+			}),
+			true,
+		);
 		assert.equal(JSON.parse(writes.at(-1).value)[`${dateKey}::art::1`], "");
 	} finally {
 		if (previousStorage) {
@@ -604,21 +896,67 @@ test("Description overwrites persist only existing changed Description keys", ()
 
 test("Play by Play overwrites persist only existing changed Play by Play keys", () => {
 	const dateKey = "2098-10-02";
-	blockDescriptionStore.commitPlayByPlay({ dateKey, subjectKey: "art", blocks: [1, 2], text: "Original steps" });
+	blockDescriptionStore.commitPlayByPlay({
+		dateKey,
+		subjectKey: "art",
+		blocks: [1, 2],
+		text: "Original steps",
+	});
 	const previousStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
 	const writes = [];
-	Object.defineProperty(globalThis, "localStorage", { configurable: true, value: { setItem(key, value) { writes.push({ key, value }); } } });
+	Object.defineProperty(globalThis, "localStorage", {
+		configurable: true,
+		value: {
+			setItem(key, value) {
+				writes.push({ key, value });
+			},
+		},
+	});
 	try {
-		assert.equal(blockDescriptionStore.overwritePlayByPlay({ dateKey, subjectKey: "art", blockNumber: 1, text: "Original steps" }), false);
-		assert.equal(blockDescriptionStore.overwritePlayByPlay({ dateKey, subjectKey: "art", blockNumber: 3, text: "Missing steps" }), false);
+		assert.equal(
+			blockDescriptionStore.overwritePlayByPlay({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 1,
+				text: "Original steps",
+			}),
+			false,
+		);
+		assert.equal(
+			blockDescriptionStore.overwritePlayByPlay({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 3,
+				text: "Missing steps",
+			}),
+			false,
+		);
 		assert.equal(writes.length, 0);
-		assert.equal(blockDescriptionStore.overwritePlayByPlay({ dateKey, subjectKey: "art", blockNumber: 1, text: "Edited steps" }), true);
-		const saved = JSON.parse(writes.find(({ key }) => key === "zoologistExplorer02.blockPlayByPlay").value);
+		assert.equal(
+			blockDescriptionStore.overwritePlayByPlay({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 1,
+				text: "Edited steps",
+			}),
+			true,
+		);
+		const saved = JSON.parse(
+			writes.find(({ key }) => key === "zoologistExplorer02.blockPlayByPlay").value,
+		);
 		assert.equal(saved[`${dateKey}::art::1`], "Edited steps");
 		assert.equal(saved[`${dateKey}::art::2`], "Original steps");
 		assert.equal(saved[`${dateKey}::art::3`], undefined);
 		assert.ok(writes.every(({ key }) => key !== "zoologistExplorer02.blockDescriptions"));
-		assert.equal(blockDescriptionStore.overwritePlayByPlay({ dateKey, subjectKey: "art", blockNumber: 1, text: "" }), true);
+		assert.equal(
+			blockDescriptionStore.overwritePlayByPlay({
+				dateKey,
+				subjectKey: "art",
+				blockNumber: 1,
+				text: "",
+			}),
+			true,
+		);
 		assert.equal(JSON.parse(writes.at(-1).value)[`${dateKey}::art::1`], "");
 	} finally {
 		if (previousStorage) {
@@ -631,7 +969,11 @@ test("Play by Play overwrites persist only existing changed Play by Play keys", 
 
 test("Student Edits independent Load editors and controls compile as a Vue template", () => {
 	const { descriptor } = parse(readSource("src/components/StudentEditsView.vue"));
-	const compiled = compileTemplate({ source: descriptor.template.content, filename: "StudentEditsView.vue", id: "description-edits-template-test" });
+	const compiled = compileTemplate({
+		source: descriptor.template.content,
+		filename: "StudentEditsView.vue",
+		id: "description-edits-template-test",
+	});
 	assert.deepEqual(compiled.errors, []);
 });
 
@@ -650,7 +992,7 @@ test("Description Edits selection summary formats selected date, subject, and bl
 	);
 	assert.match(
 		componentSource,
-		/description-edits-selection-date[\s\S]*Date: \{\{ descriptionEditsSelectionDateLabel \}\}[\s\S]*description-edits-selection-subject[\s\S]*Subject: \{\{ descriptionEditsSelectedSubject\.label \}\}[\s\S]*description-edits-selection-block[\s\S]*Block: \{/,
+		/description-edits-selection-date[\s\S]*Date:\s+\{\{\s+descriptionEditsSelectionDateLabel\s+\}\}[\s\S]*description-edits-selection-subject[\s\S]*Subject:\s+\{\{\s+descriptionEditsSelectedSubject\.label\s+\}\}[\s\S]*description-edits-selection-block[\s\S]*Block:\s+\{/,
 		"summary fields must appear in Date, Subject, Block order",
 	);
 	assert.match(

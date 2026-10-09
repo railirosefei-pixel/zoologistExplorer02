@@ -34,9 +34,7 @@ test("Explorer text lines use the same spacing as the surrounding copy", async (
 	expect(explorerFontSize).toBe(paragraphFontSize);
 });
 
-test("Explorer text is available for the October 5 through 7 block panels", async ({
-	page,
-}) => {
+test("Explorer text is available for the October 5 through 7 block panels", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
@@ -340,9 +338,7 @@ test("Rapid later clicks preserve earlier square replacements and hide TNT textu
 	const septemberTwentyEightReplacement = page.locator(
 		"#calendar-day-replacement-October-2026-7",
 	);
-	const septemberTwentyNineReplacement = page.locator(
-		"#calendar-day-replacement-October-2026-8",
-	);
+	const septemberTwentyNineReplacement = page.locator("#calendar-day-replacement-October-2026-8");
 
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);

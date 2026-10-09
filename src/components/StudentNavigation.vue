@@ -4,7 +4,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import progressMenuBackground from "../../assets/images/backgrounds/grasslands(Day)01Final.webp";
 import railiFront from "../../assets/images/characters/railiFront.webp";
 import ProgressXpBar from "./ProgressXpBar.vue";
-import MathGamesView from "./MathGamesView.vue";
+import StudentGamesView from "./StudentGamesView.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 
 const props = defineProps({
@@ -13,6 +13,33 @@ const props = defineProps({
 
 const emit = defineEmits(["open-calendar", "open-rewards", "back-to-home"]);
 const activeStudentMenu = ref("");
+const activeGamesSubject = ref("");
+const gamesMonths = [
+	"October 26",
+	"November 26",
+	"December 26",
+	"January 27",
+	"February 27",
+	"March 27",
+	"April 27",
+	"May 27",
+	"June 27",
+	"July 27",
+	"August 27",
+	"September 27",
+	"October 27",
+	"November 27",
+	"December 27",
+];
+const gamesMonthColorClasses = [
+	"student-games-month-button--red",
+	"student-games-month-button--orange",
+	"student-games-month-button--yellow",
+	"student-games-month-button--green",
+	"student-games-month-button--blue",
+	"student-games-month-button--indigo",
+	"student-games-month-button--violet",
+];
 const isResizeModeActive = ref(false);
 const isMoveModeActive = ref(false);
 const isSaveModeActive = ref(false);
@@ -60,11 +87,22 @@ function handleRewardsNavigation() {
 
 /** Student sidebar submenu pipeline boundary. */
 function handleStudentMenuNavigation(menuName) {
+	activeGamesSubject.value = "";
 	activeStudentMenu.value = menuName;
+}
+
+/** Games subject selection pipeline boundary for replacing the student sidebar. */
+function handleGamesSubjectChange(subjectId) {
+	activeGamesSubject.value = subjectId;
 }
 
 /** Progress-menu exit pipeline boundary. */
 function handleProgressBack() {
+	emit("back-to-home");
+}
+
+/** Games Home navigation pipeline boundary. */
+function handleGamesHome() {
 	emit("back-to-home");
 }
 
@@ -427,7 +465,7 @@ onMounted(() => {
 		data-container-name="student-menu-navigation"
 	>
 		<button
-			v-if="!activeStudentMenu"
+			v-if="!activeStudentMenu && !activeGamesSubject"
 			id="student-menu-back-button"
 			class="student-menu-back-button navigation-back-button"
 			type="button"
@@ -439,70 +477,89 @@ onMounted(() => {
 		>
 			Back
 		</button>
-		<button
-			id="calendar-tab"
-			class="student-menu-calendar-tab"
-			type="button"
-			name="calendar-tab"
-			data-button-name="calendar-tab"
-			aria-label="Open Calendar tab"
-			title="Open Calendar tab"
-			aria-expanded="false"
-			@click="handleCalendarNavigation"
+		<template v-if="!activeGamesSubject">
+			<button
+				id="calendar-tab"
+				class="student-menu-calendar-tab"
+				type="button"
+				name="calendar-tab"
+				data-button-name="calendar-tab"
+				aria-label="Open Calendar tab"
+				title="Open Calendar tab"
+				aria-expanded="false"
+				@click="handleCalendarNavigation"
+			>
+				Calendar
+			</button>
+			<button
+				id="rewards-tab"
+				class="student-menu-rewards-tab"
+				type="button"
+				name="rewards-tab"
+				data-button-name="rewards-tab"
+				aria-label="Open Rewards tab"
+				title="Open Rewards tab"
+				@click="handleRewardsNavigation"
+			>
+				Rewards
+			</button>
+			<button
+				id="games-tab"
+				class="student-menu-games-tab"
+				type="button"
+				name="games-tab"
+				data-button-name="games-tab"
+				aria-label="Open Games tab"
+				title="Open Games tab"
+				:aria-expanded="activeStudentMenu === 'games'"
+				@click="handleStudentMenuNavigation('games')"
+			>
+				Games
+			</button>
+			<button
+				id="extra-credit-tab"
+				class="student-menu-extra-credit-tab"
+				type="button"
+				name="extra-credit-tab"
+				data-button-name="extra-credit-tab"
+				aria-label="Open Extra Credit tab"
+				title="Open Extra Credit tab"
+				:aria-expanded="activeStudentMenu === 'extra-credit'"
+				@click="handleStudentMenuNavigation('extra-credit')"
+			>
+				Extra Credit
+			</button>
+			<button
+				id="progress-tab"
+				class="student-menu-progress-tab"
+				type="button"
+				name="student-menu-progress-tab"
+				data-button-name="progress-tab"
+				aria-label="Open Progress tab"
+				title="Open Progress tab"
+				:aria-expanded="activeStudentMenu === 'progress'"
+				@click="handleStudentMenuNavigation('progress')"
+			>
+				Progress
+			</button>
+		</template>
+		<aside
+			v-if="activeGamesSubject"
+			id="student-games-month-panel"
+			class="student-games-sidebar-month-panel"
+			:aria-label="`${activeGamesSubject} months`"
 		>
-			Calendar
-		</button>
-		<button
-			id="rewards-tab"
-			class="student-menu-rewards-tab"
-			type="button"
-			name="rewards-tab"
-			data-button-name="rewards-tab"
-			aria-label="Open Rewards tab"
-			title="Open Rewards tab"
-			@click="handleRewardsNavigation"
-		>
-			Rewards
-		</button>
-		<button
-			id="games-tab"
-			class="student-menu-games-tab"
-			type="button"
-			name="games-tab"
-			data-button-name="games-tab"
-			aria-label="Open Games tab"
-			title="Open Games tab"
-			:aria-expanded="activeStudentMenu === 'games'"
-			@click="handleStudentMenuNavigation('games')"
-		>
-			Games
-		</button>
-		<button
-			id="extra-credit-tab"
-			class="student-menu-extra-credit-tab"
-			type="button"
-			name="extra-credit-tab"
-			data-button-name="extra-credit-tab"
-			aria-label="Open Extra Credit tab"
-			title="Open Extra Credit tab"
-			:aria-expanded="activeStudentMenu === 'extra-credit'"
-			@click="handleStudentMenuNavigation('extra-credit')"
-		>
-			Extra Credit
-		</button>
-		<button
-			id="progress-tab"
-			class="student-menu-progress-tab"
-			type="button"
-			name="progress-tab"
-			data-button-name="progress-tab"
-			aria-label="Open Progress tab"
-			title="Open Progress tab"
-			:aria-expanded="activeStudentMenu === 'progress'"
-			@click="handleStudentMenuNavigation('progress')"
-		>
-			Progress
-		</button>
+			<button
+				v-for="(month, index) in gamesMonths"
+				:id="`student-games-month-${index + 1}-button`"
+				:key="month"
+				class="student-menu-games-tab student-games-sidebar-month-button"
+				:class="gamesMonthColorClasses[index % gamesMonthColorClasses.length]"
+				type="button"
+			>
+				{{ month }}
+			</button>
+		</aside>
 		<aside
 			v-if="activeStudentMenu"
 			id="student-submenu-panel"
@@ -542,15 +599,13 @@ onMounted(() => {
 			>
 				Home
 			</button>
-			<article
+			<StudentGamesView
 				v-if="activeStudentMenu === 'games'"
-				id="games-menu"
-				class="student-submenu-section student-submenu-games"
-				aria-label="Games menu"
-				title="Games menu"
-			>
-				<MathGamesView layout="student" @close="activeStudentMenu = ''" />
-			</article>
+				:active-subject-id="activeGamesSubject"
+				@subject-change="handleGamesSubjectChange"
+				@go-home="handleGamesHome"
+				@close="activeStudentMenu = ''"
+			/>
 			<article
 				v-if="activeStudentMenu === 'extra-credit'"
 				id="extra-credit-menu"
@@ -567,8 +622,8 @@ onMounted(() => {
 			<div
 				v-if="
 					activeStudentMenu === 'progress' &&
-						explorerPositionsModeActive &&
-						isSaveModeActive
+					explorerPositionsModeActive &&
+					isSaveModeActive
 				"
 				id="student-progress-save-grid"
 				class="student-progress-save-grid"

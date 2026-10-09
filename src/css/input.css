@@ -202,8 +202,8 @@ body {
 
 .student-submenu-panel-games,
 .student-submenu-games {
-	background: #f9eb9b;
-	color: #5c4d12;
+	background: #bfe9be;
+	color: #1a4c32;
 }
 
 .student-submenu-panel-extra-credit,
@@ -222,6 +222,7 @@ body {
 .student-menu-games-tab,
 .student-menu-extra-credit-tab,
 .student-menu-progress-tab,
+.student-games-sidebar-month-button,
 .student-menu-back-button,
 .student-progress-back-button {
 	min-height: 2.75rem;
@@ -267,6 +268,54 @@ body {
 	color: #541b25;
 }
 
+.student-games-sidebar-month-panel {
+	display: flex;
+	width: 100%;
+	max-height: calc(100vh - 4rem);
+	flex-direction: column;
+	gap: 16px;
+	overflow-y: auto;
+}
+
+.student-games-sidebar-month-button {
+	flex: 0 0 auto;
+}
+
+.student-games-month-button--red {
+	background: #ffcccc;
+	color: #541b25;
+}
+
+.student-games-month-button--orange {
+	background: #ffdfbf;
+	color: #5f3415;
+}
+
+.student-games-month-button--yellow {
+	background: #fff8be;
+	color: #5c4d12;
+}
+
+.student-games-month-button--green {
+	background: #d5f4c9;
+	color: #1a4c32;
+}
+
+.student-games-month-button--blue {
+	background: #cce5ff;
+	color: #1d3f6d;
+}
+
+.student-games-month-button--indigo {
+	background: #d5d3ff;
+	color: #312e81;
+}
+
+.student-games-month-button--violet {
+	background: #eed3ff;
+	color: #4c1d69;
+}
+
 .student-menu-back-button,
 .student-progress-back-button {
 	background: #282c30;
@@ -277,7 +326,8 @@ body {
 .student-menu-rewards-tab,
 .student-menu-games-tab,
 .student-menu-extra-credit-tab,
-.student-menu-progress-tab {
+.student-menu-progress-tab,
+.student-games-sidebar-month-button {
 	width: 100%;
 	padding: 0.9rem 1rem;
 	border-radius: 0.875rem;
@@ -286,11 +336,34 @@ body {
 	letter-spacing: 0.04em;
 }
 
+@media (max-width: 48rem) {
+	.student-menu-page {
+		--student-menu-navigation-width: 120px;
+	}
+
+	.student-menu-navigation {
+		gap: 1rem;
+		padding: 1rem 0.5rem;
+	}
+
+	.student-menu-calendar-tab,
+	.student-menu-rewards-tab,
+	.student-menu-games-tab,
+	.student-menu-extra-credit-tab,
+	.student-menu-progress-tab,
+	.student-games-sidebar-month-button {
+		padding: 0.65rem 0.25rem;
+		font-size: 0.8rem;
+		letter-spacing: 0;
+	}
+}
+
 .student-menu-calendar-tab:hover,
 .student-menu-rewards-tab:hover,
 .student-menu-games-tab:hover,
 .student-menu-extra-credit-tab:hover,
-.student-menu-progress-tab:hover {
+.student-menu-progress-tab:hover,
+.student-games-sidebar-month-button:hover {
 	transform: translateY(-2px);
 	filter: brightness(1.03);
 	box-shadow:
@@ -304,7 +377,8 @@ body {
 .student-menu-rewards-tab:active,
 .student-menu-games-tab:active,
 .student-menu-extra-credit-tab:active,
-.student-menu-progress-tab:active {
+.student-menu-progress-tab:active,
+.student-games-sidebar-month-button:active {
 	transform: translateY(5px);
 	filter: brightness(0.98);
 	box-shadow:
@@ -1194,16 +1268,11 @@ body {
 	margin-top: 0.125rem;
 }
 
-.daily-menu-subject-panel-stack--october-5
-	.daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-6
-	.daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-7
-	.daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-8
-	.daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-9
-	.daily-menu-subject-panel:not(.daily-menu-story-panel) {
+.daily-menu-subject-panel-stack--october-5 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-6 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-7 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-8 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-9 .daily-menu-subject-panel:not(.daily-menu-story-panel) {
 	text-align: center;
 }
 .daily-menu-explorer-name {
@@ -1895,12 +1964,18 @@ body {
 
 .grid-menu-shapes-option--selected.grid-menu-shapes-option--even {
 	color: #39ff14;
-	text-shadow: 0 0 4px #39ff14, 0 0 10px #39ff14, 0 0 18px #39ff14;
+	text-shadow:
+		0 0 4px #39ff14,
+		0 0 10px #39ff14,
+		0 0 18px #39ff14;
 }
 
 .grid-menu-shapes-option--selected.grid-menu-shapes-option--odd {
 	color: #fff200;
-	text-shadow: 0 0 4px #fff200, 0 0 10px #fff200, 0 0 18px #fff200;
+	text-shadow:
+		0 0 4px #fff200,
+		0 0 10px #fff200,
+		0 0 18px #fff200;
 }
 
 .grid-menu-shapes-option:focus-visible {
@@ -3418,7 +3493,7 @@ body {
 	left: -9px;
 }
 
-	.calibration-bar-frame--horizontal .calibration-bar-bottom-resize-handle {
+.calibration-bar-frame--horizontal .calibration-bar-bottom-resize-handle {
 	right: -9px;
 	bottom: auto;
 }
@@ -3547,14 +3622,13 @@ body {
 
 .print-preview-paper-editor {
 	position: absolute;
-	inset:
-		var(--print-preview-margin-top, 0px)
-		var(--print-preview-margin-right, 0px)
-		var(--print-preview-margin-bottom, 0px)
-		var(--print-preview-margin-left, 0px);
+	inset: var(--print-preview-margin-top, 0px) var(--print-preview-margin-right, 0px)
+		var(--print-preview-margin-bottom, 0px) var(--print-preview-margin-left, 0px);
 	padding: 0 0 0 2px;
 	font-synthesis: weight;
-	font-feature-settings: "calt" 0, "rand" 0;
+	font-feature-settings:
+		"calt" 0,
+		"rand" 0;
 	outline: none;
 	caret-color: #000000;
 	color: #000000;
@@ -3578,11 +3652,7 @@ body {
 }
 
 .print-preview-paper[data-grid-apply-to-margins="true"] .print-preview-grid {
-	inset:
-		var(--print-preview-margin-top, 0px)
-		auto
-		auto
-		var(--print-preview-margin-left, 0px);
+	inset: var(--print-preview-margin-top, 0px) auto auto var(--print-preview-margin-left, 0px);
 	width: calc(
 		100% - var(--print-preview-margin-left, 0px) - var(--print-preview-margin-right, 0px)
 	);
@@ -4245,7 +4315,10 @@ body {
 	cursor: pointer;
 	transform: none;
 	z-index: 1000;
-	transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease,
+		filter 120ms ease;
 }
 
 :is(#app, body) .navigation-home-button {
@@ -4275,7 +4348,8 @@ body {
 	filter: brightness(1.03);
 }
 
-:is(#app, body) :is(.navigation-home-button, .navigation-back-button):is(:active, .nav-button--pressed) {
+:is(#app, body)
+	:is(.navigation-home-button, .navigation-back-button):is(:active, .nav-button--pressed) {
 	transform: translateY(4px);
 	filter: brightness(0.98);
 }
@@ -5838,9 +5912,12 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	overflow-wrap: anywhere;
 }
 
-.description-edits-date-subrow:not(.description-edits-date-subrow--hidden) .description-edits-month-dropdown-button,
-.description-edits-date-subrow:not(.description-edits-date-subrow--hidden) .description-edits-day-dropdown-button,
-.description-edits-date-subrow:not(.description-edits-date-subrow--hidden) .description-edits-year-dropdown-button {
+.description-edits-date-subrow:not(.description-edits-date-subrow--hidden)
+	.description-edits-month-dropdown-button,
+.description-edits-date-subrow:not(.description-edits-date-subrow--hidden)
+	.description-edits-day-dropdown-button,
+.description-edits-date-subrow:not(.description-edits-date-subrow--hidden)
+	.description-edits-year-dropdown-button {
 	background: linear-gradient(180deg, #fff7b8 0%, #f8e99a 100%);
 }
 
@@ -6254,7 +6331,7 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.56),
 		inset 0 -4px 0 rgba(161, 98, 7, 0.2),
-	0 6px 0 rgba(133, 77, 14, 0.38);
+		0 6px 0 rgba(133, 77, 14, 0.38);
 	transition:
 		transform 160ms ease,
 		box-shadow 160ms ease,
@@ -6312,9 +6389,12 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 		0 3px 0 rgba(133, 77, 14, 0.38);
 }
 
-.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden) .play-by-play-edits-month-dropdown-button,
-.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden) .play-by-play-edits-day-dropdown-button,
-.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden) .play-by-play-edits-year-dropdown-button {
+.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden)
+	.play-by-play-edits-month-dropdown-button,
+.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden)
+	.play-by-play-edits-day-dropdown-button,
+.play-by-play-edits-date-subrow:not(.play-by-play-edits-date-subrow--hidden)
+	.play-by-play-edits-year-dropdown-button {
 	background: linear-gradient(180deg, #fff7b8 0%, #f8e99a 100%);
 }
 

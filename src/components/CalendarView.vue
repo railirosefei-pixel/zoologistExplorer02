@@ -752,7 +752,9 @@ onBeforeUnmount(() => {
 					id="daily-menu-back-button"
 					class="daily-menu-back-button navigation-back-button"
 					type="button"
-					:aria-label="selectedDailyMenuSubject ? 'Back to daily menu' : 'Back to calendar'"
+					:aria-label="
+						selectedDailyMenuSubject ? 'Back to daily menu' : 'Back to calendar'
+					"
 					:title="selectedDailyMenuSubject ? 'Back to daily menu' : 'Back to calendar'"
 					@click="handleDailyMenuBack"
 				>

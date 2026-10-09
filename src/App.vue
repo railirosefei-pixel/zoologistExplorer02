@@ -35,8 +35,12 @@ function handleStudentMenuClose() {
 /** Rewards-page navigation pipeline boundary. */
 function handleRewardsPageOpen() {
 	try {
-		const savedProgress = JSON.parse(localStorage.getItem("zoologist-math-games-progress") || "{}");
-		goldCoinTotal.value = Object.values(savedProgress || {}).filter((completedLevels) => completedLevels === 10).length;
+		const savedProgress = JSON.parse(
+			localStorage.getItem("zoologist-math-games-progress") || "{}",
+		);
+		goldCoinTotal.value = Object.values(savedProgress || {}).filter(
+			(completedLevels) => completedLevels === 10,
+		).length;
 	} catch {
 		goldCoinTotal.value = 0;
 	}
@@ -121,7 +125,9 @@ function handleParentChainHome() {
 	/>
 
 	<StudentEditsView
-		v-else-if="activeParentScreen === 'student-edits' || activeParentScreen === 'description-edits'"
+		v-else-if="
+			activeParentScreen === 'student-edits' || activeParentScreen === 'description-edits'
+		"
 		:initial-description-edits-open="activeParentScreen === 'description-edits'"
 		@open-curriculum-game="handleCurriculumGameOpen"
 		@open-math-curriculum-october="handleMathCurriculumOctoberOpen"
@@ -175,5 +181,9 @@ function handleParentChainHome() {
 		</section>
 	</main>
 
-	<RewardsView v-else :gold-coin-total="goldCoinTotal" @back-to-student-menu="handleRewardsPageClose" />
+	<RewardsView
+		v-else
+		:gold-coin-total="goldCoinTotal"
+		@back-to-student-menu="handleRewardsPageClose"
+	/>
 </template>

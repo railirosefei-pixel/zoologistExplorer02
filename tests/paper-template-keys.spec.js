@@ -73,7 +73,6 @@ test("loaded editable paper templates preserve keyboard line bounds", async ({ p
 
 	expect(metrics.overflow).toBe("hidden");
 	expect(metrics.scrollHeight).toBeLessThanOrEqual(metrics.clientHeight);
-
 });
 
 test("new shells reject text while keeping size tools available", async ({ page }) => {
