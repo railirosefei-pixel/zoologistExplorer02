@@ -2454,20 +2454,8 @@ body {
 		0 8px 12px rgba(0, 0, 0, 0.3);
 }
 
-.text-editor-alignment-button--below-size,
-.text-editor-alignment-panel--below-size {
-	top: calc(100% + 127.1875px);
-}
-
 .text-editor-alignment-panel--below-size {
 	top: calc(100% + 211.1875px);
-}
-
-.text-editor-alignment-button--below-margins,
-.text-editor-alignment-button--below-fonts,
-.text-editor-alignment-panel--below-margins,
-.text-editor-alignment-panel--below-fonts {
-	top: calc(100% + 304px);
 }
 
 .text-editor-alignment-panel--below-margins,
@@ -2475,30 +2463,13 @@ body {
 	top: calc(100% + 388px);
 }
 
-.text-editor-alignment-button--below-size-and-margins,
-.text-editor-alignment-button--below-fonts-and-size,
-.text-editor-alignment-panel--below-size-and-margins,
-.text-editor-alignment-panel--below-fonts-and-size {
-	top: calc(100% + 399.1875px);
-}
-
 .text-editor-alignment-panel--below-size-and-margins,
 .text-editor-alignment-panel--below-fonts-and-size {
 	top: calc(100% + 483.1875px);
 }
 
-.text-editor-alignment-button--below-fonts-and-margins,
-.text-editor-alignment-panel--below-fonts-and-margins {
-	top: calc(100% + 576px);
-}
-
 .text-editor-alignment-panel--below-fonts-and-margins {
 	top: calc(100% + 660px);
-}
-
-.text-editor-alignment-button--below-all,
-.text-editor-alignment-panel--below-all {
-	top: calc(100% + 671.1875px);
 }
 
 .text-editor-alignment-panel--below-all {
@@ -3925,6 +3896,37 @@ body {
 .text-editor-navigation-save-button:hover {
 	border-color: #8179c7;
 	background: linear-gradient(90deg, #d9d6ff 0%, #b6aef0 100%);
+}
+
+.text-editor-navigation-save-name {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	gap: 8px;
+	color: #ffffff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.875rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.text-editor-navigation-save-name-input {
+	box-sizing: border-box;
+	width: 180px;
+	height: 40px;
+	padding: 0 8px;
+	border: 2px solid #8179c7;
+	border-radius: 8px;
+	background: #ffffff;
+	color: #1b1b1b;
+	font: inherit;
+}
+
+.text-editor-navigation-save-error {
+	flex: 0 0 auto;
+	color: #fecaca;
+	font-size: 0.875rem;
+	font-weight: 700;
 }
 
 .text-editor-grid-button {

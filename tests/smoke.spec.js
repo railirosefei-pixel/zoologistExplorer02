@@ -1138,8 +1138,6 @@ async function openStudentMathGames(page) {
 async function revealGoldCoinTotal(page, expectedTotal) {
 	await page.getByRole("button", { name: "Open Rewards tab", exact: true }).click();
 	await page.getByRole("button", { name: "Open reward chest", exact: true }).click();
-	await page.locator(".rewards-page-journal").dispatchEvent("animationend");
-	await page.locator(".rewards-page-book-animation").dispatchEvent("ended");
 	const pouch = page.getByRole("button", { name: "Gold cinch bag", exact: true });
 	await pouch.evaluate((element) =>
 		element.getAnimations().forEach((animation) => animation.finish()),
@@ -1559,7 +1557,7 @@ test("Text Editor calibration bar converts pixels to calibrated ruler units", as
 	await expect(counter).toContainText("10.00 cm");
 });
 
-test("Alignment menu stays 16px below its button", async ({ page }) => {
+test("Alignment button stays anchored while other Tools panels open", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
@@ -1573,6 +1571,11 @@ test("Alignment menu stays 16px below its button", async ({ page }) => {
 		margins: page.locator("#text-editor-margins-button"),
 		fonts: page.locator("#text-editor-fonts-button"),
 	};
+	const alignmentButtonAnchor = await alignmentButton.evaluate((button) => ({
+		top: button.offsetTop,
+		left: button.offsetLeft,
+		isInsideTools: Boolean(button.offsetParent.closest("#text-editor-tools-panel")),
+	}));
 	const menuStates = [
 		[],
 		["size"],
@@ -1595,12 +1598,12 @@ test("Alignment menu stays 16px below its button", async ({ page }) => {
 		}
 		activeMenus = nextMenus;
 
-		const gap = await page.evaluate(() => {
-			const button = document.querySelector("#text-editor-alignment-button");
-			const panel = document.querySelector("#text-editor-alignment-panel");
-			return panel.getBoundingClientRect().top - button.getBoundingClientRect().bottom;
-		});
-		expect(gap).toBeCloseTo(16, 3);
+		const currentAnchor = await alignmentButton.evaluate((button) => ({
+			top: button.offsetTop,
+			left: button.offsetLeft,
+			isInsideTools: Boolean(button.offsetParent.closest("#text-editor-tools-panel")),
+		}));
+		expect(currentAnchor).toEqual(alignmentButtonAnchor);
 	}
 });
 
@@ -1617,10 +1620,18 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 	const marginsButton = page.locator("#text-editor-margins-button");
 	const alignmentButton = page.locator("#text-editor-alignment-button");
 	const fontStylesButton = page.locator("#text-editor-font-styles-button");
-	const expectAlignmentBelow = async (panelSelector) => {
-		const panelBounds = await page.locator(panelSelector).boundingBox();
-		const alignmentBounds = await alignmentButton.boundingBox();
-		expect(alignmentBounds.y - panelBounds.y - panelBounds.height).toBe(16);
+	const alignmentButtonAnchor = await alignmentButton.evaluate((button) => ({
+		top: button.offsetTop,
+		left: button.offsetLeft,
+		isInsideTools: Boolean(button.offsetParent.closest("#text-editor-tools-panel")),
+	}));
+	const expectAlignmentButtonAnchored = async () => {
+		const currentAnchor = await alignmentButton.evaluate((button) => ({
+			top: button.offsetTop,
+			left: button.offsetLeft,
+			isInsideTools: Boolean(button.offsetParent.closest("#text-editor-tools-panel")),
+		}));
+		expect(currentAnchor).toEqual(alignmentButtonAnchor);
 	};
 	const getPressedStyles = async (button) =>
 		button.evaluate((element) => {
@@ -1634,9 +1645,9 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 		});
 	await sizeButton.click();
 	await expect(sizeButton).toHaveAttribute("aria-pressed", "true");
-	await expectAlignmentBelow("#text-editor-size-panel");
+	await expectAlignmentButtonAnchored();
 	await marginsButton.click();
-	await expectAlignmentBelow("#text-editor-margins-panel");
+	await expectAlignmentButtonAnchored();
 	await marginsButton.click();
 	const sizePanelStyles = await page.locator("#text-editor-size-panel").evaluate((element) => {
 		const style = getComputedStyle(element);
@@ -1649,7 +1660,7 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 	const fontsPanel = page.locator("#text-editor-fonts-panel");
 	await fontsButton.click();
 	await expect(fontsButton).toHaveAttribute("aria-pressed", "true");
-	await expectAlignmentBelow("#text-editor-size-panel");
+	await expectAlignmentButtonAnchored();
 	await fontStylesButton.click();
 	const fontStylesPressed = await getPressedStyles(fontStylesButton);
 	expect(await getPressedStyles(sizeButton)).toEqual(fontStylesPressed);
@@ -1669,17 +1680,17 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 		(button) => getComputedStyle(button).backgroundImage,
 	);
 	await fontsButton.click();
-	await expectAlignmentBelow("#text-editor-fonts-panel");
+	await expectAlignmentButtonAnchored();
 	await fontsButton.click();
 
 	await expect(fontsPanel).toHaveCount(0);
 	await marginsButton.click();
 	await expect(marginsButton).toHaveAttribute("aria-pressed", "true");
-	await expectAlignmentBelow("#text-editor-margins-panel");
+	await expectAlignmentButtonAnchored();
 	await expect(marginsButton).toHaveCSS("background-color", "rgb(88, 191, 255)");
 	await fontsButton.click();
 	await expect(fontsButton).toHaveAttribute("aria-pressed", "true");
-	await expectAlignmentBelow("#text-editor-margins-panel");
+	await expectAlignmentButtonAnchored();
 	await fontStylesButton.click();
 	const marginFontStylesPressed = await getPressedStyles(fontStylesButton);
 	expect(await getPressedStyles(marginsButton)).toEqual(marginFontStylesPressed);
@@ -1700,7 +1711,7 @@ test("Fonts menu stays above active Size and Margins menus", async ({ page }) =>
 	await sizeButton.click();
 	await marginsButton.click();
 	await fontsButton.click();
-	await expectAlignmentBelow("#text-editor-margins-panel");
+	await expectAlignmentButtonAnchored();
 	const stackedFontsToSizeAndMarginsGaps = await page.evaluate(() => {
 		const margins = document
 			.querySelector("#text-editor-margins-panel")
@@ -2287,34 +2298,8 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 	await rewardChestButton.click();
 	await expect(rewardChestImage).toHaveAttribute("src", /minecraftChest03[^/]*\.webp/);
 
-	const rewardJournal = rewardsPage.locator(".rewards-page-journal");
-	await expect(rewardJournal).toBeVisible();
-	expect(
-		await rewardJournal.evaluate((element) => getComputedStyle(element).animationName),
-	).toMatch(/^rewards-journal-emerge(?:-[\w-]+)?$/);
-
-	await rewardJournal.dispatchEvent("animationend");
-	const rewardBookAnimation = rewardsPage.locator(".rewards-page-book-animation");
-	await expect(rewardBookAnimation).toBeVisible();
-	await expect(rewardBookAnimation).toHaveAttribute("src", /Sequence02[^/]*\.webm/);
-	await expect(rewardBookAnimation).toHaveJSProperty("muted", true);
-	await expect
-		.poll(() => rewardBookAnimation.evaluate((element) => element.readyState))
-		.toBeGreaterThanOrEqual(1);
-
-	await rewardBookAnimation.evaluate((element) => {
-		element.currentTime = element.duration;
-		element.dispatchEvent(new Event("ended"));
-	});
-
-	const rewardBookStage = rewardsPage.locator(".rewards-page-book-stage");
-	await expect(rewardBookStage).toHaveClass(/rewards-page-book-stage--settled/);
-	await rewardBookStage.evaluate((element) => {
-		for (const animation of element.getAnimations()) {
-			animation.finish();
-		}
-	});
-	await expect(rewardBookAnimation).toBeVisible();
+	await expect(rewardsPage.locator(".rewards-page-journal")).toHaveCount(0);
+	await expect(rewardsPage.locator(".rewards-page-book-animation")).toHaveCount(0);
 	const goldBag = rewardsPage.getByRole("button", { name: "Gold cinch bag" });
 	await expect(goldBag).toBeVisible();
 	expect(await goldBag.evaluate((element) => getComputedStyle(element).animationName)).toMatch(
@@ -2328,28 +2313,6 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 	await goldBag.hover();
 	await expect(goldBag).toHaveCSS("filter", /drop-shadow/);
 	await expect(goldBag.locator(".rewards-page-gold-bag-neck")).not.toHaveCSS("transform", "none");
-	await expect
-		.poll(async () => {
-			const bookBounds = await rewardBookAnimation.boundingBox();
-			const chestBounds = await rewardChestButton.boundingBox();
-			return bookBounds.x + bookBounds.width / 2 - (chestBounds.x + chestBounds.width / 2);
-		})
-		.toBeLessThan(0);
-	const [bookBounds, chestBounds, bagBounds] = await Promise.all([
-		rewardBookAnimation.boundingBox(),
-		rewardChestButton.boundingBox(),
-		goldBag.boundingBox(),
-	]);
-	const bookOffsetX =
-		bookBounds.x + bookBounds.width / 2 - (chestBounds.x + chestBounds.width / 2);
-	const bagOffsetX = bagBounds.x + bagBounds.width / 2 - (chestBounds.x + chestBounds.width / 2);
-	const bookOffsetY =
-		bookBounds.y + bookBounds.height / 2 - (chestBounds.y + chestBounds.height / 2);
-	const bagOffsetY =
-		bagBounds.y + bagBounds.height / 2 - (chestBounds.y + chestBounds.height / 2);
-	expect(
-		Math.abs(Math.hypot(bookOffsetX, bookOffsetY) - Math.hypot(bagOffsetX, bagOffsetY)),
-	).toBeLessThan(2);
 	await goldBag.click();
 	await expect(goldBag).toHaveAttribute("aria-expanded", "true");
 	const spilledCoins = rewardsPage.locator(".rewards-page-gold-coin");

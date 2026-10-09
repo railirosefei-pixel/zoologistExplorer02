@@ -10,7 +10,12 @@ import {
 	watchEffect,
 } from "vue";
 
-import { addSavedTemplate, buildTemplateEntry, loadSavedTemplates } from "../js/templateStorage.js";
+import {
+	addSavedTemplate,
+	buildTemplateEntry,
+	loadSavedTemplates,
+	saveSavedTemplates,
+} from "../js/templateStorage.js";
 import { convertToPixels } from "../js/unitConversion.js";
 import MathGamesView from "./MathGamesView.vue";
 
@@ -410,6 +415,65 @@ function handlePaperTemplateSave() {
 	});
 }
 
+function toggleNavigationSave() {
+	if (isNavigationSaveOpen.value) {
+		isNavigationSaveOpen.value = false;
+		navigationSaveName.value = "";
+		navigationSaveEntryId.value = null;
+		navigationSaveError.value = "";
+		return;
+	}
+
+	navigationSaveName.value = "";
+	navigationSaveEntryId.value = null;
+	navigationSaveError.value = "";
+	isNavigationSaveOpen.value = true;
+	nextTick(() => navigationSaveNameInputRef.value?.focus());
+}
+
+function handleNavigationSaveInput(event) {
+	navigationSaveName.value = event.target.value;
+	navigationSaveError.value = "";
+	const trimmedName = navigationSaveName.value.trim();
+	if (!trimmedName) {
+		return;
+	}
+
+	const snapshot = captureCurrentTemplate();
+	if (!snapshot) {
+		navigationSaveError.value = "The current paper could not be saved.";
+		return;
+	}
+
+	const existingEntry = savedTemplates.value.find(
+		(entry) => entry.id === navigationSaveEntryId.value,
+	);
+	const entry = existingEntry
+		? { ...existingEntry, name: trimmedName, template: snapshot }
+		: buildTemplateEntry(trimmedName, snapshot);
+	const nextEntries = existingEntry
+		? savedTemplates.value.map((savedEntry) =>
+				savedEntry.id === entry.id ? entry : savedEntry,
+			)
+		: [...savedTemplates.value, entry];
+
+	if (!saveSavedTemplates(nextEntries)) {
+		navigationSaveError.value = "The paper could not be saved. Please try again.";
+		return;
+	}
+
+	savedTemplates.value = nextEntries;
+	navigationSaveEntryId.value = entry.id;
+	savedDocumentBaseline.value = snapshot;
+}
+
+function finishNavigationSave() {
+	isNavigationSaveOpen.value = false;
+	navigationSaveName.value = "";
+	navigationSaveEntryId.value = null;
+	navigationSaveError.value = "";
+}
+
 function captureCurrentTemplate() {
 	const editor = printPreviewPaperEditorRef.value;
 	if (!editor) {
@@ -508,6 +572,7 @@ function confirmTemplateSave() {
 
 /** Return from Text Editor to the Parent menu. */
 function handleTextEditorClose() {
+	finishNavigationSave();
 	isTextEditorOpen.value = false;
 	textEditorButtonStates.value.printPreview = false;
 	isQuadrilateralPromptOpen.value = false;
@@ -651,6 +716,7 @@ async function createTextEditorTemplate() {
 }
 
 function leaveUnsavedNewDocument() {
+	finishNavigationSave();
 	isLeaveUnsavedPromptOpen.value = false;
 	isNewMenuOpen.value = false;
 	isNewButtonPressed.value = false;
@@ -2007,6 +2073,11 @@ watch(
 const isTemplateNamePromptOpen = ref(false);
 const templateNameInput = ref("");
 const templateNameInputRef = ref(null);
+const isNavigationSaveOpen = ref(false);
+const navigationSaveName = ref("");
+const navigationSaveEntryId = ref(null);
+const navigationSaveNameInputRef = ref(null);
+const navigationSaveError = ref("");
 const savedTemplates = ref(loadSavedTemplates());
 const isSavedShellsMenuOpen = ref(false);
 const savedShellEntries = computed(() =>
@@ -2367,16 +2438,6 @@ function handleCalibrationBarPointerUp() {
 					Tools
 				</button>
 				<button
-					v-if="isDocumentDirty"
-					id="text-editor-document-save-button"
-					class="text-editor-navigation-tools-button text-editor-navigation-save-button"
-					type="button"
-					name="text-editor-document-save-button"
-					data-button-name="text-editor-document-save-button"
-				>
-					Save
-				</button>
-				<button
 					id="text-editor-grid-button"
 					class="text-editor-grid-button"
 					:class="{ 'text-editor-button--depressed': textEditorButtonStates.grid }"
@@ -2401,6 +2462,43 @@ function handleCalibrationBarPointerUp() {
 				>
 					Calibrate
 				</button>
+				<button
+					v-if="isDocumentDirty || isNavigationSaveOpen"
+					id="text-editor-document-save-button"
+					class="text-editor-navigation-tools-button text-editor-navigation-save-button"
+					type="button"
+					name="text-editor-document-save-button"
+					data-button-name="text-editor-document-save-button"
+					:aria-expanded="isNavigationSaveOpen"
+					@click="toggleNavigationSave"
+				>
+					Save
+				</button>
+				<label
+					v-if="isNavigationSaveOpen"
+					class="text-editor-navigation-save-name"
+					for="text-editor-document-save-name-input"
+				>
+					<span>{{ isShellMode ? "Shell Name" : "Template Name" }}</span>
+					<input
+						id="text-editor-document-save-name-input"
+						ref="navigationSaveNameInputRef"
+						class="text-editor-navigation-save-name-input"
+						type="text"
+						maxlength="60"
+						:value="navigationSaveName"
+						@input="handleNavigationSaveInput"
+						@keydown.enter.prevent="finishNavigationSave"
+						@keydown.esc.prevent="finishNavigationSave"
+					/>
+				</label>
+				<span
+					v-if="isNavigationSaveOpen && navigationSaveError"
+					class="text-editor-navigation-save-error"
+					role="alert"
+				>
+					{{ navigationSaveError }}
+				</span>
 				<button
 					id="text-editor-print-button"
 					class="text-editor-print-button"
@@ -3821,20 +3919,6 @@ function handleCalibrationBarPointerUp() {
 								class="text-editor-alignment-button text-editor-fonts-button text-editor-fonts-button--light-blue"
 								:class="{
 									'text-editor-alignment-button--depressed': isAlignmentPanelOpen,
-									'text-editor-alignment-button--below-size':
-										isSizePanelOpen && !isMarginsPanelOpen && !isFontsPanelOpen,
-									'text-editor-alignment-button--below-margins':
-										isMarginsPanelOpen && !isSizePanelOpen && !isFontsPanelOpen,
-									'text-editor-alignment-button--below-fonts':
-										isFontsPanelOpen && !isSizePanelOpen && !isMarginsPanelOpen,
-									'text-editor-alignment-button--below-size-and-margins':
-										isSizePanelOpen && isMarginsPanelOpen && !isFontsPanelOpen,
-									'text-editor-alignment-button--below-fonts-and-size':
-										isFontsPanelOpen && isSizePanelOpen && !isMarginsPanelOpen,
-									'text-editor-alignment-button--below-fonts-and-margins':
-										isFontsPanelOpen && isMarginsPanelOpen && !isSizePanelOpen,
-									'text-editor-alignment-button--below-all':
-										isFontsPanelOpen && isMarginsPanelOpen && isSizePanelOpen,
 								}"
 								type="button"
 								:aria-pressed="isAlignmentPanelOpen"
