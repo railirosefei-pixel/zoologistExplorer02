@@ -13,7 +13,7 @@ function readSource(relativePath) {
 	return readFileSync(join(repoRoot, relativePath), "utf8");
 }
 
-async function createDescriptionEditsView() {
+async function createDescriptionEditsView(emit = () => {}) {
 	const { descriptor } = parse(readSource("src/components/StudentEditsView.vue"));
 	const compiled = compileScript(descriptor, { id: "description-edits-test" });
 	const script = compiled.content
@@ -29,7 +29,7 @@ async function createDescriptionEditsView() {
 	const { default: component } = await import(
 		`data:text/javascript;base64,${Buffer.from(script).toString("base64")}`
 	);
-	return component.setup({}, { expose() {}, emit() {} });
+	return component.setup({}, { expose() {}, emit });
 }
 
 test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", () => {
@@ -71,10 +71,35 @@ test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", 
 		"Blocks Home button must use the home handler",
 	);
 	assert.match(
-		source,
-		/blocks-screen-back-button[\s\S]*@click="handleStudentEditsScreenClose"/,
-		"Blocks Back button must use the parent handler",
+		source.match(/<button\b[^>]*id="blocks-screen-back-button"[^>]*>/)?.[0] ?? "",
+		/@click="handleBlocksScreenBack"/,
+		"Blocks Back button must use its one-screen-back handler",
 	);
+});
+
+test("Blocks Back closes one layer without invoking parent or Home navigation", async () => {
+	const events = [];
+	const view = await createDescriptionEditsView((event) => events.push(event));
+	view.isBlocksMenuOpen.value = true;
+	view.isDescriptionEditsOpen.value = true;
+	view.descriptionEditsMode.value = "description";
+
+	view.handleBlocksScreenBack();
+	assert.equal(view.isDescriptionEditsOpen.value, false);
+	assert.equal(view.descriptionEditsMode.value, null);
+	assert.equal(view.isBlocksMenuOpen.value, true);
+
+	view.isBlockEditsOpen.value = true;
+	view.handleBlocksScreenBack();
+	assert.equal(view.isBlockEditsOpen.value, false);
+	assert.equal(view.isBlocksMenuOpen.value, true);
+
+	view.handleBlocksScreenBack();
+	assert.equal(view.isBlocksMenuOpen.value, false);
+	assert.deepEqual(events, []);
+
+	view.handleStudentEditsScreenClose();
+	assert.deepEqual(events, ["back-to-parent-menu"]);
 });
 
 for (const { name, label, handler } of [

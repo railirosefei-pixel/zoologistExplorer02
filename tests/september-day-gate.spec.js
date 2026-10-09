@@ -53,7 +53,12 @@ test("Explorer text is available for the October 5 through 7 block panels", asyn
 			page.locator("#daily-menu-math-block-1-panel .daily-menu-subject-panel-message"),
 		).toBeVisible();
 		await expect(page.getByText("Explorer Raili!", { exact: true })).toBeVisible();
+		await page.getByRole("button", { name: "Back to daily menu", exact: true }).click();
+		await expect(page.locator("#daily-menu-math-block-1-panel")).toHaveCount(0);
+		await expect(page.locator("#daily-menu-subject-navigation")).toBeVisible();
 		await page.getByRole("button", { name: "Back to calendar" }).click();
+		await expect(page.locator("#daily-menu-panel")).toHaveCount(0);
+		await expect(day).toBeVisible();
 	}
 
 	await septemberThirty.click();

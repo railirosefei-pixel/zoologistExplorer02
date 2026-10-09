@@ -5,19 +5,29 @@ test("Grid shapes with more than four sides keep equal edges in base and added c
 }) => {
 	await page.setViewportSize({ width: 1920, height: 1080 });
 	await page.goto("./");
+	await page.evaluate(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "saved-pentagon-grid",
+					name: "Pentagon grid",
+					createdAt: "2026-10-09T00:00:00.000Z",
+					template: {
+						html: "",
+						gridSides: 5,
+						gridShapeWidthInches: 2.35,
+						gridShapeHeightInches: 3.35,
+					},
+				},
+			]),
+		);
+	});
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Text Editor" }).click();
-	await page.locator("#text-editor-template-new-button").click();
-	await page.locator("#text-editor-new-create-template-button").click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Pentagon grid", exact: true }).click();
 	await page.locator("#text-editor-grid-button").click();
-
-	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
-	await page.locator("#grid-shape-width-input").fill("2.35");
-	await page.locator("#grid-shape-height-input").fill("3.35");
-	await page.locator("#grid-shape-size-commit-button").click();
-	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
-	await page.locator("#grid-shape-option-5").click();
-	await page.locator("#grid-sides-commit-button").click();
 
 	const grid = page.locator("#print-preview-grid");
 	await page.locator("#grid-menu-single-shape-alignment-dropdown > summary").click();

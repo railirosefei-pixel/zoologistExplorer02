@@ -79,6 +79,11 @@ let savedFontSizeSelection = null;
 const isWidthMenuOpen = ref(false);
 const isHeightMenuOpen = ref(false);
 const isLoadMenuOpen = ref(false);
+const isRemoveMode = ref(false);
+const isRemoveConfirmationOpen = ref(false);
+const removeConfirmationDialogRef = ref(null);
+const selectedSavedEntryForRemoval = ref(null);
+const removeConfirmationError = ref("");
 const widthValue = ref("8.5");
 const heightValue = ref("11");
 const widthUnit = ref("in");
@@ -91,6 +96,18 @@ watch(isLeaveUnsavedPromptOpen, async (isOpen) => {
 
 	await nextTick();
 	const dialog = leaveUnsavedConfirmationDialogRef.value;
+	if (dialog && !dialog.open) {
+		dialog.showModal();
+	}
+});
+
+watch(isRemoveConfirmationOpen, async (isOpen) => {
+	if (!isOpen) {
+		return;
+	}
+
+	await nextTick();
+	const dialog = removeConfirmationDialogRef.value;
 	if (dialog && !dialog.open) {
 		dialog.showModal();
 	}
@@ -118,7 +135,6 @@ const currentGridShapeWidthInches = ref(null);
 const currentGridShapeHeightInches = ref(null);
 const selectedGridShapeSides = ref(null);
 const currentTemplateGridSides = ref(4);
-const pendingGridShapeSides = ref(null);
 const quadrilateralVariants = [
 	{ id: "square", label: "A.) Squares" },
 	{ id: "diamond", label: "B.) Squares (Diamond)" },
@@ -127,7 +143,6 @@ const quadrilateralVariants = [
 ];
 const selectedGridShapeVariant = ref("vertical-rectangle");
 const currentTemplateGridShapeVariant = ref("vertical-rectangle");
-const pendingGridShapeVariant = ref(null);
 const gridRowCount = computed(() => Math.max(1, Number.parseInt(gridRowsAmount.value, 10) || 3));
 const gridColumnCount = computed(() =>
 	Math.max(1, Number.parseInt(gridColumnsAmount.value, 10) || 4),
@@ -506,8 +521,6 @@ function captureCurrentTemplate() {
 			heightInput: gridShapeHeightInput.value,
 			selectedShapeSides: selectedGridShapeSides.value,
 			selectedShapeVariant: selectedGridShapeVariant.value,
-			pendingShapeSides: pendingGridShapeSides.value,
-			pendingShapeVariant: pendingGridShapeVariant.value,
 		},
 		gridShapeEdits: {
 			removedCells: [...removedGridShapeCells.value],
@@ -585,6 +598,7 @@ function handleTextEditorClose() {
 	textEditorButtonStates.value.calibrate = false;
 	isCalibrationBarVisible.value = false;
 	isLoadMenuOpen.value = false;
+	isRemoveMode.value = false;
 	isSizePanelOpen.value = false;
 	isFontsPanelOpen.value = false;
 	isStylesMenuOpen.value = false;
@@ -601,6 +615,7 @@ function handleTextEditorWorkflowBack() {
 		leaveUnsavedNewDocument();
 	}
 	isLoadMenuOpen.value = false;
+	isRemoveMode.value = false;
 	isNewMenuOpen.value = false;
 	isNewButtonPressed.value = false;
 }
@@ -782,9 +797,12 @@ function toggleLoadMenu() {
 	if (isLoadMenuOpen.value) {
 		savedTemplates.value = loadSavedTemplates();
 		isSavedShellsMenuOpen.value = false;
+		isRemoveMode.value = false;
 		isStylesMenuOpen.value = false;
 		isWidthMenuOpen.value = false;
 		isHeightMenuOpen.value = false;
+	} else {
+		isRemoveMode.value = false;
 	}
 }
 
@@ -1339,58 +1357,16 @@ function updateGridShapeHeightInput(event) {
 	event.target.value = sanitizedValue;
 }
 
-function commitGridShapeSize() {
-	const requestedWidth = Number.parseFloat(gridShapeWidthInput.value);
-	const requestedHeight = Number.parseFloat(gridShapeHeightInput.value);
-	const hasValidWidth = Number.isFinite(requestedWidth) && requestedWidth > 0;
-	const hasValidHeight = Number.isFinite(requestedHeight) && requestedHeight > 0;
-	if (!hasValidWidth && !hasValidHeight) {
-		return;
-	}
-	const committedWidth = hasValidWidth ? requestedWidth : requestedHeight;
-	const committedHeight = hasValidHeight ? requestedHeight : committedWidth;
-	currentGridShapeWidthInches.value = committedWidth;
-	currentGridShapeHeightInches.value = committedHeight;
-	gridShapeWidthInput.value = String(committedWidth);
-	gridShapeHeightInput.value = String(committedHeight);
-}
-
 function activateTemplateGridSides(templateSides = 4, templateVariant = "vertical-rectangle") {
-	const requestedSides = pendingGridShapeSides.value ?? templateSides;
 	const selectedOption = gridShapeOptions.find(
-		(shapeOption) => shapeOption.sides === requestedSides,
+		(shapeOption) => shapeOption.sides === templateSides,
 	);
 	currentTemplateGridSides.value = selectedOption?.sides ?? 4;
 	selectedGridShapeSides.value = currentTemplateGridSides.value;
-	const requestedVariant = pendingGridShapeVariant.value ?? templateVariant;
-	const isKnownVariant = quadrilateralVariants.some((variant) => variant.id === requestedVariant);
+	const isKnownVariant = quadrilateralVariants.some((variant) => variant.id === templateVariant);
 	currentTemplateGridShapeVariant.value =
-		currentTemplateGridSides.value === 4 && isKnownVariant ? requestedVariant : "diamond";
+		currentTemplateGridSides.value === 4 && isKnownVariant ? templateVariant : "diamond";
 	selectedGridShapeVariant.value = currentTemplateGridShapeVariant.value;
-	pendingGridShapeSides.value = null;
-	pendingGridShapeVariant.value = null;
-}
-
-function commitGridShapeSelection() {
-	const requestedSides = selectedGridShapeSides.value;
-	if (!gridShapeOptions.some((shapeOption) => shapeOption.sides === requestedSides)) {
-		return;
-	}
-	let requestedVariant = "diamond";
-	if (requestedSides === 4) {
-		requestedVariant = quadrilateralVariants.some(
-			(variant) => variant.id === selectedGridShapeVariant.value,
-		)
-			? selectedGridShapeVariant.value
-			: "vertical-rectangle";
-	}
-	if (textEditorButtonStates.value.printPreview) {
-		currentTemplateGridSides.value = requestedSides;
-		currentTemplateGridShapeVariant.value = requestedVariant;
-	} else if (textEditorButtonStates.value.grid) {
-		pendingGridShapeSides.value = requestedSides;
-		pendingGridShapeVariant.value = requestedVariant;
-	}
 }
 
 function selectGridShape(shapeOption) {
@@ -2098,6 +2074,67 @@ function selectSavedTemplates() {
 	isSavedShellsMenuOpen.value = false;
 }
 
+function toggleRemoveMode() {
+	isRemoveMode.value = !isRemoveMode.value;
+}
+
+function handleSavedEntryClick(entry) {
+	if (isRemoveMode.value) {
+		selectedSavedEntryForRemoval.value = entry;
+		removeConfirmationError.value = "";
+		isRemoveConfirmationOpen.value = true;
+		return;
+	}
+
+	return loadSavedTemplate(entry);
+}
+
+function cancelSavedEntryRemoval() {
+	isRemoveConfirmationOpen.value = false;
+	selectedSavedEntryForRemoval.value = null;
+	removeConfirmationError.value = "";
+}
+
+function keepSavedEntry() {
+	const dialog = removeConfirmationDialogRef.value;
+	if (dialog?.open) {
+		dialog.close();
+	} else {
+		cancelSavedEntryRemoval();
+	}
+}
+
+function confirmSavedEntryRemoval() {
+	const selectedEntry = selectedSavedEntryForRemoval.value;
+	if (!selectedEntry) {
+		removeConfirmationError.value = "The saved item could not be identified. Please try again.";
+		return;
+	}
+
+	const selectedEntryIndex = savedTemplates.value.findIndex(
+		(entry) => entry.id === selectedEntry.id,
+	);
+	if (selectedEntryIndex === -1) {
+		removeConfirmationError.value = "The saved item is no longer available.";
+		return;
+	}
+
+	const nextEntries = [...savedTemplates.value];
+	nextEntries.splice(selectedEntryIndex, 1);
+	if (!saveSavedTemplates(nextEntries)) {
+		removeConfirmationError.value = "The saved item could not be removed. Please try again.";
+		return;
+	}
+
+	savedTemplates.value = nextEntries;
+	const dialog = removeConfirmationDialogRef.value;
+	if (dialog?.open) {
+		dialog.close();
+	} else {
+		cancelSavedEntryRemoval();
+	}
+}
+
 function formatSavedTemplateDate(createdAt) {
 	const date = new Date(createdAt);
 	if (!Number.isFinite(date.getTime())) {
@@ -2575,6 +2612,7 @@ function handleCalibrationBarPointerUp() {
 					type="button"
 					name="text-editor-load-menu-shells-button"
 					data-button-name="text-editor-load-menu-shells-button"
+					:aria-pressed="isSavedShellsMenuOpen"
 					@click="selectSavedShells"
 				>
 					Load Shells
@@ -2585,9 +2623,21 @@ function handleCalibrationBarPointerUp() {
 					type="button"
 					name="text-editor-load-menu-templates-button"
 					data-button-name="text-editor-load-menu-templates-button"
+					:aria-pressed="!isSavedShellsMenuOpen"
 					@click="selectSavedTemplates"
 				>
 					Load Templates
+				</button>
+				<button
+					id="text-editor-load-menu-remove-button"
+					class="text-editor-load-menu-templates-button text-editor-load-menu-remove-button"
+					type="button"
+					name="text-editor-load-menu-remove-button"
+					data-button-name="text-editor-load-menu-remove-button"
+					:aria-pressed="isRemoveMode"
+					@click="toggleRemoveMode"
+				>
+					Remove
 				</button>
 				<ul
 					v-if="!isSavedShellsMenuOpen && savedTemplateEntries.length > 0"
@@ -2600,10 +2650,11 @@ function handleCalibrationBarPointerUp() {
 						:id="`text-editor-saved-template-${entry.id}`"
 						:key="entry.id"
 						class="text-editor-saved-template-item"
+						:class="{ 'text-editor-saved-item--remove-mode': isRemoveMode }"
 						type="button"
 						:data-template-id="entry.id"
 						:aria-label="entry.name"
-						@click="loadSavedTemplate(entry)"
+						@click="handleSavedEntryClick(entry)"
 					>
 						<span class="text-editor-saved-template-date">{{
 							formatSavedTemplateDate(entry.createdAt)
@@ -2622,10 +2673,11 @@ function handleCalibrationBarPointerUp() {
 						:id="`text-editor-saved-shell-${entry.id}`"
 						:key="entry.id"
 						class="text-editor-saved-shell-item"
+						:class="{ 'text-editor-saved-item--remove-mode': isRemoveMode }"
 						type="button"
 						:data-shell-id="entry.id"
 						:aria-label="entry.name"
-						@click="loadSavedTemplate(entry)"
+						@click="handleSavedEntryClick(entry)"
 					>
 						<span class="text-editor-saved-template-date">{{
 							formatSavedTemplateDate(entry.createdAt)
@@ -2633,6 +2685,59 @@ function handleCalibrationBarPointerUp() {
 						<span>{{ entry.name }}</span>
 					</button>
 				</ul>
+				<div
+					v-if="isRemoveConfirmationOpen"
+					class="text-editor-remove-confirmation-overlay"
+				>
+					<dialog
+						id="text-editor-remove-confirmation"
+						ref="removeConfirmationDialogRef"
+						class="text-editor-remove-confirmation"
+						aria-labelledby="text-editor-remove-confirmation-message"
+						:title="
+							selectedSavedEntryForRemoval?.template?.isShell === true
+								? 'Remove saved shell'
+								: 'Remove saved template'
+						"
+						@close="cancelSavedEntryRemoval"
+					>
+						<p
+							id="text-editor-remove-confirmation-message"
+							class="text-editor-remove-confirmation-message"
+						>
+							<span>
+								Are You Sure You Want to Delete this
+								{{ selectedSavedEntryForRemoval?.template?.isShell === true ? "Shell" : "Template" }}
+							</span>
+							<span>This is Permanent and Cannot be Undone</span>
+						</p>
+						<p
+							v-if="removeConfirmationError"
+							class="text-editor-remove-confirmation-error"
+							role="alert"
+						>
+							{{ removeConfirmationError }}
+						</p>
+						<div class="text-editor-remove-confirmation-actions">
+							<button
+								id="text-editor-remove-confirmation-remove-button"
+								class="text-editor-remove-confirmation-remove-button"
+								type="button"
+								@click="confirmSavedEntryRemoval"
+							>
+								Remove
+							</button>
+							<button
+								id="text-editor-remove-confirmation-keep-button"
+								class="text-editor-remove-confirmation-keep-button"
+								type="button"
+								@click="keepSavedEntry"
+							>
+								Keep
+							</button>
+						</div>
+					</dialog>
+				</div>
 			</section>
 			<section
 				v-if="isNewMenuOpen"
@@ -3172,14 +3277,14 @@ function handleCalibrationBarPointerUp() {
 					</div>
 				</div>
 				<div class="grid-menu-controls-layout">
-					<div class="grid-menu-control-headings">
-						<div id="grid-menu-alignment-heading" class="grid-menu-alignment-heading">
-							Alignment
-						</div>
+					<div id="grid-menu-alignment-heading" class="grid-menu-alignment-heading">
+						Alignment
 					</div>
-					<div class="grid-menu-control-columns">
-						<div class="grid-menu-alignment-controls">
-							<div class="grid-menu-alignment-controls-inner">
+					<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">
+						Shapes
+					</div>
+					<div class="grid-menu-alignment-controls">
+						<div class="grid-menu-alignment-controls-inner">
 								<details id="grid-menu-alignment-dropdown">
 									<summary class="grid-menu-control-label">
 										Full Grid Alignment
@@ -3698,23 +3803,12 @@ function handleCalibrationBarPointerUp() {
 											>
 												inches
 											</span>
-											<button
-												id="grid-shape-size-commit-button"
-												class="grid-menu-size-commit-button"
-												type="button"
-												@click="commitGridShapeSize"
-											>
-												Commit
-											</button>
 										</div>
 									</div>
 								</details>
-							</div>
 						</div>
 					</div>
-				</div>
-				<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">Shapes</div>
-				<div class="grid-menu-shapes-commit-group">
+					<div class="grid-menu-shapes-group">
 					<ul
 						id="grid-menu-shapes-list"
 						class="grid-menu-shapes-list"
@@ -3766,14 +3860,7 @@ function handleCalibrationBarPointerUp() {
 							</ul>
 						</li>
 					</ul>
-					<button
-						id="grid-sides-commit-button"
-						class="grid-menu-sides-commit-button"
-						type="button"
-						@click="commitGridShapeSelection"
-					>
-						Commit
-					</button>
+					</div>
 				</div>
 				<div id="grid-menu-lines-heading" class="grid-menu-lines-heading">Lines</div>
 				<button

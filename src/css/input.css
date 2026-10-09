@@ -1490,22 +1490,11 @@ body {
 }
 
 .grid-menu-controls-layout {
-	display: flex;
-	flex-direction: column;
-	gap: 32px;
+	display: grid;
+	grid-template-columns: max-content 247.4px;
+	column-gap: 218px;
+	row-gap: 16px;
 	margin-top: 55px;
-}
-
-.grid-menu-control-headings {
-	display: grid;
-	grid-template-columns: max-content max-content;
-	column-gap: 185px;
-}
-
-.grid-menu-control-columns {
-	display: grid;
-	grid-template-columns: max-content max-content;
-	column-gap: 76px;
 }
 
 .grid-menu-alignment-heading {
@@ -1513,14 +1502,14 @@ body {
 	grid-column: 1;
 	grid-row: 1;
 	width: max-content;
-	margin: 8px 0 0;
+	margin: 8px 0 16px;
 	text-align: center;
 }
 
 .grid-menu-alignment-controls {
 	grid-column: 1;
-	grid-row: 1;
-	width: max-content;
+	grid-row: 2;
+	width: 0;
 	overflow: visible;
 }
 
@@ -1733,8 +1722,9 @@ body {
 }
 
 .grid-menu-shapes-heading {
-	margin-top: 27px;
-	margin-bottom: 16px;
+	grid-column: 2;
+	grid-row: 1;
+	margin: 8px 0 0;
 	margin-left: 0;
 	color: #000;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
@@ -1764,7 +1754,7 @@ body {
 .grid-menu-size-dimensions-row {
 	display: grid;
 	grid-template-columns: 144px 72px max-content;
-	grid-template-rows: 28px 28px auto;
+	grid-template-rows: 28px 28px;
 	align-items: center;
 	column-gap: 5px;
 	row-gap: 16px;
@@ -1841,46 +1831,6 @@ body {
 	font-weight: 700;
 }
 
-.grid-menu-size-commit-button {
-	flex: 0 0 auto;
-	grid-column: 1 / -1;
-	grid-row: 3;
-	align-self: start;
-	justify-self: start;
-	margin-left: 0;
-	padding: 0.55rem 1.1rem;
-	border: 2px solid rgba(17, 116, 50, 0.5);
-	border-radius: 9999px;
-	background: linear-gradient(180deg, #d9fbe4 0%, #8be8ab 100%);
-	color: #0b4d22;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.9rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.9),
-		inset 0 -4px 0 rgba(13, 90, 38, 0.2),
-		0 6px 0 rgba(22, 101, 52, 0.38);
-	transition:
-		transform 160ms ease,
-		box-shadow 160ms ease,
-		filter 160ms ease;
-}
-
-.grid-menu-size-commit-button:hover {
-	transform: translateY(-1px);
-	filter: brightness(1.03);
-}
-
-.grid-menu-size-commit-button:active {
-	transform: translateY(3px);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.8),
-		inset 0 -2px 0 rgba(13, 90, 38, 0.2),
-		0 3px 0 rgba(22, 101, 52, 0.38);
-}
-
 .grid-menu-shapes-list {
 	display: flex;
 	flex-direction: column;
@@ -1906,7 +1856,9 @@ body {
 	list-style: none;
 }
 
-.grid-menu-shapes-commit-group {
+.grid-menu-shapes-group {
+	grid-column: 2;
+	grid-row: 2;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -3099,6 +3051,82 @@ body {
 	background: #2be33b;
 }
 
+.text-editor-remove-confirmation-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 205;
+	display: grid;
+	place-items: center;
+	box-sizing: border-box;
+	padding: 16px;
+	background: rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-remove-confirmation {
+	position: fixed;
+	inset: 0;
+	box-sizing: border-box;
+	width: min(calc(100% - 32px), 480px);
+	margin: auto;
+	padding: 24px;
+	border: 2px solid #061a32;
+	border-radius: 12px;
+	background: #0b2d55;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.text-editor-remove-confirmation-message,
+.text-editor-remove-confirmation p:first-child {
+	margin: 0 0 20px;
+	color: #fff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.text-editor-remove-confirmation p:first-child span {
+	display: block;
+}
+
+.text-editor-remove-confirmation-error {
+	margin: 0 0 16px;
+	color: #ffb3b3;
+	font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+	font-size: 0.9rem;
+	text-align: center;
+}
+
+.text-editor-remove-confirmation-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 12px;
+}
+
+.text-editor-remove-confirmation-remove-button,
+.text-editor-remove-confirmation-keep-button {
+	min-width: 112px;
+	min-height: 48px;
+	padding: 8px 20px;
+	border: 1px solid #000;
+	border-radius: 999px;
+	color: #000;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.text-editor-remove-confirmation-remove-button {
+	background: #ff2525;
+}
+
+.text-editor-remove-confirmation-keep-button {
+	background: #2be33b;
+}
+
 .text-editor-new-create-shell-button {
 	width: 100%;
 	height: 64px;
@@ -3283,6 +3311,16 @@ body {
 		inset 0 2px 0 rgba(255, 255, 255, 0.42),
 		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
 		0 4px 0 #c76b73,
+		0 8px 10px rgba(0, 0, 0, 0.48);
+}
+
+.text-editor-load-menu-remove-button {
+	border-color: #d00000;
+	background: linear-gradient(90deg, #ff2525 0%, #ff4242 50%, #ed1010 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.42),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.35),
+		0 4px 0 #d00000,
 		0 8px 10px rgba(0, 0, 0, 0.48);
 }
 
@@ -3773,6 +3811,16 @@ body {
 .text-editor-saved-template-item:active {
 	background: #c7e0f4;
 	border-color: #2b88d8;
+}
+
+.text-editor-saved-item--remove-mode {
+	background: #fff3a6;
+	border-color: #e5d35f;
+	color: #1b1b1b;
+}
+
+.text-editor-saved-item--remove-mode .text-editor-saved-template-date {
+	color: #246b26;
 }
 
 .text-editor-saved-shells-list {
@@ -4365,10 +4413,10 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 }
 
 #text-editor-print-button {
-	position: absolute;
-	top: 50%;
+	position: fixed;
+	top: 16px;
 	right: calc(12rem + 48px);
-	transform: translateY(-50%);
+	transform: none;
 	z-index: 110;
 }
 
@@ -5230,47 +5278,12 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 		filter 160ms ease;
 }
 
-.grid-menu-sides-commit-button {
-	padding: 0.55rem 1.1rem;
-	border: 2px solid rgba(17, 116, 50, 0.5);
-	border-radius: 9999px;
-	background: linear-gradient(180deg, #d9fbe4 0%, #8be8ab 100%);
-	color: #0b4d22;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.9rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	cursor: pointer;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.9),
-		inset 0 -4px 0 rgba(13, 90, 38, 0.2),
-		0 6px 0 rgba(22, 101, 52, 0.38);
-	transition:
-		transform 160ms ease,
-		box-shadow 160ms ease,
-		filter 160ms ease;
-	flex: 0 0 auto;
-}
-
 .description-edits-commit-button:hover {
 	transform: translateY(-1px);
 	filter: brightness(1.03);
 }
 
-.grid-menu-sides-commit-button:hover {
-	transform: translateY(-1px);
-	filter: brightness(1.03);
-}
-
 .description-edits-commit-button:active {
-	transform: translateY(3px);
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.8),
-		inset 0 -2px 0 rgba(13, 90, 38, 0.2),
-		0 3px 0 rgba(22, 101, 52, 0.38);
-}
-
-.grid-menu-sides-commit-button:active {
 	transform: translateY(3px);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.8),

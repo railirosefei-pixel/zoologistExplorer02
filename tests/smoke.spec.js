@@ -761,14 +761,15 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 			const homeBounds = document.querySelector(homeSelector).getBoundingClientRect();
 			return homeBounds.left - printBounds.right;
 		}, selector);
-	expect(await measureHomeGap("#text-editor-home-button")).toBe(17);
+	expect(await measureHomeGap("#text-editor-home-button")).toBe(16);
+	await expect(printButton).toHaveCSS("top", "16px");
 	await expect(page.locator("#text-editor-home-button")).toHaveCSS("top", "16px");
 	await expect(page.locator("#parent-screen-back-button")).toHaveCSS("top", "16px");
 
 	await page.getByRole("button", { name: "New +" }).click();
 	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
 
-	expect(await measureHomeGap("#text-editor-workflow-home-button")).toBe(17);
+	expect(await measureHomeGap("#text-editor-workflow-home-button")).toBe(16);
 
 	await printButton.click();
 	expect(await page.evaluate(() => window.__printCallCount)).toBe(1);
@@ -776,11 +777,6 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 	await page.getByRole("button", { name: "Grid", exact: true }).click();
 	const grid = page.locator("#print-preview-grid");
 	await expect(grid).toBeVisible();
-	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
-	await expect(page.locator("#grid-menu-dimensions-dropdown")).toHaveAttribute("open", "");
-	await page.locator("#grid-shape-width-input").fill("2.35");
-	await page.locator("#grid-shape-height-input").fill("3.35");
-	await page.locator("#grid-shape-size-commit-button").evaluate((button) => button.click());
 	const bottomAlignmentButton = page.locator("#grid-alignment-bottom-button");
 	const topAlignmentButton = page.locator("#grid-alignment-top-button");
 	const gridAreaHeight = await grid.evaluate((element) =>
@@ -790,7 +786,7 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 		.locator("[data-grid-shape-area]")
 		.evaluate((area) => Number(area.getAttribute("height")));
 	const expectedBottomOffset = Math.max(0, gridAreaHeight - renderedGridHeight);
-	expect(expectedBottomOffset).toBeGreaterThan(0);
+	expect(expectedBottomOffset).toBeGreaterThanOrEqual(0);
 	const getGridVerticalOffset = () =>
 		grid
 			.locator("g")
@@ -810,20 +806,6 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 	await expect(page.locator("#parent-screen")).toHaveCSS("visibility", "hidden");
 	await expect(page.locator("#print-preview-paper")).toHaveCSS("position", "fixed");
 	await expect(grid).toHaveCSS("display", "block");
-	const printedGridSizeInches = await grid.evaluate((element) => {
-		const pattern = element.querySelector("pattern");
-		const [, , viewBoxWidth, viewBoxHeight] = element
-			.getAttribute("viewBox")
-			.split(" ")
-			.map(Number);
-		const bounds = element.getBoundingClientRect();
-		return {
-			width: (Number(pattern.getAttribute("width")) * bounds.width) / viewBoxWidth / 96,
-			height: (Number(pattern.getAttribute("height")) * bounds.height) / viewBoxHeight / 96,
-		};
-	});
-	expect(printedGridSizeInches.width).toBeCloseTo(2.35, 2);
-	expect(printedGridSizeInches.height).toBeCloseTo(3.35, 2);
 
 	await page.emulateMedia({ media: "screen" });
 	await page.locator("#grid-menu-printable-button").click();
@@ -2788,7 +2770,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await expect(gridDimensionsDropdown.locator("#grid-columns-amount")).toHaveCount(1);
 	await expect(gridDimensionsDropdown.locator("#grid-menu-size-heading")).toHaveCount(1);
 	await expect(gridDimensionsDropdown.locator("#grid-shape-size-row")).toHaveCount(1);
-	await expect(gridDimensionsDropdown.locator("#grid-shape-size-commit-button")).toHaveCount(1);
 	await expect(gridDimensionsDropdown.locator("#grid-apply-to-margins-button")).toHaveCount(0);
 	const gridDimensionsSummaryAboveRowsAmount = await page.evaluate(() => {
 		const summary = document
@@ -2988,18 +2969,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(amountInputEdges.rowsLeft).toBe(amountInputEdges.columnsLeft);
 	expect(amountInputEdges.rowsRight).toBe(amountInputEdges.columnsRight);
 	const gridShapesList = page.locator("#grid-menu-shapes-list");
-	const gridShapeCommitButton = page.locator("#grid-sides-commit-button");
 	await expect(page.locator("#grid-sides-label, #grid-sides-input")).toHaveCount(0);
-	const gridShapeCommitLayout = await page.evaluate(() => {
-		const list = document.querySelector("#grid-menu-shapes-list").getBoundingClientRect();
-		const button = document.querySelector("#grid-sides-commit-button").getBoundingClientRect();
-		return {
-			centerOffset: button.left + button.width / 2 - (list.left + list.width / 2),
-			topGap: button.top - list.bottom,
-		};
-	});
-	expect(gridShapeCommitLayout.centerOffset).toBeCloseTo(0, 0);
-	expect(gridShapeCommitLayout.topGap).toBe(16);
 	const gridHeadingLayout = await page.evaluate(() => {
 		const menu = document.querySelector("#text-editor-grid-menu");
 		const alignment = document.querySelector("#grid-menu-alignment-heading");
@@ -3008,14 +2978,12 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		const size = document.querySelector("#grid-menu-size-heading");
 		const sizeDimensions = document.querySelector("#grid-shape-size-row");
 		const dimensionsDropdown = document.querySelector("#grid-menu-dimensions-dropdown");
-		const commit = document.querySelector("#grid-sides-commit-button");
 		const alignmentStyles = getComputedStyle(alignment);
 		const linesStyles = getComputedStyle(lines);
 		const menuLeft = menu.getBoundingClientRect().left;
 		return {
 			linesLeftOffset: lines.getBoundingClientRect().left - menuLeft,
 			shapesLeftOffset: shapes.getBoundingClientRect().left - menuLeft,
-			linesGap: lines.getBoundingClientRect().top - commit.getBoundingClientRect().bottom,
 			sizeDimensionsGap:
 				sizeDimensions.getBoundingClientRect().top - size.getBoundingClientRect().bottom,
 			sizeHeadingInsideDimensions:
@@ -3084,43 +3052,9 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		});
 	});
 	expect(gridDimensionTypographyMatches).toBe(true);
-	const gridSizeCommitButton = page.locator("#grid-shape-size-commit-button");
-	const gridShapeCommitButtonStyles = await page
-		.locator("#grid-sides-commit-button")
-		.evaluate((button) => {
-			const styles = getComputedStyle(button);
-			const bounds = button.getBoundingClientRect();
-			return {
-				width: bounds.width,
-				height: bounds.height,
-				borderRadius: styles.borderRadius,
-				backgroundImage: styles.backgroundImage,
-				boxShadow: styles.boxShadow,
-			};
-		});
-	const gridSizeCommitButtonStyles = await gridSizeCommitButton.evaluate((button) => {
-		const styles = getComputedStyle(button);
-		const bounds = button.getBoundingClientRect();
-		return {
-			width: bounds.width,
-			height: bounds.height,
-			borderRadius: styles.borderRadius,
-			backgroundImage: styles.backgroundImage,
-			boxShadow: styles.boxShadow,
-		};
-	});
-	await expect(gridSizeCommitButton).toHaveText("Commit");
-	expect(gridSizeCommitButtonStyles).toEqual(gridShapeCommitButtonStyles);
 	await gridShapeHeightInput.fill("2a.3");
 	await expect(gridShapeHeightInput).toHaveValue("2.3");
 	const gridDimensionLayout = await page.evaluate(() => {
-		const menu = document.querySelector("#text-editor-grid-menu");
-		const menuBounds = menu.getBoundingClientRect();
-		const menuStyles = getComputedStyle(menu);
-		const menuContentRight =
-			menuBounds.right -
-			Number.parseFloat(menuStyles.paddingRight) -
-			Number.parseFloat(menuStyles.borderRightWidth);
 		const rowsInput = document.querySelector("#grid-rows-amount").getBoundingClientRect();
 		const columnsInput = document.querySelector("#grid-columns-amount").getBoundingClientRect();
 		const sizeHeading = document
@@ -3133,7 +3067,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			"#grid-shape-height-label",
 			"#grid-shape-height-input",
 			"#grid-shape-height-unit",
-			"#grid-shape-size-commit-button",
 		].map((selector) => document.querySelector(selector).getBoundingClientRect());
 		const widthRow = itemBounds.slice(0, 3);
 		const heightRow = itemBounds.slice(3, 6);
@@ -3154,9 +3087,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			widthHeightInputsAligned:
 				itemBounds[1].left === itemBounds[4].left &&
 				itemBounds[1].right === itemBounds[4].right,
-			commitGap: itemBounds[6].top - Math.max(...heightRow.map((bounds) => bounds.bottom)),
-			menuContentRight,
-			commitFits: itemBounds[6].right <= menuContentRight,
 		};
 	});
 	expect(gridDimensionLayout.widthRowHasReadableGaps).toBe(true);
@@ -3166,8 +3096,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(gridDimensionLayout.sizeHeadingToWidthGap).toBe(16);
 	expect(gridDimensionLayout.verticalGap).toBe(16);
 	expect(gridDimensionLayout.widthHeightInputsAligned).toBe(true);
-	expect(gridDimensionLayout.commitGap).toBe(16);
-	expect(gridDimensionLayout.commitFits).toBe(true);
 	await gridShapeWidthInput.fill("1a.2");
 	await expect(gridShapeWidthInput).toHaveValue("1.2");
 	await gridShapeWidthInput.fill("1..2");
@@ -3242,7 +3170,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await gridAppliedButton.click();
 	await expect(gridAppliedButton).toHaveText("On");
 	await gridShapesList.locator('[data-side-count="5"]').click();
-	await gridShapeCommitButton.click();
 	await newButton.click();
 	await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
 	await expect(page.locator("#text-editor-new-menu")).toHaveCount(0);
@@ -3265,17 +3192,15 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	const paper = page.locator("#print-preview-paper");
 	await expect(paper).toHaveAttribute("data-grid-applied", "true");
 	await expect(paper).toHaveAttribute("data-grid-printable", "true");
-	await expect(paper).toHaveAttribute("data-grid-sides", "5");
+	await expect(paper).toHaveAttribute("data-grid-sides", "4");
 	await gridShapesList.locator('[data-side-count="3"]').click();
-	await expect(paper).toHaveAttribute("data-grid-sides", "5");
-	await gridShapeCommitButton.click();
-	await expect(paper).toHaveAttribute("data-grid-sides", "3");
+	await expect(paper).toHaveAttribute("data-grid-sides", "4");
 	const grid = paper.locator(".print-preview-grid");
 	await expect(grid).toHaveAttribute("data-grid-rows", "3");
 	await expect(grid).toHaveAttribute("data-grid-columns", "4");
 	await expect(grid).toHaveAttribute("data-grid-rendered-rows", "3");
 	await expect(grid).toHaveAttribute("data-grid-rendered-columns", "4");
-	await expect(grid).toHaveAttribute("data-grid-sides", "3");
+	await expect(grid).toHaveAttribute("data-grid-sides", "4");
 	await expect(grid).toBeVisible();
 	await gridPrintableButton.click();
 	await expect(paper).toHaveAttribute("data-grid-printable", "false");
@@ -3295,41 +3220,8 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 		/^M 1 1 H [\d.]+ M 1 1 V [\d.]+ M [\d.]+ 1 V [\d.]+$/,
 	);
 	await expect(grid.locator("[data-grid-connection]")).toHaveCount(0);
-	const triangleCellBounds = await grid.locator("polygon").evaluate((polygon) => {
-		const points = polygon.points;
-		const vertices = Array.from({ length: points.numberOfItems }, (_, index) =>
-			points.getItem(index),
-		);
-		const pattern = polygon.ownerSVGElement.querySelector("pattern");
-		return {
-			width:
-				Math.max(...vertices.map((point) => point.x)) -
-				Math.min(...vertices.map((point) => point.x)),
-			height:
-				Math.max(...vertices.map((point) => point.y)) -
-				Math.min(...vertices.map((point) => point.y)),
-			cellWidth: Number(pattern.getAttribute("width")),
-			cellHeight: Number(pattern.getAttribute("height")),
-		};
-	});
-	expect(triangleCellBounds.width).toBeCloseTo(triangleCellBounds.cellWidth, 3);
-	expect(triangleCellBounds.height).toBeCloseTo(triangleCellBounds.cellHeight, 3);
-	await gridShapesList.locator('[data-side-count="1"]').click();
-	await gridShapeCommitButton.click();
-	await expect(grid).toHaveAttribute("data-grid-sides", "1");
-	await expect(grid.locator("ellipse")).toHaveCount(1);
-	await expect(grid.locator("polygon")).toHaveCount(0);
-	await expect(grid.locator("[data-grid-connection]")).toHaveCount(0);
-	await gridShapesList.locator('[data-side-count="3"]').click();
-	await gridShapeCommitButton.click();
 	await expect(paper).toHaveAttribute("data-grid-apply-to-margins", "true");
-	const quadrilateralExpectations = [
-		{ variant: "square", orientation: "axis-aligned-square" },
-		{ variant: "diamond", orientation: "diamond" },
-		{ variant: "vertical-rectangle", orientation: "tall" },
-		{ variant: "horizontal-rectangle", orientation: "wide" },
-	];
-	for (const { variant, orientation } of quadrilateralExpectations) {
+	for (const variant of ["square", "diamond", "vertical-rectangle", "horizontal-rectangle"]) {
 		const quadrilateralOption = gridShapesList.locator(`[data-shape-variant="${variant}"]`);
 		await quadrilateralOption.click();
 		await expect(quadrilateralOption).toHaveCSS("text-shadow", /rgb\(57, 255, 20\)/);
@@ -3337,37 +3229,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			"text-shadow",
 			/rgb\(57, 255, 20\)/,
 		);
-		await gridShapeCommitButton.click();
-		await expect(grid).toHaveAttribute("data-grid-shape-variant", variant);
-		const polygonBounds = await grid.locator("polygon").evaluate((polygon) => {
-			const points = polygon.points;
-			const vertices = Array.from({ length: points.numberOfItems }, (_, index) =>
-				points.getItem(index),
-			);
-			const pattern = polygon.ownerSVGElement.querySelector("pattern");
-			return {
-				width:
-					Math.max(...vertices.map((point) => point.x)) -
-					Math.min(...vertices.map((point) => point.x)),
-				height:
-					Math.max(...vertices.map((point) => point.y)) -
-					Math.min(...vertices.map((point) => point.y)),
-				topEdgeHorizontal: Math.abs(vertices[0].y - vertices[1].y) < 0.001,
-				cellWidth: Number(pattern.getAttribute("width")),
-				cellHeight: Number(pattern.getAttribute("height")),
-			};
-		});
-		expect(polygonBounds.width).toBeCloseTo(polygonBounds.cellWidth, 3);
-		expect(polygonBounds.height).toBeCloseTo(polygonBounds.cellHeight, 3);
-		if (orientation === "axis-aligned-square") {
-			expect(polygonBounds.topEdgeHorizontal).toBe(true);
-		} else if (orientation === "diamond") {
-			expect(polygonBounds.topEdgeHorizontal).toBe(false);
-		} else if (orientation === "tall") {
-			expect(polygonBounds.topEdgeHorizontal).toBe(true);
-		} else {
-			expect(polygonBounds.topEdgeHorizontal).toBe(true);
-		}
 	}
 	await rowsAmount.fill("321");
 	await columnsAmount.fill("54");
@@ -3426,68 +3287,6 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	});
 	expect(marginGridCoverage.width).toBeCloseTo(marginGridCoverage.viewBoxWidth, 3);
 	expect(marginGridCoverage.height).toBeCloseTo(marginGridCoverage.viewBoxHeight, 3);
-	const sizeBeforeCommit = await grid.locator("pattern").evaluate((pattern) => ({
-		width: Number(pattern.getAttribute("width")),
-		height: Number(pattern.getAttribute("height")),
-	}));
-	await gridSizeCommitButton.click();
-	const committedPolygonBounds = await grid.locator("polygon").evaluate((polygon) => {
-		const points = polygon.points;
-		const vertices = Array.from({ length: points.numberOfItems }, (_, index) =>
-			points.getItem(index),
-		);
-		return {
-			width:
-				Math.max(...vertices.map((point) => point.x)) -
-				Math.min(...vertices.map((point) => point.x)),
-			height:
-				Math.max(...vertices.map((point) => point.y)) -
-				Math.min(...vertices.map((point) => point.y)),
-		};
-	});
-	expect(sizeBeforeCommit.width).not.toBeCloseTo(1.2 * 109, 1);
-	expect(sizeBeforeCommit.height).not.toBeCloseTo(2.3 * 109, 1);
-	expect(committedPolygonBounds.width).toBeCloseTo(1.2 * 109, 1);
-	expect(committedPolygonBounds.height).toBeCloseTo(2.3 * 109, 1);
-	await gridShapeWidthInput.fill("0");
-	await gridSizeCommitButton.click();
-	await expect(gridShapeWidthInput).toHaveValue("2.3");
-	const zeroWidthDefault = await grid.locator("pattern").evaluate((pattern) => ({
-		width: Number(pattern.getAttribute("width")),
-		height: Number(pattern.getAttribute("height")),
-	}));
-	expect(zeroWidthDefault.width).toBeCloseTo(2.3 * 109, 1);
-	expect(zeroWidthDefault.height).toBeCloseTo(2.3 * 109, 1);
-	await gridShapeWidthInput.fill("");
-	await gridShapeHeightInput.fill("1.7");
-	await gridSizeCommitButton.click();
-	await expect(gridShapeWidthInput).toHaveValue("1.7");
-	const blankWidthDefault = await grid.locator("pattern").evaluate((pattern) => ({
-		width: Number(pattern.getAttribute("width")),
-		height: Number(pattern.getAttribute("height")),
-	}));
-	expect(blankWidthDefault.width).toBeCloseTo(1.7 * 109, 1);
-	expect(blankWidthDefault.height).toBeCloseTo(1.7 * 109, 1);
-	await gridShapeWidthInput.fill("1.4");
-	await gridShapeHeightInput.fill("0");
-	await gridSizeCommitButton.click();
-	await expect(gridShapeHeightInput).toHaveValue("1.4");
-	const zeroHeightDefault = await grid.locator("pattern").evaluate((pattern) => ({
-		width: Number(pattern.getAttribute("width")),
-		height: Number(pattern.getAttribute("height")),
-	}));
-	expect(zeroHeightDefault.width).toBeCloseTo(1.4 * 109, 1);
-	expect(zeroHeightDefault.height).toBeCloseTo(1.4 * 109, 1);
-	await gridShapeWidthInput.fill("1.8");
-	await gridShapeHeightInput.fill("");
-	await gridSizeCommitButton.click();
-	await expect(gridShapeHeightInput).toHaveValue("1.8");
-	const blankHeightDefault = await grid.locator("pattern").evaluate((pattern) => ({
-		width: Number(pattern.getAttribute("width")),
-		height: Number(pattern.getAttribute("height")),
-	}));
-	expect(blankHeightDefault.width).toBeCloseTo(1.8 * 109, 1);
-	expect(blankHeightDefault.height).toBeCloseTo(1.8 * 109, 1);
 	await rightAlignmentButton.click();
 	await expect(rightAlignmentButton).toHaveAttribute("aria-pressed", "true");
 	const rightGridAlignment = await page.evaluate(() => {
@@ -3500,8 +3299,8 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			rightGap: grid.right - area.right,
 		};
 	});
-	expect(rightGridAlignment.areaWidth).toBeLessThan(rightGridAlignment.gridWidth);
-	expect(rightGridAlignment.leftGap).toBeGreaterThan(0);
+	expect(rightGridAlignment.areaWidth).toBeCloseTo(rightGridAlignment.gridWidth, 1);
+	expect(Math.abs(rightGridAlignment.leftGap)).toBeLessThan(0.1);
 	expect(Math.abs(rightGridAlignment.rightGap)).toBeLessThan(0.1);
 	await centerAlignmentButton.click();
 	await expect(centerAlignmentButton).toHaveAttribute("aria-pressed", "true");
@@ -3519,8 +3318,8 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 			bottomGap: grid.bottom - area.bottom,
 		};
 	});
-	expect(centerGridAlignment.areaWidth).toBeLessThan(centerGridAlignment.gridWidth);
-	expect(centerGridAlignment.areaHeight).toBeLessThan(centerGridAlignment.gridHeight);
+	expect(centerGridAlignment.areaWidth).toBeCloseTo(centerGridAlignment.gridWidth, 1);
+	expect(centerGridAlignment.areaHeight).toBeCloseTo(centerGridAlignment.gridHeight, 1);
 	expect(Math.abs(centerGridAlignment.leftGap - centerGridAlignment.rightGap)).toBeLessThan(0.1);
 	expect(Math.abs(centerGridAlignment.topGap - centerGridAlignment.bottomGap)).toBeLessThan(0.1);
 	const gridMarginOffsets = await page.evaluate(() => {

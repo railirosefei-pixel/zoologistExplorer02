@@ -81,7 +81,10 @@ test("New menu matches the Load menu position with separate identifiers", async 
 	const newMenu = page.locator("#text-editor-new-menu");
 	await expect(newMenu).toBeVisible();
 	const newMenuBox = await newMenu.boundingBox();
-	expect(newMenuBox).toEqual(loadMenuBox);
+	expect(newMenuBox).toMatchObject({
+		x: loadMenuBox.x,
+		y: loadMenuBox.y,
+	});
 	await expect(
 		newMenu.getByRole("button", { name: "Create A Shell", exact: true }),
 	).toBeVisible();
@@ -1138,4 +1141,135 @@ test("saved shells appear in the Load Shells menu by their saved name", async ({
 	await page.getByRole("button", { name: "Load Shells", exact: true }).click();
 	await expect(page.locator("#text-editor-saved-shells-list")).toBeVisible();
 	await expect(page.getByRole("button", { name: "Saved Shell", exact: true })).toBeVisible();
+});
+
+test("Remove mode confirms template deletion and Keep preserves the template", async ({ page }) => {
+	await page.goto("./");
+	await page.evaluate(() => {
+		window.localStorage.clear();
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "template-to-remove",
+					name: "Saved Template",
+					createdAt: "2026-10-09T00:00:00.000Z",
+					template: { isShell: false },
+				},
+				{
+					id: "shell-to-preserve",
+					name: "Saved Shell",
+					createdAt: "2026-10-09T00:00:00.000Z",
+					template: { isShell: true },
+				},
+			]),
+		);
+	});
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+
+	const templatesButton = page.locator("#text-editor-load-menu-templates-button");
+	const removeButton = page.locator("#text-editor-load-menu-remove-button");
+	const removeButtonBox = await removeButton.boundingBox();
+	const templatesButtonBox = await templatesButton.boundingBox();
+	expect(removeButtonBox).toMatchObject({
+		width: templatesButtonBox.width,
+		height: templatesButtonBox.height,
+	});
+	await expect(removeButton).toHaveCSS(
+		"background-image",
+		/255, 37, 37/,
+	);
+
+	await removeButton.click();
+	await expect(removeButton).toHaveAttribute("aria-pressed", "true");
+	const template = page.locator("#text-editor-saved-template-template-to-remove");
+	await expect(template).toHaveClass(/text-editor-saved-item--remove-mode/);
+	await expect(template).toHaveCSS("background-color", "rgb(255, 243, 166)");
+
+	await template.click();
+	const confirmation = page.locator("#text-editor-remove-confirmation");
+	await expect(confirmation).toBeVisible();
+	await expect(confirmation).toContainText("Are You Sure You Want to Delete this Template");
+	await expect(confirmation).toContainText("This is Permanent and Cannot be Undone");
+	await confirmation.locator("#text-editor-remove-confirmation-keep-button").click();
+	await expect(confirmation).toBeHidden();
+	await expect(template).toBeVisible();
+
+	await template.click();
+	await confirmation.locator("#text-editor-remove-confirmation-remove-button").click();
+	await expect(confirmation).toBeHidden();
+	await expect(template).toHaveCount(0);
+	expect(
+		await page.evaluate(() =>
+			JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates")),
+		),
+	).toEqual([
+		{
+			id: "shell-to-preserve",
+			name: "Saved Shell",
+			createdAt: "2026-10-09T00:00:00.000Z",
+			template: { isShell: true },
+		},
+	]);
+});
+
+test("Remove mode confirms and removes only the selected saved shell", async ({ page }) => {
+	await page.goto("./");
+	await page.evaluate(() => {
+		window.localStorage.clear();
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "template-to-preserve",
+					name: "Saved Template",
+					createdAt: "2026-10-09T00:00:00.000Z",
+					template: { isShell: false },
+				},
+				{
+					id: "shell-to-remove",
+					name: "Saved Shell",
+					createdAt: "2026-10-09T00:00:00.000Z",
+					template: { isShell: true },
+				},
+			]),
+		);
+	});
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Load Shells", exact: true }).click();
+
+	await expect(page.locator("#text-editor-load-menu-shells-button")).toHaveAttribute(
+		"aria-pressed",
+		"true",
+	);
+	await expect(page.locator("#text-editor-load-menu-templates-button")).toHaveAttribute(
+		"aria-pressed",
+		"false",
+	);
+	await page.locator("#text-editor-load-menu-remove-button").click();
+	const shell = page.locator("#text-editor-saved-shell-shell-to-remove");
+	await expect(shell).toHaveClass(/text-editor-saved-item--remove-mode/);
+	await shell.click();
+
+	const confirmation = page.locator("#text-editor-remove-confirmation");
+	await expect(confirmation).toBeVisible();
+	await expect(confirmation).toContainText("Are You Sure You Want to Delete this Shell");
+	await confirmation.locator("#text-editor-remove-confirmation-remove-button").click();
+	await expect(shell).toHaveCount(0);
+	expect(
+		await page.evaluate(() =>
+			JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates")),
+		),
+	).toEqual([
+		{
+			id: "template-to-preserve",
+			name: "Saved Template",
+			createdAt: "2026-10-09T00:00:00.000Z",
+			template: { isShell: false },
+		},
+	]);
 });

@@ -13,13 +13,13 @@ const cssSource = fs.readFileSync(path.join(projectRoot, "src", "css", "input.cs
 test("progress menu includes a fixed-position back button matching the app pattern", () => {
 	assert.match(
 		componentSource,
-		/id="student-menu-back-button"[\s\S]*?class="student-menu-back-button"[\s\S]*?Back/,
+		/<button\b[^>]*\bid="student-progress-back-button"[^>]*\bclass="student-progress-back-button navigation-back-button"[^>]*>\s*Back\s*<\/button>/,
 		"Student progress menu should render a Back button",
 	);
 
 	assert.match(
 		cssSource,
-		/\.student-menu-back-button,\s*\.rewards-page-back-button\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?top:\s*16px;[\s\S]*?right:\s*16px;/,
-		"Back buttons should be fixed at top-right with the expected spacing",
+		/\.student-progress-back-button\s*\{[^}]*position:\s*fixed;[^}]*top:\s*16px;[^}]*right:\s*16px;/,
+		"Progress Back button should be fixed at top-right with the expected spacing",
 	);
 });

@@ -369,7 +369,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<section id="math-games-view" class="math-games-view overflow-y-auto" :class="activeGame ? 'fixed inset-4 z-50 bg-white p-4 text-black' : galleryClasses" :data-winning-sound="winningSoundState" aria-label="Math games">
+	<section id="math-games-view" class="math-games-view overflow-y-auto" :class="activeGame ? 'fixed inset-4 z-50 bg-white p-4 text-black' : galleryClasses" :data-winning-sound="winningSoundState" aria-label="Math games" title="Math games">
 		<p v-if="progressSaveFailed" class="mb-4 border-2 border-rose-700 bg-rose-50 p-3" role="alert">Progress could not be saved. Keep this page open and try again before leaving.</p>
 		<template v-if="!activeGame">
 			<h2 class="sr-only">Math Games</h2>
@@ -395,11 +395,11 @@ onBeforeUnmount(() => {
 				<h2 class="text-2xl font-bold">{{ activeGame.title }}</h2>
 				<button id="math-games-back-to-gallery-button" type="button" class="navigation-back-button rounded border-2 border-black bg-white px-4 py-2 disabled:opacity-60" :disabled="isCoinCelebrating" @click="activeGame = null">Back to games</button>
 			</div>
-			<section v-if="gameComplete" id="math-games-complete" aria-label="Game complete">
+			<section v-if="gameComplete" id="math-games-complete" class="math-games-complete" aria-label="Game complete" title="Game complete">
 				<h3 class="text-2xl font-bold">All 10 levels complete!</h3>
 				<button id="math-games-play-again-button" type="button" class="mt-4 rounded border-2 border-green-700 bg-green-100 px-4 py-2 disabled:opacity-60" :disabled="isCoinCelebrating" @click="startGame(activeGame)">Play again</button>
 			</section>
-			<section v-else id="math-games-current-level" aria-label="Current level" class="mx-auto max-w-2xl">
+			<section v-else id="math-games-current-level" aria-label="Current level" title="Current level" class="mx-auto max-w-2xl">
 				<p class="mb-2">Week {{ activeGame.week }}: {{ activeGame.topic }}</p>
 				<p class="mb-4 font-bold">Level {{ levelIndex + 1 }} of 10</p>
 				<MathGameArtwork class="mx-auto mb-4 h-[188px] w-80 max-w-full" :path="thumbnailModels[activeGame.id].path" :symbol="thumbnailModels[activeGame.id].symbol" :week="activeGame.week" :label="`First-level image for ${activeGame.title}`" />
