@@ -1,4 +1,5 @@
 import { reactive, computed, watch } from "vue";
+import { shiftInitialSchoolWeekDateKey } from "./initialSchoolWeekDateShift.js";
 
 /**
  * Shared block-completion state for the Student daily menu and the
@@ -47,15 +48,59 @@ const state = reactive({
 	xpHistory: [],
 });
 
+/** Move old-week completion records forward without overwriting destination data. */
+function migrateInitialSchoolWeekCompletions() {
+	let changed = false;
+	for (const [key, completed] of Object.entries(state.completedBlockKeys)) {
+		const separatorIndex = key.indexOf("::");
+		if (separatorIndex === -1) {
+			continue;
+		}
+
+		const dateKey = key.slice(0, separatorIndex);
+		const shiftedDateKey = shiftInitialSchoolWeekDateKey(dateKey);
+		if (shiftedDateKey === dateKey) {
+			continue;
+		}
+
+		const shiftedKey = `${shiftedDateKey}${key.slice(separatorIndex)}`;
+		if (Object.hasOwn(state.completedBlockKeys, shiftedKey)) {
+			continue;
+		}
+
+		state.completedBlockKeys[shiftedKey] = completed;
+		delete state.completedBlockKeys[key];
+		changed = true;
+	}
+
+	if (changed) {
+		saveCompletedBlockKeys();
+	}
+}
+
+migrateInitialSchoolWeekCompletions();
+
 /**
- * XP derived from completed blocks: +20 per completed block, -20 per
+ * Progress steps are 1-based. Step 1 has 0 XP; the first 20 XP is earned when
+ * the player advances from step 1 to step 2.
+ */
+function getXpForProgressStep(stepNumber) {
+	if (!Number.isFinite(stepNumber) || stepNumber <= 1) {
+		return 0;
+	}
+	return (stepNumber - 1) * XP_PER_COMPLETED_BLOCK;
+}
+
+/**
+ * XP derived from completed blocks: +20 per completed block after step 1, -20 per
  * un-activation, and hard-capped at 240 so it can never pass the cap.
  */
 const totalXp = computed(() =>
 	Math.min(
 		XP_LEVEL_CAP,
-		Object.values(state.completedBlockKeys).filter(Boolean).length * XP_PER_COMPLETED_BLOCK +
-			state.bonusXp,
+		getXpForProgressStep(
+			Object.values(state.completedBlockKeys).filter(Boolean).length + 1,
+		) + state.bonusXp,
 	),
 );
 
@@ -148,14 +193,13 @@ function resetXpSchoolDaysBack(n) {
 	if (!targetKey) {
 		return false;
 	}
-	const snapshots = [...state.xpHistory].reverse();
-	const snapshot = snapshots.find((entry) => entry.dateKey === targetKey) ??
-		snapshots.find((entry) => entry.dateKey < targetKey) ?? {
-			dateKey: targetKey,
-			bonusXp: 0,
-			level: 0,
-		};
-	state.bonusXp = snapshot.bonusXp;
+
+	for (const key of Object.keys(state.completedBlockKeys)) {
+		state.completedBlockKeys[key] = false;
+	}
+	state.bonusXp = 0;
+	saveCompletedBlockKeys();
+	recordXpSnapshot();
 	return true;
 }
 
@@ -205,6 +249,7 @@ function addBonusXp(amount) {
 export const blockCompletionStore = {
 	state,
 	totalXp,
+	getXpForProgressStep,
 	getSchoolDayDateKey,
 	resetXpSchoolDaysBack,
 	resetLevelSchoolDaysBack,

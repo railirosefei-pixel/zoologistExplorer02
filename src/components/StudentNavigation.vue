@@ -1,7 +1,8 @@
 /** Navigation controls for the student workspace. */
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import progressMenuBackground from "../../assets/images/backgrounds/grasslands(Day)01Final.webp";
+import confettiGifAsset from "../../assets/animations/confettiGIF01.webp";
 import railiFront from "../../assets/images/characters/railiFront.webp";
 import ProgressXpBar from "./ProgressXpBar.vue";
 import StudentGamesView from "./StudentGamesView.vue";
@@ -14,6 +15,104 @@ const props = defineProps({
 const emit = defineEmits(["open-calendar", "open-rewards", "back-to-home"]);
 const activeStudentMenu = ref("");
 const activeGamesSubject = ref("");
+const PROGRESS_COMPLETION_DELAY_MS = 2000;
+let progressStepIndex = 1;
+
+function advanceProgressCharacter() {
+	const nextStepIndex = (progressStepIndex % 13) + 1;
+	const position =
+		committedPositions.value[nextStepIndex] ?? savedPositions.value[nextStepIndex];
+	if (!position) {
+		return;
+	}
+
+	progressStepIndex = nextStepIndex;
+	testCycleIndex = nextStepIndex;
+	applyRailiOffset(position.x, position.y);
+}
+
+const completionConfettiBurstPositions = Array.from({ length: 10 }, (_, index) => ({
+	positionIndex: index,
+	leftPercent: [8, 19, 32, 43, 55, 67, 77, 22, 48, 86][index],
+	topPercent: [18, 28, 14, 42, 25, 57, 41, 70, 63, 78][index],
+}));
+const completionConfettiClassNames = [
+	"student-progress-confetti-piece--0",
+	"student-progress-confetti-piece--1",
+	"student-progress-confetti-piece--2",
+	"student-progress-confetti-piece--3",
+	"student-progress-confetti-piece--4",
+	"student-progress-confetti-piece--5",
+	"student-progress-confetti-piece--6",
+	"student-progress-confetti-piece--7",
+	"student-progress-confetti-piece--8",
+	"student-progress-confetti-piece--9",
+];
+const completionConfettiBursts = ref([]);
+let completionConfettiTimerIds = [];
+let completionReturnTimerId = null;
+
+function clearCompletionConfettiSequence() {
+	completionConfettiTimerIds.forEach((timerId) => {
+		window.clearTimeout(timerId);
+	});
+	completionConfettiTimerIds = [];
+	if (completionReturnTimerId) {
+		window.clearTimeout(completionReturnTimerId);
+		completionReturnTimerId = null;
+	}
+	completionConfettiBursts.value = [];
+}
+
+function triggerCompletionConfettiSequence() {
+	clearCompletionConfettiSequence();
+	const confettiDisplayMs = 1200;
+	const confettiGapMs = 300;
+
+	completionConfettiBurstPositions.forEach((position, index) => {
+		const burstId = `student-progress-confetti-${position.positionIndex}-${Date.now()}`;
+		const revealId = window.setTimeout(() => {
+			completionConfettiBursts.value = [
+				...completionConfettiBursts.value,
+				{ id: burstId, positionIndex: position.positionIndex },
+			];
+
+			const hideId = window.setTimeout(() => {
+				completionConfettiBursts.value = completionConfettiBursts.value.filter(
+					(burst) => burst.id !== burstId,
+				);
+			}, confettiDisplayMs);
+			completionConfettiTimerIds.push(hideId);
+		}, index * confettiGapMs);
+		completionConfettiTimerIds.push(revealId);
+	});
+
+	completionReturnTimerId = window.setTimeout(() => {
+		completionConfettiBursts.value = [];
+		activeStudentMenu.value = "";
+		completionReturnTimerId = null;
+	}, completionConfettiBurstPositions.length * confettiGapMs + confettiDisplayMs + 200);
+}
+
+async function openProgress(advanceFromCompletion = false) {
+	activeStudentMenu.value = "progress";
+	clearCompletionConfettiSequence();
+	if (!advanceFromCompletion) {
+		progressXp.value = totalXp.value;
+		return;
+	}
+
+	isCompletionProgressPending = true;
+	await new Promise((resolve) => {
+		window.setTimeout(resolve, PROGRESS_COMPLETION_DELAY_MS);
+	});
+	advanceProgressCharacter();
+	progressXp.value = totalXp.value;
+	isCompletionProgressPending = false;
+	triggerCompletionConfettiSequence();
+}
+
+defineExpose({ openProgress });
 const gamesMonths = [
 	"October 26",
 	"November 26",
@@ -54,6 +153,17 @@ const railiImageRef = ref(null);
 const railiFrameRef = ref(null);
 const progressMenuBackgroundImage = `url("${progressMenuBackground}")`;
 const totalXp = blockCompletionStore.totalXp;
+const progressXp = ref(totalXp.value);
+let isCompletionProgressPending = false;
+
+onBeforeUnmount(() => {
+	clearCompletionConfettiSequence();
+});
+watch(totalXp, (xp) => {
+	if (!isCompletionProgressPending) {
+		progressXp.value = xp;
+	}
+});
 const level = computed(() => blockCompletionStore.state.level);
 const RAILI_HEIGHT_STORAGE_KEY = "ze2.studentProgress.railiHeightPx";
 const RAILI_OFFSET_X_STORAGE_KEY = "ze2.studentProgress.railiOffsetXPx";
@@ -98,6 +208,7 @@ function handleGamesSubjectChange(subjectId) {
 
 /** Progress-menu exit pipeline boundary. */
 function handleProgressBack() {
+	clearCompletionConfettiSequence();
 	emit("back-to-home");
 }
 
@@ -108,6 +219,7 @@ function handleGamesHome() {
 
 /** Progress-menu return pipeline boundary. */
 function handleProgressMenuBack() {
+	clearCompletionConfettiSequence();
 	activeStudentMenu.value = "";
 }
 
@@ -353,6 +465,18 @@ function handleSaveSlot(slotNumber) {
 	saveSlotEngaged.value[slotNumber] = !saveSlotEngaged.value[slotNumber];
 }
 
+/** Restore Raili's saved first position and persist the restored offsets. */
+function handlePositionReset() {
+	const position = savedPositions.value[1];
+	if (!position) {
+		return;
+	}
+
+	applyRailiOffset(position.x, position.y);
+	localStorage.setItem(RAILI_OFFSET_X_STORAGE_KEY, String(position.x));
+	localStorage.setItem(RAILI_OFFSET_Y_STORAGE_KEY, String(position.y));
+}
+
 /** Permanently commit all 13 saved slots and enable Test mode. */
 function handleCommit() {
 	committedPositions.value = { ...savedPositions.value };
@@ -373,6 +497,7 @@ function handleTest() {
 		testCycleIndex = (testCycleIndex % 13) + 1;
 		const position = committedPositions.value[testCycleIndex];
 		if (position) {
+			progressStepIndex = testCycleIndex;
 			applyRailiOffset(position.x, position.y);
 			blockCompletionStore.addBonusXp(20);
 			return;
@@ -456,6 +581,19 @@ onMounted(() => {
 </script>
 
 <template>
+	<div
+		v-if="completionConfettiBursts.length"
+		class="student-progress-confetti-layer"
+		aria-hidden="true"
+	>
+		<img
+			v-for="burst in completionConfettiBursts"
+			:key="burst.id"
+			:src="confettiGifAsset"
+			:class="['student-progress-confetti-piece', completionConfettiClassNames[burst.positionIndex]]"
+			alt=""
+		/>
+	</div>
 	<nav
 		id="student-menu-navigation"
 		class="student-menu-navigation"
@@ -548,6 +686,7 @@ onMounted(() => {
 			id="student-games-month-panel"
 			class="student-games-sidebar-month-panel"
 			:aria-label="`${activeGamesSubject} months`"
+			title="Student games months"
 		>
 			<button
 				v-for="(month, index) in gamesMonths"
@@ -617,7 +756,7 @@ onMounted(() => {
 				<p>Explore optional challenges and activities.</p>
 			</article>
 			<div v-if="activeStudentMenu === 'progress'" class="student-progress-xp-bar-slot">
-				<ProgressXpBar :xp="totalXp" :level="level" />
+				<ProgressXpBar :xp="progressXp" :level="level" />
 			</div>
 			<div
 				v-if="
@@ -973,6 +1112,21 @@ onMounted(() => {
 
 					<button
 						v-if="isResetModeActive"
+						id="student-progress-reset-position-button"
+						class="student-progress-reset-position-button"
+						type="button"
+						name="student-progress-reset-position-button"
+						data-button-name="student-progress-reset-position-button"
+						aria-label="Reset Raili position to saved position 1"
+						title="Reset Raili position to saved position 1"
+						:disabled="!savedPositions[1]"
+						@click="handlePositionReset"
+					>
+						Position
+					</button>
+
+					<button
+						v-if="isResetModeActive"
 						id="student-progress-reset-level-button"
 						class="student-progress-reset-level-button"
 						type="button"
@@ -1094,6 +1248,57 @@ onMounted(() => {
 	display: flex;
 	justify-content: center;
 	width: 100%;
+}
+
+.student-progress-confetti-layer {
+	position: absolute;
+	inset: 0;
+	z-index: 40;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.student-progress-confetti-piece {
+	position: absolute;
+	width: 240px;
+	height: 240px;
+	object-fit: contain;
+	opacity: 0;
+	transform: translate(-50%, -50%) scale(0.5);
+	animation: student-progress-confetti-pop 1.2s ease-out forwards;
+	filter:
+		saturate(1.8)
+		brightness(1.25)
+		drop-shadow(0 0 14px rgba(255, 255, 255, 0.9))
+		drop-shadow(0 0 28px rgba(255, 214, 64, 0.75));
+}
+
+.student-progress-confetti-piece--0 { top: 18%; left: 8%; }
+.student-progress-confetti-piece--1 { top: 27%; left: 19%; }
+.student-progress-confetti-piece--2 { top: 14%; left: 32%; }
+.student-progress-confetti-piece--3 { top: 42%; left: 43%; }
+.student-progress-confetti-piece--4 { top: 25%; left: 55%; }
+.student-progress-confetti-piece--5 { top: 57%; left: 67%; }
+.student-progress-confetti-piece--6 { top: 41%; left: 77%; }
+.student-progress-confetti-piece--7 { top: 70%; left: 22%; }
+.student-progress-confetti-piece--8 { top: 63%; left: 48%; }
+.student-progress-confetti-piece--9 { top: 78%; left: 86%; }
+
+@keyframes student-progress-confetti-pop {
+	0% {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.45) rotate(0deg);
+	}
+	12% {
+		opacity: 1;
+	}
+	80% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(1.25) rotate(18deg);
+	}
 }
 
 .student-submenu-panel-progress {

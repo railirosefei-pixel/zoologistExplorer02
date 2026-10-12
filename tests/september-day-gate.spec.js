@@ -4,7 +4,7 @@ test("Explorer text lines use the same spacing as the surrounding copy", async (
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberFirst = page.locator("#calendar-day-cell-October-2026-10");
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-17");
 	await octoberFirst.click();
 	await page.waitForTimeout(500);
 	await octoberFirst.click();
@@ -34,13 +34,13 @@ test("Explorer text lines use the same spacing as the surrounding copy", async (
 	expect(explorerFontSize).toBe(paragraphFontSize);
 });
 
-test("Explorer text is available for the October 5 through 7 block panels", async ({ page }) => {
+test("Explorer text is available for the October 12 through 14 block panels", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
-	const septemberTwentyNine = page.locator("#calendar-day-cell-October-2026-8");
-	const septemberThirty = page.locator("#calendar-day-cell-October-2026-9");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
+	const septemberTwentyNine = page.locator("#calendar-day-cell-October-2026-15");
+	const septemberThirty = page.locator("#calendar-day-cell-October-2026-16");
 
 	for (const day of [septemberTwentyEight, septemberTwentyNine]) {
 		await day.click();
@@ -76,11 +76,11 @@ test("Explorer text is available for the October 5 through 7 block panels", asyn
 	}
 });
 
-test("October 8 Math Explorer text appears in all three block panels", async ({ page }) => {
+test("October 15 Math Explorer text appears in all three block panels", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberFirst = page.locator("#calendar-day-cell-October-2026-10");
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-17");
 	await octoberFirst.click();
 	await page.waitForTimeout(500);
 	await octoberFirst.click();
@@ -96,13 +96,13 @@ test("October 8 Math Explorer text appears in all three block panels", async ({ 
 	}
 });
 
-test("October 8 Language Arts Explorer text appears in all three block panels", async ({
+test("October 15 Language Arts Explorer text appears in all three block panels", async ({
 	page,
 }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberFirst = page.locator("#calendar-day-cell-October-2026-10");
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-17");
 	await octoberFirst.click();
 	await page.waitForTimeout(500);
 	await octoberFirst.click();
@@ -118,13 +118,13 @@ test("October 8 Language Arts Explorer text appears in all three block panels", 
 	}
 });
 
-test("October 8 Social Studies Explorer text appears in all three block panels", async ({
+test("October 15 Social Studies Explorer text appears in all three block panels", async ({
 	page,
 }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberFirst = page.locator("#calendar-day-cell-October-2026-10");
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-17");
 	await octoberFirst.click();
 	await page.waitForTimeout(500);
 	await octoberFirst.click();
@@ -140,11 +140,11 @@ test("October 8 Social Studies Explorer text appears in all three block panels",
 	}
 });
 
-test("October 8 Science Explorer text appears in all three block panels", async ({ page }) => {
+test("October 15 Science Explorer text appears in all three block panels", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberFirst = page.locator("#calendar-day-cell-October-2026-10");
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-17");
 	await octoberFirst.click();
 	await page.waitForTimeout(500);
 	await octoberFirst.click();
@@ -160,11 +160,11 @@ test("October 8 Science Explorer text appears in all three block panels", async 
 	}
 });
 
-test("October 9 Explorer text appears in all subject block panels", async ({ page }) => {
+test("October 16 Explorer text appears in all subject block panels", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberSecond = page.locator("#calendar-day-cell-October-2026-11");
+	const octoberSecond = page.locator("#calendar-day-cell-October-2026-18");
 	await octoberSecond.click();
 	await page.waitForTimeout(500);
 	await octoberSecond.click();
@@ -184,11 +184,11 @@ test("October 9 Explorer text appears in all subject block panels", async ({ pag
 	}
 });
 
-test("October 9 subject menus open on Block 1 by default", async ({ page }) => {
+test("October 16 subject menus open on Block 1 by default", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberSecond = page.locator("#calendar-day-cell-October-2026-11");
+	const octoberSecond = page.locator("#calendar-day-cell-October-2026-18");
 	await octoberSecond.click();
 	await page.waitForTimeout(500);
 	await octoberSecond.click();
@@ -209,11 +209,11 @@ test("October 9 subject menus open on Block 1 by default", async ({ page }) => {
 	}
 });
 
-test("October 8 subject block panels stay centered", async ({ page }) => {
+test("October 15 subject block panels stay centered", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberFirst = page.locator("#calendar-day-cell-October-2026-10");
+	const octoberFirst = page.locator("#calendar-day-cell-October-2026-17");
 	await octoberFirst.click();
 	await page.waitForTimeout(500);
 	await octoberFirst.click();
@@ -238,11 +238,11 @@ test("October 8 subject block panels stay centered", async ({ page }) => {
 	}
 });
 
-test("October 9 subject block panels stay centered", async ({ page }) => {
+test("October 16 subject block panels stay centered", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const octoberSecond = page.locator("#calendar-day-cell-October-2026-11");
+	const octoberSecond = page.locator("#calendar-day-cell-October-2026-18");
 	await octoberSecond.click();
 	await page.waitForTimeout(500);
 	await octoberSecond.click();
@@ -267,12 +267,12 @@ test("October 9 subject block panels stay centered", async ({ page }) => {
 	}
 });
 
-test("October 1 through 4 day cells stay decorative and disabled", async ({ page }) => {
+test("October 1 through 11 day cells stay decorative and disabled", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
 	const septemberOne = page.locator("#calendar-day-cell-October-2026-3");
-	const septemberTwentySeven = page.locator("#calendar-day-cell-October-2026-6");
+	const septemberTwentySeven = page.locator("#calendar-day-cell-October-2026-13");
 
 	await expect(septemberOne).toBeVisible();
 	await expect(septemberOne).toBeDisabled();
@@ -284,13 +284,13 @@ test("October 1 through 4 day cells stay decorative and disabled", async ({ page
 	await expect(septemberTwentySeven).toHaveCSS("background-image", /url\(".*minecraftTNT/);
 });
 
-test("October 6 subject menu text is centered before and after selecting a block", async ({
+test("October 13 subject menu text is centered before and after selecting a block", async ({
 	page,
 }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyNine = page.locator("#calendar-day-cell-October-2026-8");
+	const septemberTwentyNine = page.locator("#calendar-day-cell-October-2026-15");
 	await septemberTwentyNine.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyNine.click();
@@ -301,13 +301,13 @@ test("October 6 subject menu text is centered before and after selecting a block
 	await expect(page.locator("#daily-menu-math-block-2-panel")).toHaveCSS("text-align", "center");
 });
 
-test("October 7 subject menu text is centered before and after selecting each block", async ({
+test("October 14 subject menu text is centered before and after selecting each block", async ({
 	page,
 }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberThirty = page.locator("#calendar-day-cell-October-2026-9");
+	const septemberThirty = page.locator("#calendar-day-cell-October-2026-16");
 	await septemberThirty.click();
 	await page.waitForTimeout(500);
 	await septemberThirty.click();
@@ -332,13 +332,13 @@ test("Rapid later clicks preserve earlier square replacements and hide TNT textu
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
-	const septemberTwentyNine = page.locator("#calendar-day-cell-October-2026-8");
-	const septemberThirty = page.locator("#calendar-day-cell-October-2026-9");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
+	const septemberTwentyNine = page.locator("#calendar-day-cell-October-2026-15");
+	const septemberThirty = page.locator("#calendar-day-cell-October-2026-16");
 	const septemberTwentyEightReplacement = page.locator(
-		"#calendar-day-replacement-October-2026-7",
+		"#calendar-day-replacement-October-2026-14",
 	);
-	const septemberTwentyNineReplacement = page.locator("#calendar-day-replacement-October-2026-8");
+	const septemberTwentyNineReplacement = page.locator("#calendar-day-replacement-October-2026-15");
 
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
@@ -351,7 +351,7 @@ test("Rapid later clicks preserve earlier square replacements and hide TNT textu
 	await expect(septemberTwentyEight).toBeVisible();
 	await expect(septemberTwentyEightReplacement).toBeVisible();
 	await expect(septemberTwentyEightReplacement).toHaveClass(/calendar-day-replacement--blue/);
-	await expect(septemberTwentyEight.locator(".calendar-day-cell-number")).toHaveText("5");
+	await expect(septemberTwentyEight.locator(".calendar-day-cell-number")).toHaveText("12");
 	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
 
 	await septemberThirty.click();
@@ -360,16 +360,16 @@ test("Rapid later clicks preserve earlier square replacements and hide TNT textu
 	await expect(septemberTwentyNineReplacement).toBeVisible();
 	await expect(septemberTwentyEightReplacement).toHaveClass(/calendar-day-replacement--blue/);
 	await expect(septemberTwentyNineReplacement).toHaveClass(/calendar-day-replacement--yellow/);
-	await expect(septemberTwentyNine.locator(".calendar-day-cell-number")).toHaveText("6");
+	await expect(septemberTwentyNine.locator(".calendar-day-cell-number")).toHaveText("13");
 	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
 	await expect(septemberTwentyNine).toHaveCSS("background-image", "none");
 });
 
-test("Story is available on weekday daily menus from October 5 onward", async ({ page }) => {
+test("Story is available on weekday daily menus from October 12 onward", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -384,7 +384,7 @@ test("Daily-menu Home stays 16px left of Back and returns home", async ({ page }
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -411,7 +411,7 @@ test("Story opens the Year tab by default", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -468,7 +468,7 @@ test("Calendar button returns from a nested Story menu", async ({ page }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -492,31 +492,31 @@ test("Day timeline shows the matching Day 1 through Day 5 stories", async ({ pag
 	for (const day of [
 		{
 			month: "October",
-			cellId: 7,
+			cellId: 14,
 			theme: "The Journey to the Watering Hole",
 			story: "Towering above you, the giraffes stretch so high",
 		},
 		{
 			month: "October",
-			cellId: 8,
+			cellId: 15,
 			theme: "The Journey to Acacia Grove",
 			story: "After the herd drinks deeply from the cool, sparkling watering hole",
 		},
 		{
 			month: "October",
-			cellId: 9,
+			cellId: 16,
 			theme: "Handling the Lions with Pride",
 			story: "Full bellies, sweet acacia leaves, and cool water.",
 		},
 		{
 			month: "October",
-			cellId: 10,
+			cellId: 17,
 			theme: "The Float of Crocodiles",
 			story: "We can't thank you enough, Master Explorer Raili Rose",
 		},
 		{
 			month: "October",
-			cellId: 11,
+			cellId: 18,
 			theme: "The Towering Acacia Clinic",
 			story: "After a day of victory celebrations, exhaustion hits you all at once",
 		},
@@ -544,7 +544,7 @@ test("Selecting Story replaces the daily menu content and hides the menu text", 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -570,7 +570,7 @@ test("Story screen keeps only one back button visible and returns one screen at 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -591,7 +591,7 @@ test("Story panel includes a back button that returns to the daily menu", async 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -609,7 +609,7 @@ test("Story panel exposes Year, Quarter, Month, Week, and Day tabs on the outer 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -642,7 +642,7 @@ test("Story panel Theme header matches the Story header styling", async ({ page 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -671,7 +671,7 @@ test("Story panel uses a right-aligned scrollbar when text exceeds the panel hei
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await septemberTwentyEight.click();
@@ -714,7 +714,7 @@ test("Leaving and reopening the calendar reapplies the TNT texture", async ({ pa
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const septemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await septemberTwentyEight.click();
 	await page.waitForTimeout(500);
 	await expect(septemberTwentyEight).toHaveCSS("background-image", "none");
@@ -723,7 +723,7 @@ test("Leaving and reopening the calendar reapplies the TNT texture", async ({ pa
 	await expect(page.locator("#home-page-shell")).toBeVisible();
 
 	await page.getByRole("button", { name: "Open student section" }).click();
-	const reopenedSeptemberTwentyEight = page.locator("#calendar-day-cell-October-2026-7");
+	const reopenedSeptemberTwentyEight = page.locator("#calendar-day-cell-October-2026-14");
 	await expect(reopenedSeptemberTwentyEight).toHaveCSS(
 		"background-image",
 		/url\(".*minecraftTNT/,

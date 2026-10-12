@@ -1,33 +1,42 @@
 <script setup>
-/** Student Games subject navigation and its inert month/year placeholders. */
+/** Student Games subject navigation and safari game launcher. */
+import { ref } from "vue";
 import artBackground from "../../assets/images/backgrounds/art(Background)01.webp";
 import languageArtsBackground from "../../assets/images/backgrounds/languageArts(Background)01.webp";
 import mathBackground from "../../assets/images/backgrounds/math(Background)01.webp";
 import scienceBackground from "../../assets/images/backgrounds/science(Background)01.webp";
 import socialStudiesBackground from "../../assets/images/backgrounds/socialStudies(Background)01.webp";
-import MathGamesView from "./MathGamesView.vue";
+import SafariMultiplicationGame from "./SafariMultiplicationGame.vue";
+import SafariPlaceValueGame from "./SafariPlaceValueGame.vue";
 
 const props = defineProps({
 	activeSubjectId: { type: String, default: "" },
 });
 
 const emit = defineEmits(["close", "go-home", "subject-change"]);
+const activeGameId = ref("");
 
 const subjects = [
-	{ id: "math", label: "Math", imageClass: "student-games-subject-button--math" },
+	{ id: "math", label: "Math" },
 	{
 		id: "language-arts",
 		label: "Language Arts",
-		imageClass: "student-games-subject-button--language-arts",
 	},
 	{
 		id: "social-studies",
 		label: "Social Studies",
-		imageClass: "student-games-subject-button--social-studies",
 	},
-	{ id: "science", label: "Science", imageClass: "student-games-subject-button--science" },
-	{ id: "art", label: "Art", imageClass: "student-games-subject-button--art" },
+	{ id: "science", label: "Science" },
+	{ id: "art", label: "Art" },
 ];
+
+const subjectButtonClasses = {
+	math: "student-games-subject-button--math",
+	"language-arts": "student-games-subject-button--language-arts",
+	"social-studies": "student-games-subject-button--social-studies",
+	science: "student-games-subject-button--science",
+	art: "student-games-subject-button--art",
+};
 
 const mathBackgroundImage = `url("${mathBackground}")`;
 const languageArtsBackgroundImage = `url("${languageArtsBackground}")`;
@@ -41,40 +50,138 @@ function toggleSubject(subjectId) {
 </script>
 
 <template>
-	<div
-		class="student-games-view"
-	>
-		<nav
-			id="student-games-top-navigation"
-			class="student-games-top-navigation"
-			aria-label="Games subjects"
-		>
-			<button
-				v-for="subject in subjects"
-				:id="`student-games-subject-${subject.id}-button`"
-				:key="subject.id"
-				class="student-games-subject-button"
-				:class="[
-					subject.imageClass,
-					{ 'student-games-subject-button--active': props.activeSubjectId === subject.id },
-				]"
-				type="button"
-				:aria-label="subject.label"
-				:aria-pressed="activeSubjectId === subject.id"
-				@click="toggleSubject(subject.id)"
-			/>
-		</nav>
+	<div class="student-games-view">
+		<template v-if="!activeGameId">
+			<nav
+				id="student-games-top-navigation"
+				class="student-games-top-navigation"
+				role="navigation"
+				aria-label="Games subjects"
+				title="Games subjects"
+			>
+				<button
+					v-for="subject in subjects"
+					:id="`student-games-subject-${subject.id}-button`"
+					:key="subject.id"
+					class="student-games-subject-button"
+					:class="[
+						subjectButtonClasses[subject.id],
+						{
+							'student-games-subject-button--active':
+								props.activeSubjectId === subject.id,
+						},
+					]"
+					type="button"
+					:aria-label="subject.label"
+					:aria-pressed="activeSubjectId === subject.id"
+					@click="toggleSubject(subject.id)"
+				/>
+			</nav>
 
-		<MathGamesView
-			v-show="!props.activeSubjectId"
-			layout="student"
-			@close="emit('close')"
-			@go-home="emit('go-home')"
+			<main
+				v-if="!props.activeSubjectId || props.activeSubjectId === 'math'"
+				id="student-games-gallery"
+				class="student-games-gallery"
+				role="main"
+				aria-label="Student games"
+				title="Student games"
+			>
+				<button
+					id="student-safari-place-value-thumbnail"
+					class="flex h-[248px] w-[218px] shrink-0 flex-col items-center gap-2 rounded-lg border-4 border-amber-700 bg-white p-2 text-center text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-4 focus-visible:outline-amber-800"
+					type="button"
+					aria-label="Play Raili's Safari Place Value Adventure"
+					title="Build numbers with thousands, hundreds, tens, and ones."
+					@click="activeGameId = 'safari-place-value'"
+				>
+					<span
+						class="flex aspect-[218/148] w-full flex-col items-center justify-center gap-2 rounded bg-gradient-to-b from-sky-200 via-emerald-100 to-amber-200 p-3"
+						aria-hidden="true"
+					>
+						<span class="text-sm font-bold text-amber-900">Raili's Bestiary</span>
+						<span class="text-3xl">🦒 🦓 🐘</span>
+						<span
+							class="rounded-lg bg-white/90 px-3 py-1 font-mono text-lg font-bold text-emerald-700"
+						>
+							1,248 🍃
+						</span>
+					</span>
+					<span class="text-sm leading-4 font-bold">Safari Place Value Adventure</span>
+					<span class="text-xs text-slate-600">Gather leaves for the giraffes!</span>
+				</button>
+				<button
+					id="student-safari-multiplication-thumbnail"
+					class="flex h-[248px] w-[218px] shrink-0 flex-col items-center gap-2 rounded-lg border-4 border-amber-700 bg-white p-2 text-center text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-4 focus-visible:outline-amber-800"
+					type="button"
+					aria-label="Play Raili's Safari Multiplication Adventure"
+					title="Solve multiplication stories by gathering hundreds, tens, and ones."
+					@click="activeGameId = 'safari-multiplication'"
+				>
+					<span
+						class="flex aspect-[218/148] w-full flex-col items-center justify-center gap-2 rounded bg-gradient-to-b from-sky-200 via-emerald-100 to-amber-200 p-3"
+						aria-hidden="true"
+					>
+						<span class="text-sm font-bold text-amber-900">Raili's Bestiary</span>
+						<span class="text-3xl">🐒 🐘 🦒 🦓</span>
+						<span
+							class="rounded-lg bg-white/90 px-3 py-1 font-mono text-lg font-bold text-emerald-700"
+						>
+							3 × 4 = ?
+						</span>
+					</span>
+					<span class="text-sm leading-4 font-bold">Safari Multiplication Adventure</span>
+					<span class="text-xs text-slate-600">Count items for the safari animals!</span>
+				</button>
+			</main>
+
+			<button
+				id="student-games-home-button"
+				class="student-games-home-button navigation-home-button rounded border-2 border-green-800 bg-white px-4 py-2 text-black"
+				type="button"
+				aria-label="Return home"
+				title="Return home"
+				@click="emit('go-home')"
+			>
+				Home
+			</button>
+			<button
+				id="student-games-back-button"
+				class="student-games-back-button navigation-back-button fixed right-4 bottom-4 z-50 rounded border-2 border-cyan-800 bg-white px-4 py-2 text-black"
+				type="button"
+				aria-label="Back to student menu"
+				title="Back to student menu"
+				@click="emit('close')"
+			>
+				Back
+			</button>
+		</template>
+		<SafariPlaceValueGame
+			v-else-if="activeGameId === 'safari-place-value'"
+			@close="activeGameId = ''"
+		/>
+		<SafariMultiplicationGame
+			v-else-if="activeGameId === 'safari-multiplication'"
+			@close="activeGameId = ''"
 		/>
 	</div>
 </template>
 
 <style scoped>
+.student-games-gallery {
+	position: fixed;
+	z-index: 10;
+	top: 112px;
+	right: 1rem;
+	bottom: 2rem;
+	left: calc(var(--student-menu-navigation-width) + 1rem);
+	display: grid;
+	grid-template-columns: repeat(auto-fit, 218px);
+	align-content: start;
+	gap: 16px;
+	overflow-y: auto;
+	padding: 1rem;
+}
+
 .student-games-top-navigation {
 	position: fixed;
 	z-index: 11;
@@ -174,6 +281,5 @@ function toggleSubject(subjectId) {
 	.student-games-subject-button {
 		flex-basis: 112px;
 	}
-
 }
 </style>

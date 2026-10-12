@@ -11,6 +11,14 @@ function readSource(relativePath) {
 	return readFileSync(join(repoRoot, relativePath), "utf8");
 }
 
+test("Progress step XP starts at zero and first 20 XP is earned on step 2", () => {
+	const { getXpForProgressStep } = blockCompletionStore;
+	assert.equal(getXpForProgressStep(0), 0, "step 0 should not award XP");
+	assert.equal(getXpForProgressStep(1), 0, "being on step 1 should mean 0 XP");
+	assert.equal(getXpForProgressStep(2), 20, "moving from step 1 to step 2 should earn the first 20 XP");
+	assert.equal(getXpForProgressStep(3), 40, "later steps should continue awarding 20 XP per step advance");
+});
+
 test("XP history snapshots and school-day rollback logic handle weekend skipping and no-op cases", () => {
 	const {
 		state,
@@ -37,13 +45,20 @@ test("XP history snapshots and school-day rollback logic handle weekend skipping
 	const targetKey = getSchoolDayDateKey(1);
 	const targetSnapshot = { dateKey: targetKey, bonusXp: 60, level: 1 };
 	state.xpHistory.push(targetSnapshot);
+	state.completedBlockKeys = { "2026-10-09::Math::1": true };
 	state.level = 5;
 	assert.equal(
 		resetXpSchoolDaysBack(1),
 		true,
-		"reset should restore a matching snapshot when one exists",
+		"reset should succeed when a school-day offset is provided",
 	);
-	assert.equal(state.bonusXp, 60, "bonus XP should revert to the prior school-day snapshot");
+	assert.equal(state.bonusXp, 0, "XP reset should clear bonus XP");
+	assert.equal(
+		Object.values(state.completedBlockKeys).some(Boolean),
+		false,
+		"XP reset should clear completed-block XP",
+	);
+	assert.equal(blockCompletionStore.totalXp.value, 0, "XP reset should empty the XP bar");
 
 	state.level = 5;
 	assert.equal(
@@ -58,9 +73,9 @@ test("XP history snapshots and school-day rollback logic handle weekend skipping
 	assert.equal(
 		resetXpSchoolDaysBack(999),
 		true,
-		"missing historical dates should fall back to the baseline",
+		"reset should also work when no historical date is available",
 	);
-	assert.equal(state.bonusXp, 0, "bonus XP should revert to zero when no earlier history exists");
+	assert.equal(state.bonusXp, 0, "XP reset should keep bonus XP at zero");
 
 	state.level = 5;
 	assert.equal(
@@ -94,9 +109,9 @@ test("completed blocks persist across store reloads", async () => {
 		const { blockCompletionStore: afterReload } =
 			await import("../src/js/blockCompletionState.js?completion-persistence-read");
 		assert.equal(
-			afterReload.isBlockCompleteForDate("October 5, 2026", "Math", 1),
+			afterReload.isBlockCompleteForDate("October 12, 2026", "Math", 1),
 			true,
-			"a completed date-specific block should be restored after reload",
+			"a completed block should move to the updated school-week date after reload",
 		);
 	} finally {
 		if (originalStorage) {

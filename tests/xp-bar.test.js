@@ -32,7 +32,7 @@ test("StudentNavigation.vue renders ProgressXpBar in the Student Progress menu",
 	assert.match(source, /import ProgressXpBar/, "must import ProgressXpBar");
 	assert.match(
 		source,
-		/<ProgressXpBar :xp="totalXp" :level="level" \/>/,
+		/<ProgressXpBar :xp="progressXp" :level="level" \/>/,
 		"must render the XP bar with xp and level",
 	);
 	assert.match(

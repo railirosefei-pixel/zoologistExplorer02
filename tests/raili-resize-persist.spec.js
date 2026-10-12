@@ -1,5 +1,44 @@
 import { test, expect } from "@playwright/test";
 
+test("Position reset returns Raili to saved position 1 and persists its offsets", async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		localStorage.setItem(
+			"ze2.studentProgress.railiCommittedPositions",
+			JSON.stringify({ 1: { x: 40, y: -25 } }),
+		);
+		localStorage.setItem("ze2.studentProgress.railiOffsetXPx", "100");
+		localStorage.setItem("ze2.studentProgress.railiOffsetYPx", "50");
+	});
+	await page.goto("/");
+
+	await page.click("#parent-button");
+	await page.click("#student-edits-tab");
+	await page.click("#curriculum-game-button");
+	await page.click("#explorer-positions-button");
+	await page.click("#curriculum-game-screen-home-button");
+	await page.click("#student-button");
+	await page.locator("#progress-tab").click();
+	await page.locator("#student-progress-reset-button").click();
+
+	const positionButton = page.locator("#student-progress-reset-position-button");
+	await expect(positionButton).toBeEnabled();
+	await positionButton.click();
+
+	const frame = page.locator("#student-progress-raili-frame");
+	await expect(frame).toHaveCSS("--student-raili-offset-x", "40px");
+	await expect(frame).toHaveCSS("--student-raili-offset-y", "-25px");
+	await expect
+		.poll(() =>
+			page.evaluate(() => [
+				localStorage.getItem("ze2.studentProgress.railiOffsetXPx"),
+				localStorage.getItem("ze2.studentProgress.railiOffsetYPx"),
+			]),
+		)
+		.toEqual(["40", "-25"]);
+});
+
 test("Raili resize commit persists across reload and commit button does not scale", async ({
 	page,
 }) => {

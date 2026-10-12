@@ -15,10 +15,10 @@ import CalendarMonthCard from "./CalendarMonthCard.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 
-const emit = defineEmits(["go-home"]);
+const emit = defineEmits(["go-home", "open-progress"]);
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
-const firstSchoolDay = new Date(2026, 9, 5);
+const firstSchoolDay = new Date(2026, 9, 12);
 const year1TimelineStory = {
 	theme: "Expeditions into Blockland: The Obsidian Portal and the Never Ending Tales of Raili Rose",
 	paragraphs: [
@@ -111,13 +111,6 @@ const blockButtonClasses = {
 		"daily-menu-art-block-3-button",
 	],
 };
-const confettiPalette = ["#fef08a", "#f9a8d4", "#7dd3fc", "#86efac", "#fbbf24", "#c4b5fd"];
-const confettiBurstPieces = Array.from({ length: 32 }, (_, index) => ({
-	id: `confetti-piece-${index}`,
-	color: confettiPalette[index % confettiPalette.length],
-}));
-const confettiVisible = ref(false);
-let confettiTimeoutId;
 const explodedDayCellKey = ref(null);
 const lastClickedDayCellKey = ref(null);
 const hiddenDayCellKeys = ref([]);
@@ -215,23 +208,23 @@ const october9StoryParagraphs = [
 
 /** Story content lookup keyed by the selected daily menu date label. */
 const storyContentByDateLabel = {
-	"October 5, 2026": {
+	"October 12, 2026": {
 		theme: october5StoryTheme,
 		paragraphs: october5StoryParagraphs,
 	},
-	"October 6, 2026": {
+	"October 13, 2026": {
 		theme: october6StoryTheme,
 		paragraphs: october6StoryParagraphs,
 	},
-	"October 7, 2026": {
+	"October 14, 2026": {
 		theme: october7StoryTheme,
 		paragraphs: october7StoryParagraphs,
 	},
-	"October 8, 2026": {
+	"October 15, 2026": {
 		theme: october8StoryTheme,
 		paragraphs: october8StoryParagraphs,
 	},
-	"October 9, 2026": {
+	"October 16, 2026": {
 		theme: october9StoryTheme,
 		paragraphs: october9StoryParagraphs,
 	},
@@ -263,20 +256,20 @@ const explorerCopyBySubject = {
 	],
 };
 const allowedExplorerCopyDates = new Set([
-	"October 5, 2026",
-	"October 6, 2026",
-	"October 7, 2026",
-	"October 8, 2026",
-	"October 9, 2026",
+	"October 12, 2026",
+	"October 13, 2026",
+	"October 14, 2026",
+	"October 15, 2026",
+	"October 16, 2026",
 ]);
 const explorerCopyByDateAndSubject = {
-	"October 6, 2026": {
+	"October 13, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You did so much yesterday to bring the Whispering Giraffe Family to a new water hole, but there’s still much to do.  Complete the Quests today to help them find their way to food!",
 		],
 	},
-	"October 8, 2026": {
+	"October 15, 2026": {
 		math: [
 			"Explorer Raili!",
 			"Amazing job, blocking the lion’s path!  You really saved the day, but now it appears that the crocodiles are blocking the Whispering Giraffe Family’s path to their new found watering hold.  We can’t let that happen!  Continue your journey by completing the daily Quests and we will make our way to the hippos so they can help us save the giraffes",
@@ -294,7 +287,7 @@ const explorerCopyByDateAndSubject = {
 			"Unbelievable!  I never doubted you for second.  You’ve made it so far and I just know that if you keep doing your best, you’ll win every time!  Just a little farther to go and those crocodiles are sure to leave",
 		],
 	},
-	"October 9, 2026": {
+	"October 16, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You’ve brought the Whispering Giraffe Family to water and food.  You’ve blockaded the lions from getting to their new home, and even made friends with the hippos who helped you push the crocodiles out of their watering hole.  You’re a hero and loved by the giraffes.  But now the young giraffe calves are sick.  Luckily, the journal has given you a hint.  One last task.  Complete your journey and save the giraffe calves!",
@@ -312,7 +305,7 @@ const explorerCopyByDateAndSubject = {
 			"You’ve done it!  You got the herbs and saved the baby giraffes.  You are the best kid who every lived!  Every day, you have dedicated so much time to saving the Whispering Giraffes and did amazing things.  I can’t wait to see how far you go!  Congratulations!!!",
 		],
 	},
-	"October 7, 2026": {
+	"October 14, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You brought the Whispering Giraffe Family to water and to a whole new grove of Acacia trees while avoiding the pride of lions",
@@ -357,17 +350,17 @@ const selectedTimelineStory = computed(() => {
 	}
 	if (
 		activeStoryTimelineTab.value === "Quarter" &&
-		isStoryButtonAvailable(new Date(2026, 11, 28))
+		isStoryButtonAvailable(new Date(2027, 0, 4))
 	) {
 		return quarter1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Month" && isStoryButtonAvailable(new Date(2026, 10, 2))) {
+	if (activeStoryTimelineTab.value === "Month" && isStoryButtonAvailable(new Date(2026, 10, 9))) {
 		return month1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Week" && isStoryButtonAvailable(new Date(2026, 9, 12))) {
+	if (activeStoryTimelineTab.value === "Week" && isStoryButtonAvailable(new Date(2026, 9, 19))) {
 		return week1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Day" && isStoryButtonAvailable(new Date(2026, 9, 10))) {
+	if (activeStoryTimelineTab.value === "Day" && isStoryButtonAvailable(new Date(2026, 9, 17))) {
 		return storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null;
 	}
 	return null;
@@ -461,24 +454,13 @@ function getSavedBlockPlayByPlay(subject, blockNumber) {
 	);
 }
 
-function triggerConfettiBurst() {
-	confettiVisible.value = true;
-	if (confettiTimeoutId) {
-		window.clearTimeout(confettiTimeoutId);
-	}
-	confettiTimeoutId = window.setTimeout(() => {
-		confettiVisible.value = false;
-		confettiTimeoutId = undefined;
-	}, 2200);
-}
-
 function handleBlockComplete(subject, blockNumber) {
 	if (!subject || !blockNumber || isBlockComplete(subject, blockNumber)) {
 		return;
 	}
 
 	blockCompletionStore.markBlockComplete(selectedDailyMenuDateLabel.value, subject, blockNumber);
-	triggerConfettiBurst();
+	emit("open-progress");
 }
 
 function handleStoryTimelineTabSelection(tabName) {
@@ -598,7 +580,7 @@ function isDecorativePreStartDayCell(cell) {
 	}
 
 	const dayNumber = Number(cell.value);
-	return dayNumber >= 1 && dayNumber < 5;
+	return dayNumber >= 1 && dayNumber < 12;
 }
 
 function handleDayCellClick(cell) {
@@ -623,55 +605,10 @@ function handleDayCellClick(cell) {
 
 onBeforeUnmount(() => {
 	clearDayCellExplosion();
-	if (confettiTimeoutId) {
-		window.clearTimeout(confettiTimeoutId);
-		confettiTimeoutId = undefined;
-	}
 });
 </script>
 
 <template>
-	<div v-if="confettiVisible" class="daily-menu-confetti-overlay" aria-hidden="true">
-		<span
-			v-for="piece in confettiBurstPieces"
-			:key="piece.id"
-			:class="[
-				'daily-menu-confetti-piece',
-				{ 'daily-menu-confetti-piece--0': piece.id === 'confetti-piece-0' },
-				{ 'daily-menu-confetti-piece--1': piece.id === 'confetti-piece-1' },
-				{ 'daily-menu-confetti-piece--2': piece.id === 'confetti-piece-2' },
-				{ 'daily-menu-confetti-piece--3': piece.id === 'confetti-piece-3' },
-				{ 'daily-menu-confetti-piece--4': piece.id === 'confetti-piece-4' },
-				{ 'daily-menu-confetti-piece--5': piece.id === 'confetti-piece-5' },
-				{ 'daily-menu-confetti-piece--6': piece.id === 'confetti-piece-6' },
-				{ 'daily-menu-confetti-piece--7': piece.id === 'confetti-piece-7' },
-				{ 'daily-menu-confetti-piece--8': piece.id === 'confetti-piece-8' },
-				{ 'daily-menu-confetti-piece--9': piece.id === 'confetti-piece-9' },
-				{ 'daily-menu-confetti-piece--10': piece.id === 'confetti-piece-10' },
-				{ 'daily-menu-confetti-piece--11': piece.id === 'confetti-piece-11' },
-				{ 'daily-menu-confetti-piece--12': piece.id === 'confetti-piece-12' },
-				{ 'daily-menu-confetti-piece--13': piece.id === 'confetti-piece-13' },
-				{ 'daily-menu-confetti-piece--14': piece.id === 'confetti-piece-14' },
-				{ 'daily-menu-confetti-piece--15': piece.id === 'confetti-piece-15' },
-				{ 'daily-menu-confetti-piece--16': piece.id === 'confetti-piece-16' },
-				{ 'daily-menu-confetti-piece--17': piece.id === 'confetti-piece-17' },
-				{ 'daily-menu-confetti-piece--18': piece.id === 'confetti-piece-18' },
-				{ 'daily-menu-confetti-piece--19': piece.id === 'confetti-piece-19' },
-				{ 'daily-menu-confetti-piece--20': piece.id === 'confetti-piece-20' },
-				{ 'daily-menu-confetti-piece--21': piece.id === 'confetti-piece-21' },
-				{ 'daily-menu-confetti-piece--22': piece.id === 'confetti-piece-22' },
-				{ 'daily-menu-confetti-piece--23': piece.id === 'confetti-piece-23' },
-				{ 'daily-menu-confetti-piece--24': piece.id === 'confetti-piece-24' },
-				{ 'daily-menu-confetti-piece--25': piece.id === 'confetti-piece-25' },
-				{ 'daily-menu-confetti-piece--26': piece.id === 'confetti-piece-26' },
-				{ 'daily-menu-confetti-piece--27': piece.id === 'confetti-piece-27' },
-				{ 'daily-menu-confetti-piece--28': piece.id === 'confetti-piece-28' },
-				{ 'daily-menu-confetti-piece--29': piece.id === 'confetti-piece-29' },
-				{ 'daily-menu-confetti-piece--30': piece.id === 'confetti-piece-30' },
-				{ 'daily-menu-confetti-piece--31': piece.id === 'confetti-piece-31' },
-			]"
-		/>
-	</div>
 	<div
 		id="calendar-panel"
 		class="calendar-panel"
@@ -859,16 +796,16 @@ onBeforeUnmount(() => {
 						{
 							'daily-menu-subject-panel-stack--story':
 								selectedDailyMenuSubject === 'story',
-							'daily-menu-subject-panel-stack--october-5':
-								selectedDailyMenuDateLabel === 'October 5, 2026',
-							'daily-menu-subject-panel-stack--october-6':
-								selectedDailyMenuDateLabel === 'October 6, 2026',
-							'daily-menu-subject-panel-stack--october-7':
-								selectedDailyMenuDateLabel === 'October 7, 2026',
-							'daily-menu-subject-panel-stack--october-8':
-								selectedDailyMenuDateLabel === 'October 8, 2026',
-							'daily-menu-subject-panel-stack--october-9':
-								selectedDailyMenuDateLabel === 'October 9, 2026',
+							'daily-menu-subject-panel-stack--october-12':
+								selectedDailyMenuDateLabel === 'October 12, 2026',
+							'daily-menu-subject-panel-stack--october-13':
+								selectedDailyMenuDateLabel === 'October 13, 2026',
+							'daily-menu-subject-panel-stack--october-14':
+								selectedDailyMenuDateLabel === 'October 14, 2026',
+							'daily-menu-subject-panel-stack--october-15':
+								selectedDailyMenuDateLabel === 'October 15, 2026',
+							'daily-menu-subject-panel-stack--october-16':
+								selectedDailyMenuDateLabel === 'October 16, 2026',
 						},
 					]"
 				>

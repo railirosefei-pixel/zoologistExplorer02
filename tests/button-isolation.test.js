@@ -444,10 +444,29 @@ test("buttons keep isolated rendering, style, and functionality ownership", () =
 
 test("student menu tabs use the same size and shape as the calendar tab", () => {
 	const cssSource = fs.readFileSync(path.join(sourceRoot, "css", "input.css"), "utf8");
-	const sharedSelectorPattern =
-		/\.student-menu-calendar-tab,\s*\.student-menu-rewards-tab,\s*\.student-menu-games-tab,\s*\.student-menu-extra-credit-tab,\s*\.student-menu-progress-tab\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0\.9rem\s+1rem;[^}]*border-radius:\s*0\.875rem;[^}]*font-family:\s*"Minecraft2Bold"[^}]*font-size:\s*1\.75rem;/s;
+	const sharedTabSelectors = [
+		".student-menu-calendar-tab",
+		".student-menu-rewards-tab",
+		".student-menu-games-tab",
+		".student-menu-extra-credit-tab",
+		".student-menu-progress-tab",
+	];
+	const sharedTabRules = [...cssSource.matchAll(/([^{}]+)\{([^{}]*)\}/gs)].filter(
+		([, selectorGroup]) =>
+			sharedTabSelectors.every((selector) =>
+				selectorGroup.split(",").some((candidate) => candidate.trim() === selector),
+			),
+	);
+	const sharedTabRule = sharedTabRules.find(([, , declarations]) =>
+		/width:\s*100%;/.test(declarations),
+	);
 
-	assert.match(cssSource, sharedSelectorPattern, "shared sizing selector group is missing");
+	assert.ok(sharedTabRule, "student menu tabs must share a sizing rule");
+	assert.match(sharedTabRule[2], /width:\s*100%;/);
+	assert.match(sharedTabRule[2], /padding:\s*0\.9rem\s+1rem;/);
+	assert.match(sharedTabRule[2], /border-radius:\s*0\.875rem;/);
+	assert.match(sharedTabRule[2], /font-family:\s*"Minecraft2Bold"/);
+	assert.match(sharedTabRule[2], /font-size:\s*1\.75rem;/);
 });
 
 test("daily-menu subject panels render block controls in a tab rail", () => {

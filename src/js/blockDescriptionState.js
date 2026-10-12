@@ -1,4 +1,5 @@
 import { reactive } from "vue";
+import { shiftInitialSchoolWeekDateKey } from "./initialSchoolWeekDateShift.js";
 
 /**
  * Shared block-description state for the Parent > Student Edits > Blocks >
@@ -97,6 +98,68 @@ const state = reactive({
 	/** @type {Array<{ dateKey: string, subjectKey: string, subjectAbbrev: string, blocks: number[], text: string, savedAtIso: string, savedAtLabel: string }>} */
 	historyEntries: loadHistoryEntries(),
 });
+
+/** Move old-week descriptions and history forward without overwriting destination data. */
+function migrateInitialSchoolWeekDescriptions() {
+	let descriptionsChanged = false;
+	let playByPlayChanged = false;
+	let historyChanged = false;
+
+	for (const entriesByKey of [state.descriptionsByKey, state.playByPlayByKey]) {
+		for (const [key, text] of Object.entries(entriesByKey)) {
+			const separatorIndex = key.indexOf("::");
+			if (separatorIndex === -1) {
+				continue;
+			}
+
+			const dateKey = key.slice(0, separatorIndex);
+			const shiftedDateKey = shiftInitialSchoolWeekDateKey(dateKey);
+			if (shiftedDateKey === dateKey) {
+				continue;
+			}
+
+			const shiftedKey = `${shiftedDateKey}${key.slice(separatorIndex)}`;
+			if (Object.hasOwn(entriesByKey, shiftedKey)) {
+				continue;
+			}
+
+			entriesByKey[shiftedKey] = text;
+			delete entriesByKey[key];
+			if (entriesByKey === state.descriptionsByKey) {
+				descriptionsChanged = true;
+			} else {
+				playByPlayChanged = true;
+			}
+		}
+	}
+
+	for (const entry of state.historyEntries) {
+		const shiftedDateKey = shiftInitialSchoolWeekDateKey(entry.dateKey);
+		if (shiftedDateKey !== entry.dateKey) {
+			entry.dateKey = shiftedDateKey;
+			historyChanged = true;
+		}
+	}
+
+	if (descriptionsChanged) {
+		saveDescriptionsByKey();
+	}
+	if (playByPlayChanged) {
+		try {
+			globalThis.localStorage?.setItem(
+				BLOCK_PLAY_BY_PLAY_STORAGE_KEY,
+				JSON.stringify(state.playByPlayByKey),
+			);
+		} catch {
+			// Storage can be unavailable in restricted browser contexts.
+		}
+	}
+	if (historyChanged) {
+		saveHistoryEntries();
+	}
+}
+
+migrateInitialSchoolWeekDescriptions();
 
 /** Normalize a date (or "Month D, YYYY" label) into an ISO day key. */
 function toDateKey(dateLabelOrDate) {

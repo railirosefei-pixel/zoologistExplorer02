@@ -16,6 +16,7 @@ const activeStudentTab = ref("calendar");
 const activeParentScreen = ref("");
 const isExplorerPositionsModeActive = ref(false);
 const calendarViewRef = ref(null);
+const studentNavigationRef = ref(null);
 const goldCoinTotal = ref(0);
 
 /** Home navigation pipeline boundary. */
@@ -58,6 +59,11 @@ function handleRewardsPageClose() {
 function handleCalendarTabOpen() {
 	activeStudentTab.value = "calendar";
 	calendarViewRef.value?.resetToCalendar();
+}
+
+/** Progress-screen navigation pipeline boundary. */
+function handleProgressOpen(advanceFromCompletion = false) {
+	studentNavigationRef.value?.openProgress(advanceFromCompletion);
 }
 
 /** Parent-menu navigation pipeline boundary. */
@@ -159,6 +165,7 @@ function handleParentChainHome() {
 		data-page-name="student-menu-page"
 	>
 		<StudentNavigation
+			ref="studentNavigationRef"
 			:explorer-positions-mode-active="isExplorerPositionsModeActive"
 			@open-calendar="handleCalendarTabOpen"
 			@open-rewards="handleRewardsPageOpen"
@@ -177,6 +184,7 @@ function handleParentChainHome() {
 				v-if="activeStudentTab === 'calendar'"
 				ref="calendarViewRef"
 				@go-home="handleStudentMenuClose"
+				@open-progress="handleProgressOpen(true)"
 			/>
 		</section>
 	</main>

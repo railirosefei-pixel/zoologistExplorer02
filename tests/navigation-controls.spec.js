@@ -139,17 +139,18 @@ test("student, Progress, Rewards, calendar pages and games share navigation", as
 	await page.getByRole("button", { name: "Open Games tab" }).click();
 	await verifyNavigation(
 		page,
-		"student-math-games-home-button",
-		"student-math-games-back-button",
+		"student-games-home-button",
+		"student-games-back-button",
 	);
-	await page.locator("#student-math-games-home-button").click();
+	await page.locator("#student-games-home-button").click();
 	await expect(page.getByRole("button", { name: "Open student section" })).toBeVisible();
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Open Games tab" }).click();
-	await page.locator("#math-game-place-names").click();
-	await verifyNavigation(page, null, "math-games-back-to-gallery-button");
-	await page.locator("#math-games-back-to-gallery-button").click();
-	await page.locator("#student-math-games-back-button").click();
+	await page.locator("#student-safari-place-value-thumbnail").click();
+	await verifyNavigation(page, null, "safari-place-value-back-button");
+	await page.locator("#safari-place-value-back-button").click();
+	await expect(page.locator("#student-safari-place-value-thumbnail")).toBeVisible();
+	await page.locator("#student-games-back-button").click();
 	await verifyNavigation(page, null, "student-menu-back-button");
 	await page.getByRole("button", { name: "Open Progress tab" }).click();
 	await page.locator("#student-progress-home-button").click();

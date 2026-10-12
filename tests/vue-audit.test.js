@@ -217,8 +217,8 @@ test("Calendar subject panels include the required explorer copy for the specifi
 		"Amazing Work!  You did your best and it shows!",
 		"You’ve come so far and Assistant Daddy is sooooo proud of you!",
 		"Incredible! You’re unstoppable!",
-		"October 5, 2026",
-		"October 9, 2026",
+		"October 12, 2026",
+		"October 16, 2026",
 	];
 
 	const missingPhrases = requiredPhrases.filter((phrase) => !calendarViewSource.includes(phrase));
@@ -301,10 +301,15 @@ test("Vue files keep shared structure and style ownership consistent", () => {
 				],
 				"HomeView.vue": ["home-"],
 				"MathGameArtwork.vue": [],
-				"MathGamesView.vue": ["math-games-"],
+				"MathGamesView.vue": [
+					"math-games-",
+					"student-math-games-",
+					"student-math-game-",
+				],
 				"RewardsView.vue": ["rewards-"],
 				"ProgressXpBar.vue": ["progress-xp-bar-"],
 				"StudentNavigation.vue": ["student-"],
+				"StudentGamesView.vue": ["student-games-"],
 			}[path.basename(filePath)];
 
 			if (!allowedSelectorPrefixes) {

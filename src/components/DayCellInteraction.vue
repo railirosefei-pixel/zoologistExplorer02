@@ -70,7 +70,7 @@ const isDecorativePreStartDayCell = computed(
 		props.cell.isCurrentMonth &&
 		props.cell.value !== "" &&
 		/^calendar-day-cell-October-2026-\d+$/.test(props.cellId) &&
-		Number(props.cell.value) < 5,
+		Number(props.cell.value) < 12,
 );
 
 function handleDayCellClick() {

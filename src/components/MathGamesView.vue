@@ -961,7 +961,7 @@ onBeforeUnmount(() => {
 			</div>
 			<button
 				v-if="layout === 'student'"
-				id="student-math-games-home-button"
+				id="parent-math-games-home-button"
 				type="button"
 				class="student-math-games-home-button navigation-home-button rounded border-2 border-green-800 bg-white px-4 py-2 text-black"
 				aria-label="Return home"
@@ -972,7 +972,7 @@ onBeforeUnmount(() => {
 			</button>
 			<button
 				v-if="layout === 'student'"
-				id="student-math-games-back-button"
+				id="parent-math-games-back-button"
 				type="button"
 				class="student-math-games-back-button navigation-back-button fixed right-4 bottom-4 z-50 rounded border-2 border-cyan-800 bg-white px-4 py-2 text-black"
 				aria-label="Back to student menu"
