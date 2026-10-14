@@ -58,58 +58,165 @@ const segments = computed(() =>
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 4px;
+	gap: 7px;
+	padding: 12px 16px;
+	border: 3px solid #a64c1f;
+	border-radius: 9px;
+	background: linear-gradient(145deg, #fff0a6 0%, #f4be45 52%, #e77732 100%);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 251, 219, 0.82),
+		inset 0 -5px 0 rgba(56, 45, 27, 0.42),
+		0 6px 0 #332719,
+		0 10px 16px rgba(24, 29, 17, 0.35);
 }
 
 .progress-xp-bar-track {
 	display: flex;
 	width: 672px;
-	height: 18px;
-	padding: 2px;
+	height: 24px;
+	padding: 3px;
 	box-sizing: border-box;
-	background: #1c1c1c;
-	border: 2px solid #0a0a0a;
+	background: #332719;
+	border: 3px solid #1d170f;
 	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.08),
-		0 2px 0 rgba(0, 0, 0, 0.6);
+		inset 0 0 0 1px #a97938,
+		inset 0 3px 0 rgba(255, 239, 190, 0.18),
+		0 3px 0 #171109,
+		0 0 12px rgba(191, 137, 59, 0.3);
 }
 
 .progress-xp-bar-segment {
 	width: 48px;
 	height: 100%;
 	box-sizing: border-box;
-	background: #2b2b2b;
-	border-right: 2px solid #0a0a0a;
-	box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.5);
+	background: #493a27;
+	border-right: 2px solid #261c11;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 239, 190, 0.08),
+		inset 0 -2px 0 rgba(0, 0, 0, 0.45);
 }
 
 .progress-xp-bar-segment:last-child {
 	border-right: none;
 }
 
-/* === Filled segment: Minecraft-style bright green with highlight === */
 .progress-xp-bar-segment--filled {
-	background: linear-gradient(180deg, #b6ff5c 0%, #7ee21f 45%, #4fa30a 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-segment-light) 0%,
+		var(--xp-segment-dark) 100%
+	);
 	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.55),
-		inset 0 -2px 0 rgba(0, 0, 0, 0.35),
-		0 0 6px rgba(126, 226, 31, 0.7);
+		inset 0 2px 0 rgba(255, 248, 220, 0.5),
+		inset 0 -2px 0 rgba(43, 31, 17, 0.42),
+		0 0 7px rgba(201, 151, 70, 0.45);
 }
 
-/* === Level label: pixel font, Minecraft green with dark outline === */
+.progress-xp-bar-segment--filled:nth-child(1) {
+	--xp-segment-light: #fff08a;
+	--xp-segment-dark: #ffd43b;
+}
+
+.progress-xp-bar-segment--filled:nth-child(2) {
+	--xp-segment-light: #ffe45c;
+	--xp-segment-dark: #ffc52f;
+}
+
+.progress-xp-bar-segment--filled:nth-child(3) {
+	--xp-segment-light: #ffd34c;
+	--xp-segment-dark: #ffae2f;
+}
+
+.progress-xp-bar-segment--filled:nth-child(4) {
+	--xp-segment-light: #ffc247;
+	--xp-segment-dark: #f9952f;
+}
+
+.progress-xp-bar-segment--filled:nth-child(5) {
+	--xp-segment-light: #ffad3b;
+	--xp-segment-dark: #ee7b2e;
+}
+
+.progress-xp-bar-segment--filled:nth-child(6) {
+	--xp-segment-light: #ff9938;
+	--xp-segment-dark: #e9672b;
+}
+
+.progress-xp-bar-segment--filled:nth-child(7) {
+	--xp-segment-light: #f98536;
+	--xp-segment-dark: #db5228;
+}
+
+.progress-xp-bar-segment--filled:nth-child(8) {
+	--xp-segment-light: #ed7133;
+	--xp-segment-dark: #ca4325;
+}
+
+.progress-xp-bar-segment--filled:nth-child(9) {
+	--xp-segment-light: #df5d30;
+	--xp-segment-dark: #b83823;
+}
+
+.progress-xp-bar-segment--filled:nth-child(10) {
+	--xp-segment-light: #ce4c2d;
+	--xp-segment-dark: #a32e22;
+}
+
+.progress-xp-bar-segment--filled:nth-child(11) {
+	--xp-segment-light: #bb3c2c;
+	--xp-segment-dark: #8f2521;
+}
+
+.progress-xp-bar-segment--filled:nth-child(12) {
+	--xp-segment-light: #a9322a;
+	--xp-segment-dark: #7b201f;
+}
+
+.progress-xp-bar-segment--filled:nth-child(13) {
+	--xp-segment-light: #972b28;
+	--xp-segment-dark: #691d1c;
+}
+
+.progress-xp-bar-segment--filled:nth-child(14) {
+	--xp-segment-light: #832523;
+	--xp-segment-dark: #581919;
+}
+
 .progress-xp-bar-level-row {
 	display: flex;
-	align-items: baseline;
+	align-items: center;
 	gap: 8px;
+	padding: 4px 12px;
+	background: #352719;
+	border: 2px solid #9b6e34;
+	box-shadow:
+		inset 0 0 0 1px #4c3820,
+		0 2px 0 #171109;
+}
+
+.progress-xp-bar-level-row::before,
+.progress-xp-bar-level-row::after {
+	width: 7px;
+	height: 7px;
+	background: #e6be68;
+	box-shadow:
+		1px 1px 0 #533b20,
+		0 0 6px rgba(239, 193, 83, 0.7);
+	content: "";
+	transform: rotate(45deg);
 }
 
 .progress-xp-bar-level-label,
 .progress-xp-bar-level-number {
 	font-family: "Minecraft2Bold", monospace;
 	font-size: 1.1rem;
-	color: #7efc4f;
+	color: #f2d58f;
 	text-shadow:
-		2px 2px 0 #1e3d0c,
-		0 0 4px rgba(0, 0, 0, 0.8);
+		2px 2px 0 #3c2a17,
+		0 0 5px rgba(230, 190, 104, 0.55);
+}
+
+.progress-xp-bar-level-number {
+	color: #fff0bd;
 }
 </style>

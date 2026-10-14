@@ -20,6 +20,40 @@ test("ProgressXpBar.vue exists with 14 segments of 20 XP and no inline styles", 
 	assert.match(source, /<style scoped>/, "XP bar styling must live in a scoped style block");
 });
 
+test("ProgressXpBar.vue gives its container safari colors and 3D depth", () => {
+	const source = readSource("src/components/ProgressXpBar.vue");
+	const containerStyles = source.match(
+		/\.progress-xp-bar-frame\s*\{([\s\S]*?)\n\}/,
+	)?.[1];
+
+	assert.ok(containerStyles, "XP bar container styles must exist");
+	assert.match(containerStyles, /background:\s*linear-gradient\(/);
+	assert.match(containerStyles, /box-shadow:[\s\S]*inset/);
+	assert.match(containerStyles, /0 6px 0 #332719/);
+});
+
+test("ProgressXpBar.vue shades filled segments from light safari gold to dark earth", () => {
+	const source = readSource("src/components/ProgressXpBar.vue");
+	const lightShades = [
+		...source.matchAll(/--xp-segment-light:\s*(#[\da-f]{6})/gi),
+	].map((match) => match[1]);
+	const luminance = (hex) => {
+		const [red, green, blue] = hex
+			.slice(1)
+			.match(/.{2}/g)
+			.map((channel) => Number.parseInt(channel, 16));
+		return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+	};
+
+	assert.equal(lightShades.length, 14, "every segment must have a safari shade");
+	for (let index = 1; index < lightShades.length; index += 1) {
+		assert.ok(
+			luminance(lightShades[index]) < luminance(lightShades[index - 1]),
+			`segment ${index + 1} must be darker than segment ${index}`,
+		);
+	}
+});
+
 test("blockCompletionState.js derives capped totalXp and a permanent level", () => {
 	const source = readSource("src/js/blockCompletionState.js");
 	assert.match(source, /totalXp/, "store must expose totalXp");

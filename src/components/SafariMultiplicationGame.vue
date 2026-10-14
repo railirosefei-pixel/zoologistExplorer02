@@ -3,6 +3,9 @@
 import { computed, onMounted, ref } from "vue";
 
 const emit = defineEmits(["close"]);
+const props = defineProps({
+	useDoubleDigitFactor: { type: Boolean, default: false },
+});
 
 const maxXp = 100;
 const themes = [
@@ -106,7 +109,9 @@ function generateProblem() {
 		minB = 2;
 	}
 
-	const factorA = Math.floor(Math.random() * (maxA - minA + 1)) + minA;
+	const factorA = props.useDoubleDigitFactor
+		? Math.floor(Math.random() * 90) + 10
+		: Math.floor(Math.random() * (maxA - minA + 1)) + minA;
 	const factorB = Math.floor(Math.random() * (maxB - minB + 1)) + minB;
 	problem.value = { ...theme, factorA, factorB };
 }

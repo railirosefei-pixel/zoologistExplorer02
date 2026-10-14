@@ -217,8 +217,8 @@ test("Calendar subject panels include the required explorer copy for the specifi
 		"Amazing Work!  You did your best and it shows!",
 		"You’ve come so far and Assistant Daddy is sooooo proud of you!",
 		"Incredible! You’re unstoppable!",
-		"October 12, 2026",
 		"October 16, 2026",
+		"October 20, 2026",
 	];
 
 	const missingPhrases = requiredPhrases.filter((phrase) => !calendarViewSource.includes(phrase));

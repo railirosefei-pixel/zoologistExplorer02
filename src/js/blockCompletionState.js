@@ -1,5 +1,6 @@
 import { reactive, computed, watch } from "vue";
 import { shiftInitialSchoolWeekDateKey } from "./initialSchoolWeekDateShift.js";
+import { isSchoolDay } from "./schoolSchedule.js";
 
 /**
  * Shared block-completion state for the Student daily menu and the
@@ -12,6 +13,8 @@ const XP_PER_COMPLETED_BLOCK = 20;
 const XP_LEVEL_CAP = 240;
 const XP_PER_LEVEL = 240;
 const COMPLETED_BLOCKS_STORAGE_KEY = "zoologistExplorer02.completedBlocks";
+const INITIAL_SCHOOL_WEEK_MIGRATION_STORAGE_KEY =
+	"zoologistExplorer02.completedBlocksInitialSchoolWeekMigration";
 
 function loadCompletedBlockKeys() {
 	try {
@@ -50,8 +53,19 @@ const state = reactive({
 
 /** Move old-week completion records forward without overwriting destination data. */
 function migrateInitialSchoolWeekCompletions() {
+	try {
+		if (globalThis.localStorage?.getItem(INITIAL_SCHOOL_WEEK_MIGRATION_STORAGE_KEY) === "true") {
+			return;
+		}
+	} catch {
+		return;
+	}
+
 	let changed = false;
-	for (const [key, completed] of Object.entries(state.completedBlockKeys)) {
+	const existingCompletions = Object.entries(state.completedBlockKeys).sort(([left], [right]) =>
+		right.localeCompare(left),
+	);
+	for (const [key, completed] of existingCompletions) {
 		const separatorIndex = key.indexOf("::");
 		if (separatorIndex === -1) {
 			continue;
@@ -75,6 +89,12 @@ function migrateInitialSchoolWeekCompletions() {
 
 	if (changed) {
 		saveCompletedBlockKeys();
+	}
+
+	try {
+		globalThis.localStorage?.setItem(INITIAL_SCHOOL_WEEK_MIGRATION_STORAGE_KEY, "true");
+	} catch {
+		// Storage can be unavailable in restricted browser contexts.
 	}
 }
 
@@ -168,19 +188,18 @@ function recordXpSnapshot() {
 	});
 }
 
-function getSchoolDayDateKey(n) {
+function getSchoolDayDateKey(n, referenceDate = new Date()) {
 	if (!Number.isInteger(n) || n < 1) {
 		return null;
 	}
 
-	const reference = new Date();
+	const reference = new Date(referenceDate);
 	let schoolDaysBack = 0;
 	const targetDate = new Date(reference);
 
 	while (schoolDaysBack < n) {
 		targetDate.setDate(targetDate.getDate() - 1);
-		const weekday = targetDate.getDay();
-		if (weekday !== 0 && weekday !== 6) {
+		if (isSchoolDay(targetDate)) {
 			schoolDaysBack += 1;
 		}
 	}

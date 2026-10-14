@@ -6,33 +6,44 @@ test("the initial school-week shift migrates saved completion and description re
 		[
 			"zoologistExplorer02.completedBlocks",
 			JSON.stringify({
-				"2026-10-05::math::1": true,
-				"2026-10-09::science::3": false,
+				"2026-10-12::math::1": true,
+				"2026-10-16::math::1": false,
+				"2026-10-16::science::3": false,
+				"2026-10-05::art::2": true,
 				"2026-10-10::art::1": true,
 			}),
 		],
 		[
 			"zoologistExplorer02.blockDescriptions",
 			JSON.stringify({
-				"2026-10-05::math::1": "Monday description",
-				"2026-10-09::science::3": "Friday description",
+				"2026-10-12::math::1": "Monday description",
+				"2026-10-16::math::1": "Friday math description",
+				"2026-10-16::science::3": "Friday description",
+				"2026-10-05::art::2": "Legacy description",
 				"2026-10-10::art::1": "Unchanged description",
 			}),
 		],
 		[
 			"zoologistExplorer02.blockPlayByPlay",
 			JSON.stringify({
-				"2026-10-06::language-arts::2": "Play-by-play",
+				"2026-10-14::language-arts::2": "Play-by-play",
+				"2026-10-06::art::1": "Legacy play-by-play",
 			}),
 		],
 		[
 			"zoologistExplorer02.descriptionHistory",
 			JSON.stringify([
 				{
-					dateKey: "2026-10-05",
+					dateKey: "2026-10-12",
 					subjectKey: "math",
 					blocks: [1],
 					text: "Monday history",
+				},
+				{
+					dateKey: "2026-10-05",
+					subjectKey: "art",
+					blocks: [2],
+					text: "Legacy history",
 				},
 				{
 					dateKey: "2026-10-10",
@@ -56,12 +67,24 @@ test("the initial school-week shift migrates saved completion and description re
 	);
 
 	assert.equal(
-		blockCompletionStore.isBlockCompleteForDate("October 12, 2026", "math", 1),
-		true,
+		blockCompletionStore.isBlockCompleteForDate("October 16, 2026", "math", 1),
+		false,
 	);
 	assert.equal(
 		blockCompletionStore.isBlockCompleteForDate("October 16, 2026", "science", 3),
 		false,
+	);
+	assert.equal(
+		blockCompletionStore.isBlockCompleteForDate("October 20, 2026", "math", 1),
+		false,
+	);
+	assert.equal(
+		blockCompletionStore.isBlockCompleteForDate("October 20, 2026", "science", 3),
+		false,
+	);
+	assert.equal(
+		blockCompletionStore.isBlockCompleteForDate("October 16, 2026", "art", 2),
+		true,
 	);
 	assert.equal(
 		blockCompletionStore.isBlockCompleteForDate("October 10, 2026", "art", 1),
@@ -71,25 +94,59 @@ test("the initial school-week shift migrates saved completion and description re
 		blockCompletionStore.state.completedBlockKeys,
 		{
 			"2026-10-12::math::1": true,
+			"2026-10-16::math::1": false,
 			"2026-10-16::science::3": false,
+			"2026-10-16::art::2": true,
 			"2026-10-10::art::1": true,
 		},
 	);
+	assert.equal(
+		values.get("zoologistExplorer02.completedBlocksInitialSchoolWeekMigration"),
+		"true",
+	);
+	blockCompletionStore.markBlockComplete("October 16, 2026", "math", 2);
+	const { blockCompletionStore: reloadedCompletionStore } = await import(
+		"../src/js/blockCompletionState.js?initial-school-week-shift-reload-test"
+	);
+	assert.equal(
+		reloadedCompletionStore.isBlockCompleteForDate("October 16, 2026", "math", 2),
+		true,
+	);
+	assert.equal(
+		reloadedCompletionStore.isBlockCompleteForDate("October 20, 2026", "math", 2),
+		false,
+	);
 
 	assert.equal(
-		blockDescriptionStore.getDescription("2026-10-12", "math", 1),
-		"Monday description",
+		blockDescriptionStore.getDescription("2026-10-16", "math", 1),
+		"Friday math description",
 	);
 	assert.equal(
 		blockDescriptionStore.getDescription("2026-10-16", "science", 3),
 		"Friday description",
 	);
 	assert.equal(
-		blockDescriptionStore.getPlayByPlay("2026-10-13", "language-arts", 2),
+		blockDescriptionStore.getDescription("2026-10-12", "math", 1),
+		"Monday description",
+	);
+	assert.equal(
+		blockDescriptionStore.getDescription("2026-10-20", "math", 1),
+		null,
+	);
+	assert.equal(
+		blockDescriptionStore.getDescription("2026-10-16", "art", 2),
+		"Legacy description",
+	);
+	assert.equal(
+		blockDescriptionStore.getPlayByPlay("2026-10-18", "language-arts", 2),
 		"Play-by-play",
+	);
+	assert.equal(
+		blockDescriptionStore.getPlayByPlay("2026-10-17", "art", 1),
+		"Legacy play-by-play",
 	);
 	assert.deepEqual(
 		blockDescriptionStore.state.historyEntries.map(({ dateKey }) => dateKey),
-		["2026-10-12", "2026-10-10"],
+		["2026-10-16", "2026-10-16", "2026-10-10"],
 	);
 });

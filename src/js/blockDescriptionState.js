@@ -106,7 +106,10 @@ function migrateInitialSchoolWeekDescriptions() {
 	let historyChanged = false;
 
 	for (const entriesByKey of [state.descriptionsByKey, state.playByPlayByKey]) {
-		for (const [key, text] of Object.entries(entriesByKey)) {
+		const existingEntries = Object.entries(entriesByKey).sort(([left], [right]) =>
+			right.localeCompare(left),
+		);
+		for (const [key, text] of existingEntries) {
 			const separatorIndex = key.indexOf("::");
 			if (separatorIndex === -1) {
 				continue;

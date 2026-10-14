@@ -25,6 +25,18 @@ async function createDescriptionEditsView(emit = () => {}) {
 		.replace(
 			'"../js/blockDescriptionState.js"',
 			JSON.stringify(new URL("../src/js/blockDescriptionState.js", import.meta.url).href),
+		)
+		.replace(
+			'"../js/fontStyleOptions.js"',
+			JSON.stringify(new URL("../src/js/fontStyleOptions.js", import.meta.url).href),
+		)
+		.replace(
+			'"../js/schoolSchedule.js"',
+			JSON.stringify(new URL("../src/js/schoolSchedule.js", import.meta.url).href),
+		)
+		.replace(
+			'"../js/formattedText.js"',
+			JSON.stringify(new URL("../src/js/formattedText.js", import.meta.url).href),
 		);
 	const { default: component } = await import(
 		`data:text/javascript;base64,${Buffer.from(script).toString("base64")}`
@@ -38,6 +50,15 @@ test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", 
 		"blocks-menu-button",
 		"blocks-menu-sidebar",
 		"description-edits-button",
+		"description-editor-button",
+		"description-editor-options",
+		"description-editor-font-style-button",
+		"description-editor-font-style-options",
+		"description-editor-font-size-button",
+		"description-editor-font-size-menu",
+		"description-editor-font-color-button",
+		"description-editor-font-color-swatch",
+		"description-editor-font-color-picker",
 		"description-edits-position-wrapper",
 		"description-edits-panel-container",
 		"description-edits-text-box",
@@ -528,13 +549,9 @@ test("Description Load gates selections, groups identical saved blocks, and Save
 	view.handleDescriptionEditsLoad();
 	view.descriptionEditsLoadedFields.value[0].text = "Changed identical blocks.";
 	let focused = false;
-	let selection;
 	view.descriptionEditsEditor.value = {
 		focus() {
 			focused = true;
-		},
-		setSelectionRange(...range) {
-			selection = range;
 		},
 		scrollTop: 40,
 		scrollLeft: 20,
@@ -553,7 +570,6 @@ test("Description Load gates selections, groups identical saved blocks, and Save
 	assert.equal(view.descriptionEditsDraft.value, "");
 	assert.equal(view.descriptionEditsLoadedSelectionKey.value, null);
 	assert.equal(focused, true);
-	assert.deepEqual(selection, [0, 0]);
 	assert.equal(view.descriptionEditsEditor.value.scrollTop, 0);
 	assert.equal(view.descriptionEditsEditor.value.scrollLeft, 0);
 });
@@ -579,12 +595,18 @@ test("Description Load has independent disabled styling, labeled editors, and a 
 		source,
 		/id="description-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/,
 	);
-	assert.match(source, /:for="`description-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"/);
 	assert.match(
 		source,
-		/:id="`description-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?v-model="field.text"/,
+		/:aria-labelledby="`description-edits-loaded-label-\$\{field.blocks.join\('-'\)\}`"/,
 	);
-	assert.match(source, /id="description-edits-text-box"\s+ref="descriptionEditsEditor"/);
+	assert.match(
+		source,
+		/:id="`description-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?contenteditable="true"[\s\S]*?handleDescriptionTextEditorInput\(\$event, field\)/,
+	);
+	assert.match(
+		source,
+		/id="description-edits-text-box"\s+ref="descriptionEditsEditor"[\s\S]*?contenteditable="true"/,
+	);
 });
 
 test("Description All Blocks edits only changed original keys, including empty text", async () => {
@@ -688,13 +710,9 @@ test("Play by Play Load gates selections, groups identical saved blocks, and Sav
 	view.playByPlayEditsLoadedFields.value[0].text = "Changed identical steps.";
 	view.descriptionEditsDraft.value = "Separate Description draft";
 	let focused = false;
-	let selection;
 	view.playByPlayEditsEditor.value = {
 		focus() {
 			focused = true;
-		},
-		setSelectionRange(...range) {
-			selection = range;
 		},
 		scrollTop: 40,
 		scrollLeft: 20,
@@ -714,7 +732,6 @@ test("Play by Play Load gates selections, groups identical saved blocks, and Sav
 	assert.equal(view.descriptionEditsDraft.value, "Separate Description draft");
 	assert.equal(view.playByPlayEditsLoadedSelectionKey.value, null);
 	assert.equal(focused, true);
-	assert.deepEqual(selection, [0, 0]);
 	assert.equal(view.playByPlayEditsEditor.value.scrollTop, 0);
 	assert.equal(view.playByPlayEditsEditor.value.scrollLeft, 0);
 });
@@ -740,12 +757,18 @@ test("Play by Play Load has independently disabled controls, labeled editors, an
 		source,
 		/id="play-by-play-edits-loaded-scroll-region"[\s\S]*?ml-auto[\s\S]*?h-\[772px\][\s\S]*?overflow-y-scroll[\s\S]*?\[direction:ltr\]/,
 	);
-	assert.match(source, /:for="`play-by-play-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"/);
 	assert.match(
 		source,
-		/:id="`play-by-play-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?v-model="field.text"/,
+		/:aria-labelledby="`play-by-play-edits-loaded-label-\$\{field.blocks.join\('-'\)\}`"/,
 	);
-	assert.match(source, /id="play-by-play-edits-text-box"\s+ref="playByPlayEditsEditor"/);
+	assert.match(
+		source,
+		/:id="`play-by-play-edits-loaded-text-\$\{field.blocks.join\('-'\)\}`"[\s\S]*?contenteditable="true"[\s\S]*?handleDescriptionTextEditorInput\(\$event, field\)/,
+	);
+	assert.match(
+		source,
+		/id="play-by-play-edits-text-box"\s+ref="playByPlayEditsEditor"[\s\S]*?contenteditable="true"/,
+	);
 });
 
 test("Play by Play All Blocks edits only changed original keys, including empty text", async () => {

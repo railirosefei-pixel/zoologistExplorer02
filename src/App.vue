@@ -9,6 +9,7 @@ import ParentView from "./components/ParentView.vue";
 import StudentEditsView from "./components/StudentEditsView.vue";
 import CurriculumGameView from "./components/CurriculumGameView.vue";
 import MathCurriculumOctoberView from "./components/MathCurriculumOctoberView.vue";
+import { earnedBadges, removeEarnedBadge } from "./js/rewardBadgeState.js";
 
 const isStudentMenuOpen = ref(false);
 const isRewardsPageOpen = ref(false);
@@ -18,6 +19,17 @@ const isExplorerPositionsModeActive = ref(false);
 const calendarViewRef = ref(null);
 const studentNavigationRef = ref(null);
 const goldCoinTotal = ref(0);
+const activeRewardCelebration = ref(null);
+const isCompletionRewardFlowActive = ref(false);
+const REWARD_RETURN_DELAY_MS = 1300;
+let rewardReturnTimerId = null;
+
+function clearRewardReturnTimer() {
+	if (rewardReturnTimerId !== null) {
+		window.clearTimeout(rewardReturnTimerId);
+		rewardReturnTimerId = null;
+	}
+}
 
 /** Home navigation pipeline boundary. */
 function handleStudentMenuOpen() {
@@ -28,13 +40,16 @@ function handleStudentMenuOpen() {
 
 /** Student-menu exit pipeline boundary. */
 function handleStudentMenuClose() {
+	isCompletionRewardFlowActive.value = false;
 	isStudentMenuOpen.value = false;
 	isRewardsPageOpen.value = false;
 	activeStudentTab.value = "calendar";
 }
 
 /** Rewards-page navigation pipeline boundary. */
-function handleRewardsPageOpen() {
+function handleRewardsPageOpen(celebration = null, preserveStudentMenu = false) {
+	clearRewardReturnTimer();
+	activeRewardCelebration.value = celebration;
 	try {
 		const savedProgress = JSON.parse(
 			localStorage.getItem("zoologist-math-games-progress") || "{}",
@@ -45,14 +60,58 @@ function handleRewardsPageOpen() {
 	} catch {
 		goldCoinTotal.value = 0;
 	}
-	isStudentMenuOpen.value = false;
+	isStudentMenuOpen.value = preserveStudentMenu;
 	isRewardsPageOpen.value = true;
 }
 
 /** Rewards-page return pipeline boundary. */
 function handleRewardsPageClose() {
+	clearRewardReturnTimer();
+	if (isCompletionRewardFlowActive.value) {
+		studentNavigationRef.value?.closeProgress();
+		isCompletionRewardFlowActive.value = false;
+	}
 	isRewardsPageOpen.value = false;
 	isStudentMenuOpen.value = true;
+	activeRewardCelebration.value = null;
+}
+
+/** Third-block reward route: show Progress through the explorer and XP update first. */
+async function handleCompletionRewardOpen(celebration) {
+	isCompletionRewardFlowActive.value = true;
+	const progressOpening = handleProgressOpen(true, { holdProgressScreen: true });
+	if (!progressOpening) {
+		isCompletionRewardFlowActive.value = false;
+		throw new Error("Student Progress must be open before its completion reward.");
+	}
+
+	const progressStayedOpen = await progressOpening;
+	if (!progressStayedOpen || !isCompletionRewardFlowActive.value) {
+		isCompletionRewardFlowActive.value = false;
+		return;
+	}
+
+	await new Promise((resolve) => {
+		window.setTimeout(resolve, REWARD_RETURN_DELAY_MS);
+	});
+	if (!isCompletionRewardFlowActive.value) {
+		return;
+	}
+
+	handleRewardsPageOpen(celebration, true);
+}
+
+/** Start the return delay only after the badge has finished its arrival animation. */
+function handleRewardAnimationComplete() {
+	if (!isRewardsPageOpen.value || !activeRewardCelebration.value) {
+		return;
+	}
+
+	clearRewardReturnTimer();
+	rewardReturnTimerId = window.setTimeout(() => {
+		rewardReturnTimerId = null;
+		handleRewardsPageClose();
+	}, REWARD_RETURN_DELAY_MS);
 }
 
 /** Student-menu tab navigation pipeline boundary. */
@@ -62,8 +121,8 @@ function handleCalendarTabOpen() {
 }
 
 /** Progress-screen navigation pipeline boundary. */
-function handleProgressOpen(advanceFromCompletion = false) {
-	studentNavigationRef.value?.openProgress(advanceFromCompletion);
+function handleProgressOpen(advanceFromCompletion = false, options = {}) {
+	return studentNavigationRef.value?.openProgress(advanceFromCompletion, options);
 }
 
 /** Parent-menu navigation pipeline boundary. */
@@ -79,6 +138,11 @@ function handleParentScreenClose() {
 /** Student Edits screen navigation pipeline boundary. */
 function handleStudentEditsOpen() {
 	activeParentScreen.value = "student-edits";
+}
+
+/** Persist removal requested from the Badges Earned edit panel. */
+function handleEarnedBadgeReset(badgeId) {
+	removeEarnedBadge(badgeId);
 }
 
 /** Student Edits return-to-parent-menu pipeline boundary. */
@@ -135,9 +199,11 @@ function handleParentChainHome() {
 			activeParentScreen === 'student-edits' || activeParentScreen === 'description-edits'
 		"
 		:initial-description-edits-open="activeParentScreen === 'description-edits'"
+		:earned-badges="earnedBadges"
 		@open-curriculum-game="handleCurriculumGameOpen"
 		@open-math-curriculum-october="handleMathCurriculumOctoberOpen"
 		@back-to-parent-menu="handleStudentEditsParentMenuClose"
+		@reset-earned-badge="handleEarnedBadgeReset"
 		@go-home="handleParentChainHome"
 	/>
 
@@ -157,6 +223,7 @@ function handleParentChainHome() {
 
 	<main
 		v-else-if="isStudentMenuOpen"
+		v-show="!isRewardsPageOpen"
 		id="student-menu-page"
 		class="student-menu-page"
 		role="main"
@@ -185,13 +252,17 @@ function handleParentChainHome() {
 				ref="calendarViewRef"
 				@go-home="handleStudentMenuClose"
 				@open-progress="handleProgressOpen(true)"
+				@open-reward="handleCompletionRewardOpen"
 			/>
 		</section>
 	</main>
 
 	<RewardsView
-		v-else
+		v-if="isRewardsPageOpen"
 		:gold-coin-total="goldCoinTotal"
+		:earned-badges="earnedBadges"
+		:celebrating-badge="activeRewardCelebration"
 		@back-to-student-menu="handleRewardsPageClose"
+		@badge-animation-complete="handleRewardAnimationComplete"
 	/>
 </template>

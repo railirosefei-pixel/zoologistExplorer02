@@ -974,11 +974,11 @@ body {
 	margin-top: 0.125rem;
 }
 
-.daily-menu-subject-panel-stack--october-12 .daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-13 .daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-14 .daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-15 .daily-menu-subject-panel:not(.daily-menu-story-panel),
-.daily-menu-subject-panel-stack--october-16 .daily-menu-subject-panel:not(.daily-menu-story-panel) {
+.daily-menu-subject-panel-stack--october-16 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-17 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-18 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-19 .daily-menu-subject-panel:not(.daily-menu-story-panel),
+.daily-menu-subject-panel-stack--october-20 .daily-menu-subject-panel:not(.daily-menu-story-panel) {
 	text-align: center;
 }
 .daily-menu-explorer-name {
@@ -4661,6 +4661,342 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	background: #091018;
 }
 
+.badges-earned-content {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 336px;
+	z-index: 29;
+	box-sizing: border-box;
+	overflow: auto;
+	padding: 16px;
+	background: rgba(9, 16, 24, 0.92);
+	color: #e9f4ff;
+}
+
+.badges-earned-heading {
+	margin: 0 0 16px;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: 0.04em;
+}
+
+.badges-earned-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 218px);
+	align-content: start;
+	gap: 16px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.badges-earned-item {
+	position: relative;
+	width: 218px;
+}
+
+.badges-earned-image-button {
+	display: block;
+	width: 218px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+}
+
+.badges-earned-image-button--hidden {
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.badges-earned-image {
+	display: block;
+	width: 218px;
+	height: auto;
+	object-fit: contain;
+}
+
+.badges-earned-detail {
+	position: absolute;
+	inset: 0;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 12px;
+	border: 1px solid rgba(255, 248, 190, 0.65);
+	border-radius: 0.875rem;
+	background: #241b16;
+	color: #fff8be;
+	text-align: center;
+}
+
+.badges-earned-detail-heading {
+	margin: 0;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	letter-spacing: 0.02em;
+}
+
+.badges-earned-acquired-date {
+	margin: 0;
+	font-size: 0.9rem;
+}
+
+.badges-earned-reset-button {
+	margin-top: auto;
+	padding: 0.3rem 0.85rem;
+	border: 1px solid #7f1d1d;
+	border-radius: 9999px;
+	background: #dc2626;
+	color: #fff;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.badges-earned-empty {
+	margin: 0;
+}
+
+.description-editor-button {
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border: 1px solid rgba(214, 235, 255, 0.65);
+	border-radius: 0.875rem;
+	background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
+	color: #263445;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+}
+
+.description-editor-options {
+	display: flex;
+	width: 100%;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.description-editor-submenu-button {
+	width: 100%;
+	padding: 0.75rem 1rem;
+	border: 1px solid rgba(255, 255, 255, 0.65);
+	border-radius: 0.875rem;
+	color: #352a26;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.25rem;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+}
+
+.description-editor-font-style-button {
+	background: linear-gradient(180deg, #f7c4c4 0%, #ee9c9c 100%);
+}
+
+.description-editor-font-size-button {
+	background: linear-gradient(180deg, #d7edcf 0%, #b6dba8 100%);
+}
+
+.description-editor-font-style-options {
+	display: flex;
+	width: 100%;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.description-editor-font-style-option-button {
+	align-self: flex-start;
+	width: 70%;
+	padding: 0.75rem 1rem;
+	border: 1px solid rgba(255, 255, 255, 0.65);
+	border-radius: 0.875rem;
+	color: #352a26;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.125rem;
+	letter-spacing: 0.04em;
+	text-align: left;
+	cursor: pointer;
+}
+
+.description-editor-font-style-option-red {
+	background: linear-gradient(180deg, #f7c4c4 0%, #ee9c9c 100%);
+}
+
+.description-editor-font-style-option-orange {
+	background: linear-gradient(180deg, #ffd1a6 0%, #f5b983 100%);
+}
+
+.description-editor-font-style-option-yellow {
+	background: linear-gradient(180deg, #fff2b3 0%, #f5df7d 100%);
+}
+
+.description-editor-font-style-option-green {
+	background: linear-gradient(180deg, #d7edcf 0%, #b6dba8 100%);
+}
+
+.description-editor-font-style-option-blue {
+	background: linear-gradient(180deg, #cfe4ff 0%, #a8c9ef 100%);
+}
+
+.description-editor-font-color-button {
+	background: linear-gradient(180deg, #fff2b3 0%, #f5df7d 100%);
+}
+
+.description-editor-font-size-menu {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.description-editor-font-size-input {
+	box-sizing: border-box;
+	width: 56px;
+	height: 32px;
+	padding: 2px 4px;
+	border: 1px solid rgba(122, 86, 18, 0.8);
+	border-radius: 4px;
+	background: #fffce7;
+	color: #513d12;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+}
+
+.description-editor-font-size-unit {
+	font-size: 0.875rem;
+}
+
+.description-editor-font-size-commit-button {
+	padding: 0.5rem 0.75rem;
+	border: 1px solid rgba(122, 86, 18, 0.8);
+	border-radius: 0.5rem;
+	background: linear-gradient(180deg, #d7edcf 0%, #b6dba8 100%);
+	color: #352a26;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.description-editor-font-color-menu {
+	display: flex;
+	width: 100%;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.description-editor-font-color-swatch {
+	box-sizing: border-box;
+	width: 100%;
+	height: 120px;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid rgba(122, 86, 18, 0.8);
+	border-radius: 8px;
+	background: #000000;
+	cursor: pointer;
+}
+
+.description-editor-font-color-swatch-canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.description-editor-font-color-picker {
+	box-sizing: border-box;
+	width: 100%;
+	height: 120px;
+	padding: 0;
+	border: 1px solid rgba(122, 86, 18, 0.8);
+	border-radius: 8px;
+	background:
+		linear-gradient(to bottom, #ffffff 0%, transparent 50%, #000000 100%),
+		linear-gradient(
+			to right,
+			#ff0000 0%,
+			#ffff00 16.6667%,
+			#00ff00 33.3333%,
+			#00ffff 50%,
+			#0000ff 66.6667%,
+			#ff00ff 83.3333%,
+			#ff0000 100%
+		);
+	cursor: crosshair;
+	touch-action: none;
+}
+
+.description-editor-font-color-picker:focus-visible {
+	outline: 3px solid #0095ff;
+	outline-offset: 2px;
+}
+
+.description-editor-font-color-hex-input {
+	box-sizing: border-box;
+	width: 100%;
+	height: 40px;
+	padding: 4px 8px;
+	border: 1px solid rgba(122, 86, 18, 0.8);
+	border-radius: 4px;
+	background: #fffce7;
+	color: #513d12;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+}
+
+.description-editor-font-color-error {
+	margin: 0;
+	color: #a12c2c;
+	font-size: 0.875rem;
+}
+
+#description-edits-text-box [data-font-style="minecraft-regular-1"],
+#play-by-play-edits-text-box [data-font-style="minecraft-regular-1"],
+.description-edits-loaded-text [data-font-style="minecraft-regular-1"],
+.play-by-play-edits-loaded-text [data-font-style="minecraft-regular-1"],
+.daily-menu-block-saved-description [data-font-style="minecraft-regular-1"],
+.daily-menu-block-play-by-play [data-font-style="minecraft-regular-1"] {
+	font-family: "MinecraftRegular1", "Trebuchet MS", sans-serif;
+}
+
+#description-edits-text-box [data-font-style="minecraft-regular-2"],
+#play-by-play-edits-text-box [data-font-style="minecraft-regular-2"],
+.description-edits-loaded-text [data-font-style="minecraft-regular-2"],
+.play-by-play-edits-loaded-text [data-font-style="minecraft-regular-2"],
+.daily-menu-block-saved-description [data-font-style="minecraft-regular-2"],
+.daily-menu-block-play-by-play [data-font-style="minecraft-regular-2"] {
+	font-family: "MinecraftRegular2", "Trebuchet MS", sans-serif;
+}
+
+#description-edits-text-box [data-font-style="minecraft-regular-2-bold"],
+#play-by-play-edits-text-box [data-font-style="minecraft-regular-2-bold"],
+.description-edits-loaded-text [data-font-style="minecraft-regular-2-bold"],
+.play-by-play-edits-loaded-text [data-font-style="minecraft-regular-2-bold"],
+.daily-menu-block-saved-description [data-font-style="minecraft-regular-2-bold"],
+.daily-menu-block-play-by-play [data-font-style="minecraft-regular-2-bold"] {
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+}
+
+#description-edits-text-box [data-font-style="minecraft-regular-2-italic"],
+#play-by-play-edits-text-box [data-font-style="minecraft-regular-2-italic"],
+.description-edits-loaded-text [data-font-style="minecraft-regular-2-italic"],
+.play-by-play-edits-loaded-text [data-font-style="minecraft-regular-2-italic"],
+.daily-menu-block-saved-description [data-font-style="minecraft-regular-2-italic"],
+.daily-menu-block-play-by-play [data-font-style="minecraft-regular-2-italic"] {
+	font-family: "Minecraft2Italic", "Trebuchet MS", sans-serif;
+}
+
+#description-edits-text-box [data-font-style="minecraft-regular-2-bold-italic"],
+#play-by-play-edits-text-box [data-font-style="minecraft-regular-2-bold-italic"],
+.description-edits-loaded-text [data-font-style="minecraft-regular-2-bold-italic"],
+.play-by-play-edits-loaded-text [data-font-style="minecraft-regular-2-bold-italic"],
+.daily-menu-block-saved-description [data-font-style="minecraft-regular-2-bold-italic"],
+.daily-menu-block-play-by-play [data-font-style="minecraft-regular-2-bold-italic"] {
+	font-family: "Minecraft2BoldItalic", "Trebuchet MS", sans-serif;
+}
+
 .description-edits-button {
 	width: 100%;
 	padding: 0.9rem 1rem;
@@ -4755,6 +5091,19 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	font-size: 1rem;
 	line-height: 1.5;
 	resize: none;
+}
+
+#description-edits-text-box::selection,
+#description-edits-text-box *::selection,
+#play-by-play-edits-text-box::selection,
+#play-by-play-edits-text-box *::selection {
+	background-color: rgba(0, 149, 255, 0.35);
+	color: inherit;
+}
+
+::highlight(description-edits-text-selection) {
+	background-color: rgba(0, 149, 255, 0.35);
+	color: inherit;
 }
 
 .description-edits-text-box::-webkit-scrollbar {
@@ -7271,6 +7620,7 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	transform: translate(var(--student-raili-offset-x, 0px), var(--student-raili-offset-y, 0px))
 		scale(var(--student-raili-resize-scale, 1));
 	transform-origin: bottom right;
+	transition: transform 700ms ease-in-out;
 	pointer-events: none;
 }
 

@@ -1,17 +1,18 @@
 <script setup>
 /**
- * Full-screen October 2026 Math curriculum menu with weekday buttons grouped
- * into Monday-through-Friday weeks and independently toggled selections.
+ * Full-screen October 2026 Math curriculum menu with school-day buttons grouped
+ * into Friday-through-Tuesday weeks and independently toggled selections.
  */
 import { ref } from "vue";
 
 const emit = defineEmits(["back-to-student-edits", "go-home"]);
 const pressedDateDays = ref(new Set());
-const october2026WeekdayWeeks = [
-	[5, 6, 7, 8, 9],
-	[12, 13, 14, 15, 16],
-	[19, 20, 21, 22, 23],
-	[26, 27, 28, 29, 30],
+const october2026SchoolWeeks = [
+	[2, 3, 4, 5, 6],
+	[9, 10, 11, 12, 13],
+	[16, 17, 18, 19, 20],
+	[23, 24, 25, 26, 27],
+	[30, 31],
 ].map((days, weekIndex) => ({
 	id: `math-curriculum-october-week-${weekIndex + 1}`,
 	dates: days.map((dayOfMonth) => ({
@@ -95,11 +96,11 @@ function handleScreenHome() {
 		<h1 class="math-curriculum-october-heading">Math Curriculum<br />October 2026</h1>
 		<div id="math-curriculum-october-week-list" class="math-curriculum-october-week-list">
 			<fieldset
-				v-for="(week, weekIndex) in october2026WeekdayWeeks"
+				v-for="(week, weekIndex) in october2026SchoolWeeks"
 				:id="week.id"
 				:key="week.id"
 				class="math-curriculum-october-week"
-				:aria-label="`October 2026 weekdays, week ${weekIndex + 1}`"
+				:aria-label="`October 2026 school days, week ${weekIndex + 1}`"
 			>
 				<button
 					v-for="date in week.dates"

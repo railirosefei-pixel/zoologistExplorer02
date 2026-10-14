@@ -53,7 +53,7 @@ test("parent screens share navigation and Back returns one level", async ({ page
 	);
 	await page.getByRole("button", { name: "Open Blocks menu" }).click();
 	await verifyNavigation(page, "blocks-screen-home-button", "blocks-screen-back-button");
-	await page.getByRole("button", { name: "Toggle Description Edits" }).click();
+	await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
 	await page.locator("#blocks-screen-back-button").click();
 	await expect(page.locator("#description-edits-position-wrapper")).toHaveCount(0);
 	await expect(page.locator("#blocks-menu-sidebar")).toBeVisible();
@@ -74,6 +74,88 @@ test("parent screens share navigation and Back returns one level", async ({ page
 	await expect(page.locator("#student-edits-screen")).toBeVisible();
 	await page.locator("#student-edits-screen-home-button").click();
 	await expect(page.getByRole("button", { name: "Open parent section" })).toBeVisible();
+});
+
+test("Student Edits labels and Rewards Edits sidebar match the requested layout", async ({
+	page,
+}) => {
+	await openParent(page);
+	await page.getByRole("button", { name: "Student Edits", exact: true }).click();
+	await expect(page.locator("#curriculum-game-button")).toHaveText("Progress Menu Edits");
+	await expect(page.locator("#blocks-menu-button")).toHaveText("Block Edits");
+
+	await page.getByRole("button", { name: "Open Rewards Edits menu" }).click();
+	const sidebar = page.locator("#rewards-edits-sidebar");
+	await expect(sidebar).toBeVisible();
+	await verifyNavigation(
+		page,
+		"rewards-edits-screen-home-button",
+		"rewards-edits-screen-back-button",
+	);
+
+	const rewardsButtons = [
+		page.locator("#extra-credit-button"),
+		page.locator("#badges-earned-button"),
+		page.locator("#cards-earned-button"),
+	];
+	const blockButtonStyle = await page.locator("#blocks-menu-button").evaluate((button) => {
+		const style = getComputedStyle(button);
+		return {
+			padding: style.padding,
+			border: style.border,
+			backgroundImage: style.backgroundImage,
+			color: style.color,
+			fontFamily: style.fontFamily,
+			fontSize: style.fontSize,
+			letterSpacing: style.letterSpacing,
+		};
+	});
+	for (const button of rewardsButtons) {
+		await expect(button).toBeVisible();
+		await expect(button).toHaveClass(/blocks-menu-button/);
+		const style = await button.evaluate((element) => {
+			const computedStyle = getComputedStyle(element);
+			return {
+				padding: computedStyle.padding,
+				border: computedStyle.border,
+				backgroundImage: computedStyle.backgroundImage,
+				color: computedStyle.color,
+				fontFamily: computedStyle.fontFamily,
+				fontSize: computedStyle.fontSize,
+				letterSpacing: computedStyle.letterSpacing,
+			};
+		});
+		expect(style).toEqual(blockButtonStyle);
+	}
+
+	const sidebarBounds = await sidebar.evaluate((element) => {
+		const bounds = element.getBoundingClientRect();
+		return { left: bounds.left, top: bounds.top };
+	});
+	const rewardButtonBounds = await Promise.all(
+		rewardsButtons.map((button) =>
+			button.evaluate((element) => {
+				const bounds = element.getBoundingClientRect();
+				return {
+					left: bounds.left,
+					top: bounds.top,
+					bottom: bounds.bottom,
+				};
+			}),
+		),
+	);
+	expect(rewardButtonBounds[0].left - sidebarBounds.left).toBe(24);
+	expect(rewardButtonBounds[0].top - sidebarBounds.top).toBe(16);
+	expect(rewardButtonBounds[1].top - rewardButtonBounds[0].bottom).toBe(16);
+	expect(rewardButtonBounds[2].top - rewardButtonBounds[1].bottom).toBe(16);
+
+	await page.locator("#rewards-edits-screen-back-button").click();
+	await expect(sidebar).toHaveCount(0);
+	await verifyNavigation(
+		page,
+		"student-edits-screen-home-button",
+		"student-edits-screen-back-button",
+	);
 });
 
 test("Text Editor and Grid controls keep the correct Back", async ({ page }) => {

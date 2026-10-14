@@ -113,7 +113,7 @@ function toggleSubject(subjectId) {
 					id="student-safari-multiplication-thumbnail"
 					class="flex h-[248px] w-[218px] shrink-0 flex-col items-center gap-2 rounded-lg border-4 border-amber-700 bg-white p-2 text-center text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-4 focus-visible:outline-amber-800"
 					type="button"
-					aria-label="Play Raili's Safari Multiplication Adventure"
+					aria-label="Play Raili's Safari Multiplication Adventure (Single Digits)"
 					title="Solve multiplication stories by gathering hundreds, tens, and ones."
 					@click="activeGameId = 'safari-multiplication'"
 				>
@@ -129,7 +129,30 @@ function toggleSubject(subjectId) {
 							3 × 4 = ?
 						</span>
 					</span>
-					<span class="text-sm leading-4 font-bold">Safari Multiplication Adventure</span>
+					<span class="text-sm leading-4 font-bold">Safari Multiplication Adventure (Single Digits)</span>
+					<span class="text-xs text-slate-600">Count items for the safari animals!</span>
+				</button>
+				<button
+					id="student-safari-multiplication-double-digit-thumbnail"
+					class="flex h-[248px] w-[218px] shrink-0 flex-col items-center gap-2 rounded-lg border-4 border-amber-700 bg-white p-2 text-center text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-4 focus-visible:outline-amber-800"
+					type="button"
+					aria-label="Play Raili's Safari Multiplication Adventure (1 Double Digit)"
+					title="Solve multiplication stories by gathering hundreds, tens, and ones."
+					@click="activeGameId = 'safari-multiplication-double-digit'"
+				>
+					<span
+						class="flex aspect-[218/148] w-full flex-col items-center justify-center gap-2 rounded bg-gradient-to-b from-sky-200 via-emerald-100 to-amber-200 p-3"
+						aria-hidden="true"
+					>
+						<span class="text-sm font-bold text-amber-900">Raili's Bestiary</span>
+						<span class="text-3xl">🐒 🐘 🦒 🦓</span>
+						<span
+							class="rounded-lg bg-white/90 px-3 py-1 font-mono text-lg font-bold text-emerald-700"
+						>
+							12 × 3 = ?
+						</span>
+					</span>
+					<span class="text-sm leading-4 font-bold">Safari Multiplication Adventure (1 Double Digit)</span>
 					<span class="text-xs text-slate-600">Count items for the safari animals!</span>
 				</button>
 			</main>
@@ -161,6 +184,11 @@ function toggleSubject(subjectId) {
 		/>
 		<SafariMultiplicationGame
 			v-else-if="activeGameId === 'safari-multiplication'"
+			@close="activeGameId = ''"
+		/>
+		<SafariMultiplicationGame
+			v-else-if="activeGameId === 'safari-multiplication-double-digit'"
+			:use-double-digit-factor="true"
 			@close="activeGameId = ''"
 		/>
 	</div>

@@ -36,12 +36,19 @@ test("Student button opens the full-screen menu and Back returns home", async ({
 	await expect(studentMenu).toBeHidden();
 });
 
-test("Parent Block Edits shows a Monday through Friday weekly panel set", async ({ page }) => {
+test("Parent Block Completion Edits shows a Friday through Tuesday weekly panel set", async ({ page }) => {
+	await page.clock.install({ time: new Date(2026, 9, 14) });
+	await page.addInitScript(() => {
+		localStorage.setItem(
+			"zoologistExplorer02.completedBlocks",
+			JSON.stringify({ "2026-10-12::math::1": true }),
+		);
+	});
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
 	await page.getByRole("button", { name: "Open Blocks menu" }).click();
-	const blockEditsButton = page.getByRole("button", { name: "Toggle Block Edits" });
+	const blockEditsButton = page.getByRole("button", { name: "Block Completion Edits", exact: true });
 	await blockEditsButton.click();
 	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "true");
 	await expect(blockEditsButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
@@ -58,8 +65,21 @@ test("Parent Block Edits shows a Monday through Friday weekly panel set", async 
 	const uniqueDates = await page
 		.locator(".block-edits-panel-date")
 		.evaluateAll((elements) => elements.map((element) => element.textContent.trim()));
-	expect(uniqueDates).toHaveLength(5);
+	expect(uniqueDates).toEqual([
+		"October 16, 2026",
+		"October 17, 2026",
+		"October 18, 2026",
+		"October 19, 2026",
+		"October 20, 2026",
+	]);
 	expect(uniqueDates.every((date) => date.length > 0)).toBeTruthy();
+	await expect(
+		page.locator("#block-edits-panel-2026-10-16-math-block-1-complete-control"),
+	).toHaveAttribute("aria-pressed", "true");
+	const schoolWeekdays = await page
+		.locator(".block-edits-panel-date")
+		.evaluateAll((elements) => elements.map((element) => new Date(element.textContent).getDay()));
+	expect(schoolWeekdays).toEqual([5, 6, 0, 1, 2]);
 
 	await blockEditsButton.click();
 	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "false");

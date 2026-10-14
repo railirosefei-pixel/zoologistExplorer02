@@ -14,11 +14,14 @@ import septemberDayTexture from "../../assets/textures/minecraftTNT.webp";
 import CalendarMonthCard from "./CalendarMonthCard.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
+import { formattedTextToHtml } from "../js/formattedText.js";
+import { FIRST_SCHOOL_DAY, isSchoolDay } from "../js/schoolSchedule.js";
+import { awardCompletedSubjectBadge } from "../js/rewardBadgeState.js";
 
-const emit = defineEmits(["go-home", "open-progress"]);
+const emit = defineEmits(["go-home", "open-progress", "open-reward"]);
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const storyTimelineTabs = ["Year", "Quarter", "Month", "Week", "Day"];
-const firstSchoolDay = new Date(2026, 9, 12);
+const firstSchoolDay = FIRST_SCHOOL_DAY;
 const year1TimelineStory = {
 	theme: "Expeditions into Blockland: The Obsidian Portal and the Never Ending Tales of Raili Rose",
 	paragraphs: [
@@ -75,7 +78,11 @@ const selectedDailyMenuBlock = ref(null);
 const activeStoryTimelineTab = ref(null);
 const hasDailyMenuContent = computed(() => {
 	const selectedDate = new Date(selectedDailyMenuDateLabel.value);
-	return !Number.isNaN(selectedDate.getTime()) && selectedDate >= firstSchoolDay;
+	return (
+		!Number.isNaN(selectedDate.getTime()) &&
+		selectedDate >= firstSchoolDay &&
+		isSchoolDay(selectedDate)
+	);
 });
 const blockSubjectLabels = {
 	math: "Math",
@@ -208,23 +215,23 @@ const october9StoryParagraphs = [
 
 /** Story content lookup keyed by the selected daily menu date label. */
 const storyContentByDateLabel = {
-	"October 12, 2026": {
+	"October 16, 2026": {
 		theme: october5StoryTheme,
 		paragraphs: october5StoryParagraphs,
 	},
-	"October 13, 2026": {
+	"October 17, 2026": {
 		theme: october6StoryTheme,
 		paragraphs: october6StoryParagraphs,
 	},
-	"October 14, 2026": {
+	"October 18, 2026": {
 		theme: october7StoryTheme,
 		paragraphs: october7StoryParagraphs,
 	},
-	"October 15, 2026": {
+	"October 19, 2026": {
 		theme: october8StoryTheme,
 		paragraphs: october8StoryParagraphs,
 	},
-	"October 16, 2026": {
+	"October 20, 2026": {
 		theme: october9StoryTheme,
 		paragraphs: october9StoryParagraphs,
 	},
@@ -256,20 +263,20 @@ const explorerCopyBySubject = {
 	],
 };
 const allowedExplorerCopyDates = new Set([
-	"October 12, 2026",
-	"October 13, 2026",
-	"October 14, 2026",
-	"October 15, 2026",
 	"October 16, 2026",
+	"October 17, 2026",
+	"October 18, 2026",
+	"October 19, 2026",
+	"October 20, 2026",
 ]);
 const explorerCopyByDateAndSubject = {
-	"October 13, 2026": {
+	"October 17, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You did so much yesterday to bring the Whispering Giraffe Family to a new water hole, but there’s still much to do.  Complete the Quests today to help them find their way to food!",
 		],
 	},
-	"October 15, 2026": {
+	"October 19, 2026": {
 		math: [
 			"Explorer Raili!",
 			"Amazing job, blocking the lion’s path!  You really saved the day, but now it appears that the crocodiles are blocking the Whispering Giraffe Family’s path to their new found watering hold.  We can’t let that happen!  Continue your journey by completing the daily Quests and we will make our way to the hippos so they can help us save the giraffes",
@@ -287,7 +294,7 @@ const explorerCopyByDateAndSubject = {
 			"Unbelievable!  I never doubted you for second.  You’ve made it so far and I just know that if you keep doing your best, you’ll win every time!  Just a little farther to go and those crocodiles are sure to leave",
 		],
 	},
-	"October 16, 2026": {
+	"October 20, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You’ve brought the Whispering Giraffe Family to water and food.  You’ve blockaded the lions from getting to their new home, and even made friends with the hippos who helped you push the crocodiles out of their watering hole.  You’re a hero and loved by the giraffes.  But now the young giraffe calves are sick.  Luckily, the journal has given you a hint.  One last task.  Complete your journey and save the giraffe calves!",
@@ -305,7 +312,7 @@ const explorerCopyByDateAndSubject = {
 			"You’ve done it!  You got the herbs and saved the baby giraffes.  You are the best kid who every lived!  Every day, you have dedicated so much time to saving the Whispering Giraffes and did amazing things.  I can’t wait to see how far you go!  Congratulations!!!",
 		],
 	},
-	"October 14, 2026": {
+	"October 18, 2026": {
 		math: [
 			"Explorer Raili!",
 			"You brought the Whispering Giraffe Family to water and to a whole new grove of Acacia trees while avoiding the pride of lions",
@@ -350,17 +357,17 @@ const selectedTimelineStory = computed(() => {
 	}
 	if (
 		activeStoryTimelineTab.value === "Quarter" &&
-		isStoryButtonAvailable(new Date(2027, 0, 4))
+		isStoryButtonAvailable(new Date(2027, 0, 8))
 	) {
 		return quarter1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Month" && isStoryButtonAvailable(new Date(2026, 10, 9))) {
+	if (activeStoryTimelineTab.value === "Month" && isStoryButtonAvailable(new Date(2026, 10, 13))) {
 		return month1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Week" && isStoryButtonAvailable(new Date(2026, 9, 19))) {
+	if (activeStoryTimelineTab.value === "Week" && isStoryButtonAvailable(new Date(2026, 9, 23))) {
 		return week1TimelineStory;
 	}
-	if (activeStoryTimelineTab.value === "Day" && isStoryButtonAvailable(new Date(2026, 9, 17))) {
+	if (activeStoryTimelineTab.value === "Day" && isStoryButtonAvailable(new Date(2026, 9, 21))) {
 		return storyContentByDateLabel[selectedDailyMenuDateLabel.value] ?? null;
 	}
 	return null;
@@ -460,6 +467,20 @@ function handleBlockComplete(subject, blockNumber) {
 	}
 
 	blockCompletionStore.markBlockComplete(selectedDailyMenuDateLabel.value, subject, blockNumber);
+	const hasCompletedSubjectBlocks = [1, 2, 3].every((number) =>
+		blockCompletionStore.isBlockCompleteForDate(
+			selectedDailyMenuDateLabel.value,
+			subject,
+			number,
+		),
+	);
+	if (hasCompletedSubjectBlocks) {
+		const reward = awardCompletedSubjectBadge(selectedDailyMenuDateLabel.value, subject);
+		if (reward) {
+			emit("open-reward", { badge: reward.badge, animate: reward.isNew });
+			return;
+		}
+	}
 	emit("open-progress");
 }
 
@@ -486,12 +507,9 @@ function isStoryButtonAvailable(endDate) {
 	const monthIndex = new Date(`${monthName} 1, ${yearValue}`).getMonth();
 	const selectedDate = new Date(Number(yearValue), monthIndex, Number(dayValue));
 	const storyStartDate = firstSchoolDay;
-	const dayOfWeek = selectedDate.getDay();
-
 	return (
 		selectedDate >= storyStartDate &&
-		dayOfWeek >= 1 &&
-		dayOfWeek <= 5 &&
+		isSchoolDay(selectedDate) &&
 		(!endDate || selectedDate < endDate)
 	);
 }
@@ -796,16 +814,16 @@ onBeforeUnmount(() => {
 						{
 							'daily-menu-subject-panel-stack--story':
 								selectedDailyMenuSubject === 'story',
-							'daily-menu-subject-panel-stack--october-12':
-								selectedDailyMenuDateLabel === 'October 12, 2026',
-							'daily-menu-subject-panel-stack--october-13':
-								selectedDailyMenuDateLabel === 'October 13, 2026',
-							'daily-menu-subject-panel-stack--october-14':
-								selectedDailyMenuDateLabel === 'October 14, 2026',
-							'daily-menu-subject-panel-stack--october-15':
-								selectedDailyMenuDateLabel === 'October 15, 2026',
 							'daily-menu-subject-panel-stack--october-16':
 								selectedDailyMenuDateLabel === 'October 16, 2026',
+							'daily-menu-subject-panel-stack--october-17':
+								selectedDailyMenuDateLabel === 'October 17, 2026',
+							'daily-menu-subject-panel-stack--october-18':
+								selectedDailyMenuDateLabel === 'October 18, 2026',
+							'daily-menu-subject-panel-stack--october-19':
+								selectedDailyMenuDateLabel === 'October 19, 2026',
+							'daily-menu-subject-panel-stack--october-20':
+								selectedDailyMenuDateLabel === 'October 20, 2026',
 						},
 					]"
 				>
@@ -891,14 +909,19 @@ onBeforeUnmount(() => {
 							"
 							class="daily-menu-block-saved-description"
 						>
-							<p>
-								{{
-									getSavedBlockDescription(
-										selectedDailyMenuSubject,
-										selectedDailyMenuBlock,
+							<!-- Safe output is escaped or sanitized by formattedTextToHtml. -->
+							<!-- eslint-disable vue/no-v-html -->
+							<p
+								v-html="
+									formattedTextToHtml(
+										getSavedBlockDescription(
+											selectedDailyMenuSubject,
+											selectedDailyMenuBlock,
+										),
 									)
-								}}
-							</p>
+								"
+							/>
+							<!-- eslint-enable vue/no-v-html -->
 						</div>
 						<div
 							v-if="
@@ -911,14 +934,19 @@ onBeforeUnmount(() => {
 							class="daily-menu-block-play-by-play"
 							:aria-label="`${blockSubjectLabels[selectedDailyMenuSubject]} Block ${selectedDailyMenuBlock} Play by Play`"
 						>
-							<p>
-								{{
-									getSavedBlockPlayByPlay(
-										selectedDailyMenuSubject,
-										selectedDailyMenuBlock,
+							<!-- Safe output is escaped or sanitized by formattedTextToHtml. -->
+							<!-- eslint-disable vue/no-v-html -->
+							<p
+								v-html="
+									formattedTextToHtml(
+										getSavedBlockPlayByPlay(
+											selectedDailyMenuSubject,
+											selectedDailyMenuBlock,
+										),
 									)
-								}}
-							</p>
+								"
+							/>
+							<!-- eslint-enable vue/no-v-html -->
 						</div>
 					</article>
 					<article

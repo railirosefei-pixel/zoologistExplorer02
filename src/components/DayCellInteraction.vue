@@ -1,6 +1,7 @@
 /** Interactive calendar day cell presentation and click boundary. */
 <script setup>
 import { computed } from "vue";
+import { FIRST_SCHOOL_DAY } from "../js/schoolSchedule.js";
 
 const props = defineProps({
 	cell: {
@@ -70,7 +71,7 @@ const isDecorativePreStartDayCell = computed(
 		props.cell.isCurrentMonth &&
 		props.cell.value !== "" &&
 		/^calendar-day-cell-October-2026-\d+$/.test(props.cellId) &&
-		Number(props.cell.value) < 12,
+		Number(props.cell.value) < FIRST_SCHOOL_DAY.getDate(),
 );
 
 function handleDayCellClick() {

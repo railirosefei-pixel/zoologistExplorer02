@@ -1,45 +1,81 @@
 <script setup>
 /**
  * Parent > Student Edits screen. Hosts the Curriculum Game and Block Edits
- * sidebar controls plus a weekly Monday-through-Friday Block Edits set that
+ * sidebar controls plus a weekly Friday-through-Tuesday Block Edits set that
  * mirrors the Student daily-menu block completion behavior for each day.
+ * Font choices apply to selected text and new text in drafts and loaded fields.
  */
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
+import { fontStyleOptions } from "../js/fontStyleOptions.js";
+import { getSchoolWeekStartDate } from "../js/schoolSchedule.js";
+import {
+	formattedTextToHtml,
+	insertPlainTextAtSelection,
+	serializeFormattedText,
+} from "../js/formattedText.js";
 
 const emit = defineEmits([
 	"open-curriculum-game",
 	"open-math-curriculum-october",
 	"back-to-parent-menu",
 	"go-home",
+	"reset-earned-badge",
 ]);
 const props = defineProps({
 	initialDescriptionEditsOpen: {
 		type: Boolean,
 		default: false,
 	},
+	earnedBadges: {
+		type: Array,
+		default: () => [],
+	},
 });
+const fontStyleOptionClassNames = [
+	"description-editor-font-style-option-red",
+	"description-editor-font-style-option-orange",
+	"description-editor-font-style-option-yellow",
+	"description-editor-font-style-option-green",
+	"description-editor-font-style-option-blue",
+];
 const isBlockEditsOpen = ref(false);
 const isBlocksMenuOpen = ref(props.initialDescriptionEditsOpen);
+const isRewardsEditsMenuOpen = ref(false);
+const isBadgesEarnedMenuOpen = ref(false);
+const activeEarnedBadgeSubject = ref(null);
+const selectedEarnedBadgeId = ref(null);
+const earnedBadgeSubjects = [
+	{ key: "math", label: "Math" },
+	{ key: "language-arts", label: "Language Arts" },
+	{ key: "social-studies", label: "Social Studies" },
+	{ key: "science", label: "Science" },
+];
+const earnedBadgesForActiveSubject = computed(() =>
+	props.earnedBadges.filter((badge) => badge.subject === activeEarnedBadgeSubject.value),
+);
+const activeEarnedBadgeSubjectLabel = computed(
+	() =>
+		earnedBadgeSubjects.find(({ key }) => key === activeEarnedBadgeSubject.value)?.label ?? "",
+);
 const isDescriptionEditsOpen = ref(props.initialDescriptionEditsOpen);
+const isDescriptionEditorOpen = ref(false);
+const isDescriptionFontStylesOpen = ref(false);
+const isDescriptionFontSizeMenuOpen = ref(false);
+const isDescriptionFontColorMenuOpen = ref(false);
+const isDescriptionFontColorPickerOpen = ref(false);
+const descriptionEditorFontColorInput = ref("#000000");
+const descriptionFontColorSwatchCanvas = ref(null);
+const descriptionFontColorPickerHue = ref(0);
+const descriptionFontColorPickerSaturation = ref(0);
+const descriptionFontColorPickerValue = ref(0);
+const descriptionEditorFontSizeInput = ref("");
+const activeDescriptionFontColor = ref(null);
+const activeDescriptionFontSize = ref(null);
 const descriptionEditsDraft = ref("");
 const descriptionEditsPlayByPlayDraft = ref("");
 const descriptionEditsMode = ref(null);
-const descriptionEditsActiveDraft = computed({
-	get() {
-		return descriptionEditsMode.value === "play-by-play"
-			? descriptionEditsPlayByPlayDraft.value
-			: descriptionEditsDraft.value;
-	},
-	set(value) {
-		if (descriptionEditsMode.value === "play-by-play") {
-			descriptionEditsPlayByPlayDraft.value = value;
-		} else {
-			descriptionEditsDraft.value = value;
-		}
-	},
-});
 const descriptionEditsDateSelections = {
 	description: {
 		month: ref(null),
@@ -105,6 +141,22 @@ const descriptionEditsSelectedBlock = computed({
 const descriptionEditsLoadedSelectionKey = ref(null);
 const descriptionEditsLoadedFields = ref([]);
 const descriptionEditsEditor = ref(null);
+const activeDescriptionTextEditor = ref(null);
+const activeDescriptionFontStyleId = ref(null);
+let savedDescriptionTextEditorRange = null;
+let savedDescriptionTextEditor = null;
+
+watch(
+	[isDescriptionFontColorMenuOpen, descriptionEditorFontColorInput],
+	async ([isMenuOpen]) => {
+		if (!isMenuOpen) {
+			return;
+		}
+		await nextTick();
+		drawDescriptionFontColorSwatch();
+	},
+	{ flush: "post" },
+);
 const isDescriptionEditsLoadEnabled = computed(() =>
 	Boolean(
 		descriptionEditsMode.value === "description" &&
@@ -323,19 +375,575 @@ function formatDateLabel(date) {
 	return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
-function getMondayOfCurrentWeek(date = new Date()) {
-	const normalizedDate = new Date(date);
-	normalizedDate.setHours(0, 0, 0, 0);
-	const dayIndex = (normalizedDate.getDay() + 6) % 7;
-	normalizedDate.setDate(normalizedDate.getDate() - dayIndex);
-	return normalizedDate;
+function getRangeInDescriptionEditor(editor) {
+	const selection = window.getSelection();
+	if (!selection || selection.rangeCount === 0) {
+		return null;
+	}
+	const range = selection.getRangeAt(0);
+	return editor.contains(range.commonAncestorContainer) ? range : null;
 }
 
+function getDescriptionTextRangeFontColor(editor, range) {
+	const walker = editor.ownerDocument.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+	let selectedColor = null;
+	let textNode;
+	while ((textNode = walker.nextNode())) {
+		if (!range.intersectsNode(textNode)) {
+			continue;
+		}
+		const startOffset = range.startContainer === textNode ? range.startOffset : 0;
+		const endOffset =
+			range.endContainer === textNode ? range.endOffset : textNode.textContent.length;
+		if (startOffset >= endOffset) {
+			continue;
+		}
+		const computedColor = window.getComputedStyle(textNode.parentElement).color;
+		const colorMatch = computedColor.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+		if (!colorMatch) {
+			return null;
+		}
+		const color = `#${colorMatch
+			.slice(1, 4)
+			.map((channel) => Number(channel).toString(16).padStart(2, "0"))
+			.join("")}`;
+		if (selectedColor && color !== selectedColor) {
+			return null;
+		}
+		selectedColor = color;
+	}
+	return selectedColor;
+}
+
+const descriptionTextSelectionHighlightName = "description-edits-text-selection";
+let highlightedDescriptionTextEditor = null;
+let highlightedDescriptionTextEditorRange = null;
+let descriptionTextEditorMouseDown = null;
+
+function clearDescriptionTextEditorSelectionHighlight() {
+	CSS.highlights.delete(descriptionTextSelectionHighlightName);
+	highlightedDescriptionTextEditor = null;
+	highlightedDescriptionTextEditorRange = null;
+}
+
+function highlightDescriptionTextEditorSelection() {
+	const editor = highlightedDescriptionTextEditor;
+	const range = highlightedDescriptionTextEditorRange;
+	if (!editor?.isConnected || !range || range.collapsed) {
+		clearDescriptionTextEditorSelectionHighlight();
+		return;
+	}
+	CSS.highlights.set(descriptionTextSelectionHighlightName, new Highlight(range.cloneRange()));
+}
+
+function rememberDescriptionTextEditorSelection(event) {
+	const editor = event.currentTarget;
+	activeDescriptionTextEditor.value = editor;
+	const range = getRangeInDescriptionEditor(editor);
+	if (range) {
+		savedDescriptionTextEditor = editor;
+		savedDescriptionTextEditorRange = range.cloneRange();
+		if (!range.collapsed) {
+			const selectedColor = getDescriptionTextRangeFontColor(editor, range);
+			if (selectedColor) {
+				descriptionEditorFontColorInput.value = selectedColor;
+			}
+			highlightedDescriptionTextEditor = editor;
+			highlightedDescriptionTextEditorRange = range.cloneRange();
+			highlightDescriptionTextEditorSelection();
+		}
+	}
+}
+
+function handleDescriptionTextEditorMouseDown(event) {
+	if (event.button === 0) {
+		descriptionTextEditorMouseDown = {
+			editor: event.currentTarget,
+			x: event.clientX,
+			y: event.clientY,
+		};
+	}
+}
+
+function handleDescriptionTextEditorClick(event) {
+	if (event.button !== 0 || event.detail === 0) {
+		return;
+	}
+	const mouseDown = descriptionTextEditorMouseDown;
+	descriptionTextEditorMouseDown = null;
+	if (
+		!mouseDown ||
+		mouseDown.editor !== event.currentTarget ||
+		(Math.abs(event.clientX - mouseDown.x) <= 4 && Math.abs(event.clientY - mouseDown.y) <= 4)
+	) {
+		clearDescriptionTextEditorSelectionHighlight();
+	}
+}
+
+function handleDescriptionTextEditorDocumentDoubleClick(event) {
+	if (event.button !== 0) {
+		return;
+	}
+	const target = event.target;
+	if (
+		target instanceof Element &&
+		target.closest("#description-edits-panel-container [contenteditable='true']")
+	) {
+		return;
+	}
+	clearDescriptionTextEditorSelectionHighlight();
+}
+
+onBeforeUnmount(clearDescriptionTextEditorSelectionHighlight);
+
+function syncDescriptionTextEditor(editor, field = null) {
+	const value = serializeFormattedText(editor);
+	const isPlayByPlay = editor.id.startsWith("play-by-play-edits-");
+	const prefix = isPlayByPlay ? "play-by-play-edits" : "description-edits";
+	const loadedFields = isPlayByPlay
+		? playByPlayEditsLoadedFields.value
+		: descriptionEditsLoadedFields.value;
+	const loadedField =
+		field ??
+		loadedFields.find(
+			({ blocks }) => editor.id === `${prefix}-loaded-text-${blocks.join("-")}`,
+		);
+	if (loadedField) {
+		loadedField.text = value;
+	} else if (isPlayByPlay) {
+		descriptionEditsPlayByPlayDraft.value = value;
+	} else {
+		descriptionEditsDraft.value = value;
+	}
+	rememberDescriptionTextEditorSelection({ currentTarget: editor });
+}
+
+function handleDescriptionTextEditorInput(event, field = null) {
+	syncDescriptionTextEditor(event.currentTarget, field);
+}
+
+function handleDescriptionTextEditorPaste(event) {
+	const editor = event.currentTarget;
+	const text = event.clipboardData?.getData("text/plain");
+	const range = getRangeInDescriptionEditor(editor);
+	if (text === undefined || !range) {
+		return;
+	}
+	event.preventDefault();
+	if (
+		activeDescriptionFontStyleId.value ||
+		activeDescriptionFontColor.value ||
+		activeDescriptionFontSize.value
+	) {
+		insertDescriptionFormattedText(
+			editor,
+			range,
+			text,
+			activeDescriptionFontStyleId.value,
+			activeDescriptionFontColor.value,
+			activeDescriptionFontSize.value,
+		);
+	} else {
+		insertPlainTextAtSelection(editor, text);
+	}
+	syncDescriptionTextEditor(editor);
+}
+
+function removeFontStyles(node) {
+	const styledNodes = [...node.querySelectorAll("[data-font-style]")].reverse();
+	for (const styledNode of styledNodes) {
+		styledNode.replaceWith(...styledNode.childNodes);
+	}
+}
+
+function removeFontColors(node) {
+	const coloredNodes = [...node.querySelectorAll("[data-font-color]")].reverse();
+	for (const coloredNode of coloredNodes) {
+		delete coloredNode.dataset.fontColor;
+		coloredNode.style.removeProperty("color");
+		if (!coloredNode.getAttribute("style")?.trim()) {
+			coloredNode.removeAttribute("style");
+		}
+	}
+}
+
+function removeFontSizes(node) {
+	for (const styledNode of node.querySelectorAll("[style]")) {
+		styledNode.style.removeProperty("font-size");
+		if (!styledNode.getAttribute("style")?.trim()) {
+			styledNode.removeAttribute("style");
+		}
+	}
+}
+
+function normalizeDescriptionFontColor(color) {
+	const value = color.trim();
+	if (!/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value)) {
+		return null;
+	}
+	const digits = value.slice(1);
+	const expandedDigits =
+		digits.length === 3 ? [...digits].map((digit) => digit + digit).join("") : digits;
+	return `#${expandedDigits}`.toLowerCase();
+}
+
+function drawDescriptionFontColorSwatch() {
+	const canvas = descriptionFontColorSwatchCanvas.value;
+	const color = normalizeDescriptionFontColor(descriptionEditorFontColorInput.value);
+	const bounds = canvas?.getBoundingClientRect();
+	const context = canvas?.getContext("2d");
+	if (!canvas || !bounds || !context) {
+		return;
+	}
+	const pixelRatio = window.devicePixelRatio || 1;
+	canvas.width = Math.round(bounds.width * pixelRatio);
+	canvas.height = Math.round(bounds.height * pixelRatio);
+	context.fillStyle = color ?? "#000000";
+	context.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function handleDescriptionFontColorPickerToggle() {
+	isDescriptionFontColorPickerOpen.value = !isDescriptionFontColorPickerOpen.value;
+}
+
+function setDescriptionFontColorFromHsv(hue, saturation, value) {
+	descriptionFontColorPickerHue.value = hue;
+	descriptionFontColorPickerSaturation.value = saturation;
+	descriptionFontColorPickerValue.value = value;
+	const chroma = value * saturation;
+	const secondary = chroma * (1 - Math.abs(((hue / 60) % 2) - 1));
+	const offset = value - chroma;
+	let channels;
+	if (hue < 60) {
+		channels = [chroma, secondary, 0];
+	} else if (hue < 120) {
+		channels = [secondary, chroma, 0];
+	} else if (hue < 180) {
+		channels = [0, chroma, secondary];
+	} else if (hue < 240) {
+		channels = [0, secondary, chroma];
+	} else if (hue < 300) {
+		channels = [secondary, 0, chroma];
+	} else {
+		channels = [chroma, 0, secondary];
+	}
+	descriptionEditorFontColorInput.value = `#${channels
+		.map((channel) =>
+			Math.round((channel + offset) * 255)
+				.toString(16)
+				.padStart(2, "0"),
+		)
+		.join("")}`;
+	activeDescriptionFontColor.value = descriptionEditorFontColorInput.value;
+}
+
+function handleDescriptionFontColorPickerPointer(event) {
+	if (event.type === "pointermove" && event.buttons === 0) {
+		return;
+	}
+	if (event.type === "pointerdown") {
+		event.currentTarget.setPointerCapture(event.pointerId);
+	}
+	const bounds = event.currentTarget.getBoundingClientRect();
+	const horizontalPosition = Math.min(
+		1,
+		Math.max(0, (event.clientX - bounds.left) / bounds.width),
+	);
+	const verticalPosition = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
+	const saturation = verticalPosition <= 0.5 ? verticalPosition * 2 : 1;
+	const value = verticalPosition <= 0.5 ? 1 : (1 - verticalPosition) * 2;
+	setDescriptionFontColorFromHsv(horizontalPosition * 360, saturation, value);
+	if (event.type === "pointerup") {
+		commitDescriptionFontColor();
+	}
+}
+
+function handleDescriptionFontColorPickerKeydown(event) {
+	const hueChanges = { ArrowLeft: -5, ArrowRight: 5 };
+	if (hueChanges[event.key]) {
+		event.preventDefault();
+		setDescriptionFontColorFromHsv(
+			(descriptionFontColorPickerHue.value + hueChanges[event.key] + 360) % 360,
+			descriptionFontColorPickerSaturation.value,
+			descriptionFontColorPickerValue.value,
+		);
+		commitDescriptionFontColor();
+		return;
+	}
+	if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+		event.preventDefault();
+		const adjustment = event.key === "ArrowUp" ? 0.05 : -0.05;
+		setDescriptionFontColorFromHsv(
+			descriptionFontColorPickerHue.value,
+			descriptionFontColorPickerSaturation.value,
+			Math.min(1, Math.max(0, descriptionFontColorPickerValue.value + adjustment)),
+		);
+		commitDescriptionFontColor();
+	}
+}
+
+function handleDescriptionFontColorHexInput(event) {
+	const color = normalizeDescriptionFontColor(event.currentTarget.value);
+	if (!color) {
+		return;
+	}
+	descriptionEditorFontColorInput.value = color;
+	event.currentTarget.value = color;
+	activeDescriptionFontColor.value = color;
+}
+
+function commitDescriptionFontColor() {
+	const color = normalizeDescriptionFontColor(descriptionEditorFontColorInput.value);
+	if (!color) {
+		return;
+	}
+	descriptionEditorFontColorInput.value = color;
+	activeDescriptionFontColor.value = color;
+	const editor = activeDescriptionTextEditor.value;
+	if (!editor?.isConnected) {
+		return;
+	}
+	const currentRange = getRangeInDescriptionEditor(editor);
+	const range =
+		currentRange ??
+		(savedDescriptionTextEditor === editor ? savedDescriptionTextEditorRange : null);
+	if (!range || !editor.contains(range.commonAncestorContainer)) {
+		return;
+	}
+
+	if (!range.collapsed) {
+		const coloredText = editor.ownerDocument.createElement("span");
+		coloredText.dataset.fontColor = color;
+		coloredText.style.color = color;
+		const selectedContents = range.extractContents();
+		removeFontColors(selectedContents);
+		coloredText.append(selectedContents);
+		range.insertNode(coloredText);
+		range.selectNodeContents(coloredText);
+		highlightedDescriptionTextEditor = editor;
+		highlightedDescriptionTextEditorRange = range.cloneRange();
+		range.collapse(false);
+		highlightDescriptionTextEditorSelection();
+	}
+	editor.focus();
+	const selection = window.getSelection();
+	selection?.removeAllRanges();
+	selection?.addRange(range);
+	savedDescriptionTextEditor = editor;
+	savedDescriptionTextEditorRange = range.cloneRange();
+	syncDescriptionTextEditor(editor);
+}
+
+function sanitizeDescriptionFontSizeInput(event) {
+	const numericValue = event.currentTarget.value.replace(/\D/g, "").slice(0, 3);
+	descriptionEditorFontSizeInput.value = numericValue;
+	event.currentTarget.value = numericValue;
+}
+
+function commitDescriptionFontSize() {
+	if (!descriptionEditorFontSizeInput.value) {
+		return;
+	}
+	activeDescriptionFontSize.value = descriptionEditorFontSizeInput.value;
+	const editor = activeDescriptionTextEditor.value;
+	if (!editor?.isConnected) {
+		return;
+	}
+	const currentRange = getRangeInDescriptionEditor(editor);
+	const range =
+		currentRange ??
+		(savedDescriptionTextEditor === editor ? savedDescriptionTextEditorRange : null);
+	if (!range || !editor.contains(range.commonAncestorContainer)) {
+		return;
+	}
+
+	if (!range.collapsed) {
+		const sizedText = editor.ownerDocument.createElement("span");
+		sizedText.style.fontSize = `${descriptionEditorFontSizeInput.value}pt`;
+		const selectedContents = range.extractContents();
+		removeFontSizes(selectedContents);
+		sizedText.append(selectedContents);
+		range.insertNode(sizedText);
+		range.selectNodeContents(sizedText);
+		highlightedDescriptionTextEditor = editor;
+		highlightedDescriptionTextEditorRange = range.cloneRange();
+		range.collapse(false);
+		highlightDescriptionTextEditorSelection();
+	}
+	editor.focus();
+	const selection = window.getSelection();
+	selection?.removeAllRanges();
+	selection?.addRange(range);
+	savedDescriptionTextEditor = editor;
+	savedDescriptionTextEditorRange = range.cloneRange();
+	syncDescriptionTextEditor(editor);
+}
+
+function handleDescriptionTextEditorBeforeInput(event) {
+	if (
+		event.inputType !== "insertText" ||
+		typeof event.data !== "string" ||
+		!event.cancelable ||
+		(!activeDescriptionFontStyleId.value &&
+			!activeDescriptionFontColor.value &&
+			!activeDescriptionFontSize.value)
+	) {
+		return;
+	}
+	const editor = event.currentTarget;
+	const range = getRangeInDescriptionEditor(editor);
+	if (!range) {
+		return;
+	}
+	const rangeElement =
+		range.startContainer.nodeType === Node.ELEMENT_NODE
+			? range.startContainer
+			: range.startContainer.parentElement;
+	const existingStyle = rangeElement?.closest("[data-font-style]");
+	const existingFontColor = rangeElement?.closest("[data-font-color]")?.dataset.fontColor;
+	const existingFontSize = rangeElement?.closest("[style]")?.style.fontSize;
+	const sameStyle =
+		(!activeDescriptionFontStyleId.value ||
+			existingStyle?.dataset.fontStyle === activeDescriptionFontStyleId.value) &&
+		(!activeDescriptionFontColor.value ||
+			existingFontColor === activeDescriptionFontColor.value) &&
+		(!activeDescriptionFontSize.value ||
+			existingFontSize === `${activeDescriptionFontSize.value}pt`);
+	if (range.collapsed && sameStyle) {
+		return;
+	}
+
+	event.preventDefault();
+	insertDescriptionFormattedText(
+		editor,
+		range,
+		event.data,
+		activeDescriptionFontStyleId.value,
+		activeDescriptionFontColor.value,
+		activeDescriptionFontSize.value,
+	);
+	syncDescriptionTextEditor(editor);
+}
+
+function handleDescriptionFontStyleSelect(fontOption) {
+	if (!fontOption?.family) {
+		return;
+	}
+	activeDescriptionFontStyleId.value = fontOption.id;
+	const editor = activeDescriptionTextEditor.value;
+	if (!editor?.isConnected) {
+		return;
+	}
+	const currentRange = getRangeInDescriptionEditor(editor);
+	const range =
+		currentRange ??
+		(savedDescriptionTextEditor === editor ? savedDescriptionTextEditorRange : null);
+	if (!range || !editor.contains(range.commonAncestorContainer)) {
+		return;
+	}
+
+	if (!range.collapsed) {
+		const styledText = editor.ownerDocument.createElement("span");
+		styledText.dataset.fontStyle = fontOption.id;
+		const selectedContents = range.extractContents();
+		removeFontStyles(selectedContents);
+		styledText.append(selectedContents);
+		range.insertNode(styledText);
+		range.selectNodeContents(styledText);
+		highlightedDescriptionTextEditor = editor;
+		highlightedDescriptionTextEditorRange = range.cloneRange();
+		range.collapse(false);
+		highlightDescriptionTextEditorSelection();
+	}
+	editor.focus();
+	const selection = window.getSelection();
+	selection?.removeAllRanges();
+	selection?.addRange(range);
+	savedDescriptionTextEditor = editor;
+	savedDescriptionTextEditorRange = range.cloneRange();
+	syncDescriptionTextEditor(editor);
+}
+
+function syncEditorContentsFromValue(editor, value) {
+	if (
+		editor &&
+		typeof editor.innerHTML === "string" &&
+		typeof editor.contains === "function" &&
+		serializeFormattedText(editor) !== value
+	) {
+		editor.innerHTML = formattedTextToHtml(value);
+	}
+}
+
+function focusDescriptionTextEditorAtStart(editor) {
+	if (!editor?.ownerDocument) {
+		editor?.focus?.();
+		if (editor) {
+			editor.scrollTop = 0;
+			editor.scrollLeft = 0;
+		}
+		return;
+	}
+	editor.focus();
+	const range = editor.ownerDocument.createRange();
+	range.selectNodeContents(editor);
+	range.collapse(true);
+	const selection = window.getSelection();
+	selection?.removeAllRanges();
+	selection?.addRange(range);
+	editor.scrollTop = 0;
+	editor.scrollLeft = 0;
+}
+
+watch(
+	[descriptionEditsDraft, descriptionEditsPlayByPlayDraft],
+	([description, playByPlay]) => {
+		syncEditorContentsFromValue(descriptionEditsEditor.value, description);
+		syncEditorContentsFromValue(playByPlayEditsEditor.value, playByPlay);
+	},
+	{ flush: "post" },
+);
+
+watch(
+	descriptionEditsMode,
+	async () => {
+		await nextTick();
+		syncEditorContentsFromValue(descriptionEditsEditor.value, descriptionEditsDraft.value);
+		syncEditorContentsFromValue(
+			playByPlayEditsEditor.value,
+			descriptionEditsPlayByPlayDraft.value,
+		);
+	},
+	{ flush: "post" },
+);
+
+watch(
+	[descriptionEditsLoadedFields, playByPlayEditsLoadedFields],
+	([descriptionFields, playByPlayFields]) => {
+		if (typeof document === "undefined") {
+			return;
+		}
+		for (const field of descriptionFields) {
+			syncEditorContentsFromValue(
+				document.getElementById(`description-edits-loaded-text-${field.blocks.join("-")}`),
+				field.text,
+			);
+		}
+		for (const field of playByPlayFields) {
+			syncEditorContentsFromValue(
+				document.getElementById(`play-by-play-edits-loaded-text-${field.blocks.join("-")}`),
+				field.text,
+			);
+		}
+	},
+	{ deep: true, flush: "post" },
+);
+
 const blockEditsWeekDays = computed(() => {
-	const monday = getMondayOfCurrentWeek();
+	const weekStart = getSchoolWeekStartDate();
 	return Array.from({ length: 5 }, (_, index) => {
-		const date = new Date(monday);
-		date.setDate(monday.getDate() + index);
+		const date = new Date(weekStart);
+		date.setDate(weekStart.getDate() + index);
 		return {
 			key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`,
 			label: formatDateLabel(date),
@@ -352,7 +960,11 @@ function handleCurriculumGameNavigation() {
 }
 
 function handleBlockEditsToggle() {
-	isBlockEditsOpen.value = !isBlockEditsOpen.value;
+	const shouldOpen = !isBlockEditsOpen.value;
+	isBlockEditsOpen.value = shouldOpen;
+	if (shouldOpen) {
+		isDescriptionEditsOpen.value = false;
+	}
 }
 
 /** Toggle the Blocks menu sidebar. */
@@ -360,9 +972,116 @@ function handleBlocksMenuToggle() {
 	isBlocksMenuOpen.value = !isBlocksMenuOpen.value;
 }
 
+function handleRewardsEditsMenuOpen() {
+	isBlocksMenuOpen.value = false;
+	isRewardsEditsMenuOpen.value = true;
+}
+
+function handleBadgesEarnedMenuOpen() {
+	isBadgesEarnedMenuOpen.value = true;
+	activeEarnedBadgeSubject.value = null;
+	selectedEarnedBadgeId.value = null;
+}
+
+function handleEarnedBadgeSubjectSelect(subjectKey) {
+	activeEarnedBadgeSubject.value = subjectKey;
+	selectedEarnedBadgeId.value = null;
+}
+
+function handleEarnedBadgeReset(badgeId) {
+	emit("reset-earned-badge", badgeId);
+	selectedEarnedBadgeId.value = null;
+}
+
+function formatEarnedBadgeAcquiredDate(dateKey) {
+	const [year, month, day] = dateKey.split("-");
+	return `${month}/${day}/${year}`;
+}
+
 /** Toggle the Description Edits depressed state and its text box panel. */
 function handleDescriptionEditsToggle() {
-	isDescriptionEditsOpen.value = !isDescriptionEditsOpen.value;
+	const shouldOpen = !isDescriptionEditsOpen.value;
+	isDescriptionEditsOpen.value = shouldOpen;
+	if (shouldOpen) {
+		isBlockEditsOpen.value = false;
+	}
+}
+
+function handleDescriptionEditorToggle() {
+	isDescriptionEditorOpen.value = !isDescriptionEditorOpen.value;
+}
+
+function handleDescriptionFontStylesToggle() {
+	isDescriptionFontStylesOpen.value = !isDescriptionFontStylesOpen.value;
+	if (isDescriptionFontStylesOpen.value) {
+		isDescriptionFontSizeMenuOpen.value = false;
+		isDescriptionFontColorMenuOpen.value = false;
+		isDescriptionFontColorPickerOpen.value = false;
+	}
+}
+
+function handleDescriptionFontSizeToggle() {
+	const editor = activeDescriptionTextEditor.value;
+	if (editor?.isConnected) {
+		rememberDescriptionTextEditorSelection({ currentTarget: editor });
+	}
+	isDescriptionFontSizeMenuOpen.value = !isDescriptionFontSizeMenuOpen.value;
+	if (isDescriptionFontSizeMenuOpen.value) {
+		isDescriptionFontStylesOpen.value = false;
+		isDescriptionFontColorMenuOpen.value = false;
+		isDescriptionFontColorPickerOpen.value = false;
+	}
+}
+
+function handleDescriptionFontColorToggle() {
+	const editor = activeDescriptionTextEditor.value;
+	if (editor?.isConnected) {
+		rememberDescriptionTextEditorSelection({ currentTarget: editor });
+	}
+	isDescriptionFontColorMenuOpen.value = !isDescriptionFontColorMenuOpen.value;
+	if (isDescriptionFontColorMenuOpen.value) {
+		isDescriptionFontStylesOpen.value = false;
+		isDescriptionFontSizeMenuOpen.value = false;
+		isDescriptionFontColorPickerOpen.value = false;
+	}
+}
+
+function createDescriptionTextNodeWithFormatting(editor, text, fontStyleId, fontColor, fontSize) {
+	const newText = editor.ownerDocument.createElement("span");
+	if (fontStyleId) {
+		newText.dataset.fontStyle = fontStyleId;
+	}
+	if (fontColor) {
+		newText.dataset.fontColor = fontColor;
+		newText.style.color = fontColor;
+	}
+	if (fontSize) {
+		newText.style.fontSize = `${fontSize}pt`;
+	}
+	newText.textContent = text;
+	return newText;
+}
+
+function insertDescriptionFormattedText(editor, range, text, fontStyleId, fontColor, fontSize) {
+	const formattedNode = createDescriptionTextNodeWithFormatting(
+		editor,
+		text,
+		fontStyleId,
+		fontColor,
+		fontSize,
+	);
+	if (!range.collapsed) {
+		range.deleteContents();
+	}
+	range.insertNode(formattedNode);
+	const insertedTextNode = formattedNode.firstChild;
+	const selection = window.getSelection();
+	if (insertedTextNode) {
+		range.setStartAfter(formattedNode);
+		range.collapse(true);
+		selection?.removeAllRanges();
+		selection?.addRange(range);
+	}
 }
 
 /** Select or collapse the Description Edits content mode. */
@@ -618,12 +1337,7 @@ async function handleDescriptionEditsCommit() {
 	descriptionEditsLoadedSelectionKey.value = null;
 	descriptionEditsDraft.value = "";
 	await nextTick();
-	if (descriptionEditsEditor.value) {
-		descriptionEditsEditor.value.focus();
-		descriptionEditsEditor.value.setSelectionRange(0, 0);
-		descriptionEditsEditor.value.scrollTop = 0;
-		descriptionEditsEditor.value.scrollLeft = 0;
-	}
+	focusDescriptionTextEditorAtStart(descriptionEditsEditor.value);
 }
 
 function handlePlayByPlayEditsLoad() {
@@ -702,12 +1416,7 @@ async function handlePlayByPlayEditsCommit() {
 	playByPlayEditsLoadedSelectionKey.value = null;
 	descriptionEditsPlayByPlayDraft.value = "";
 	await nextTick();
-	if (playByPlayEditsEditor.value) {
-		playByPlayEditsEditor.value.focus();
-		playByPlayEditsEditor.value.setSelectionRange(0, 0);
-		playByPlayEditsEditor.value.scrollTop = 0;
-		playByPlayEditsEditor.value.scrollLeft = 0;
-	}
+	focusDescriptionTextEditorAtStart(playByPlayEditsEditor.value);
 }
 
 /** Build removal details for one menu's selection. */
@@ -787,6 +1496,16 @@ function handleBlocksScreenBack() {
 	}
 }
 
+function handleRewardsEditsScreenBack() {
+	isRewardsEditsMenuOpen.value = false;
+}
+
+function handleBadgesEarnedScreenBack() {
+	isBadgesEarnedMenuOpen.value = false;
+	activeEarnedBadgeSubject.value = null;
+	selectedEarnedBadgeId.value = null;
+}
+
 function handleMathCurriculumOctoberOpen() {
 	emit("open-math-curriculum-october");
 }
@@ -803,6 +1522,7 @@ function handleStudentEditsScreenHome() {
 		role="main"
 		aria-label="Student Edits screen"
 		title="Student Edits screen"
+		@dblclick="handleDescriptionTextEditorDocumentDoubleClick"
 	>
 		<aside
 			id="student-edits-sidebar"
@@ -820,7 +1540,7 @@ function handleStudentEditsScreenHome() {
 				title="Open Curriculum Game"
 				@click="handleCurriculumGameNavigation"
 			>
-				Curriculum Game
+				Progress Menu Edits
 			</button>
 			<button
 				id="blocks-menu-button"
@@ -832,11 +1552,23 @@ function handleStudentEditsScreenHome() {
 				title="Open Blocks menu"
 				@click="handleBlocksMenuToggle"
 			>
-				Blocks
+				Block Edits
+			</button>
+			<button
+				id="rewards-edits-menu-button"
+				class="blocks-menu-button"
+				type="button"
+				name="rewards-edits-menu-button"
+				data-button-name="rewards-edits-menu-button"
+				aria-label="Open Rewards Edits menu"
+				title="Open Rewards Edits menu"
+				@click="handleRewardsEditsMenuOpen"
+			>
+				Rewards Edits
 			</button>
 			<div class="student-edits-sidebar-actions">
 				<button
-					v-show="!isBlocksMenuOpen"
+					v-show="!isBlocksMenuOpen && !isRewardsEditsMenuOpen"
 					id="student-edits-screen-home-button"
 					class="student-edits-screen-home-button navigation-home-button"
 					type="button"
@@ -849,7 +1581,7 @@ function handleStudentEditsScreenHome() {
 					Home
 				</button>
 				<button
-					v-show="!isBlocksMenuOpen"
+					v-show="!isBlocksMenuOpen && !isRewardsEditsMenuOpen"
 					id="student-edits-screen-back-button"
 					class="student-edits-screen-back-button navigation-back-button"
 					type="button"
@@ -877,12 +1609,12 @@ function handleStudentEditsScreenHome() {
 				type="button"
 				name="description-edits-button"
 				data-button-name="description-edits-button"
-				aria-label="Toggle Description Edits"
-				title="Toggle Description Edits"
+				aria-label="Curriculum Description"
+				title="Curriculum Description"
 				:aria-pressed="isDescriptionEditsOpen"
 				@click="handleDescriptionEditsToggle"
 			>
-				Description Edits
+				Curriculum Description
 			</button>
 			<button
 				id="block-edits-button"
@@ -891,13 +1623,193 @@ function handleStudentEditsScreenHome() {
 				type="button"
 				name="block-edits-button"
 				data-button-name="block-edits-button"
-				aria-label="Toggle Block Edits"
-				title="Toggle Block Edits"
+				aria-label="Block Completion Edits"
+				title="Block Completion Edits"
 				:aria-pressed="isBlockEditsOpen"
 				@click="handleBlockEditsToggle"
 			>
-				Block Edits
+				Block Completion Edits
 			</button>
+			<button
+				v-if="isDescriptionEditsOpen"
+				id="description-editor-button"
+				class="description-editor-button"
+				type="button"
+				name="description-editor-button"
+				data-button-name="description-editor-button"
+				aria-label="Editor"
+				title="Editor"
+				:aria-expanded="isDescriptionEditorOpen"
+				aria-controls="description-editor-options"
+				@mousedown.prevent
+				@click="handleDescriptionEditorToggle"
+			>
+				Editor
+			</button>
+			<div
+				v-if="isDescriptionEditsOpen && isDescriptionEditorOpen"
+				id="description-editor-options"
+				class="description-editor-options"
+			>
+				<button
+					id="description-editor-font-style-button"
+					class="description-editor-submenu-button description-editor-font-style-button"
+					type="button"
+					name="description-editor-font-style-button"
+					data-button-name="description-editor-font-style-button"
+					aria-label="Font Style"
+					title="Font Style"
+					:aria-expanded="isDescriptionFontStylesOpen"
+					aria-controls="description-editor-font-style-options"
+					@mousedown.prevent
+					@click="handleDescriptionFontStylesToggle"
+				>
+					Font Style
+				</button>
+				<div
+					v-if="isDescriptionFontStylesOpen"
+					id="description-editor-font-style-options"
+					class="description-editor-font-style-options"
+					aria-label="Font Style options"
+				>
+					<button
+						v-for="(fontOption, index) in fontStyleOptions"
+						:id="`description-editor-font-style-option-${fontOption.id}`"
+						:key="fontOption.id"
+						class="description-editor-font-style-option-button"
+						:class="fontStyleOptionClassNames[index]"
+						type="button"
+						:name="`description-editor-font-style-option-${fontOption.id}`"
+						:data-button-name="`description-editor-font-style-option-${fontOption.id}`"
+						:data-font-style="fontOption.id"
+						:aria-pressed="activeDescriptionFontStyleId === fontOption.id"
+						@mousedown.prevent
+						@click="handleDescriptionFontStyleSelect(fontOption)"
+					>
+						{{ fontOption.label }}
+					</button>
+				</div>
+				<button
+					id="description-editor-font-size-button"
+					class="description-editor-submenu-button description-editor-font-size-button"
+					type="button"
+					name="description-editor-font-size-button"
+					data-button-name="description-editor-font-size-button"
+					aria-label="Font Size"
+					title="Font Size"
+					:aria-expanded="isDescriptionFontSizeMenuOpen"
+					aria-controls="description-editor-font-size-menu"
+					@mousedown.prevent
+					@click="handleDescriptionFontSizeToggle"
+				>
+					Font Size
+				</button>
+				<div
+					v-if="isDescriptionFontSizeMenuOpen"
+					id="description-editor-font-size-menu"
+					class="description-editor-font-size-menu"
+					aria-label="Font size controls"
+				>
+					<label for="description-editor-font-size-input">Font Size</label>
+					<input
+						id="description-editor-font-size-input"
+						v-model="descriptionEditorFontSizeInput"
+						class="description-editor-font-size-input"
+						type="text"
+						inputmode="numeric"
+						maxlength="3"
+						aria-label="Font size in points"
+						@input="sanitizeDescriptionFontSizeInput"
+						@keydown.enter.prevent="commitDescriptionFontSize"
+					/>
+					<span class="description-editor-font-size-unit">pt</span>
+					<button
+						id="description-editor-font-size-commit-button"
+						class="description-editor-font-size-commit-button"
+						type="button"
+						@mousedown.prevent
+						@click="commitDescriptionFontSize"
+					>
+						Apply
+					</button>
+				</div>
+				<button
+					id="description-editor-font-color-button"
+					class="description-editor-submenu-button description-editor-font-color-button"
+					type="button"
+					name="description-editor-font-color-button"
+					data-button-name="description-editor-font-color-button"
+					aria-label="Font Color"
+					title="Font Color"
+					:aria-expanded="isDescriptionFontColorMenuOpen"
+					aria-controls="description-editor-font-color-menu"
+					@mousedown.prevent
+					@click="handleDescriptionFontColorToggle"
+				>
+					Font Color
+				</button>
+				<div
+					v-if="isDescriptionFontColorMenuOpen"
+					id="description-editor-font-color-menu"
+					class="description-editor-font-color-menu"
+					aria-label="Font color options"
+				>
+					<button
+						id="description-editor-font-color-swatch"
+						class="description-editor-font-color-swatch"
+						type="button"
+						:aria-label="`Current font color ${descriptionEditorFontColorInput}; open color picker`"
+						:title="`Current font color ${descriptionEditorFontColorInput}`"
+						:aria-expanded="isDescriptionFontColorPickerOpen"
+						aria-controls="description-editor-font-color-picker"
+						@mousedown.prevent
+						@click="handleDescriptionFontColorPickerToggle"
+					>
+						<canvas
+							ref="descriptionFontColorSwatchCanvas"
+							class="description-editor-font-color-swatch-canvas"
+							aria-hidden="true"
+						/>
+					</button>
+					<div
+						v-if="isDescriptionFontColorPickerOpen"
+						id="description-editor-font-color-picker"
+						class="description-editor-font-color-picker"
+						role="application"
+						aria-label="Choose font color"
+						aria-description="Click or drag to choose a color. Use arrow keys to adjust it."
+						tabindex="0"
+						@pointerdown="handleDescriptionFontColorPickerPointer"
+						@pointermove="handleDescriptionFontColorPickerPointer"
+						@pointerup="handleDescriptionFontColorPickerPointer"
+						@keydown="handleDescriptionFontColorPickerKeydown"
+					/>
+					<template v-if="isDescriptionFontColorPickerOpen">
+						<input
+							id="description-editor-font-color-hex-input"
+							v-model="descriptionEditorFontColorInput"
+							class="description-editor-font-color-hex-input"
+							type="text"
+							maxlength="7"
+							spellcheck="false"
+							aria-label="Font color hex code"
+							:aria-invalid="
+								!normalizeDescriptionFontColor(descriptionEditorFontColorInput)
+							"
+							@focus="highlightDescriptionTextEditorSelection"
+							@input="handleDescriptionFontColorHexInput"
+							@keydown.enter.prevent="commitDescriptionFontColor"
+						/>
+						<p
+							v-if="!normalizeDescriptionFontColor(descriptionEditorFontColorInput)"
+							class="description-editor-font-color-error"
+							role="alert"
+						>
+							Enter a hex color such as #1a2b3c.
+						</p>
+					</template>
+				</div>
+			</div>
 			<div class="blocks-menu-sidebar-actions student-edits-sidebar-actions">
 				<button
 					id="blocks-screen-home-button"
@@ -925,6 +1837,189 @@ function handleStudentEditsScreenHome() {
 				</button>
 			</div>
 		</aside>
+		<aside
+			v-if="isRewardsEditsMenuOpen && !isBadgesEarnedMenuOpen"
+			id="rewards-edits-sidebar"
+			class="blocks-menu-sidebar"
+			aria-label="Rewards Edits menu"
+			title="Rewards Edits menu"
+		>
+			<button
+				id="extra-credit-button"
+				class="blocks-menu-button"
+				type="button"
+				name="extra-credit-button"
+				data-button-name="extra-credit-button"
+				aria-label="Extra Credit"
+				title="Extra Credit"
+			>
+				Extra Credit
+			</button>
+			<button
+				id="badges-earned-button"
+				class="blocks-menu-button"
+				type="button"
+				name="badges-earned-button"
+				data-button-name="badges-earned-button"
+				aria-label="Badges Earned"
+				title="Badges Earned"
+				@click="handleBadgesEarnedMenuOpen"
+			>
+				Badges Earned
+			</button>
+			<button
+				id="cards-earned-button"
+				class="blocks-menu-button"
+				type="button"
+				name="cards-earned-button"
+				data-button-name="cards-earned-button"
+				aria-label="Cards Earned"
+				title="Cards Earned"
+			>
+				Cards Earned
+			</button>
+			<div class="blocks-menu-sidebar-actions student-edits-sidebar-actions">
+				<button
+					id="rewards-edits-screen-home-button"
+					class="blocks-screen-home-button navigation-home-button"
+					type="button"
+					name="rewards-edits-screen-home-button"
+					data-button-name="rewards-edits-screen-home-button"
+					aria-label="Return home"
+					title="Return home"
+					@click="handleStudentEditsScreenHome"
+				>
+					Home
+				</button>
+				<button
+					id="rewards-edits-screen-back-button"
+					class="blocks-screen-back-button navigation-back-button"
+					type="button"
+					name="rewards-edits-screen-back-button"
+					data-button-name="rewards-edits-screen-back-button"
+					aria-label="Back one screen"
+					title="Back one screen"
+					@click="handleRewardsEditsScreenBack"
+				>
+					Back
+				</button>
+			</div>
+		</aside>
+		<aside
+			v-if="isBadgesEarnedMenuOpen"
+			id="badges-earned-sidebar"
+			class="blocks-menu-sidebar"
+			aria-label="Badges Earned subjects"
+			title="Badges Earned subjects"
+		>
+			<button
+				v-for="subject in earnedBadgeSubjects"
+				:id="`earned-badges-subject-${subject.key}-button`"
+				:key="subject.key"
+				class="blocks-menu-button"
+				type="button"
+				:name="`earned-badges-subject-${subject.key}-button`"
+				:data-button-name="`earned-badges-subject-${subject.key}-button`"
+				:aria-label="subject.label"
+				:title="subject.label"
+				:aria-pressed="activeEarnedBadgeSubject === subject.key"
+				@click="handleEarnedBadgeSubjectSelect(subject.key)"
+			>
+				{{ subject.label }}
+			</button>
+			<div class="blocks-menu-sidebar-actions student-edits-sidebar-actions">
+				<button
+					id="badges-earned-screen-home-button"
+					class="blocks-screen-home-button navigation-home-button"
+					type="button"
+					name="badges-earned-screen-home-button"
+					data-button-name="badges-earned-screen-home-button"
+					aria-label="Return home"
+					title="Return home"
+					@click="handleStudentEditsScreenHome"
+				>
+					Home
+				</button>
+				<button
+					id="badges-earned-screen-back-button"
+					class="blocks-screen-back-button navigation-back-button"
+					type="button"
+					name="badges-earned-screen-back-button"
+					data-button-name="badges-earned-screen-back-button"
+					aria-label="Back to Rewards Edits"
+					title="Back to Rewards Edits"
+					@click="handleBadgesEarnedScreenBack"
+				>
+					Back
+				</button>
+			</div>
+		</aside>
+		<section
+			v-if="isBadgesEarnedMenuOpen"
+			id="badges-earned-content"
+			class="badges-earned-content"
+			aria-label="Earned badges"
+			title="Earned badges"
+		>
+			<template v-if="activeEarnedBadgeSubject">
+				<h2 class="badges-earned-heading">{{ activeEarnedBadgeSubjectLabel }} Badges</h2>
+				<ul v-if="earnedBadgesForActiveSubject.length" class="badges-earned-list">
+					<li
+						v-for="badge in earnedBadgesForActiveSubject"
+						:key="badge.id"
+						class="badges-earned-item"
+					>
+						<button
+							:id="`earned-badge-image-${badge.id}`"
+							class="badges-earned-image-button"
+							:class="{
+								'badges-earned-image-button--hidden':
+									selectedEarnedBadgeId === badge.id,
+							}"
+							type="button"
+							:aria-label="`${badge.subjectLabel} Badge Day ${Number(badge.badgeNumber)}`"
+							:aria-hidden="selectedEarnedBadgeId === badge.id"
+							:tabindex="selectedEarnedBadgeId === badge.id ? -1 : 0"
+							:disabled="selectedEarnedBadgeId === badge.id"
+							@click="selectedEarnedBadgeId = badge.id"
+						>
+							<img
+								class="badges-earned-image"
+								:src="badge.src"
+								:alt="badge.alt"
+							/>
+						</button>
+						<div
+							v-if="selectedEarnedBadgeId === badge.id"
+							class="badges-earned-detail"
+							:aria-label="`${badge.subjectLabel} Badge Day ${Number(badge.badgeNumber)} details`"
+						>
+							<h3 class="badges-earned-detail-heading">
+								{{ badge.subjectLabel }} Badge Day {{ Number(badge.badgeNumber) }}
+							</h3>
+							<p class="badges-earned-acquired-date">
+								Acquired: {{ formatEarnedBadgeAcquiredDate(badge.dateKey) }}
+							</p>
+							<button
+								:id="`earned-badge-reset-${badge.id}`"
+								class="badges-earned-reset-button"
+								type="button"
+								:aria-label="`Reset ${badge.subjectLabel} Badge Day ${Number(badge.badgeNumber)}`"
+								@click="handleEarnedBadgeReset(badge.id)"
+							>
+								Reset
+							</button>
+						</div>
+					</li>
+				</ul>
+				<p v-else class="badges-earned-empty">
+					No {{ activeEarnedBadgeSubjectLabel }} badges have been earned.
+				</p>
+			</template>
+			<p v-else class="badges-earned-empty">
+				Choose a subject to view earned badges.
+			</p>
+		</section>
 		<div
 			v-if="isDescriptionEditsOpen"
 			id="description-edits-position-wrapper"
@@ -950,20 +2045,32 @@ function handleStudentEditsScreenHome() {
 						class="description-edits-loaded-field flex shrink-0 flex-col gap-2"
 					>
 						<label
+							:id="`description-edits-loaded-label-${field.blocks.join('-')}`"
 							:for="`description-edits-loaded-text-${field.blocks.join('-')}`"
 							class="description-edits-loaded-label text-base font-bold"
 							>Block{{ field.blocks.length > 1 ? "s" : "" }}
 							{{ field.blocks.join(", ") }}</label
 						>
-						<textarea
+						<div
 							:id="`description-edits-loaded-text-${field.blocks.join('-')}`"
-							v-model="field.text"
+							:aria-labelledby="`description-edits-loaded-label-${field.blocks.join('-')}`"
 							class="description-edits-loaded-text w-full resize-none overflow-y-auto whitespace-pre-wrap rounded-lg border border-[#7a5612]/50 bg-[#fffce7] p-4 text-base leading-normal"
+							contenteditable="true"
+							role="textbox"
+							aria-multiline="true"
 							:class="
 								descriptionEditsLoadedFields.length === 1
 									? 'h-[704px]'
 									: 'h-[240px]'
 							"
+							@focus="rememberDescriptionTextEditorSelection"
+							@mousedown="handleDescriptionTextEditorMouseDown"
+							@mouseup="rememberDescriptionTextEditorSelection"
+							@keyup="rememberDescriptionTextEditorSelection"
+							@click="handleDescriptionTextEditorClick"
+							@beforeinput="handleDescriptionTextEditorBeforeInput"
+							@paste="handleDescriptionTextEditorPaste"
+							@input="handleDescriptionTextEditorInput($event, field)"
 						/>
 					</div>
 				</div>
@@ -982,42 +2089,74 @@ function handleStudentEditsScreenHome() {
 						class="play-by-play-edits-loaded-field flex shrink-0 flex-col gap-2"
 					>
 						<label
+							:id="`play-by-play-edits-loaded-label-${field.blocks.join('-')}`"
 							:for="`play-by-play-edits-loaded-text-${field.blocks.join('-')}`"
 							class="play-by-play-edits-loaded-label text-base font-bold"
 							>Block{{ field.blocks.length > 1 ? "s" : "" }}
 							{{ field.blocks.join(", ") }}</label
 						>
-						<textarea
+						<div
 							:id="`play-by-play-edits-loaded-text-${field.blocks.join('-')}`"
-							v-model="field.text"
+							:aria-labelledby="`play-by-play-edits-loaded-label-${field.blocks.join('-')}`"
 							class="play-by-play-edits-loaded-text w-full resize-none overflow-y-auto whitespace-pre-wrap rounded-lg border border-[#7a5612]/50 bg-[#fffce7] p-4 text-base leading-normal"
+							contenteditable="true"
+							role="textbox"
+							aria-multiline="true"
 							:class="
 								playByPlayEditsLoadedFields.length === 1 ? 'h-[704px]' : 'h-[240px]'
 							"
+							@focus="rememberDescriptionTextEditorSelection"
+							@mousedown="handleDescriptionTextEditorMouseDown"
+							@mouseup="rememberDescriptionTextEditorSelection"
+							@keyup="rememberDescriptionTextEditorSelection"
+							@click="handleDescriptionTextEditorClick"
+							@beforeinput="handleDescriptionTextEditorBeforeInput"
+							@paste="handleDescriptionTextEditorPaste"
+							@input="handleDescriptionTextEditorInput($event, field)"
 						/>
 					</div>
 				</div>
-				<textarea
+				<div
 					v-else-if="descriptionEditsMode === 'play-by-play'"
 					id="play-by-play-edits-text-box"
 					ref="playByPlayEditsEditor"
-					v-model="descriptionEditsPlayByPlayDraft"
 					class="play-by-play-edits-text-box block h-[772px] w-[772px] resize-none overflow-y-scroll whitespace-pre-wrap rounded-[0.875rem] border-2 border-[#7a5612]/50 bg-[#fffce7]/95 p-4 text-base leading-normal text-[#513d12] [font-family:Trebuchet_MS,sans-serif]"
+					contenteditable="true"
+					role="textbox"
 					aria-label="Play by Play text box"
+					aria-multiline="true"
 					name="play-by-play-edits-text-box"
+					@focus="rememberDescriptionTextEditorSelection"
+					@mousedown="handleDescriptionTextEditorMouseDown"
+					@mouseup="rememberDescriptionTextEditorSelection"
+					@keyup="rememberDescriptionTextEditorSelection"
+					@click="handleDescriptionTextEditorClick"
+					@beforeinput="handleDescriptionTextEditorBeforeInput"
+					@paste="handleDescriptionTextEditorPaste"
+					@input="handleDescriptionTextEditorInput"
 				/>
-				<textarea
+				<div
 					v-else
 					id="description-edits-text-box"
 					ref="descriptionEditsEditor"
-					v-model="descriptionEditsActiveDraft"
 					class="description-edits-text-box"
+					contenteditable="true"
+					role="textbox"
 					:aria-label="
 						descriptionEditsMode === 'play-by-play'
 							? 'Play by Play text box'
 							: 'Description text box'
 					"
+					aria-multiline="true"
 					name="description-edits-text-box"
+					@focus="rememberDescriptionTextEditorSelection"
+					@mousedown="handleDescriptionTextEditorMouseDown"
+					@mouseup="rememberDescriptionTextEditorSelection"
+					@keyup="rememberDescriptionTextEditorSelection"
+					@click="handleDescriptionTextEditorClick"
+					@beforeinput="handleDescriptionTextEditorBeforeInput"
+					@paste="handleDescriptionTextEditorPaste"
+					@input="handleDescriptionTextEditorInput"
 				/>
 				<div
 					v-if="descriptionEditsMode === 'description'"

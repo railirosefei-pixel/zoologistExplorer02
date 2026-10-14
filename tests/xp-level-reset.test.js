@@ -4,6 +4,11 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { blockCompletionStore } from "../src/js/blockCompletionState.js";
+import {
+	FIRST_SCHOOL_DAY,
+	getSchoolWeekStartDate,
+	isSchoolDay,
+} from "../src/js/schoolSchedule.js";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -17,6 +22,25 @@ test("Progress step XP starts at zero and first 20 XP is earned on step 2", () =
 	assert.equal(getXpForProgressStep(1), 0, "being on step 1 should mean 0 XP");
 	assert.equal(getXpForProgressStep(2), 20, "moving from step 1 to step 2 should earn the first 20 XP");
 	assert.equal(getXpForProgressStep(3), 40, "later steps should continue awarding 20 XP per step advance");
+});
+
+test("school days run Friday through Tuesday and weekly resets skip Wednesday and Thursday", () => {
+	const { getSchoolDayDateKey } = blockCompletionStore;
+	const scheduleDates = Array.from({ length: 7 }, (_, index) => {
+		const date = new Date(2026, 9, 16 + index);
+		return isSchoolDay(date);
+	});
+
+	assert.equal(FIRST_SCHOOL_DAY.getTime(), new Date(2026, 9, 16).getTime());
+	assert.deepEqual(scheduleDates, [true, true, true, true, true, false, false]);
+	assert.equal(
+		getSchoolWeekStartDate(new Date(2026, 9, 14)).getTime(),
+		FIRST_SCHOOL_DAY.getTime(),
+	);
+	assert.equal(getSchoolWeekStartDate(new Date(2026, 9, 21)).getDate(), 16);
+	assert.equal(getSchoolWeekStartDate(new Date(2026, 9, 23)).getDate(), 23);
+	assert.equal(getSchoolDayDateKey(1, new Date(2026, 9, 16)), "2026-10-13");
+	assert.equal(getSchoolDayDateKey(1, new Date(2026, 9, 18)), "2026-10-17");
 });
 
 test("XP history snapshots and school-day rollback logic handle weekend skipping and no-op cases", () => {
@@ -102,16 +126,29 @@ test("completed blocks persist across store reloads", async () => {
 	});
 
 	try {
+		storedValues.set(
+			"zoologistExplorer02.completedBlocks",
+			JSON.stringify({ "2026-10-12::Math::1": true }),
+		);
 		const { blockCompletionStore: beforeReload } =
 			await import("../src/js/blockCompletionState.js?completion-persistence-write");
-		beforeReload.markBlockComplete("October 5, 2026", "Math", 1);
+		assert.equal(
+			beforeReload.isBlockCompleteForDate("October 16, 2026", "Math", 1),
+			true,
+			"legacy completions should move to the first school-week date",
+		);
+		beforeReload.markBlockComplete("October 16, 2026", "Math", 2);
 
 		const { blockCompletionStore: afterReload } =
 			await import("../src/js/blockCompletionState.js?completion-persistence-read");
 		assert.equal(
-			afterReload.isBlockCompleteForDate("October 12, 2026", "Math", 1),
+			afterReload.isBlockCompleteForDate("October 16, 2026", "Math", 2),
 			true,
-			"a completed block should move to the updated school-week date after reload",
+			"a newly completed block should stay on its selected date after reload",
+		);
+		assert.equal(
+			afterReload.isBlockCompleteForDate("October 20, 2026", "Math", 2),
+			false,
 		);
 	} finally {
 		if (originalStorage) {

@@ -15,20 +15,22 @@ const props = defineProps({
 const emit = defineEmits(["open-calendar", "open-rewards", "back-to-home"]);
 const activeStudentMenu = ref("");
 const activeGamesSubject = ref("");
-const PROGRESS_COMPLETION_DELAY_MS = 2000;
+const PROGRESS_COMPLETION_DELAY_MS = 1000;
+const PROGRESS_RAILI_TRANSITION_MS = 700;
 let progressStepIndex = 1;
 
 function advanceProgressCharacter() {
 	const nextStepIndex = (progressStepIndex % 13) + 1;
-	const position =
-		committedPositions.value[nextStepIndex] ?? savedPositions.value[nextStepIndex];
+	const position = committedPositions.value[nextStepIndex] ?? savedPositions.value[nextStepIndex];
 	if (!position) {
 		return;
 	}
 
 	progressStepIndex = nextStepIndex;
+	persistProgressStepIndex();
 	testCycleIndex = nextStepIndex;
 	applyRailiOffset(position.x, position.y);
+	persistRailiOffset(position);
 }
 
 const completionConfettiBurstPositions = Array.from({ length: 10 }, (_, index) => ({
@@ -51,6 +53,7 @@ const completionConfettiClassNames = [
 const completionConfettiBursts = ref([]);
 let completionConfettiTimerIds = [];
 let completionReturnTimerId = null;
+let resolveCompletionConfettiSequence = null;
 
 function clearCompletionConfettiSequence() {
 	completionConfettiTimerIds.forEach((timerId) => {
@@ -62,39 +65,52 @@ function clearCompletionConfettiSequence() {
 		completionReturnTimerId = null;
 	}
 	completionConfettiBursts.value = [];
+	resolveCompletionConfettiSequence?.(false);
+	resolveCompletionConfettiSequence = null;
 }
 
-function triggerCompletionConfettiSequence() {
+function triggerCompletionConfettiSequence(holdProgressScreen = false) {
 	clearCompletionConfettiSequence();
 	const confettiDisplayMs = 1200;
 	const confettiGapMs = 300;
 
-	completionConfettiBurstPositions.forEach((position, index) => {
-		const burstId = `student-progress-confetti-${position.positionIndex}-${Date.now()}`;
-		const revealId = window.setTimeout(() => {
-			completionConfettiBursts.value = [
-				...completionConfettiBursts.value,
-				{ id: burstId, positionIndex: position.positionIndex },
-			];
+	return new Promise((resolve) => {
+		resolveCompletionConfettiSequence = resolve;
+		completionConfettiBurstPositions.forEach((position, index) => {
+			const burstId = `student-progress-confetti-${position.positionIndex}-${Date.now()}`;
+			const revealId = window.setTimeout(() => {
+				completionConfettiBursts.value = [
+					...completionConfettiBursts.value,
+					{ id: burstId, positionIndex: position.positionIndex },
+				];
 
-			const hideId = window.setTimeout(() => {
-				completionConfettiBursts.value = completionConfettiBursts.value.filter(
-					(burst) => burst.id !== burstId,
-				);
-			}, confettiDisplayMs);
-			completionConfettiTimerIds.push(hideId);
-		}, index * confettiGapMs);
-		completionConfettiTimerIds.push(revealId);
+				const hideId = window.setTimeout(() => {
+					completionConfettiBursts.value = completionConfettiBursts.value.filter(
+						(burst) => burst.id !== burstId,
+					);
+				}, confettiDisplayMs);
+				completionConfettiTimerIds.push(hideId);
+			}, index * confettiGapMs);
+			completionConfettiTimerIds.push(revealId);
+		});
+
+		completionReturnTimerId = window.setTimeout(
+			() => {
+				completionConfettiBursts.value = [];
+				if (!holdProgressScreen) {
+					activeStudentMenu.value = "";
+				}
+				completionReturnTimerId = null;
+				const finishSequence = resolveCompletionConfettiSequence;
+				resolveCompletionConfettiSequence = null;
+				finishSequence?.(true);
+			},
+			completionConfettiBurstPositions.length * confettiGapMs + confettiDisplayMs + 200,
+		);
 	});
-
-	completionReturnTimerId = window.setTimeout(() => {
-		completionConfettiBursts.value = [];
-		activeStudentMenu.value = "";
-		completionReturnTimerId = null;
-	}, completionConfettiBurstPositions.length * confettiGapMs + confettiDisplayMs + 200);
 }
 
-async function openProgress(advanceFromCompletion = false) {
+async function openProgress(advanceFromCompletion = false, { holdProgressScreen = false } = {}) {
 	activeStudentMenu.value = "progress";
 	clearCompletionConfettiSequence();
 	if (!advanceFromCompletion) {
@@ -106,13 +122,32 @@ async function openProgress(advanceFromCompletion = false) {
 	await new Promise((resolve) => {
 		window.setTimeout(resolve, PROGRESS_COMPLETION_DELAY_MS);
 	});
+	if (activeStudentMenu.value !== "progress") {
+		isCompletionProgressPending = false;
+		return false;
+	}
+
 	advanceProgressCharacter();
 	progressXp.value = totalXp.value;
 	isCompletionProgressPending = false;
-	triggerCompletionConfettiSequence();
+	const confettiSequence = triggerCompletionConfettiSequence(holdProgressScreen);
+	await new Promise((resolve) => {
+		window.setTimeout(resolve, PROGRESS_RAILI_TRANSITION_MS);
+	});
+
+	if (holdProgressScreen && !(await confettiSequence)) {
+		return false;
+	}
+
+	return true;
 }
 
-defineExpose({ openProgress });
+function closeProgress() {
+	clearCompletionConfettiSequence();
+	activeStudentMenu.value = "";
+}
+
+defineExpose({ openProgress, closeProgress });
 const gamesMonths = [
 	"October 26",
 	"November 26",
@@ -169,12 +204,18 @@ const RAILI_HEIGHT_STORAGE_KEY = "ze2.studentProgress.railiHeightPx";
 const RAILI_OFFSET_X_STORAGE_KEY = "ze2.studentProgress.railiOffsetXPx";
 const RAILI_OFFSET_Y_STORAGE_KEY = "ze2.studentProgress.railiOffsetYPx";
 const RAILI_COMMITTED_POSITIONS_STORAGE_KEY = "ze2.studentProgress.railiCommittedPositions";
+const RAILI_PROGRESS_STEP_INDEX_STORAGE_KEY = "ze2.studentProgress.railiProgressStepIndex";
 const RAILI_BASE_HEIGHT_PX = 384;
 const saveSlotEngaged = ref({});
 const savedPositions = ref({});
 const committedPositions = ref({});
 const isTestEnabled = ref(false);
 let testCycleIndex = 0;
+
+function persistProgressStepIndex() {
+	localStorage.setItem(RAILI_PROGRESS_STEP_INDEX_STORAGE_KEY, String(progressStepIndex));
+}
+
 let railiDragStartY = 0;
 let railiDragStartHeightPx = 0;
 let railiDragActive = false;
@@ -219,8 +260,7 @@ function handleGamesHome() {
 
 /** Progress-menu return pipeline boundary. */
 function handleProgressMenuBack() {
-	clearCompletionConfettiSequence();
-	activeStudentMenu.value = "";
+	closeProgress();
 }
 
 /** Resize mode toggle pipeline boundary. */
@@ -388,6 +428,11 @@ function applyRailiOffset(offsetXPx, offsetYPx) {
 	railiFrameRef.value?.style.setProperty("--student-raili-offset-y", `${offsetYPx}px`);
 }
 
+function persistRailiOffset(position) {
+	localStorage.setItem(RAILI_OFFSET_X_STORAGE_KEY, String(position.x));
+	localStorage.setItem(RAILI_OFFSET_Y_STORAGE_KEY, String(position.y));
+}
+
 /** Begin dragging the Raili frame in Move mode. */
 function handleRailiMoveStart(event) {
 	if (!isMoveModeActive.value || event.target !== event.currentTarget) {
@@ -498,7 +543,9 @@ function handleTest() {
 		const position = committedPositions.value[testCycleIndex];
 		if (position) {
 			progressStepIndex = testCycleIndex;
+			persistProgressStepIndex();
 			applyRailiOffset(position.x, position.y);
+			persistRailiOffset(position);
 			blockCompletionStore.addBonusXp(20);
 			return;
 		}
@@ -572,6 +619,25 @@ onMounted(() => {
 		}
 	}
 
+	const storedProgressStepIndex = Number.parseInt(
+		localStorage.getItem(RAILI_PROGRESS_STEP_INDEX_STORAGE_KEY) ?? "",
+		10,
+	);
+	if (
+		Number.isInteger(storedProgressStepIndex) &&
+		storedProgressStepIndex >= 1 &&
+		storedProgressStepIndex <= 13
+	) {
+		progressStepIndex = storedProgressStepIndex;
+	} else {
+		const restoredPosition = Object.entries(committedPositions.value).find(
+			([, position]) => position.x === storedOffsetX && position.y === storedOffsetY,
+		);
+		if (restoredPosition) {
+			progressStepIndex = Number.parseInt(restoredPosition[0], 10);
+		}
+	}
+
 	if (!props.explorerPositionsModeActive) {
 		isResizeModeActive.value = false;
 		isMoveModeActive.value = false;
@@ -590,7 +656,10 @@ onMounted(() => {
 			v-for="burst in completionConfettiBursts"
 			:key="burst.id"
 			:src="confettiGifAsset"
-			:class="['student-progress-confetti-piece', completionConfettiClassNames[burst.positionIndex]]"
+			:class="[
+				'student-progress-confetti-piece',
+				completionConfettiClassNames[burst.positionIndex],
+			]"
 			alt=""
 		/>
 	</div>
@@ -1266,23 +1335,50 @@ onMounted(() => {
 	opacity: 0;
 	transform: translate(-50%, -50%) scale(0.5);
 	animation: student-progress-confetti-pop 1.2s ease-out forwards;
-	filter:
-		saturate(1.8)
-		brightness(1.25)
-		drop-shadow(0 0 14px rgba(255, 255, 255, 0.9))
+	filter: saturate(1.8) brightness(1.25) drop-shadow(0 0 14px rgba(255, 255, 255, 0.9))
 		drop-shadow(0 0 28px rgba(255, 214, 64, 0.75));
 }
 
-.student-progress-confetti-piece--0 { top: 18%; left: 8%; }
-.student-progress-confetti-piece--1 { top: 27%; left: 19%; }
-.student-progress-confetti-piece--2 { top: 14%; left: 32%; }
-.student-progress-confetti-piece--3 { top: 42%; left: 43%; }
-.student-progress-confetti-piece--4 { top: 25%; left: 55%; }
-.student-progress-confetti-piece--5 { top: 57%; left: 67%; }
-.student-progress-confetti-piece--6 { top: 41%; left: 77%; }
-.student-progress-confetti-piece--7 { top: 70%; left: 22%; }
-.student-progress-confetti-piece--8 { top: 63%; left: 48%; }
-.student-progress-confetti-piece--9 { top: 78%; left: 86%; }
+.student-progress-confetti-piece--0 {
+	top: 18%;
+	left: 8%;
+}
+.student-progress-confetti-piece--1 {
+	top: 27%;
+	left: 19%;
+}
+.student-progress-confetti-piece--2 {
+	top: 14%;
+	left: 32%;
+}
+.student-progress-confetti-piece--3 {
+	top: 42%;
+	left: 43%;
+}
+.student-progress-confetti-piece--4 {
+	top: 25%;
+	left: 55%;
+}
+.student-progress-confetti-piece--5 {
+	top: 57%;
+	left: 67%;
+}
+.student-progress-confetti-piece--6 {
+	top: 41%;
+	left: 77%;
+}
+.student-progress-confetti-piece--7 {
+	top: 70%;
+	left: 22%;
+}
+.student-progress-confetti-piece--8 {
+	top: 63%;
+	left: 48%;
+}
+.student-progress-confetti-piece--9 {
+	top: 78%;
+	left: 86%;
+}
 
 @keyframes student-progress-confetti-pop {
 	0% {

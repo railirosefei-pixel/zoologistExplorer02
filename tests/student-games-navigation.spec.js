@@ -60,18 +60,33 @@ test("Student Games shows its math thumbnails and subject month placeholders", a
 	);
 	await expect(page.locator("#student-safari-place-value-thumbnail")).toBeVisible();
 	await expect(page.locator("#student-safari-multiplication-thumbnail")).toBeVisible();
+	await expect(page.locator("#student-safari-multiplication-double-digit-thumbnail")).toBeVisible();
 	const placeValueThumbnail = await page
 		.locator("#student-safari-place-value-thumbnail")
 		.boundingBox();
 	const multiplicationThumbnail = await page
 		.locator("#student-safari-multiplication-thumbnail")
 		.boundingBox();
+	const doubleDigitThumbnail = await page
+		.locator("#student-safari-multiplication-double-digit-thumbnail")
+		.boundingBox();
 	expect(placeValueThumbnail.width).toBe(218);
-	expect(placeValueThumbnail.height).toBe(218);
+	expect(placeValueThumbnail.height).toBe(248);
 	expect(multiplicationThumbnail.width).toBe(218);
-	expect(multiplicationThumbnail.height).toBe(218);
+	expect(multiplicationThumbnail.height).toBe(248);
+	expect(doubleDigitThumbnail.width).toBe(218);
+	expect(doubleDigitThumbnail.height).toBe(248);
 	expect(multiplicationThumbnail.x - placeValueThumbnail.x - placeValueThumbnail.width).toBe(
 		16,
+	);
+	expect(
+		doubleDigitThumbnail.x - multiplicationThumbnail.x - multiplicationThumbnail.width,
+	).toBe(16);
+	await expect(page.locator("#student-safari-multiplication-thumbnail")).toContainText(
+		"Safari Multiplication Adventure (Single Digits)",
+	);
+	await expect(page.locator("#student-safari-multiplication-double-digit-thumbnail")).toContainText(
+		"Safari Multiplication Adventure (1 Double Digit)",
 	);
 	await expect(page.locator("#math-games-view")).toHaveCount(0);
 	const sidebarButton = await page.locator("#games-tab").boundingBox();
@@ -81,9 +96,15 @@ test("Student Games shows its math thumbnails and subject month placeholders", a
 		if (subject === "Math") {
 			await expect(page.locator("#student-safari-place-value-thumbnail")).toBeVisible();
 			await expect(page.locator("#student-safari-multiplication-thumbnail")).toBeVisible();
+			await expect(
+				page.locator("#student-safari-multiplication-double-digit-thumbnail"),
+			).toBeVisible();
 		} else {
 			await expect(page.locator("#student-safari-place-value-thumbnail")).toHaveCount(0);
 			await expect(page.locator("#student-safari-multiplication-thumbnail")).toHaveCount(0);
+			await expect(
+				page.locator("#student-safari-multiplication-double-digit-thumbnail"),
+			).toHaveCount(0);
 		}
 		const monthButtons = page.locator("#student-games-month-panel button");
 		await expect(
@@ -113,6 +134,7 @@ test("Student Games shows its math thumbnails and subject month placeholders", a
 	await expect(page.locator("#calendar-tab")).toBeVisible();
 	await expect(page.locator("#student-safari-place-value-thumbnail")).toBeVisible();
 	await expect(page.locator("#student-safari-multiplication-thumbnail")).toBeVisible();
+	await expect(page.locator("#student-safari-multiplication-double-digit-thumbnail")).toBeVisible();
 });
 
 test("Safari Place Value Adventure can be played and returned to the Games menu", async ({
@@ -198,4 +220,37 @@ test("Safari Multiplication Adventure can be solved, reset, and returned to the 
 	await page.locator("#safari-multiplication-back-button").click();
 	await expect(page.locator("#student-safari-multiplication-thumbnail")).toBeVisible();
 	await expect(page.locator("#safari-multiplication-game")).toHaveCount(0);
+});
+
+test("Safari Multiplication Adventure (1 Double Digit) uses one double-digit factor", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Open Games tab", exact: true }).click();
+
+	await page.locator("#student-safari-multiplication-double-digit-thumbnail").click();
+	await expect(page.locator("#safari-multiplication-game")).toBeVisible();
+	const factorA = Number(await page.locator("#safari-multiplication-factor-a").innerText());
+	const factorB = Number(await page.locator("#safari-multiplication-factor-b").innerText());
+	expect(factorA).toBeGreaterThanOrEqual(10);
+	expect(factorA).toBeLessThanOrEqual(99);
+	expect(factorB).toBeGreaterThanOrEqual(1);
+	expect(factorB).toBeLessThanOrEqual(9);
+
+	const target = factorA * factorB;
+	for (let hundreds = 0; hundreds < Math.floor(target / 100); hundreds += 1) {
+		await page.locator("#safari-multiplication-add-100").click();
+	}
+	for (let tens = 0; tens < Math.floor((target % 100) / 10); tens += 1) {
+		await page.locator("#safari-multiplication-add-10").click();
+	}
+	for (let ones = 0; ones < target % 10; ones += 1) {
+		await page.locator("#safari-multiplication-add-1").click();
+	}
+
+	await expect(page.locator("#safari-multiplication-win-dialog")).toBeVisible();
+	await expect(page.locator("#safari-multiplication-xp")).toHaveText("10 / 100");
+	await page.locator("#safari-multiplication-back-button").click();
+	await expect(page.locator("#student-safari-multiplication-double-digit-thumbnail")).toBeVisible();
 });

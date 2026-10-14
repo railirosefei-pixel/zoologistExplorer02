@@ -16,6 +16,7 @@ import {
 	loadSavedTemplates,
 	saveSavedTemplates,
 } from "../js/templateStorage.js";
+import { fontStyleOptions } from "../js/fontStyleOptions.js";
 import { convertToPixels } from "../js/unitConversion.js";
 import MathGamesView from "./MathGamesView.vue";
 
@@ -2142,34 +2143,6 @@ function formatSavedTemplateDate(createdAt) {
 	}
 	return `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
 }
-
-const fontStyleOptions = [
-	{
-		id: "minecraft-regular-1",
-		label: "Minecraft 1 Reg",
-		family: '"MinecraftRegular1", "Trebuchet MS", sans-serif',
-	},
-	{
-		id: "minecraft-regular-2",
-		label: "Minecraft 2 Reg",
-		family: '"MinecraftRegular2", "Trebuchet MS", sans-serif',
-	},
-	{
-		id: "minecraft-regular-2-bold",
-		label: "Minecraft 2 Bold",
-		family: '"Minecraft2Bold", "Trebuchet MS", sans-serif',
-	},
-	{
-		id: "minecraft-regular-2-italic",
-		label: "Minecraft 2 Ital",
-		family: '"Minecraft2Italic", "Trebuchet MS", sans-serif',
-	},
-	{
-		id: "minecraft-regular-2-bold-italic",
-		label: "Minecraft 2 Bold Ital.",
-		family: '"Minecraft2BoldItalic", "Trebuchet MS", sans-serif',
-	},
-];
 
 /** Feeds the Size menu dimensions into the print preview paper stylesheet variables. */
 watchEffect(() => {

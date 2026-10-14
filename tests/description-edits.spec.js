@@ -34,6 +34,162 @@ async function clickOffscreenControl(page, selector) {
 	await page.locator(selector).evaluate((element) => element.click());
 }
 
+async function selectTextInEditor(page, selector, selectedText) {
+	await page.locator(selector).evaluate((editor, text) => {
+		const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+		const textNodes = [];
+		let textNode;
+		while ((textNode = walker.nextNode())) {
+			textNodes.push(textNode);
+		}
+		const fullText = textNodes.map((node) => node.nodeValue).join("");
+		const start = fullText.indexOf(text);
+		if (start === -1) {
+			throw new Error(`Could not find text to select: ${text}`);
+		}
+		const getTextPosition = (offset) => {
+			for (const node of textNodes) {
+				if (offset <= node.length) {
+					return { node, offset };
+				}
+				offset -= node.length;
+			}
+			const lastNode = textNodes.at(-1);
+			return { node: lastNode, offset: lastNode.length };
+		};
+		const range = document.createRange();
+		const rangeStart = getTextPosition(start);
+		const rangeEnd = getTextPosition(start + text.length);
+		range.setStart(rangeStart.node, rangeStart.offset);
+		range.setEnd(rangeEnd.node, rangeEnd.offset);
+		const selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);
+		editor.focus();
+	}, selectedText);
+}
+
+async function applyDescriptionFontStyle(page, editorSelector, selectedText, fontLabel) {
+	await selectTextInEditor(page, editorSelector, selectedText);
+	const editorButton = page.locator("#description-editor-button");
+	if ((await editorButton.getAttribute("aria-expanded")) !== "true") {
+		await editorButton.click();
+	}
+	const fontStyleButton = page.locator("#description-editor-font-style-button");
+	if ((await fontStyleButton.getAttribute("aria-expanded")) !== "true") {
+		await fontStyleButton.click();
+	}
+	await page.getByRole("button", { name: fontLabel, exact: true }).click();
+}
+
+test("Description and Play by Play Font Size formats selected and newly typed text", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	for (const mode of ["description", "play-by-play"]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.locator("#description-edits-button").click();
+		await page.locator("#description-editor-button").click();
+		await clickOffscreenControl(
+			page,
+			mode === "description"
+				? "#description-edits-description-button"
+				: "#description-edits-play-by-play-button",
+		);
+		const editorSelector =
+			mode === "description" ? "#description-edits-text-box" : "#play-by-play-edits-text-box";
+		const editor = page.locator(editorSelector);
+		await editor.fill("plain colored tail");
+		await selectTextInEditor(page, editorSelector, "colored");
+
+		const fontSizeButton = page.locator("#description-editor-font-size-button");
+		if ((await fontSizeButton.getAttribute("aria-expanded")) !== "true") {
+			await fontSizeButton.click();
+		}
+		await page.locator("#description-editor-font-size-input").fill("24");
+		await page.locator("#description-editor-font-size-commit-button").click();
+		await page.keyboard.type("!");
+
+		const sizedText = editor.locator("span[style*='font-size']");
+		await expect(sizedText).toHaveCount(1);
+		await expect(sizedText).toHaveText("colored!");
+		await expect(sizedText).toHaveAttribute("style", /font-size:\s*24pt/);
+
+		const otherModeButton =
+			mode === "description"
+				? "#description-edits-play-by-play-button"
+				: "#description-edits-description-button";
+		const currentModeButton =
+			mode === "description"
+				? "#description-edits-description-button"
+				: "#description-edits-play-by-play-button";
+		await clickOffscreenControl(page, otherModeButton);
+		await clickOffscreenControl(page, currentModeButton);
+		await expect(editor.locator("span[style*='font-size']")).toHaveText("colored!");
+	}
+});
+
+test("Font Color in-page picker matches its swatch with 16px vertical gaps", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
+	await page.locator("#description-editor-button").click();
+	await clickOffscreenControl(page, "#description-edits-description-button");
+	const editor = page.locator("#description-edits-text-box");
+	await editor.fill("plain colored tail");
+	await selectTextInEditor(page, "#description-edits-text-box", "colored");
+	await page.locator("#description-editor-font-color-button").click();
+	await page.locator("#description-editor-font-color-swatch").click();
+
+	const geometry = await page.evaluate(() => {
+		const swatch = document
+			.querySelector("#description-editor-font-color-swatch")
+			.getBoundingClientRect();
+		const picker = document
+			.querySelector("#description-editor-font-color-picker")
+			.getBoundingClientRect();
+		const hex = document
+			.querySelector("#description-editor-font-color-hex-input")
+			.getBoundingClientRect();
+		return {
+			swatch: { width: swatch.width, height: swatch.height },
+			picker: { width: picker.width, height: picker.height },
+			swatchToPicker: picker.top - swatch.bottom,
+			pickerToHex: hex.top - picker.bottom,
+		};
+	});
+
+	expect(geometry.picker).toEqual(geometry.swatch);
+	expect(geometry.swatchToPicker).toBe(16);
+	expect(geometry.pickerToHex).toBe(16);
+	await page.locator("#description-editor-font-color-picker").click({
+		position: { x: 72, y: 60 },
+	});
+	const selectedColor = await page
+		.locator("#description-editor-font-color-hex-input")
+		.inputValue();
+	expect(selectedColor).toMatch(/^#[\da-f]{6}$/i);
+	expect(selectedColor).not.toBe("#000000");
+	const swatchColor = await page
+		.locator(".description-editor-font-color-swatch-canvas")
+		.evaluate((canvas) => {
+			const { data } = canvas
+				.getContext("2d")
+				.getImageData(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1);
+			return `#${[...data.slice(0, 3)]
+				.map((channel) => channel.toString(16).padStart(2, "0"))
+				.join("")}`;
+		});
+	expect(swatchColor).toBe(selectedColor);
+	await expect(editor.locator(`[data-font-color="${selectedColor}"]`)).toHaveText("colored");
+});
+
 async function measureHorizontalButtonSpacing(page, prefix) {
 	return page.evaluate((modePrefix) => {
 		const panel = document.querySelector("#description-edits-panel-container");
@@ -455,13 +611,15 @@ test.beforeEach(async ({ page }) => {
 	await page.reload();
 });
 
-test("Description Edits stays depressed while hovered and toggles on click", async ({ page }) => {
+test("Curriculum Description stays depressed while hovered and toggles on click", async ({
+	page,
+}) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
 	await page.locator("#blocks-menu-button").click();
 
-	const button = page.locator("#description-edits-button");
+	const button = page.getByRole("button", { name: "Curriculum Description", exact: true });
 	await button.click();
 	await expect(button).toHaveAttribute("aria-pressed", "true");
 	await expect(button).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
@@ -476,6 +634,654 @@ test("Description Edits stays depressed while hovered and toggles on click", asy
 	await expect(button).toHaveAttribute("aria-pressed", "false");
 	await expect(page.locator("#description-edits-panel-container")).toBeHidden();
 });
+
+test("Block Completion Edits and Curriculum Description cannot be active together", async ({
+	page,
+}) => {
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.getByRole("button", { name: "Open Blocks menu" }).click();
+
+	const descriptionButton = page.getByRole("button", {
+		name: "Curriculum Description",
+		exact: true,
+	});
+	const blockEditsButton = page.getByRole("button", {
+		name: "Block Completion Edits",
+		exact: true,
+	});
+
+	await descriptionButton.click();
+	await expect(descriptionButton).toHaveAttribute("aria-pressed", "true");
+	await blockEditsButton.click();
+	await expect(descriptionButton).toHaveAttribute("aria-pressed", "false");
+	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "true");
+	await expect(page.locator("#description-edits-panel-container")).toBeHidden();
+	await expect(page.locator(".block-edits-panel")).toHaveCount(5);
+
+	await descriptionButton.click();
+	await expect(descriptionButton).toHaveAttribute("aria-pressed", "true");
+	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "false");
+	await expect(page.locator("#description-edits-panel-container")).toBeVisible();
+	await expect(page.locator(".block-edits-panel")).toHaveCount(0);
+});
+
+test("Curriculum Description reveals an aligned Editor button", async ({ page }) => {
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.getByRole("button", { name: "Open Blocks menu" }).click();
+
+	const editorButton = page.getByRole("button", { name: "Editor", exact: true });
+	await expect(editorButton).toHaveCount(0);
+	await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
+	await expect(editorButton).toBeVisible();
+	await page.mouse.move(700, 500);
+	const blockEditsButton = page.locator("#block-edits-button");
+	await expect(blockEditsButton).toHaveCSS("transform", "none");
+
+	const buttonGeometry = await page.evaluate(() => {
+		const blockButton = document.querySelector("#block-edits-button").getBoundingClientRect();
+		const editorButton = document
+			.querySelector("#description-editor-button")
+			.getBoundingClientRect();
+		return {
+			blockLeft: blockButton.left,
+			blockRight: blockButton.right,
+			blockBottom: blockButton.bottom,
+			editorLeft: editorButton.left,
+			editorRight: editorButton.right,
+			editorTop: editorButton.top,
+		};
+	});
+
+	expect(buttonGeometry.editorLeft).toBe(buttonGeometry.blockLeft);
+	expect(buttonGeometry.editorRight).toBe(buttonGeometry.blockRight);
+	expect(buttonGeometry.editorTop - buttonGeometry.blockBottom).toBe(16);
+});
+
+test("Editor reveals aligned pastel font controls with 16px gaps", async ({ page }) => {
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits" }).click();
+	await page.getByRole("button", { name: "Open Blocks menu" }).click();
+	await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
+
+	const editorButton = page.getByRole("button", { name: "Editor", exact: true });
+	await expect(editorButton).toBeVisible();
+	await expect(page.getByRole("button", { name: "Font Style", exact: true })).toHaveCount(0);
+	await editorButton.click();
+
+	const labels = ["Font Style", "Font Size", "Font Color"];
+	for (const label of labels) {
+		await expect(page.getByRole("button", { name: label, exact: true })).toBeVisible();
+	}
+
+	const layout = await page.evaluate(() => {
+		const editor = document.querySelector("#description-editor-button").getBoundingClientRect();
+		const buttons = [
+			"description-editor-font-style-button",
+			"description-editor-font-size-button",
+			"description-editor-font-color-button",
+		].map((id) => {
+			const button = document.querySelector(`#${id}`);
+			const bounds = button.getBoundingClientRect();
+			return {
+				left: bounds.left,
+				right: bounds.right,
+				top: bounds.top,
+				bottom: bounds.bottom,
+				background: getComputedStyle(button).backgroundImage,
+			};
+		});
+		return {
+			editor: { left: editor.left, right: editor.right, bottom: editor.bottom },
+			buttons,
+		};
+	});
+
+	expect(layout.buttons[0].top - layout.editor.bottom).toBe(16);
+	for (let index = 0; index < layout.buttons.length; index += 1) {
+		expect(layout.buttons[index].left).toBe(layout.editor.left);
+		expect(layout.buttons[index].right).toBe(layout.editor.right);
+		if (index > 0) {
+			expect(layout.buttons[index].top - layout.buttons[index - 1].bottom).toBe(16);
+		}
+	}
+
+	const pastelColorPairs = [
+		[0, ["rgb(247, 196, 196)", "rgb(238, 156, 156)"]],
+		[1, ["rgb(215, 237, 207)", "rgb(182, 219, 168)"]],
+		[2, ["rgb(255, 242, 179)", "rgb(245, 223, 125)"]],
+	];
+	for (const [index, colorPair] of pastelColorPairs) {
+		expect(layout.buttons[index].background).toContain(colorPair[0]);
+		expect(layout.buttons[index].background).toContain(colorPair[1]);
+	}
+
+	await page.locator("#description-editor-font-style-button").click();
+	const fontStyleOptions = await page
+		.locator(".description-editor-font-style-option-button")
+		.evaluateAll((buttons) =>
+			buttons.map((button) => {
+				const bounds = button.getBoundingClientRect();
+				const menuBounds = button.parentElement.getBoundingClientRect();
+				return {
+					widthRatio: bounds.width / menuBounds.width,
+					left: bounds.left,
+					menuLeft: menuBounds.left,
+					textAlign: getComputedStyle(button).textAlign,
+				};
+			}),
+		);
+	expect(fontStyleOptions).toHaveLength(5);
+	for (const option of fontStyleOptions) {
+		expect(option.widthRatio).toBeCloseTo(0.7, 2);
+		expect(option.left).toBe(option.menuLeft);
+		expect(option.textAlign).toBe("left");
+	}
+});
+
+test("Font Style options match the Text Editor and format selected and subsequently typed text", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	const optionPairs = [
+		["red", "Minecraft 1 Reg", "minecraft-regular-1"],
+		["orange", "Minecraft 2 Reg", "minecraft-regular-2"],
+		["yellow", "Minecraft 2 Bold", "minecraft-regular-2-bold"],
+		["green", "Minecraft 2 Ital", "minecraft-regular-2-italic"],
+		["blue", "Minecraft 2 Bold Ital.", "minecraft-regular-2-bold-italic"],
+	];
+	const expectedText = "plain red orange yellow green blue future tail";
+
+	for (const mode of [
+		{ name: "Description", editor: "#description-edits-text-box", action: "description" },
+		{
+			name: "Play by Play",
+			editor: "#play-by-play-edits-text-box",
+			action: "play-by-play",
+		},
+	]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
+		await page.locator("#description-editor-button").click();
+		const editor = page.locator(mode.editor);
+		if (mode.action === "play-by-play") {
+			await clickOffscreenControl(page, "#description-edits-play-by-play-button");
+		} else {
+			await clickOffscreenControl(page, "#description-edits-description-button");
+		}
+		await editor.fill("plain red orange yellow green blue tail");
+
+		await page.locator("#description-editor-font-style-button").click();
+		for (const [word, label, fontStyleId] of optionPairs) {
+			await editor.evaluate((element, selectedWord) => {
+				const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+				let textNode;
+				while ((textNode = walker.nextNode())) {
+					const start = textNode.nodeValue.indexOf(selectedWord);
+					if (start === -1) {
+						continue;
+					}
+					const range = document.createRange();
+					range.setStart(textNode, start);
+					range.setEnd(textNode, start + selectedWord.length);
+					const selection = window.getSelection();
+					selection.removeAllRanges();
+					selection.addRange(range);
+					element.focus();
+					return;
+				}
+				throw new Error(`Could not find text to select: ${selectedWord}`);
+			}, word);
+			await page.getByRole("button", { name: label, exact: true }).click();
+			const styledText = editor.locator(`[data-font-style="${fontStyleId}"]`);
+			await expect(styledText).toHaveText(word);
+		}
+
+		await page.keyboard.type(" future");
+		const formattedEditor = await editor.evaluate((element) => {
+			const plainText = element.firstChild;
+			const tailText = element.lastChild;
+			return {
+				text: element.textContent,
+				fontStyles: [...element.querySelectorAll("[data-font-style]")].map((span) => ({
+					id: span.dataset.fontStyle,
+					text: span.textContent,
+					fontFamily: getComputedStyle(span).fontFamily,
+				})),
+				plainBeforeHasFontStyle:
+					plainText.parentElement?.closest("[data-font-style]") !== null,
+				plainAfterHasFontStyle:
+					tailText.parentElement?.closest("[data-font-style]") !== null,
+			};
+		});
+		expect(formattedEditor.text).toBe(expectedText);
+		expect(formattedEditor.fontStyles.map(({ id, text }) => [id, text])).toEqual([
+			["minecraft-regular-1", "red"],
+			["minecraft-regular-2", "orange"],
+			["minecraft-regular-2-bold", "yellow"],
+			["minecraft-regular-2-italic", "green"],
+			["minecraft-regular-2-bold-italic", "blue future"],
+		]);
+		expect(formattedEditor.fontStyles[0].fontFamily).toContain("MinecraftRegular1");
+		expect(formattedEditor.fontStyles[4].fontFamily).toContain("Minecraft2BoldItalic");
+		expect(formattedEditor.plainBeforeHasFontStyle).toBe(false);
+		expect(formattedEditor.plainAfterHasFontStyle).toBe(false);
+
+		const restyledText = "red orange yellow green blue";
+		await selectTextInEditor(page, mode.editor, restyledText);
+		await page.getByRole("button", { name: "Minecraft 1 Reg", exact: true }).click();
+		const restyledSelection = await editor.evaluate((element, selectedText) => {
+			const selectedStyle = [
+				...element.querySelectorAll('[data-font-style="minecraft-regular-1"]'),
+			].find((span) => span.textContent === selectedText);
+			if (!selectedStyle) {
+				throw new Error("The entire selection was not wrapped in the chosen font style.");
+			}
+			const walker = document.createTreeWalker(selectedStyle, NodeFilter.SHOW_TEXT);
+			const effectiveFontFamilies = [];
+			let textNode;
+			while ((textNode = walker.nextNode())) {
+				const fontStyle = textNode.parentElement.closest("[data-font-style]");
+				effectiveFontFamilies.push(getComputedStyle(fontStyle).fontFamily);
+			}
+			return {
+				nestedFontStyleCount: selectedStyle.querySelectorAll("[data-font-style]").length,
+				effectiveFontFamilies,
+			};
+		}, restyledText);
+		expect(restyledSelection.nestedFontStyleCount).toBe(0);
+		expect(restyledSelection.effectiveFontFamilies.length).toBeGreaterThan(0);
+		for (const fontFamily of restyledSelection.effectiveFontFamilies) {
+			expect(fontFamily).toContain("MinecraftRegular1");
+		}
+
+		await page.keyboard.type(" future");
+		await expect(
+			editor.locator('[data-font-style="minecraft-regular-1"]').filter({
+				hasText: `${restyledText} future`,
+			}),
+		).toHaveText(`${restyledText} future`);
+		await expect(editor).toContainText("future tail");
+	}
+});
+
+test("Description and Play by Play highlights clear only on permitted clicks", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	for (const mode of [
+		{ action: "description", editor: "#description-edits-text-box" },
+		{ action: "play-by-play", editor: "#play-by-play-edits-text-box" },
+	]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.locator("#description-edits-button").click();
+		await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
+		const editor = page.locator(mode.editor);
+		await editor.fill("keep this highlighted");
+		await editor.evaluate((element) => {
+			const textNode = element.firstChild;
+			const range = document.createRange();
+			range.setStart(textNode, 5);
+			range.setEnd(textNode, textNode.textContent.length);
+			const selection = window.getSelection();
+			selection.removeAllRanges();
+			selection.addRange(range);
+			element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+		});
+		const highlightedText = () =>
+			editor.evaluate(() => {
+				const highlight = CSS.highlights.get("description-edits-text-selection");
+				return highlight ? [...highlight].map((range) => range.toString()) : [];
+			});
+
+		await expect.poll(highlightedText).toEqual(["this highlighted"]);
+		await page.locator("#description-editor-button").click();
+		await expect.poll(highlightedText).toEqual(["this highlighted"]);
+		await page.locator("#description-editor-button").dblclick();
+		await expect.poll(highlightedText).toEqual([]);
+
+		await selectTextInEditor(page, mode.editor, "this highlighted");
+		await editor.evaluate((element) => {
+			element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+		});
+		await expect.poll(highlightedText).toEqual(["this highlighted"]);
+		await editor.click({ position: { x: 100, y: 30 } });
+		await expect.poll(highlightedText).toEqual([]);
+	}
+});
+
+test("Font Color picker applies hex colors to selections and subsequent text in both modes", async ({
+	page,
+}) => {
+	const scenarios = [
+		{
+			mode: "Description",
+			action: "description",
+			editor: "#description-edits-text-box",
+			chooseColor: async (_picker, hexInput) => {
+				await hexInput.fill("#12abef");
+				await hexInput.press("Enter");
+				return "#12abef";
+			},
+		},
+		{
+			mode: "Play by Play",
+			action: "play-by-play",
+			editor: "#play-by-play-edits-text-box",
+			chooseColor: async (_picker, hexInput) => {
+				await hexInput.fill("#3c84f1");
+				await hexInput.press("Enter");
+				return "#3c84f1";
+			},
+		},
+	];
+
+	for (const scenario of scenarios) {
+		await page.goto("./");
+		await page.setViewportSize({ width: 1440, height: 1200 });
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
+		await page.locator("#description-editor-button").click();
+		if (scenario.action === "play-by-play") {
+			await clickOffscreenControl(page, "#description-edits-play-by-play-button");
+		} else {
+			await clickOffscreenControl(page, "#description-edits-description-button");
+		}
+
+		const editor = page.locator(scenario.editor);
+		await editor.fill("plain colored tail");
+		await selectTextInEditor(page, scenario.editor, "colored");
+		await page.locator("#description-editor-font-color-button").click();
+		await page.locator("#description-editor-font-color-swatch").click();
+
+		const picker = page.locator("#description-editor-font-color-picker");
+		const hexInput = page.locator("#description-editor-font-color-hex-input");
+		await hexInput.click();
+		await expect(hexInput).toBeFocused();
+		await expect
+			.poll(() =>
+				page.evaluate((selector) => {
+					const editor = document.querySelector(selector);
+					const highlight = CSS.highlights.get("description-edits-text-selection");
+					const highlightedRange = highlight ? [...highlight][0] : null;
+					return {
+						backgroundColor: getComputedStyle(
+							editor,
+							"::highlight(description-edits-text-selection)",
+						).backgroundColor,
+						selectedText: highlightedRange?.toString(),
+					};
+				}, scenario.editor),
+			)
+			.toEqual({
+				backgroundColor: "rgba(0, 149, 255, 0.35)",
+				selectedText: "colored",
+			});
+		const pickerSpacing = await page.evaluate(() => {
+			const swatch = document.querySelector("#description-editor-font-color-swatch");
+			const picker = document.querySelector("#description-editor-font-color-picker");
+			const hexInput = document.querySelector("#description-editor-font-color-hex-input");
+			const swatchBounds = swatch.getBoundingClientRect();
+			const pickerBounds = picker.getBoundingClientRect();
+			return {
+				swatchToPicker: pickerBounds.top - swatchBounds.bottom,
+				pickerToHex: hexInput.getBoundingClientRect().top - pickerBounds.bottom,
+				pickerSize: [pickerBounds.width, pickerBounds.height],
+				swatchSize: [swatchBounds.width, swatchBounds.height],
+			};
+		});
+		expect(pickerSpacing.swatchToPicker).toBe(16);
+		expect(pickerSpacing.pickerToHex).toBe(16);
+		expect(pickerSpacing.pickerSize).toEqual(pickerSpacing.swatchSize);
+
+		const color = await scenario.chooseColor(picker, hexInput);
+		const coloredText = editor.locator(`[data-font-color="${color}"]`);
+		await expect(coloredText).toHaveText("colored");
+		await expect(coloredText).toHaveCSS(
+			"color",
+			color === "#12abef" ? "rgb(18, 171, 239)" : "rgb(60, 132, 241)",
+		);
+
+		await page.keyboard.type(" future");
+		await expect(editor).toContainText("colored future tail");
+		await expect(editor.locator(`[data-font-color="${color}"]`)).toHaveText("colored future");
+
+		const prefix =
+			scenario.action === "description" ? "description-edits" : "play-by-play-edits";
+		for (const [control, option] of [
+			["date", null],
+			["month", "month-option-2026-9"],
+			["day", "day-option-13"],
+			["year", "year-option-2026"],
+			["subject", "subject-option-math"],
+			["block", "block-option-1"],
+		]) {
+			await clickOffscreenControl(page, `#${prefix}-${control}-dropdown-button`);
+			if (option) {
+				await clickOffscreenControl(page, `#${prefix}-${option}`);
+			}
+		}
+		await clickOffscreenControl(page, `#${prefix}-commit-button`);
+		const savedText = await page.evaluate(
+			(storageKey) => {
+				const savedEntries = JSON.parse(localStorage.getItem(storageKey));
+				return savedEntries["2026-10-13::math::1"];
+			},
+			scenario.action === "description"
+				? "zoologistExplorer02.blockDescriptions"
+				: "zoologistExplorer02.blockPlayByPlay",
+		);
+		expect(savedText).toContain(`<span data-font-color="${color}"`);
+		expect(savedText).toContain("colored future");
+
+		await clickOffscreenControl(page, `#${prefix}-load-button`);
+		const loadedEditor = page.locator(`[id^="${prefix}-loaded-text-"]`);
+		const loadedColoredText = loadedEditor.locator(`[data-font-color="${color}"]`);
+		await expect(loadedColoredText).toHaveText("colored future");
+		await expect(loadedColoredText).toHaveCSS(
+			"color",
+			color === "#12abef" ? "rgb(18, 171, 239)" : "rgb(60, 132, 241)",
+		);
+	}
+});
+
+test("Font Color hex input reflects uniformly colored selections in both modes", async ({
+	page,
+}) => {
+	const scenarios = [
+		{
+			editor: "#description-edits-text-box",
+			action: "description",
+			color: "#12abef",
+		},
+		{
+			editor: "#play-by-play-edits-text-box",
+			action: "play-by-play",
+			color: "#3c84f1",
+		},
+	];
+
+	for (const scenario of scenarios) {
+		await page.goto("./");
+		await page.setViewportSize({ width: 1440, height: 1200 });
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
+		await page.locator("#description-editor-button").click();
+		await clickOffscreenControl(page, `#description-edits-${scenario.action}-button`);
+
+		const editor = page.locator(scenario.editor);
+		await editor.fill("plain colored tail");
+		await selectTextInEditor(page, scenario.editor, "colored");
+		await editor.evaluate((element) => {
+			element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+		});
+		await page.locator("#description-editor-font-color-button").click();
+		await page.locator("#description-editor-font-color-swatch").click();
+
+		const hexInput = page.locator("#description-editor-font-color-hex-input");
+		await hexInput.fill(scenario.color);
+		await hexInput.press("Enter");
+		await expect(editor.locator(`[data-font-color="${scenario.color}"]`)).toHaveText("colored");
+
+		await hexInput.fill("#000000");
+		await selectTextInEditor(page, scenario.editor, "colored");
+		await editor.evaluate((element) => {
+			element.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+		});
+		await expect(hexInput).toHaveValue(scenario.color);
+	}
+});
+
+for (const mode of [
+	{ name: "Description", prefix: "description-edits", action: "description" },
+	{ name: "Play by Play", prefix: "play-by-play-edits", action: "play-by-play" },
+]) {
+	for (const scenario of ["before focus", "empty editor", "existing text"]) {
+		test(`${mode.name} Font selection at a caret works with ${scenario}`, async ({ page }) => {
+			await page.getByRole("button", { name: "Open parent section" }).click();
+			await page.getByRole("button", { name: "Student Edits" }).click();
+			await page.locator("#blocks-menu-button").click();
+			await page.locator("#description-edits-button").click();
+			await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
+			await page.locator("#description-editor-button").click();
+			await page.locator("#description-editor-font-style-button").click();
+
+			const editor = page.locator(`#${mode.prefix}-text-box`);
+			const originalText = scenario === "existing text" ? "plain" : "";
+			if (scenario === "existing text") {
+				await editor.fill(originalText);
+				await editor.press("Control+End");
+			} else if (scenario === "empty editor") {
+				await editor.click();
+			}
+
+			const cdp = await page.context().newCDPSession(page);
+			await cdp.send("DOM.enable");
+			await cdp.send("CSS.enable");
+			const fontChoices = [
+				["Minecraft 1 Reg", "minecraft-regular-1", "MinecraftRegular1", " red"],
+				["Minecraft 2 Reg", "minecraft-regular-2", "MinecraftRegular2", " orange"],
+				["Minecraft 2 Bold", "minecraft-regular-2-bold", "Minecraft2Bold", " yellow"],
+				["Minecraft 2 Ital", "minecraft-regular-2-italic", "Minecraft2Italic", " green"],
+				[
+					"Minecraft 2 Bold Ital.",
+					"minecraft-regular-2-bold-italic",
+					"Minecraft2BoldItalic",
+					" blue",
+				],
+			];
+			let expectedText = originalText;
+			for (const [label, id, family, typedText] of fontChoices) {
+				const button = page.getByRole("button", { name: label, exact: true });
+				await clickOffscreenControl(page, `#description-editor-font-style-option-${id}`);
+				await expect(button).toHaveAttribute("aria-pressed", "true");
+				if (scenario === "before focus" && expectedText === "") {
+					await editor.click();
+				}
+				await page.keyboard.type(typedText);
+				expectedText += typedText;
+				await expect
+					.poll(() => editor.evaluate((element) => element.textContent))
+					.toBe(expectedText);
+				const styledText = editor.locator(`[data-font-style="${id}"]`);
+				const formattedRuns = await styledText.evaluateAll((spans) =>
+					spans.map((span) => ({
+						text: span.textContent,
+						fontFamily: getComputedStyle(span).fontFamily,
+					})),
+				);
+				expect(formattedRuns.map(({ text }) => text).join("")).toBe(typedText);
+				expect(formattedRuns.length).toBeGreaterThan(0);
+				for (const { fontFamily } of formattedRuns) {
+					expect(fontFamily).toMatch(new RegExp(family));
+				}
+				await page.evaluate(() => document.fonts.ready);
+
+				const { root } = await cdp.send("DOM.getDocument");
+				const { nodeId } = await cdp.send("DOM.querySelector", {
+					nodeId: root.nodeId,
+					selector: `#${mode.prefix}-text-box [data-font-style="${id}"]`,
+				});
+				const { fonts } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId });
+				expect(fonts.length).toBeGreaterThan(0);
+				expect(fonts.every((font) => font.isCustomFont && font.glyphCount > 0)).toBe(true);
+			}
+			await page.keyboard.press("Enter");
+			await page.keyboard.type("next line");
+			await expect
+				.poll(() => editor.evaluate((element) => element.innerText))
+				.toBe(`${expectedText}\nnext line`);
+			const nextLineFont = await editor.evaluate((element) => {
+				const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+				let node;
+				while ((node = walker.nextNode())) {
+					if (node.nodeValue.includes("next line")) {
+						return getComputedStyle(node.parentElement).fontFamily;
+					}
+				}
+				throw new Error("The typed next line was not found.");
+			});
+			expect(nextLineFont).toContain("Minecraft2BoldItalic");
+			await cdp.detach();
+			if (originalText) {
+				const plainText = await editor.evaluate((element) => ({
+					text: element.firstChild.textContent,
+					isStyled:
+						element.firstChild.parentElement.closest("[data-font-style]") !== null,
+				}));
+				expect(plainText).toEqual({ text: originalText, isStyled: false });
+			}
+		});
+	}
+	test(`${mode.name} Font selection applies to replacement and plain-text paste`, async ({
+		page,
+	}) => {
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.locator("#blocks-menu-button").click();
+		await page.locator("#description-edits-button").click();
+		await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
+		const editorSelector = `#${mode.prefix}-text-box`;
+		const editor = page.locator(editorSelector);
+		await editor.fill("prefix selected suffix");
+		await applyDescriptionFontStyle(page, editorSelector, "selected", "Minecraft 1 Reg");
+		await selectTextInEditor(page, editorSelector, "prefix");
+		await page.keyboard.type("replaced");
+		await expect(editor).toHaveText("replaced selected suffix");
+		await page.getByRole("button", { name: "Minecraft 2 Ital", exact: true }).click();
+		await editor.evaluate((element) => {
+			const clipboardData = new DataTransfer();
+			clipboardData.setData("text/plain", " <b>plain</b>\nnext");
+			element.dispatchEvent(
+				new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData }),
+			);
+		});
+		await expect
+			.poll(() => editor.evaluate((element) => element.innerText))
+			.toBe("replaced <b>plain</b>\nnext selected suffix");
+		await expect(editor.locator("b")).toHaveCount(0);
+		const pastedFont = await editor.evaluate((element) => {
+			const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+			let node;
+			while ((node = walker.nextNode())) {
+				if (node.nodeValue.includes("<b>plain</b>")) {
+					return getComputedStyle(node.parentElement).fontFamily;
+				}
+			}
+			throw new Error("Pasted plain text was not found.");
+		});
+		expect(pastedFont).toContain("Minecraft2Italic");
+	});
+}
 
 test("Description Edits panel expands on selection and stays fixed across content modes", async ({
 	page,
@@ -691,7 +1497,7 @@ for (const mode of [
 				);
 			}
 		}
-		await expect(page.locator(mode.editor)).toHaveValue(COMMIT_TEXT);
+		await expect(page.locator(mode.editor)).toHaveText(COMMIT_TEXT);
 		await expect(page.getByRole("listbox")).toHaveCount(0);
 	});
 }
@@ -752,6 +1558,53 @@ test.describe("Description Load and Save", () => {
 		await expect(load).toBeDisabled();
 	});
 
+	test("font selection on loaded text persists without additional typing", async ({ page }) => {
+		await page.locator("#description-edits-block-dropdown-button").click();
+		await page.locator("#description-edits-block-option-1").click();
+		await page.locator("#description-edits-load-button").click();
+		await applyDescriptionFontStyle(
+			page,
+			"#description-edits-loaded-text-1",
+			"description",
+			"Minecraft 2 Bold",
+		);
+		await page.locator("#description-edits-commit-button").press("Enter");
+		await page.locator("#description-edits-load-button").click();
+		const savedFont = page.locator(
+			'#description-edits-loaded-text-1 [data-font-style="minecraft-regular-2-bold"]',
+		);
+		await expect(savedFont).toHaveText("description");
+		await expect(savedFont).toHaveCSS("font-family", /Minecraft2Bold/);
+		await expect
+			.poll(() =>
+				page
+					.locator("#description-edits-loaded-text-1")
+					.evaluate((element) => element.innerText),
+			)
+			.toBe(COMMIT_TEXT);
+		await page.locator("#description-edits-loaded-text-1").press("Control+End");
+		await page.getByRole("button", { name: "Minecraft 1 Reg", exact: true }).click();
+		await page.keyboard.type(" appended");
+		await page.locator("#description-edits-commit-button").press("Enter");
+		await page.locator("#description-edits-load-button").click();
+		await expect
+			.poll(() =>
+				page
+					.locator(
+						'#description-edits-loaded-text-1 [data-font-style="minecraft-regular-1"]',
+					)
+					.evaluateAll((spans) => spans.map((span) => span.textContent).join("")),
+			)
+			.toBe(" appended");
+		await expect
+			.poll(() =>
+				page
+					.locator("#description-edits-loaded-text-1")
+					.evaluate((element) => element.innerText),
+			)
+			.toBe(`${COMMIT_TEXT} appended`);
+	});
+
 	test("single-block editing waits for Save, overwrites only its key, and resets the editor", async ({
 		page,
 	}) => {
@@ -771,7 +1624,7 @@ test.describe("Description Load and Save", () => {
 		await expect(page.locator(".description-edits-loaded-text")).toHaveCount(1);
 		await expect(page.locator("#play-by-play-edits-loaded-scroll-region")).toHaveCount(0);
 		const field = page.getByLabel("Block 1", { exact: true });
-		await expect(field).toHaveValue(COMMIT_TEXT);
+		await expect(field).toHaveText(COMMIT_TEXT);
 		const edited = "Edited description.\n\nReplacement, not appended text.";
 		await field.fill(edited);
 		expect(
@@ -785,16 +1638,22 @@ test.describe("Description Load and Save", () => {
 		await save.press("Enter");
 		await expect(page.locator("#description-edits-loaded-scroll-region")).toHaveCount(0);
 		const editor = page.locator("#description-edits-text-box");
-		await expect(editor).toHaveValue("");
+		await expect(editor).toHaveText("");
 		await expect(editor).toBeFocused();
 		expect(
 			await editor.evaluate((element) => ({
-				start: element.selectionStart,
-				end: element.selectionEnd,
+				caretAtStart: (() => {
+					const selection = window.getSelection();
+					return (
+						selection?.isCollapsed &&
+						selection.anchorNode === element &&
+						selection.anchorOffset === 0
+					);
+				})(),
 				top: element.scrollTop,
 				left: element.scrollLeft,
 			})),
-		).toEqual({ start: 0, end: 0, top: 0, left: 0 });
+		).toEqual({ caretAtStart: true, top: 0, left: 0 });
 		const expected = { ...original.descriptions, "2026-10-01::math::1": edited };
 		expect(
 			await page.evaluate(() =>
@@ -805,7 +1664,7 @@ test.describe("Description Load and Save", () => {
 			await page.evaluate(() => localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 		).toBe(original.steps);
 		await load.click();
-		await expect(page.getByLabel("Block 1", { exact: true })).toHaveValue(edited);
+		await expect(page.getByLabel("Block 1", { exact: true })).toHaveText(edited);
 		await page.reload();
 		expect(
 			await page.evaluate(() =>
@@ -830,7 +1689,7 @@ test.describe("Description Load and Save", () => {
 		}));
 		await page.locator("#description-edits-load-button").click();
 		await expect(page.locator(".description-edits-loaded-text")).toHaveCount(1);
-		await expect(page.getByLabel("Blocks 1, 3", { exact: true })).toHaveValue(COMMIT_TEXT);
+		await expect(page.getByLabel("Blocks 1, 3", { exact: true })).toHaveText(COMMIT_TEXT);
 		await expect(page.getByLabel("Block 2", { exact: true })).toHaveCount(0);
 		await page.locator("#description-edits-commit-button").press("Enter");
 		expect(
@@ -860,7 +1719,7 @@ test.describe("Description Load and Save", () => {
 			await page.evaluate(() => localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 		).toBe(original.steps);
 		await expect(page.locator("#description-edits-loaded-scroll-region")).toHaveCount(0);
-		await expect(page.locator("#description-edits-text-box")).toHaveValue("");
+		await expect(page.locator("#description-edits-text-box")).toHaveText("");
 		await expect(page.locator("#description-edits-text-box")).toBeFocused();
 	});
 
@@ -878,9 +1737,9 @@ test.describe("Description Load and Save", () => {
 		await page.locator("#description-edits-block-option-all").click();
 		await page.locator("#description-edits-load-button").click();
 		await expect(page.locator(".description-edits-loaded-text")).toHaveCount(3);
-		await expect(page.getByLabel("Block 1", { exact: true })).toHaveValue(COMMIT_TEXT);
-		await expect(page.getByLabel("Block 2", { exact: true })).toHaveValue(longDescription);
-		await expect(page.getByLabel("Block 3", { exact: true })).toHaveValue(COMMIT_TEXT);
+		await expect(page.getByLabel("Block 1", { exact: true })).toHaveText(COMMIT_TEXT);
+		await expect(page.getByLabel("Block 2", { exact: true })).toHaveText(longDescription);
+		await expect(page.getByLabel("Block 3", { exact: true })).toHaveText(COMMIT_TEXT);
 		const region = page.locator("#description-edits-loaded-scroll-region");
 		const geometry = await region.evaluate((element) => {
 			const styles = getComputedStyle(element);
@@ -949,10 +1808,10 @@ test.describe("Description Load and Save", () => {
 			await page.evaluate(() => localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 		).toBe(original.steps);
 		await expect(region).toHaveCount(0);
-		await expect(page.locator("#description-edits-text-box")).toHaveValue("");
+		await expect(page.locator("#description-edits-text-box")).toHaveText("");
 		await expect(page.locator("#description-edits-text-box")).toBeFocused();
 		await page.locator("#description-edits-load-button").click();
-		await expect(page.getByLabel("Block 2", { exact: true })).toHaveValue(edited);
+		await expect(page.getByLabel("Block 2", { exact: true })).toHaveText(edited);
 		await page.locator("#description-edits-commit-button").press("Enter");
 		expect(await page.evaluate(() => globalThis.descriptionStorageWrites)).toEqual([expected]);
 	});
@@ -1014,6 +1873,53 @@ test.describe("Play by Play Load and Save", () => {
 		await expect(load).toBeDisabled();
 	});
 
+	test("font selection on loaded text persists without additional typing", async ({ page }) => {
+		await page.locator("#play-by-play-edits-block-dropdown-button").click();
+		await page.locator("#play-by-play-edits-block-option-1").click();
+		await page.locator("#play-by-play-edits-load-button").click();
+		await applyDescriptionFontStyle(
+			page,
+			"#play-by-play-edits-loaded-text-1",
+			"First step",
+			"Minecraft 2 Ital",
+		);
+		await page.locator("#play-by-play-edits-commit-button").press("Enter");
+		await page.locator("#play-by-play-edits-load-button").click();
+		const savedFont = page.locator(
+			'#play-by-play-edits-loaded-text-1 [data-font-style="minecraft-regular-2-italic"]',
+		);
+		await expect(savedFont).toHaveText("First step");
+		await expect(savedFont).toHaveCSS("font-family", /Minecraft2Italic/);
+		await expect
+			.poll(() =>
+				page
+					.locator("#play-by-play-edits-loaded-text-1")
+					.evaluate((element) => element.innerText),
+			)
+			.toBe(PLAY_BY_PLAY_TEXT);
+		await page.locator("#play-by-play-edits-loaded-text-1").press("Control+End");
+		await page.getByRole("button", { name: "Minecraft 1 Reg", exact: true }).click();
+		await page.keyboard.type(" appended");
+		await page.locator("#play-by-play-edits-commit-button").press("Enter");
+		await page.locator("#play-by-play-edits-load-button").click();
+		await expect
+			.poll(() =>
+				page
+					.locator(
+						'#play-by-play-edits-loaded-text-1 [data-font-style="minecraft-regular-1"]',
+					)
+					.evaluateAll((spans) => spans.map((span) => span.textContent).join("")),
+			)
+			.toBe(" appended");
+		await expect
+			.poll(() =>
+				page
+					.locator("#play-by-play-edits-loaded-text-1")
+					.evaluate((element) => element.innerText),
+			)
+			.toBe(`${PLAY_BY_PLAY_TEXT} appended`);
+	});
+
 	test("single-block editing waits for Save, overwrites only its key, and resets the editor", async ({
 		page,
 	}) => {
@@ -1033,7 +1939,7 @@ test.describe("Play by Play Load and Save", () => {
 		await expect(page.locator(".play-by-play-edits-loaded-text")).toHaveCount(1);
 		await expect(page.locator("#description-edits-loaded-scroll-region")).toHaveCount(0);
 		const field = page.getByLabel("Block 1", { exact: true });
-		await expect(field).toHaveValue(PLAY_BY_PLAY_TEXT);
+		await expect(field).toHaveText(PLAY_BY_PLAY_TEXT);
 		const edited = "Edited first step.\n\nReplacement, not appended steps.";
 		await field.fill(edited);
 		expect(
@@ -1047,16 +1953,22 @@ test.describe("Play by Play Load and Save", () => {
 		await save.press("Enter");
 		await expect(page.locator("#play-by-play-edits-loaded-scroll-region")).toHaveCount(0);
 		const editor = page.locator("#play-by-play-edits-text-box");
-		await expect(editor).toHaveValue("");
+		await expect(editor).toHaveText("");
 		await expect(editor).toBeFocused();
 		expect(
 			await editor.evaluate((element) => ({
-				start: element.selectionStart,
-				end: element.selectionEnd,
+				caretAtStart: (() => {
+					const selection = window.getSelection();
+					return (
+						selection?.isCollapsed &&
+						selection.anchorNode === element &&
+						selection.anchorOffset === 0
+					);
+				})(),
 				top: element.scrollTop,
 				left: element.scrollLeft,
 			})),
-		).toEqual({ start: 0, end: 0, top: 0, left: 0 });
+		).toEqual({ caretAtStart: true, top: 0, left: 0 });
 		const expected = { ...original.steps, "2026-10-01::math::1": edited };
 		expect(
 			await page.evaluate(() =>
@@ -1069,7 +1981,7 @@ test.describe("Play by Play Load and Save", () => {
 			),
 		).toBe(original.descriptions);
 		await load.click();
-		await expect(page.getByLabel("Block 1", { exact: true })).toHaveValue(edited);
+		await expect(page.getByLabel("Block 1", { exact: true })).toHaveText(edited);
 		await page.reload();
 		expect(
 			await page.evaluate(() =>
@@ -1089,9 +2001,7 @@ test.describe("Play by Play Load and Save", () => {
 		}));
 		await page.locator("#play-by-play-edits-load-button").click();
 		await expect(page.locator(".play-by-play-edits-loaded-text")).toHaveCount(1);
-		await expect(page.getByLabel("Blocks 1, 3", { exact: true })).toHaveValue(
-			PLAY_BY_PLAY_TEXT,
-		);
+		await expect(page.getByLabel("Blocks 1, 3", { exact: true })).toHaveText(PLAY_BY_PLAY_TEXT);
 		await expect(page.getByLabel("Block 2", { exact: true })).toHaveCount(0);
 		await page.locator("#play-by-play-edits-commit-button").press("Enter");
 		expect(
@@ -1123,7 +2033,7 @@ test.describe("Play by Play Load and Save", () => {
 			),
 		).toBe(original.descriptions);
 		await expect(page.locator("#play-by-play-edits-loaded-scroll-region")).toHaveCount(0);
-		await expect(page.locator("#play-by-play-edits-text-box")).toHaveValue("");
+		await expect(page.locator("#play-by-play-edits-text-box")).toHaveText("");
 		await expect(page.locator("#play-by-play-edits-text-box")).toBeFocused();
 	});
 
@@ -1141,9 +2051,9 @@ test.describe("Play by Play Load and Save", () => {
 		await page.locator("#play-by-play-edits-block-option-all").click();
 		await page.locator("#play-by-play-edits-load-button").click();
 		await expect(page.locator(".play-by-play-edits-loaded-text")).toHaveCount(3);
-		await expect(page.getByLabel("Block 1", { exact: true })).toHaveValue(PLAY_BY_PLAY_TEXT);
-		await expect(page.getByLabel("Block 2", { exact: true })).toHaveValue(longSteps);
-		await expect(page.getByLabel("Block 3", { exact: true })).toHaveValue(PLAY_BY_PLAY_TEXT);
+		await expect(page.getByLabel("Block 1", { exact: true })).toHaveText(PLAY_BY_PLAY_TEXT);
+		await expect(page.getByLabel("Block 2", { exact: true })).toHaveText(longSteps);
+		await expect(page.getByLabel("Block 3", { exact: true })).toHaveText(PLAY_BY_PLAY_TEXT);
 		const region = page.locator("#play-by-play-edits-loaded-scroll-region");
 		const geometry = await region.evaluate((element) => {
 			const styles = getComputedStyle(element);
@@ -1212,10 +2122,10 @@ test.describe("Play by Play Load and Save", () => {
 			),
 		).toBe(original.descriptions);
 		await expect(region).toHaveCount(0);
-		await expect(page.locator("#play-by-play-edits-text-box")).toHaveValue("");
+		await expect(page.locator("#play-by-play-edits-text-box")).toHaveText("");
 		await expect(page.locator("#play-by-play-edits-text-box")).toBeFocused();
 		await page.locator("#play-by-play-edits-load-button").click();
-		await expect(page.getByLabel("Block 2", { exact: true })).toHaveValue(edited);
+		await expect(page.getByLabel("Block 2", { exact: true })).toHaveText(edited);
 		await page.locator("#play-by-play-edits-commit-button").press("Enter");
 		expect(await page.evaluate(() => globalThis.playByPlayStorageWrites)).toEqual([expected]);
 	});
@@ -1452,7 +2362,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await clickOffscreenControl(page, "#description-edits-month-dropdown-button");
 	await page.locator("#description-edits-month-option-2026-9").click();
 	await clickOffscreenControl(page, "#description-edits-day-dropdown-button");
-	await page.locator("#description-edits-day-option-5").click();
+	await page.locator("#description-edits-day-option-13").click();
 	await clickOffscreenControl(page, "#description-edits-year-dropdown-button");
 	await page.locator("#description-edits-year-option-2026").click();
 	await clickOffscreenControl(page, "#description-edits-subject-dropdown-button");
@@ -1461,12 +2371,19 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await page.locator("#description-edits-block-option-2").click();
 
 	await page.locator("#description-edits-text-box").fill(COMMIT_TEXT);
+	await applyDescriptionFontStyle(
+		page,
+		"#description-edits-text-box",
+		"description",
+		"Minecraft 2 Bold",
+	);
 	await clickOffscreenControl(page, "#description-edits-commit-button");
-
 	const storedDescriptions = await page.evaluate(() =>
 		JSON.parse(globalThis.localStorage.getItem("zoologistExplorer02.blockDescriptions")),
 	);
-	expect(storedDescriptions["2026-10-05::math::2"]).toBe(COMMIT_TEXT);
+	expect(storedDescriptions["2026-10-13::math::2"]).toContain(
+		'<span data-font-style="minecraft-regular-2-bold">description</span>',
+	);
 
 	await clickOffscreenControl(page, "#description-edits-history-dropdown-button");
 	const historyList = page.locator("#description-edits-history-options-list");
@@ -1477,7 +2394,11 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await expect(historyOption).toHaveCount(1);
 
 	await historyOption.click();
-	await expect(page.locator("#description-edits-text-box")).toHaveValue(COMMIT_TEXT);
+	await expect
+		.poll(() =>
+			page.locator("#description-edits-text-box").evaluate((editor) => editor.innerText),
+		)
+		.toBe(COMMIT_TEXT);
 
 	await page.locator("#description-edits-play-by-play-button").click();
 	await expect(page.locator("#play-by-play-edits-commit-button")).toBeVisible();
@@ -1485,7 +2406,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await clickOffscreenControl(page, "#play-by-play-edits-month-dropdown-button");
 	await page.locator("#play-by-play-edits-month-option-2026-9").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-day-dropdown-button");
-	await page.locator("#play-by-play-edits-day-option-5").click();
+	await page.locator("#play-by-play-edits-day-option-13").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-year-dropdown-button");
 	await page.locator("#play-by-play-edits-year-option-2026").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-subject-dropdown-button");
@@ -1493,20 +2414,28 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await clickOffscreenControl(page, "#play-by-play-edits-block-dropdown-button");
 	await page.locator("#play-by-play-edits-block-option-2").click();
 	await page.locator("#play-by-play-edits-text-box").fill(PLAY_BY_PLAY_TEXT);
+	await applyDescriptionFontStyle(
+		page,
+		"#play-by-play-edits-text-box",
+		"First step",
+		"Minecraft 2 Ital",
+	);
 	await clickOffscreenControl(page, "#play-by-play-edits-commit-button");
 	const storedPlayByPlay = await page.evaluate(() =>
 		JSON.parse(globalThis.localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 	);
-	expect(storedPlayByPlay["2026-10-05::math::2"]).toBe(PLAY_BY_PLAY_TEXT);
+	expect(storedPlayByPlay["2026-10-13::math::2"]).toContain(
+		'<span data-font-style="minecraft-regular-2-italic">First step</span>',
+	);
 
 	await page.locator("#description-edits-button").click();
 	await page.locator("#blocks-menu-button").evaluate((element) => element.click());
 	await page.locator("#student-edits-screen-home-button").click();
 	await page.reload();
 	await page.getByRole("button", { name: "Open student section" }).click();
-	const octoberFifth = page.locator("#calendar-day-cell-October-2026-7");
-	await octoberFifth.click();
-	await octoberFifth.click();
+	const octoberThirteenth = page.locator("#calendar-day-cell-October-2026-15");
+	await octoberThirteenth.click();
+	await octoberThirteenth.click();
 
 	await page.locator("#daily-menu-math-button").click();
 	await page.locator("#daily-menu-math-block-2-button").click();
@@ -1516,12 +2445,24 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	);
 	await expect(savedDescription).toBeVisible();
 	await expect(savedDescription).toHaveText(COMMIT_TEXT);
+	await expect
+		.poll(() => savedDescription.evaluate((element) => element.innerText))
+		.toBe(COMMIT_TEXT);
+	await expect(
+		savedDescription.locator('[data-font-style="minecraft-regular-2-bold"]'),
+	).toHaveText("description");
 
 	const savedPlayByPlay = page.locator(
 		"#daily-menu-math-block-2-panel .daily-menu-block-play-by-play",
 	);
 	await expect(savedPlayByPlay).toBeVisible();
 	await expect(savedPlayByPlay).toHaveText(PLAY_BY_PLAY_TEXT);
+	await expect
+		.poll(() => savedPlayByPlay.evaluate((element) => element.innerText))
+		.toBe(PLAY_BY_PLAY_TEXT);
+	await expect(
+		savedPlayByPlay.locator('[data-font-style="minecraft-regular-2-italic"]'),
+	).toHaveText("First step");
 	const descriptionColors = await savedDescription.evaluate((element) => {
 		const styles = getComputedStyle(element);
 		return { backgroundColor: styles.backgroundColor, backgroundImage: styles.backgroundImage };
@@ -1551,7 +2492,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	expect(playByPlayGeometry.buttonGap).toBe(16);
 });
 
-test("Math Curriculum October opens grouped weekday buttons with independent toggle states", async ({
+test("Math Curriculum October opens grouped Friday-through-Tuesday buttons with independent toggle states", async ({
 	page,
 }) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
@@ -1599,35 +2540,39 @@ test("Math Curriculum October opens grouped weekday buttons with independent tog
 	await expect(screen).toBeVisible();
 
 	const weeks = screen.locator(".math-curriculum-october-week");
-	await expect(weeks).toHaveCount(4);
-	for (const week of await weeks.all()) {
-		await expect(week.locator(".math-curriculum-october-date-button")).toHaveCount(5);
-	}
+	await expect(weeks).toHaveCount(5);
+	expect(
+		await weeks
+			.locator(".math-curriculum-october-date-button")
+			.evaluateAll((buttons) => buttons.length),
+	).toBe(22);
 
 	const labels = await screen
 		.locator(".math-curriculum-october-date-button")
 		.evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-label")));
 	expect(labels).toEqual([
+		"Math (October 2nd, 2026)",
+		"Math (October 3rd, 2026)",
+		"Math (October 4th, 2026)",
 		"Math (October 5th, 2026)",
 		"Math (October 6th, 2026)",
-		"Math (October 7th, 2026)",
-		"Math (October 8th, 2026)",
 		"Math (October 9th, 2026)",
+		"Math (October 10th, 2026)",
+		"Math (October 11th, 2026)",
 		"Math (October 12th, 2026)",
 		"Math (October 13th, 2026)",
-		"Math (October 14th, 2026)",
-		"Math (October 15th, 2026)",
 		"Math (October 16th, 2026)",
+		"Math (October 17th, 2026)",
+		"Math (October 18th, 2026)",
 		"Math (October 19th, 2026)",
 		"Math (October 20th, 2026)",
-		"Math (October 21st, 2026)",
-		"Math (October 22nd, 2026)",
 		"Math (October 23rd, 2026)",
+		"Math (October 24th, 2026)",
+		"Math (October 25th, 2026)",
 		"Math (October 26th, 2026)",
 		"Math (October 27th, 2026)",
-		"Math (October 28th, 2026)",
-		"Math (October 29th, 2026)",
 		"Math (October 30th, 2026)",
+		"Math (October 31st, 2026)",
 	]);
 
 	const layout = await page.evaluate(() => {
