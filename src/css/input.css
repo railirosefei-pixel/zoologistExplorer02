@@ -1876,6 +1876,15 @@ body {
 	font-weight: 700;
 }
 
+.grid-menu-content-placement-options {
+	display: grid;
+	grid-template-columns: max-content 48px;
+	align-items: center;
+	gap: 8px 16px;
+	width: max-content;
+	margin-top: 16px;
+}
+
 .grid-menu-single-shape-options {
 	display: flex;
 	flex-direction: column;
@@ -2122,7 +2131,8 @@ body {
 }
 
 .text-editor-print-preview-panel--shell,
-.text-editor-print-preview-panel--template {
+.text-editor-print-preview-panel--template,
+.text-editor-print-preview-panel--wide-document {
 	top: 96px;
 	right: 0;
 	bottom: 0;
@@ -2895,6 +2905,10 @@ body {
 }
 
 .text-editor-load-menu {
+	position: fixed;
+	top: 96px;
+	left: 0;
+	z-index: 145;
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -2975,8 +2989,9 @@ body {
 	gap: 12px;
 }
 
-.text-editor-unsaved-confirmation-leave-button,
-.text-editor-unsaved-confirmation-stay-button {
+.text-editor-unsaved-confirmation-discard-button,
+.text-editor-unsaved-confirmation-save-button,
+.text-editor-unsaved-confirmation-cancel-button {
 	min-width: 112px;
 	min-height: 48px;
 	padding: 8px 20px;
@@ -2989,12 +3004,22 @@ body {
 	cursor: pointer;
 }
 
-.text-editor-unsaved-confirmation-leave-button {
+.text-editor-unsaved-confirmation-discard-button {
 	background: #a52a35;
 }
 
-.text-editor-unsaved-confirmation-stay-button {
+.text-editor-unsaved-confirmation-save-button {
 	background: #2be33b;
+}
+
+.text-editor-unsaved-confirmation-cancel-button {
+	background: #e5e7eb;
+}
+
+.text-editor-unsaved-confirmation-error {
+	margin: 0 0 16px;
+	color: #fecaca;
+	text-align: center;
 }
 
 .text-editor-remove-confirmation-overlay {
@@ -3480,6 +3505,10 @@ body {
 	padding-left: 623px;
 }
 
+.print-preview-paper-viewport--wide-document {
+	padding-left: 15px;
+}
+
 .print-preview-paper {
 	anchor-name: --print-preview-paper;
 	flex-shrink: 0;
@@ -3508,6 +3537,37 @@ body {
 	overflow-wrap: anywhere;
 }
 
+.print-preview-paper-editor--confined-to-grid {
+	inset: auto;
+	top: var(--print-preview-confined-grid-top, 0px);
+	right: auto;
+	bottom: auto;
+	left: var(--print-preview-confined-grid-left, 0px);
+	box-sizing: border-box;
+	width: var(--print-preview-confined-grid-width, 1px);
+	height: var(--print-preview-confined-grid-height, 1px);
+	padding: 0;
+}
+
+.print-preview-paper-editor--confined-to-grid-shape {
+	inset: auto;
+	top: var(--print-preview-confined-shape-top, 0px);
+	right: auto;
+	bottom: auto;
+	left: var(--print-preview-confined-shape-left, 0px);
+	box-sizing: border-box;
+	width: var(--print-preview-confined-shape-width, 0px);
+	height: var(--print-preview-confined-shape-height, 0px);
+	padding: 0 0 0 2px;
+}
+
+.print-preview-paper-editor--measurement {
+	position: fixed;
+	top: 0;
+	left: -100000px;
+	visibility: hidden;
+}
+
 .print-preview-grid {
 	position: absolute;
 	inset: 0;
@@ -3520,6 +3580,10 @@ body {
 
 .print-preview-grid--shape-interaction-active {
 	pointer-events: auto;
+}
+
+.print-preview-grid--caret-hit-testing {
+	pointer-events: none;
 }
 
 .print-preview-paper[data-grid-apply-to-margins="true"] .print-preview-grid {

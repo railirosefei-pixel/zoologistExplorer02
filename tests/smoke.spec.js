@@ -99,7 +99,7 @@ test("Text Editor Back returns to the Parent menu", async ({ page }) => {
 	await expect(page.locator("#student-menu-page")).toHaveCount(0);
 });
 
-test("Grid Applied defaults on and applies to the next template without a prompt", async ({
+test("Grid Applied defaults on but new templates start without an applied grid", async ({
 	page,
 }) => {
 	await page.setViewportSize({ width: 1920, height: 1080 });
@@ -121,7 +121,8 @@ test("Grid Applied defaults on and applies to the next template without a prompt
 	await page.locator("#text-editor-new-create-template-button").click();
 	const paper = page.locator("#print-preview-paper");
 	await expect(paper).toBeVisible();
-	await expect(paper).toHaveAttribute("data-grid-applied", "true");
+	await expect(paper).toHaveAttribute("data-grid-applied", "false");
+	await expect(page.locator("#print-preview-grid")).toHaveCount(0);
 });
 
 test("Shape Removal highlights applied template shapes in a green-yellow checkerboard", async ({
@@ -2402,10 +2403,73 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(matchingToolsFrame).toBe(true);
 	await expect(page.locator("#text-editor-grid-menu aside")).toHaveCount(0);
 	const gridAppliedButton = page.locator("#grid-applied-button");
+	const contentPlacementDropdown = page.locator("#grid-menu-content-placement-dropdown");
+	await expect(contentPlacementDropdown).toBeVisible();
+	await expect(contentPlacementDropdown).not.toHaveAttribute("open", "");
+	await expect(contentPlacementDropdown.locator("summary")).toHaveText("Content Placement");
+	await contentPlacementDropdown.locator("summary").click();
+	const confinedToGridButton = page.locator("#grid-menu-confine-text-to-grid-button");
+	const confinedToShapesButton = page.locator(
+		"#grid-menu-confine-text-to-grid-shapes-button",
+	);
+	await expect(confinedToGridButton).toHaveText("Off");
+	await expect(confinedToGridButton).toHaveAttribute("aria-pressed", "false");
+	await expect(confinedToShapesButton).toHaveText("Off");
+	await expect(confinedToShapesButton).toHaveAttribute("aria-pressed", "false");
+	const contentPlacementButtonLayout = await page.evaluate(() => {
+		const gridLabel = document
+			.querySelector("#grid-menu-confine-text-to-grid-label")
+			.getBoundingClientRect();
+		const gridButton = document
+			.querySelector("#grid-menu-confine-text-to-grid-button")
+			.getBoundingClientRect();
+		const shapesLabel = document
+			.querySelector("#grid-menu-confine-text-to-grid-shapes-label")
+			.getBoundingClientRect();
+		const shapesButton = document
+			.querySelector("#grid-menu-confine-text-to-grid-shapes-button")
+			.getBoundingClientRect();
+		return {
+			buttonColumnAlignment: gridButton.left === shapesButton.left,
+			gridRowAlignment:
+				gridLabel.top + gridLabel.height / 2 === gridButton.top + gridButton.height / 2,
+			shapesRowAlignment:
+				shapesLabel.top + shapesLabel.height / 2 ===
+				shapesButton.top + shapesButton.height / 2,
+			shapesLabelGap: shapesButton.left - shapesLabel.right,
+		};
+	});
+	expect(contentPlacementButtonLayout).toEqual({
+		buttonColumnAlignment: true,
+		gridRowAlignment: true,
+		shapesRowAlignment: true,
+		shapesLabelGap: 16,
+	});
+	await expect(confinedToGridButton).toHaveCSS("width", "48px");
+	await expect(confinedToGridButton).toHaveCSS("height", "28px");
+	await confinedToGridButton.click();
+	await expect(confinedToGridButton).toHaveText("On");
+	await expect(confinedToGridButton).toHaveAttribute("aria-pressed", "true");
+	await expect(confinedToGridButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
+	await confinedToGridButton.click();
+	await expect(confinedToGridButton).toHaveText("Off");
+	await contentPlacementDropdown.locator("summary").click();
 	const gridAlignmentDropdown = page.locator("#grid-menu-alignment-dropdown");
 	await expect(gridAlignmentDropdown).toBeVisible();
 	await expect(gridAlignmentDropdown).not.toHaveAttribute("open", "");
 	await expect(gridAlignmentDropdown.locator("summary")).toHaveText("Full Grid Alignment");
+	const matchingContentPlacementDropdownStyles = await page.evaluate(() => {
+		const contentPlacement = getComputedStyle(
+			document.querySelector("#grid-menu-content-placement-dropdown summary"),
+		);
+		const fullGridAlignment = getComputedStyle(
+			document.querySelector("#grid-menu-alignment-dropdown summary"),
+		);
+		return ["display", "listStyleType", "color", "fontFamily", "fontSize", "fontWeight"].every(
+			(property) => contentPlacement[property] === fullGridAlignment[property],
+		);
+	});
+	expect(matchingContentPlacementDropdownStyles).toBe(true);
 	const gridDimensionsDropdown = page.locator("#grid-menu-dimensions-dropdown");
 	await expect(gridDimensionsDropdown).toBeVisible();
 	await expect(gridDimensionsDropdown).not.toHaveAttribute("open", "");
@@ -2693,6 +2757,7 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(amountInputEdges.rowsRight).toBe(amountInputEdges.columnsRight);
 	const gridShapesList = page.locator("#grid-menu-shapes-list");
 	await expect(page.locator("#grid-sides-label, #grid-sides-input")).toHaveCount(0);
+	await expect(page.locator("#grid-menu-alignment-heading")).toHaveText("Grid Settings");
 	const gridHeadingLayout = await page.evaluate(() => {
 		const alignment = document.querySelector("#grid-menu-alignment-heading");
 		const shapes = document.querySelector("#grid-menu-shapes-heading");
@@ -2813,10 +2878,12 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	expect(gridDimensionLayout.sizeHeadingToWidthGap).toBe(16);
 	expect(gridDimensionLayout.verticalGap).toBe(16);
 	expect(gridDimensionLayout.widthHeightInputsAligned).toBe(true);
+	await gridShapeHeightInput.fill("");
 	await gridShapeWidthInput.fill("1a.2");
 	await expect(gridShapeWidthInput).toHaveValue("1.2");
 	await gridShapeWidthInput.fill("1..2");
 	await expect(gridShapeWidthInput).toHaveValue("1.2");
+	await gridShapeWidthInput.fill("");
 	await rowsAmount.fill("1");
 	await rowsAmount.pressSequentially("a23");
 	await expect(rowsAmount).toHaveValue("123");

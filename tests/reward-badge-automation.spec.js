@@ -568,6 +568,7 @@ test("all subject badges use matching dimensions in the rewards collection", asy
 });
 
 test("Badges button opens a full-screen menu and hides while open", async ({ page }) => {
+	await page.clock.install();
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Open Rewards tab" }).click();
@@ -577,6 +578,23 @@ test("Badges button opens a full-screen menu and hides while open", async ({ pag
 	await page.locator("#rewards-page-chest-button").click();
 	const goldBag = page.locator("#rewards-page-gold-bag-button");
 	await expect(goldBag).toBeVisible();
+	await goldBag.evaluate(
+		(element) =>
+			new Promise((resolve) => {
+				const animations = element.getAnimations();
+				if (animations.length === 0) {
+					throw new Error("The gold bag entrance animation is unavailable.");
+				}
+				element.addEventListener("animationend", resolve, { once: true });
+				for (const animation of animations) {
+					animation.finish();
+				}
+			}),
+	);
+	await page.clock.fastForward(300);
+	await expect(badgesButton).toHaveCount(0);
+	await page.clock.fastForward(200);
+	await expect(badgesButton).toBeVisible();
 	await goldBag.click();
 	const spilledCoins = page.locator(".rewards-page-gold-coin");
 	await expect(spilledCoins).toHaveCount(5);
@@ -587,15 +605,6 @@ test("Badges button opens a full-screen menu and hides while open", async ({ pag
 			}
 		}
 	});
-	await expect(badgesButton).toHaveCount(0);
-	await goldBag.evaluate((element) => {
-		for (const animation of element.getAnimations()) {
-			animation.finish();
-		}
-	});
-	await page.waitForTimeout(300);
-	await expect(badgesButton).toHaveCount(0);
-	await expect(badgesButton).toBeVisible();
 	await badgesButton.evaluate((element) => {
 		for (const animation of element.getAnimations()) {
 			animation.finish();

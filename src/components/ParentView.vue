@@ -33,10 +33,13 @@ const isNewMenuOpen = ref(false);
 const isNewButtonPressed = ref(false);
 const isUnsavedNewDocument = ref(false);
 const savedDocumentBaseline = ref(null);
+const activeSavedDocumentEntryId = ref(null);
 const paperEditorMutationRevision = ref(0);
 let paperEditorMutationObserver = null;
 const isLeaveUnsavedPromptOpen = ref(false);
 const leaveUnsavedConfirmationDialogRef = ref(null);
+const leaveUnsavedError = ref("");
+const pendingDocumentLeaveAction = ref(null);
 const isShellMode = ref(false);
 const isEditingToolsOpen = ref(false);
 const isSizePanelOpen = ref(false);
@@ -120,6 +123,12 @@ const isMarginVisibilityOn = ref(true);
 const gridRowsAmount = ref("");
 const gridColumnsAmount = ref("");
 const selectedGridAlignment = ref(null);
+const isTextConfinedToGrid = ref(false);
+const isTextConfinedToGridShapes = ref(false);
+const selectedTextGridShapeKey = ref(null);
+const gridTextShapeEditorRefs = new Map();
+const gridTextShapeEditorRefCallbacks = new Map();
+const gridTextShapeEditorContents = new Map();
 const selectedSingleShapeAction = ref(null);
 const removedGridShapeCells = ref([]);
 const selectedGridShapeAdditionDirection = ref(null);
@@ -239,7 +248,10 @@ const isGridShapeHighlightActive = computed(
 		isShapeSwapHighlightActive.value,
 );
 const isGridShapeInteractionActive = computed(
-	() => isShapeRemovalHighlightActive.value || isShapeAdditionHighlightActive.value,
+	() =>
+		isShapeRemovalHighlightActive.value ||
+		isShapeAdditionHighlightActive.value ||
+		isTextConfinedToGridShapes.value,
 );
 const gridSingleShapeHighlightPatternCells = [
 	{ row: 0, column: 0, color: "#00ff40" },
@@ -358,7 +370,7 @@ function handleStudentEditsOpen() {
 }
 
 function handleParentScreenClose() {
-	emit("back-to-home");
+	requestDocumentLeave(() => emit("back-to-home"));
 }
 
 function handleParentScreenBack() {
@@ -421,6 +433,70 @@ function handlePaperEditorKeydown(event) {
 	}
 }
 
+function getPaperEditorNodePath(editor, target) {
+	const path = [];
+	let current = target;
+	while (current !== editor) {
+		const parent = current.parentNode;
+		if (!parent) {
+			return null;
+		}
+		path.unshift(Array.prototype.indexOf.call(parent.childNodes, current));
+		current = parent;
+	}
+	return path;
+}
+
+function getPaperEditorNodeAtPath(editor, path) {
+	return path.reduce((node, childIndex) => node.childNodes[childIndex], editor);
+}
+
+function wouldPaperEditorInsertionExceedBounds(editor, range, text) {
+	const paper = editor.parentElement;
+	if (!paper) {
+		return false;
+	}
+	const startPath = getPaperEditorNodePath(editor, range.startContainer);
+	const endPath = getPaperEditorNodePath(editor, range.endContainer);
+	if (!startPath || !endPath) {
+		return false;
+	}
+	const measurementEditor = editor.cloneNode(true);
+	measurementEditor.removeAttribute("id");
+	measurementEditor.removeAttribute("contenteditable");
+	measurementEditor.setAttribute("aria-hidden", "true");
+	measurementEditor.classList.add("print-preview-paper-editor--measurement");
+	paper.append(measurementEditor);
+	try {
+		const measurementRange = editor.ownerDocument.createRange();
+		measurementRange.setStart(
+			getPaperEditorNodeAtPath(measurementEditor, startPath),
+			range.startOffset,
+		);
+		measurementRange.setEnd(
+			getPaperEditorNodeAtPath(measurementEditor, endPath),
+			range.endOffset,
+		);
+		measurementRange.deleteContents();
+		const insertedText = editor.ownerDocument.createTextNode(text);
+		if (committedFontSizePoints.value) {
+			const sizeSpan = editor.ownerDocument.createElement("span");
+			sizeSpan.style.fontSize = `${committedFontSizePoints.value}pt`;
+			sizeSpan.append(insertedText);
+			measurementRange.insertNode(sizeSpan);
+		} else {
+			measurementRange.insertNode(insertedText);
+		}
+		measurementRange.setStart(insertedText, text.length);
+		measurementRange.collapse(true);
+		const caretRect = measurementRange.getBoundingClientRect();
+		const editorRect = measurementEditor.getBoundingClientRect();
+		return caretRect.right > editorRect.right + 0.5 || caretRect.bottom > editorRect.bottom + 0.5;
+	} finally {
+		measurementEditor.remove();
+	}
+}
+
 function handlePaperTemplateSave() {
 	templateNameInput.value = "";
 	isTemplateNamePromptOpen.value = true;
@@ -480,6 +556,7 @@ function handleNavigationSaveInput(event) {
 
 	savedTemplates.value = nextEntries;
 	navigationSaveEntryId.value = entry.id;
+	activeSavedDocumentEntryId.value = entry.id;
 	savedDocumentBaseline.value = snapshot;
 }
 
@@ -520,6 +597,7 @@ function saveGridSettings() {
 	}
 
 	savedTemplates.value = nextEntries;
+	activeSavedDocumentEntryId.value = nextEntries[nextEntries.length - 1].id;
 	savedDocumentBaseline.value = snapshot;
 	isGridSavePromptOpen.value = false;
 	gridSaveName.value = "";
@@ -533,7 +611,24 @@ function captureCurrentTemplate() {
 	}
 
 	const snapshot = {
-		html: editor.innerHTML === "<br>" ? "" : editor.innerHTML,
+		html: isTextConfinedToGridShapes.value
+			? ""
+			: editor.innerHTML === "<br>"
+				? ""
+				: editor.innerHTML,
+		textConfinedToGridShapes: isTextConfinedToGridShapes.value,
+		gridShapeText: Object.fromEntries(
+			isTextConfinedToGridShapes.value
+				? gridTextPlacementShapes.value.map((shape) => {
+						const shapeEditor = gridTextShapeEditorRefs.get(shape.key);
+						const html =
+							shapeEditor?.innerHTML ??
+							gridTextShapeEditorContents.get(shape.key) ??
+							"";
+						return [shape.key, html === "<br>" ? "" : html];
+					})
+				: [],
+		),
 		widthValue: widthValue.value,
 		widthUnit: widthUnit.value,
 		heightValue: heightValue.value,
@@ -617,11 +712,15 @@ function confirmTemplateSave() {
 	savedTemplates.value = addSavedTemplate(buildTemplateEntry(trimmedName, snapshot));
 	cancelTemplateSave();
 	textEditorButtonStates.value.printPreview = false;
-	handleTextEditorClose();
+	performTextEditorClose();
 }
 
 /** Return from Text Editor to the Parent menu. */
 function handleTextEditorClose() {
+	requestDocumentLeave(performTextEditorClose);
+}
+
+function performTextEditorClose() {
 	finishNavigationSave();
 	isTextEditorOpen.value = false;
 	textEditorButtonStates.value.printPreview = false;
@@ -630,6 +729,7 @@ function handleTextEditorClose() {
 	isUnsavedNewDocument.value = false;
 	isLeaveUnsavedPromptOpen.value = false;
 	savedDocumentBaseline.value = null;
+	activeSavedDocumentEntryId.value = null;
 	isShellMode.value = false;
 	textEditorButtonStates.value.grid = false;
 	textEditorButtonStates.value.calibrate = false;
@@ -644,17 +744,78 @@ function handleTextEditorClose() {
 }
 
 function handleTextEditorWorkflowBack() {
+	requestDocumentLeave(performTextEditorWorkflowBack);
+}
+
+function performTextEditorWorkflowBack() {
 	if (textEditorButtonStates.value.printPreview) {
-		if (hasUnsavedDocumentChanges()) {
-			isLeaveUnsavedPromptOpen.value = true;
-			return;
-		}
 		leaveUnsavedNewDocument();
 	}
 	isLoadMenuOpen.value = false;
 	isRemoveMode.value = false;
 	isNewMenuOpen.value = false;
 	isNewButtonPressed.value = false;
+}
+
+/** Keep a destructive navigation action pending until the document is saved or discarded. */
+function requestDocumentLeave(action) {
+	if (!hasUnsavedDocumentChanges()) {
+		action();
+		return;
+	}
+
+	pendingDocumentLeaveAction.value = action;
+	leaveUnsavedError.value = "";
+	isLeaveUnsavedPromptOpen.value = true;
+}
+
+function continueAfterDocumentLeaveDecision() {
+	const action = pendingDocumentLeaveAction.value;
+	pendingDocumentLeaveAction.value = null;
+	leaveUnsavedError.value = "";
+	isLeaveUnsavedPromptOpen.value = false;
+	action?.();
+}
+
+function discardDocumentAndContinue() {
+	continueAfterDocumentLeaveDecision();
+}
+
+function cancelDocumentLeave() {
+	pendingDocumentLeaveAction.value = null;
+	leaveUnsavedError.value = "";
+	isLeaveUnsavedPromptOpen.value = false;
+}
+
+/** Persist the active document and resume the navigation action that prompted the dialog. */
+function saveDocumentAndContinue() {
+	const snapshot = captureCurrentTemplate();
+	if (!snapshot) {
+		leaveUnsavedError.value = "The current paper could not be saved.";
+		return;
+	}
+
+	const existingEntry = savedTemplates.value.find(
+		(entry) => entry.id === activeSavedDocumentEntryId.value,
+	);
+	const entry = existingEntry
+		? { ...existingEntry, template: snapshot }
+		: buildTemplateEntry(isShellMode.value ? "Untitled Shell" : "Untitled Template", snapshot);
+	const nextEntries = existingEntry
+		? savedTemplates.value.map((savedEntry) =>
+				savedEntry.id === entry.id ? entry : savedEntry,
+			)
+		: [...savedTemplates.value, entry];
+
+	if (!saveSavedTemplates(nextEntries)) {
+		leaveUnsavedError.value = "The paper could not be saved. Please try again.";
+		return;
+	}
+
+	savedTemplates.value = nextEntries;
+	activeSavedDocumentEntryId.value = entry.id;
+	savedDocumentBaseline.value = snapshot;
+	continueAfterDocumentLeaveDecision();
 }
 
 function handleTextEditorOpen() {
@@ -676,30 +837,6 @@ function toggleGamesButton(buttonName) {
 	activeGamesButton.value = buttonName;
 }
 
-function playIllegalActionFeedback() {
-	const AudioContextConstructor = window.AudioContext;
-	if (!AudioContextConstructor) {
-		return;
-	}
-
-	const audioContext = new AudioContextConstructor();
-	const now = audioContext.currentTime;
-	const oscillator = audioContext.createOscillator();
-	const gain = audioContext.createGain();
-
-	oscillator.type = "sawtooth";
-	oscillator.frequency.setValueAtTime(220, now);
-	oscillator.frequency.exponentialRampToValueAtTime(110, now + 0.25);
-	gain.gain.setValueAtTime(0.0001, now);
-	gain.gain.exponentialRampToValueAtTime(0.16, now + 0.01);
-	gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-	oscillator.connect(gain);
-	gain.connect(audioContext.destination);
-	oscillator.addEventListener("ended", () => audioContext.close());
-	oscillator.start(now);
-	oscillator.stop(now + 0.25);
-}
-
 function toggleTextEditorButton(buttonName) {
 	if (buttonName === "printPreview") {
 		if (isNewMenuOpen.value) {
@@ -707,9 +844,8 @@ function toggleTextEditorButton(buttonName) {
 			isNewMenuOpen.value = false;
 			return;
 		}
-		if (!isNewMenuOpen.value && isLoadMenuOpen.value) {
-			playIllegalActionFeedback();
-			return;
+		if (isLoadMenuOpen.value) {
+			isLoadMenuOpen.value = false;
 		}
 		isNewButtonPressed.value = true;
 		isNewMenuOpen.value = true;
@@ -720,11 +856,35 @@ function toggleTextEditorButton(buttonName) {
 }
 
 async function resetEditorForNewDocument() {
+	gridRowsAmount.value = "";
+	gridColumnsAmount.value = "";
+	selectedGridAlignment.value = null;
+	isTextConfinedToGrid.value = false;
+	isTextConfinedToGridShapes.value = false;
+	selectedTextGridShapeKey.value = null;
+	gridTextShapeEditorContents.clear();
+	for (const editor of gridTextShapeEditorRefs.values()) {
+		editor.innerHTML = "";
+	}
+	printPreviewPaperEditorRef.value = defaultPaperEditorRef.value;
+	selectedSingleShapeAction.value = null;
 	removedGridShapeCells.value = [];
-	gridRowShapeAdditions.value = [];
-	gridColumnShapeAdditions.value = [];
 	selectedGridShapeAdditionDirection.value = null;
 	selectedGridShapeAdditionSides.value = null;
+	gridRowShapeAdditions.value = [];
+	gridColumnShapeAdditions.value = [];
+	isGridPositionCustomOpen.value = false;
+	gridMoveStep.value = null;
+	gridNudgeX.value = 0;
+	gridNudgeY.value = 0;
+	gridShapeWidthInput.value = "";
+	gridShapeHeightInput.value = "";
+	currentGridShapeWidthInches.value = null;
+	currentGridShapeHeightInches.value = null;
+	isApplyToMarginsOn.value = false;
+	isGridApplied.value = false;
+	isGridPrintable.value = true;
+	isQuadrilateralPromptOpen.value = false;
 	resetMarginSettings();
 	await nextTick();
 	const editor = printPreviewPaperEditorRef.value;
@@ -735,20 +895,36 @@ async function resetEditorForNewDocument() {
 	return editor;
 }
 
-async function createTextEditorShell() {
+/** Confirm before replacing the active document with a new shell. */
+function createTextEditorShell() {
+	requestDocumentLeave(() => {
+		void openTextEditorShell();
+	});
+}
+
+async function openTextEditorShell() {
 	isNewMenuOpen.value = false;
 	isUnsavedNewDocument.value = true;
 	isShellMode.value = true;
+	activeSavedDocumentEntryId.value = null;
 	textEditorButtonStates.value.printPreview = true;
 	activateTemplateGridSides();
 	await resetEditorForNewDocument();
 	savedDocumentBaseline.value = captureCurrentTemplate();
 }
 
-async function createTextEditorTemplate() {
+/** Confirm before replacing the active document with a new template. */
+function createTextEditorTemplate() {
+	requestDocumentLeave(() => {
+		void openTextEditorTemplate();
+	});
+}
+
+async function openTextEditorTemplate() {
 	isNewMenuOpen.value = false;
 	isUnsavedNewDocument.value = true;
 	isShellMode.value = false;
+	activeSavedDocumentEntryId.value = null;
 	textEditorButtonStates.value.printPreview = true;
 	activateTemplateGridSides();
 	const editor = await resetEditorForNewDocument();
@@ -776,11 +952,18 @@ function leaveUnsavedNewDocument() {
 	isUnsavedNewDocument.value = false;
 	isShellMode.value = false;
 	savedDocumentBaseline.value = null;
+	activeSavedDocumentEntryId.value = null;
 	textEditorButtonStates.value.printPreview = false;
 }
 
-function stayOnUnsavedNewDocument() {
-	isLeaveUnsavedPromptOpen.value = false;
+/** Let the browser show its native confirmation when an edited document is unloaded. */
+function handleBeforeUnload(event) {
+	if (!isTextEditorOpen.value || !hasUnsavedDocumentChanges()) {
+		return;
+	}
+
+	event.preventDefault();
+	event.returnValue = "";
 }
 
 function closeTextEditorDropdowns() {
@@ -812,23 +995,22 @@ function handleDocumentKeydown(event) {
 onMounted(() => {
 	document.addEventListener("pointerdown", handleDocumentPointerDown);
 	document.addEventListener("keydown", handleDocumentKeydown);
+	window.addEventListener("beforeunload", handleBeforeUnload);
 });
 
 onBeforeUnmount(() => {
 	document.removeEventListener("pointerdown", handleDocumentPointerDown);
 	document.removeEventListener("keydown", handleDocumentKeydown);
+	window.removeEventListener("beforeunload", handleBeforeUnload);
 	if (paperEditorMutationObserver) {
 		paperEditorMutationObserver.disconnect();
 	}
 });
 
 function toggleLoadMenu() {
-	if (
-		!isLoadMenuOpen.value &&
-		(textEditorButtonStates.value.printPreview || isNewMenuOpen.value)
-	) {
-		playIllegalActionFeedback();
-		return;
+	if (!isLoadMenuOpen.value && (isNewButtonPressed.value || isNewMenuOpen.value)) {
+		isNewMenuOpen.value = false;
+		isNewButtonPressed.value = false;
 	}
 	isLoadMenuOpen.value = !isLoadMenuOpen.value;
 	if (isLoadMenuOpen.value) {
@@ -864,6 +1046,17 @@ async function loadSavedTemplate(entry) {
 		return;
 	}
 
+	isTextConfinedToGrid.value = false;
+	isTextConfinedToGridShapes.value = entry.template.textConfinedToGridShapes === true;
+	gridTextShapeEditorContents.clear();
+	const savedGridShapeText = entry.template.gridShapeText;
+	if (savedGridShapeText && typeof savedGridShapeText === "object") {
+		for (const [shapeKey, html] of Object.entries(savedGridShapeText)) {
+			if (typeof html === "string") {
+				gridTextShapeEditorContents.set(shapeKey, html);
+			}
+		}
+	}
 	selectedGridShapeAdditionDirection.value = null;
 	selectedGridShapeAdditionSides.value = null;
 	const gridShapeEdits = entry.template.gridShapeEdits ?? {};
@@ -886,6 +1079,8 @@ async function loadSavedTemplate(entry) {
 		entry.template.gridSides ?? 4,
 		entry.template.gridShapeVariant ?? "vertical-rectangle",
 	);
+	selectedTextGridShapeKey.value =
+		gridTextPlacementShapes.value[0]?.key ?? null;
 	selectedGridAlignment.value = gridOptions.alignment ?? null;
 	gridMoveStep.value = gridOptions.moveStep ?? null;
 	gridNudgeX.value = gridOptions.nudgeX ?? 0;
@@ -916,6 +1111,7 @@ async function loadSavedTemplate(entry) {
 	heightUnit.value = entry.template.heightUnit ?? heightUnit.value;
 	restoreMarginSettings(entry.template);
 	isUnsavedNewDocument.value = false;
+	activeSavedDocumentEntryId.value = entry.id;
 	isLeaveUnsavedPromptOpen.value = false;
 	isShellMode.value = entry.template.isShell === true;
 	textEditorButtonStates.value.printPreview = true;
@@ -923,19 +1119,51 @@ async function loadSavedTemplate(entry) {
 	isLoadMenuOpen.value = false;
 
 	await nextTick();
-	const editor = printPreviewPaperEditorRef.value;
+	if (!isTextConfinedToGridShapes.value) {
+		gridTextShapeEditorContents.clear();
+	}
+	const editor = isTextConfinedToGridShapes.value
+		? gridTextShapeEditorRefs.get(selectedTextGridShapeKey.value)
+		: defaultPaperEditorRef.value;
 	if (!editor) {
 		return;
 	}
+	printPreviewPaperEditorRef.value = editor;
 
-	editor.innerHTML = entry.template.html ?? "";
-	editor.removeAttribute("style");
-	if (!isShellMode.value) {
-		applyTemplateTypography(editor, entry.template);
-		const fontOption = fontStyleOptions.find((option) => option.id === activeFontStyleId.value);
-		if (fontOption) {
-			editor.style.fontFamily = fontOption.family;
+	if (isTextConfinedToGridShapes.value) {
+		for (const shape of gridTextPlacementShapes.value) {
+			const shapeEditor = gridTextShapeEditorRefs.get(shape.key);
+			if (shapeEditor) {
+				shapeEditor.innerHTML =
+					gridTextShapeEditorContents.get(shape.key) ??
+					(shape.key === selectedTextGridShapeKey.value ? (entry.template.html ?? "") : "");
+			}
 		}
+	} else {
+		editor.innerHTML = entry.template.html ?? "";
+	}
+	const templateEditors = isTextConfinedToGridShapes.value
+		? [...gridTextShapeEditorRefs.values()]
+		: [editor];
+	for (const templateEditor of templateEditors) {
+		templateEditor.removeAttribute("style");
+		if (!isShellMode.value) {
+			applyTemplateTypography(templateEditor, entry.template);
+			const fontOption = fontStyleOptions.find(
+				(option) => option.id === activeFontStyleId.value,
+			);
+			if (fontOption) {
+				templateEditor.style.fontFamily = fontOption.family;
+			}
+		}
+		if (isTextConfinedToGridShapes.value) {
+			updateGridTextShapeEditorBounds(
+				templateEditor.dataset.gridShapeKey,
+				templateEditor,
+			);
+		}
+	}
+	if (!isShellMode.value) {
 		if (globalTextAlignment.value) {
 			applyGlobalTextAlignment(editor);
 		} else {
@@ -1062,6 +1290,24 @@ function commitFontSize() {
 }
 
 function handlePaperEditorBeforeInput(event) {
+	if (
+		(isTextConfinedToGrid.value || isTextConfinedToGridShapes.value) &&
+		event.inputType === "insertText" &&
+		typeof event.data === "string"
+	) {
+		const editor = event.currentTarget;
+		const selection = window.getSelection();
+		if (selection && selection.rangeCount > 0) {
+			const range = selection.getRangeAt(0);
+			if (
+				editor.contains(range.commonAncestorContainer) &&
+				wouldPaperEditorInsertionExceedBounds(editor, range, event.data)
+			) {
+				event.preventDefault();
+				return;
+			}
+		}
+	}
 	if (
 		!committedFontSizePoints.value ||
 		event.inputType !== "insertText" ||
@@ -1464,6 +1710,200 @@ function toggleGridApplied() {
 	isGridApplied.value = !isGridApplied.value;
 }
 
+function toggleTextConfinedToGrid() {
+	isTextConfinedToGrid.value = !isTextConfinedToGrid.value;
+	if (!isTextConfinedToGrid.value) {
+		return;
+	}
+	if (isTextConfinedToGridShapes.value) {
+		const selectedEditor = gridTextShapeEditorRefs.get(selectedTextGridShapeKey.value);
+		if (selectedEditor && defaultPaperEditorRef.value) {
+			defaultPaperEditorRef.value.innerHTML = selectedEditor.innerHTML;
+		}
+	}
+	isTextConfinedToGridShapes.value = false;
+	printPreviewPaperEditorRef.value = defaultPaperEditorRef.value;
+	nextTick(focusPaperEditorAtStart);
+}
+
+function toggleTextConfinedToGridShapes() {
+	isTextConfinedToGridShapes.value = !isTextConfinedToGridShapes.value;
+	if (!isTextConfinedToGridShapes.value) {
+		const selectedEditor = gridTextShapeEditorRefs.get(selectedTextGridShapeKey.value);
+		if (selectedEditor && defaultPaperEditorRef.value) {
+			defaultPaperEditorRef.value.innerHTML = selectedEditor.innerHTML;
+		}
+		printPreviewPaperEditorRef.value = defaultPaperEditorRef.value;
+		nextTick(() => {
+			if (defaultPaperEditorRef.value && !isShellMode.value) {
+				selectEditorEnd(defaultPaperEditorRef.value);
+			}
+		});
+		return;
+	}
+	isTextConfinedToGrid.value = false;
+	const selectedShape =
+		gridTextPlacementShapes.value.find(
+			(shape) => shape.key === selectedTextGridShapeKey.value,
+		) ?? gridTextPlacementShapes.value[0];
+	if (selectedShape) {
+		gridTextShapeEditorContents.set(
+			selectedShape.key,
+			defaultPaperEditorRef.value?.innerHTML ?? "",
+		);
+	}
+	selectedTextGridShapeKey.value = selectedShape?.key ?? null;
+	nextTick(focusPaperEditorAtStart);
+}
+
+function focusPaperEditorAtStart() {
+	const editor = isTextConfinedToGridShapes.value
+		? gridTextShapeEditorRefs.get(selectedTextGridShapeKey.value)
+		: defaultPaperEditorRef.value;
+	if (!editor || isShellMode.value) {
+		return;
+	}
+	printPreviewPaperEditorRef.value = editor;
+	editor.focus();
+	const range = editor.ownerDocument.createRange();
+	range.selectNodeContents(editor);
+	range.collapse(true);
+	const selection = editor.ownerDocument.getSelection();
+	if (selection) {
+		selection.removeAllRanges();
+		selection.addRange(range);
+	}
+}
+
+function getCaretPositionOnLineEnd(editor, clientX, clientY) {
+	const walker = editor.ownerDocument.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+	let lastCharacter = null;
+	let textNode = walker.nextNode();
+	while (textNode) {
+		for (let offset = 0; offset < textNode.textContent.length; offset += 1) {
+			if (/\s/.test(textNode.textContent[offset])) {
+				continue;
+			}
+			const range = editor.ownerDocument.createRange();
+			range.setStart(textNode, offset);
+			range.setEnd(textNode, offset + 1);
+			const bounds = range.getBoundingClientRect();
+			if (
+				bounds.height > 0 &&
+				clientY >= bounds.top &&
+				clientY <= bounds.bottom &&
+				(!lastCharacter || bounds.right > lastCharacter.bounds.right)
+			) {
+				lastCharacter = { node: textNode, offset: offset + 1, bounds };
+			}
+		}
+		textNode = walker.nextNode();
+	}
+	if (lastCharacter && clientX > lastCharacter.bounds.right) {
+		return { offsetNode: lastCharacter.node, offset: lastCharacter.offset };
+	}
+	return null;
+}
+
+function focusPaperEditorAtPoint(editor, svg, clientX, clientY) {
+	if (!editor || isShellMode.value) {
+		return;
+	}
+	printPreviewPaperEditorRef.value = editor;
+	editor.focus();
+	svg.classList.add("print-preview-grid--caret-hit-testing");
+	let position = null;
+	try {
+		const document = editor.ownerDocument;
+		let candidate = document.caretPositionFromPoint?.(clientX, clientY) ?? null;
+		if (!candidate) {
+			const range = document.caretRangeFromPoint?.(clientX, clientY);
+			if (range) {
+				candidate = { offsetNode: range.startContainer, offset: range.startOffset };
+			}
+		}
+		if (candidate && editor.contains(candidate.offsetNode)) {
+			position = candidate;
+		}
+	} finally {
+		svg.classList.remove("print-preview-grid--caret-hit-testing");
+	}
+
+	position = getCaretPositionOnLineEnd(editor, clientX, clientY) ?? position;
+	if (!position) {
+		focusPaperEditorAtStart();
+		return;
+	}
+	const range = editor.ownerDocument.createRange();
+	range.setStart(position.offsetNode, position.offset);
+	range.collapse(true);
+	const selection = editor.ownerDocument.getSelection();
+	if (selection) {
+		selection.removeAllRanges();
+		selection.addRange(range);
+	}
+}
+
+function setGridTextShapeEditorRef(shapeKey, editor) {
+	if (!editor) {
+		const previousEditor = gridTextShapeEditorRefs.get(shapeKey);
+		if (previousEditor) {
+			gridTextShapeEditorContents.set(
+				shapeKey,
+				previousEditor.innerHTML === "<br>" ? "" : previousEditor.innerHTML,
+			);
+			gridTextShapeEditorRefs.delete(shapeKey);
+			if (printPreviewPaperEditorRef.value === previousEditor) {
+				printPreviewPaperEditorRef.value = null;
+			}
+		}
+		return;
+	}
+
+	gridTextShapeEditorRefs.set(shapeKey, editor);
+	editor.innerHTML = gridTextShapeEditorContents.get(shapeKey) ?? "";
+	updateGridTextShapeEditorBounds(shapeKey, editor);
+	if (isTextConfinedToGridShapes.value && selectedTextGridShapeKey.value === shapeKey) {
+		printPreviewPaperEditorRef.value = editor;
+	}
+}
+
+function getGridTextShapeEditorRef(shapeKey) {
+	if (!gridTextShapeEditorRefCallbacks.has(shapeKey)) {
+		gridTextShapeEditorRefCallbacks.set(
+			shapeKey,
+			(editor) => setGridTextShapeEditorRef(shapeKey, editor),
+		);
+	}
+	return gridTextShapeEditorRefCallbacks.get(shapeKey);
+}
+
+function handleGridTextShapeEditorInput(shapeKey, event) {
+	const editor = event.currentTarget;
+	gridTextShapeEditorContents.set(
+		shapeKey,
+		editor.innerHTML === "<br>" ? "" : editor.innerHTML,
+	);
+	paperEditorMutationRevision.value += 1;
+}
+
+function updateGridTextShapeEditorBounds(shapeKey, editor) {
+	const shape = gridTextPlacementShapes.value.find((cell) => cell.key === shapeKey);
+	if (!shape) {
+		return;
+	}
+	editor.style.setProperty(
+		"--print-preview-confined-shape-left",
+		`${getGridMarginPixels("left") + gridRenderedOffsetX.value + shape.x}px`,
+	);
+	editor.style.setProperty(
+		"--print-preview-confined-shape-top",
+		`${getGridMarginPixels("top") + gridRenderedOffsetY.value + shape.y}px`,
+	);
+	editor.style.setProperty("--print-preview-confined-shape-width", `${shape.width}px`);
+	editor.style.setProperty("--print-preview-confined-shape-height", `${shape.height}px`);
+}
+
 function toggleGridAlignment(alignment) {
 	selectedGridAlignment.value = selectedGridAlignment.value === alignment ? null : alignment;
 }
@@ -1855,6 +2295,20 @@ const gridPackedCells = computed(() =>
 		gridColumnAdditionLayouts.value.flatMap((layout) => layout.shapes),
 	),
 );
+const gridTextPlacementShapes = computed(() => {
+	const cells = new Map(gridPackedCells.value.map((cell) => [cell.key, cell]));
+	for (let row = 0; row < gridRenderedRowCount.value; row += 1) {
+		for (let column = 0; column < gridRenderedColumnCount.value; column += 1) {
+			const cell = createBaseGridShapeCell(row, column);
+			if (!cells.has(cell.key)) {
+				cells.set(cell.key, cell);
+			}
+		}
+	}
+	return [...cells.values()]
+		.filter((cell) => !removedGridShapeCells.value.includes(cell.key))
+		.sort((first, second) => first.y - second.y || first.x - second.x);
+});
 /** Share fitted cell boxes between shape borders, masking, and hit-testing. */
 function getGridPackedCellPoints(cell, outlineOnly = false) {
 	if (!outlineOnly) {
@@ -2048,7 +2502,11 @@ function isGridPointInsidePolygon(point, vertices) {
 	return isInside;
 }
 function handleGridShapeClick(event) {
-	if (!isShapeRemovalHighlightActive.value && !isShapeAdditionHighlightActive.value) {
+	if (
+		!isShapeRemovalHighlightActive.value &&
+		!isShapeAdditionHighlightActive.value &&
+		!isTextConfinedToGridShapes.value
+	) {
 		return;
 	}
 	const svg = event.currentTarget;
@@ -2076,8 +2534,23 @@ function handleGridShapeClick(event) {
 	}
 	if (isShapeRemovalHighlightActive.value) {
 		removeGridShape(cell);
-	} else {
+	} else if (isShapeAdditionHighlightActive.value) {
 		addGridShape(cell);
+	} else if (
+		isTextConfinedToGridShapes.value &&
+		!isShapeSwapHighlightActive.value &&
+		!removedGridShapeCells.value.includes(cell.key)
+	) {
+		selectedTextGridShapeKey.value = cell.key;
+		const { clientX, clientY } = event;
+		nextTick(() => {
+			focusPaperEditorAtPoint(
+				gridTextShapeEditorRefs.get(cell.key),
+				svg,
+				clientX,
+				clientY,
+			);
+		});
 	}
 }
 const gridRemovedShapeLayouts = computed(() =>
@@ -2093,7 +2566,17 @@ const allSidesMarginValue = computed(() =>
 );
 
 const printPreviewPaperRef = ref(null);
+const defaultPaperEditorRef = ref(null);
 const printPreviewPaperEditorRef = ref(null);
+watch(
+	defaultPaperEditorRef,
+	(editor) => {
+		if (!isTextConfinedToGridShapes.value) {
+			printPreviewPaperEditorRef.value = editor;
+		}
+	},
+	{ flush: "post" },
+);
 watch(
 	printPreviewPaperEditorRef,
 	(editor) => {
@@ -2160,7 +2643,7 @@ function handleSavedEntryClick(entry) {
 		return;
 	}
 
-	return loadSavedTemplate(entry);
+	return requestDocumentLeave(() => loadSavedTemplate(entry));
 }
 
 function cancelSavedEntryRemoval() {
@@ -2239,6 +2722,25 @@ watchEffect(() => {
 			"--print-preview-margin-left",
 			`${Number.parseFloat(marginValues.left) || 0}px`,
 		);
+		paperElement.style.setProperty(
+			"--print-preview-confined-grid-left",
+			`${getGridMarginPixels("left") + gridRenderedOffsetX.value}px`,
+		);
+		paperElement.style.setProperty(
+			"--print-preview-confined-grid-top",
+			`${getGridMarginPixels("top") + gridRenderedOffsetY.value}px`,
+		);
+		paperElement.style.setProperty(
+			"--print-preview-confined-grid-width",
+			`${gridRenderedContentWidthPx.value}px`,
+		);
+		paperElement.style.setProperty(
+			"--print-preview-confined-grid-height",
+			`${gridRenderedContentHeightPx.value}px`,
+		);
+		for (const [shapeKey, editor] of gridTextShapeEditorRefs) {
+			updateGridTextShapeEditorBounds(shapeKey, editor);
+		}
 	}
 });
 
@@ -2828,27 +3330,42 @@ function handleCalibrationBarPointerUp() {
 					class="text-editor-unsaved-confirmation"
 					aria-labelledby="text-editor-unsaved-confirmation-message"
 					title="Unsaved document confirmation"
-					@close="isLeaveUnsavedPromptOpen = false"
+					@close="cancelDocumentLeave"
 				>
 					<p id="text-editor-unsaved-confirmation-message">
-						If You Leave Now Without Saving, Your Data Will Be Lost
+						If you leave now, your data will not be saved
+					</p>
+					<p
+						v-if="leaveUnsavedError"
+						class="text-editor-unsaved-confirmation-error"
+						role="alert"
+					>
+						{{ leaveUnsavedError }}
 					</p>
 					<div class="text-editor-unsaved-confirmation-actions">
 						<button
-							id="text-editor-unsaved-confirmation-leave-button"
-							class="text-editor-unsaved-confirmation-leave-button"
+							id="text-editor-unsaved-confirmation-discard-button"
+							class="text-editor-unsaved-confirmation-discard-button"
 							type="button"
-							@click="leaveUnsavedNewDocument"
+							@click="discardDocumentAndContinue"
 						>
-							Leave
+							Don't Save
 						</button>
 						<button
-							id="text-editor-unsaved-confirmation-stay-button"
-							class="text-editor-unsaved-confirmation-stay-button"
+							id="text-editor-unsaved-confirmation-save-button"
+							class="text-editor-unsaved-confirmation-save-button"
 							type="button"
-							@click="stayOnUnsavedNewDocument"
+							@click="saveDocumentAndContinue"
 						>
-							Stay
+							Save
+						</button>
+						<button
+							id="text-editor-unsaved-confirmation-cancel-button"
+							class="text-editor-unsaved-confirmation-cancel-button"
+							type="button"
+							@click="cancelDocumentLeave"
+						>
+							Cancel
 						</button>
 					</div>
 				</dialog>
@@ -2859,8 +3376,9 @@ function handleCalibrationBarPointerUp() {
 				class="text-editor-print-preview-panel"
 				:class="{
 					'text-editor-print-preview-panel--shell': isShellMode,
-					'text-editor-print-preview-panel--template':
-						isUnsavedNewDocument && !isShellMode,
+					'text-editor-print-preview-panel--template': !isShellMode,
+					'text-editor-print-preview-panel--wide-document':
+						paperWidthPx > paperHeightPx,
 				}"
 				aria-label="Print Preview"
 				title="Print Preview"
@@ -2868,6 +3386,10 @@ function handleCalibrationBarPointerUp() {
 				<div
 					id="print-preview-paper-viewport"
 					class="print-preview-paper-viewport"
+					:class="{
+						'print-preview-paper-viewport--wide-document':
+							paperWidthPx > paperHeightPx,
+					}"
 					data-container-name="print-preview-paper-viewport"
 				>
 					<button
@@ -2935,14 +3457,36 @@ function handleCalibrationBarPointerUp() {
 						:data-grid-apply-to-margins="appliedGridConfiguration?.applyToMargins"
 					>
 						<div
-							ref="printPreviewPaperEditorRef"
+							v-show="!isTextConfinedToGridShapes"
+							ref="defaultPaperEditorRef"
 							class="print-preview-paper-editor"
+							:class="{
+								'print-preview-paper-editor--confined-to-grid':
+									isTextConfinedToGrid,
+							}"
 							:contenteditable="!isShellMode"
 							:role="isShellMode ? undefined : 'textbox'"
 							:aria-label="isShellMode ? undefined : 'Paper template text'"
 							@beforeinput="handlePaperEditorBeforeInput"
 							@keydown="handlePaperEditorKeydown"
 						/>
+						<template v-if="isTextConfinedToGridShapes">
+							<div
+								v-for="shape in gridTextPlacementShapes"
+								:key="shape.key"
+								:ref="getGridTextShapeEditorRef(shape.key)"
+								:data-grid-shape-key="shape.key"
+								class="print-preview-paper-editor print-preview-paper-editor--confined-to-grid-shape"
+								:contenteditable="!isShellMode"
+								:role="!isShellMode ? 'textbox' : undefined"
+								:aria-label="
+									!isShellMode ? `Text in grid shape ${shape.key}` : undefined
+								"
+								@beforeinput="handlePaperEditorBeforeInput"
+								@keydown="handlePaperEditorKeydown"
+								@input="handleGridTextShapeEditorInput(shape.key, $event)"
+							/>
+						</template>
 						<div
 							v-if="isMarginVisibilityOn"
 							class="print-preview-margin-guides"
@@ -3353,11 +3897,69 @@ function handleCalibrationBarPointerUp() {
 				</div>
 				<div class="grid-menu-controls-layout">
 					<div id="grid-menu-alignment-heading" class="grid-menu-alignment-heading">
-						Alignment
+						Grid Settings
 					</div>
 					<div id="grid-menu-shapes-heading" class="grid-menu-shapes-heading">Shapes</div>
 					<div class="grid-menu-alignment-controls">
 						<div class="grid-menu-alignment-controls-inner">
+							<details id="grid-menu-content-placement-dropdown">
+								<summary class="grid-menu-control-label">Content Placement</summary>
+								<div
+									id="grid-menu-content-placement-options"
+									class="grid-menu-content-placement-options"
+									role="group"
+									aria-label="Content placement options"
+								>
+									<span
+										id="grid-menu-confine-text-to-grid-label"
+										class="grid-menu-control-label"
+									>Text Confined to Grid</span
+									>
+									<button
+										id="grid-menu-confine-text-to-grid-button"
+										class="grid-menu-toggle-button grid-menu-content-placement-grid-button"
+										type="button"
+										:aria-label="
+											isTextConfinedToGrid
+												? 'Text Confined to Grid: On'
+												: 'Text Confined to Grid: Off'
+										"
+										:aria-pressed="isTextConfinedToGrid"
+										:class="
+											isTextConfinedToGrid
+												? 'grid-menu-toggle-button--on'
+												: 'grid-menu-toggle-button--off'
+										"
+										@click="toggleTextConfinedToGrid"
+									>
+										{{ isTextConfinedToGrid ? "On" : "Off" }}
+									</button>
+									<span
+										id="grid-menu-confine-text-to-grid-shapes-label"
+										class="grid-menu-control-label"
+									>Text Confined to Grid Shapes</span
+									>
+									<button
+										id="grid-menu-confine-text-to-grid-shapes-button"
+										class="grid-menu-toggle-button grid-menu-content-placement-shapes-button"
+										type="button"
+										:aria-label="
+											isTextConfinedToGridShapes
+												? 'Text Confined to Grid Shapes: On'
+												: 'Text Confined to Grid Shapes: Off'
+										"
+										:aria-pressed="isTextConfinedToGridShapes"
+										:class="
+											isTextConfinedToGridShapes
+												? 'grid-menu-toggle-button--on'
+												: 'grid-menu-toggle-button--off'
+										"
+										@click="toggleTextConfinedToGridShapes"
+									>
+										{{ isTextConfinedToGridShapes ? "On" : "Off" }}
+									</button>
+								</div>
+							</details>
 							<details id="grid-menu-alignment-dropdown">
 								<summary class="grid-menu-control-label">
 									Full Grid Alignment

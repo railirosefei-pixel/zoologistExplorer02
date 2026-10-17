@@ -837,7 +837,7 @@ test("selected alignment applies to loaded and newly created templates", async (
 	await expect(editor).toHaveCSS("text-align", "center");
 	await expect(editor.locator("[data-text-editor-alignment-caret]")).toHaveCount(0);
 	await page.locator("#text-editor-workflow-back-button").click();
-	await page.getByRole("button", { name: "Leave", exact: true }).click();
+	await page.getByRole("button", { name: "Don't Save", exact: true }).click();
 
 	await page.locator("#text-editor-template-load-button").click();
 	await page.getByRole("button", { name: "Second alignment template" }).click();

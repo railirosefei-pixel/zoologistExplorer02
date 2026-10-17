@@ -119,3 +119,63 @@ test("new shells reject text while keeping size tools available", async ({ page 
 	await expect(page.locator("#text-editor-size-width")).toHaveValue("5");
 	await expect(page.locator("#text-editor-template-save-button")).toBeVisible();
 });
+
+test("loaded templates and shells fill the viewport below navigation", async ({ page }) => {
+	await page.addInitScript(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "loaded-template-layout",
+					name: "Loaded Template Layout",
+					template: { isShell: false },
+				},
+				{
+					id: "loaded-shell-layout",
+					name: "Loaded Shell Layout",
+					template: { isShell: true },
+				},
+			]),
+		);
+	});
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+
+	for (const [menuName, entryName] of [
+		["Load Templates", "Loaded Template Layout"],
+		["Load Shells", "Loaded Shell Layout"],
+	]) {
+		await page.locator("#text-editor-template-load-button").click();
+		await page.getByRole("button", { name: menuName, exact: true }).click();
+		await page.getByRole("button", { name: entryName, exact: true }).click();
+
+		const panel = page.locator("#text-editor-print-preview-panel");
+		const bounds = await panel.evaluate((element) => {
+			const panelRect = element.getBoundingClientRect();
+			const navigationRect = document
+				.querySelector("#text-editor-navigation-bar")
+				.getBoundingClientRect();
+			return {
+				top: panelRect.top,
+				left: panelRect.left,
+				right: panelRect.right,
+				bottom: panelRect.bottom,
+				navigationBottom: navigationRect.bottom,
+				viewportWidth: window.innerWidth,
+				viewportHeight: window.innerHeight,
+			};
+		});
+
+		expect(bounds).toEqual({
+			top: bounds.navigationBottom,
+			left: 0,
+			right: bounds.viewportWidth,
+			bottom: bounds.viewportHeight,
+			navigationBottom: bounds.navigationBottom,
+			viewportWidth: bounds.viewportWidth,
+			viewportHeight: bounds.viewportHeight,
+		});
+		await page.locator("#text-editor-workflow-back-button").click();
+	}
+});

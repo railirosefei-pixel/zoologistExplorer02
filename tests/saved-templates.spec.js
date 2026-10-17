@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("New and Load menus reject conflicting activation with an illegal-action sound", async ({
+test("New and Load buttons switch active menus without an illegal-action sound", async ({
 	page,
 }) => {
 	await page.addInitScript(() => {
@@ -53,17 +53,18 @@ test("New and Load menus reject conflicting activation with an illegal-action so
 	const newButton = page.locator("#text-editor-template-new-button");
 	await loadButton.click();
 	await newButton.click();
-	await expect(loadButton).toHaveAttribute("aria-pressed", "true");
-	await expect(newButton).toHaveAttribute("aria-pressed", "false");
-	await expect.poll(() => page.evaluate(() => window.__illegalActionSoundCount)).toBe(1);
+	await expect(loadButton).toHaveAttribute("aria-pressed", "false");
+	await expect(newButton).toHaveAttribute("aria-pressed", "true");
+	await expect(page.locator("#text-editor-load-menu")).toHaveCount(0);
+	await expect(page.locator("#text-editor-new-menu")).toBeVisible();
 
 	await loadButton.click();
-	await newButton.click();
-	await loadButton.click();
-	await expect(loadButton).toHaveAttribute("aria-pressed", "false");
-	await expect(page.locator("#text-editor-new-menu")).toBeVisible();
+	await expect(loadButton).toHaveAttribute("aria-pressed", "true");
+	await expect(newButton).toHaveAttribute("aria-pressed", "false");
+	await expect(page.locator("#text-editor-new-menu")).toHaveCount(0);
+	await expect(page.locator("#text-editor-load-menu")).toBeVisible();
 	await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
-	await expect.poll(() => page.evaluate(() => window.__illegalActionSoundCount)).toBe(2);
+	await expect.poll(() => page.evaluate(() => window.__illegalActionSoundCount)).toBe(0);
 });
 
 test("New menu matches the Load menu position with separate identifiers", async ({ page }) => {
@@ -238,18 +239,18 @@ test("workflow Back confirms edits to loaded and created shells and templates", 
 
 	const backButton = page.locator("#text-editor-workflow-back-button");
 	const dialog = page.getByRole("dialog", {
-		name: "If You Leave Now Without Saving, Your Data Will Be Lost",
+		name: "If you leave now, your data will not be saved",
 	});
 	const confirmBackAfterEdit = async (editDocument) => {
 		await editDocument();
 		await backButton.click();
 		await expect(dialog).toBeVisible();
-		await dialog.getByRole("button", { name: "Stay" }).click();
+		await dialog.getByRole("button", { name: "Cancel" }).click();
 		await expect(dialog).toHaveCount(0);
 		await expect(page.locator("#text-editor-print-preview-panel")).toBeVisible();
 
 		await backButton.click();
-		await dialog.getByRole("button", { name: "Leave" }).click();
+		await dialog.getByRole("button", { name: "Don't Save" }).click();
 		await expect(page.locator("#text-editor-print-preview-panel")).toHaveCount(0);
 		await expect(page.locator("#text-editor-template-load-button")).toBeVisible();
 	};
@@ -277,6 +278,234 @@ test("workflow Back confirms edits to loaded and created shells and templates", 
 	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
 	await page.locator("#text-editor-size-width").fill("8");
 	await confirmBackAfterEdit(async () => {});
+});
+
+test("New document and Home actions can save or discard the active document before continuing", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.evaluate(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "loaded-template",
+					name: "Loaded template",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "Original template",
+						widthValue: "6",
+						widthUnit: "in",
+						heightValue: "9",
+						heightUnit: "in",
+						isShell: false,
+					},
+				},
+				{
+					id: "loaded-shell",
+					name: "Loaded shell",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "",
+						widthValue: "7",
+						widthUnit: "in",
+						heightValue: "9",
+						heightUnit: "in",
+						isShell: true,
+					},
+				},
+			]),
+		);
+	});
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Loaded template" }).click();
+	await page.locator(".print-preview-paper-editor").fill("Edited loaded template");
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+
+	const dialog = page.getByRole("dialog", {
+		name: "If you leave now, your data will not be saved",
+	});
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole("button", { name: "Save", exact: true }).click();
+	await expect(page.locator("#text-editor-print-preview-panel")).toBeVisible();
+	await expect(page.locator(".print-preview-paper-editor")).toHaveAttribute(
+		"contenteditable",
+		"false",
+	);
+
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.locator("#text-editor-size-menu-button").click();
+	await page.locator("#text-editor-size-width").fill("8");
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Template", exact: true }).click();
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole("button", { name: "Save", exact: true }).click();
+	await expect(page.locator("#text-editor-print-preview-panel")).toBeVisible();
+
+	await page.locator(".print-preview-paper-editor").fill("Edited new template");
+	await page.locator("#text-editor-workflow-home-button").click();
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole("button", { name: "Save", exact: true }).click();
+	await expect(page.getByRole("button", { name: "Open student section" })).toBeVisible();
+	const savedEntries = await page.evaluate(() =>
+		JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates") || "[]"),
+	);
+	expect(savedEntries).toHaveLength(4);
+	expect(savedEntries.find((entry) => entry.id === "loaded-template").template.html).toBe(
+		"Edited loaded template",
+	);
+	expect(savedEntries.find((entry) => entry.name === "Untitled Shell").template).toMatchObject({
+		widthValue: "8",
+		isShell: true,
+	});
+	expect(
+		savedEntries.find((entry) => entry.name === "Untitled Template").template.html,
+	).toBe("Edited new template");
+
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Load Shells" }).click();
+	await page.getByRole("button", { name: "Loaded shell" }).click();
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.locator("#text-editor-size-menu-button").click();
+	await page.locator("#text-editor-size-width").fill("7.5");
+	await page.locator("#text-editor-workflow-home-button").click();
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole("button", { name: "Save", exact: true }).click();
+	await expect(page.getByRole("button", { name: "Open student section" })).toBeVisible();
+	const updatedEntries = await page.evaluate(() =>
+		JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates") || "[]"),
+	);
+	expect(updatedEntries.find((entry) => entry.id === "loaded-shell").template).toMatchObject({
+		widthValue: "7.5",
+		isShell: true,
+	});
+});
+
+test("loading a saved template or shell confirms before replacing edited documents", async ({
+	page,
+}) => {
+	await page.goto("./");
+	await page.evaluate(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "active-template",
+					name: "Active template",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "Original active text",
+						widthValue: "6",
+						widthUnit: "in",
+						heightValue: "9",
+						heightUnit: "in",
+						isShell: false,
+					},
+				},
+				{
+					id: "replacement-shell",
+					name: "Replacement shell",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "",
+						widthValue: "7",
+						widthUnit: "in",
+						heightValue: "9",
+						heightUnit: "in",
+						isShell: true,
+					},
+				},
+				{
+					id: "replacement-template",
+					name: "Replacement template",
+					createdAt: new Date().toISOString(),
+					template: {
+						html: "Replacement text",
+						widthValue: "8",
+						widthUnit: "in",
+						heightValue: "10",
+						heightUnit: "in",
+						isShell: false,
+					},
+				},
+			]),
+		);
+	});
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+
+	const loadButton = page.locator("#text-editor-template-load-button");
+	await loadButton.click();
+	await page.getByRole("button", { name: "Active template" }).click();
+	const editor = page.locator(".print-preview-paper-editor");
+	await editor.fill("Edited active text");
+	await loadButton.click();
+	await page.getByRole("button", { name: "Load Shells" }).click();
+	const replacementShell = page.getByRole("button", { name: "Replacement shell" });
+	await replacementShell.click();
+
+	const dialog = page.getByRole("dialog", {
+		name: "If you leave now, your data will not be saved",
+	});
+	await expect(dialog).toBeVisible();
+	await expect(dialog.getByRole("button", { name: "Don't Save" })).toBeVisible();
+	await expect(dialog.getByRole("button", { name: "Save", exact: true })).toBeVisible();
+	await expect(dialog.getByRole("button", { name: "Cancel" })).toBeVisible();
+	await dialog.getByRole("button", { name: "Cancel" }).click();
+	await expect(editor).toHaveText("Edited active text");
+
+	await replacementShell.click();
+	await dialog.getByRole("button", { name: "Don't Save" }).click();
+	await expect(page.locator("#text-editor-print-preview-panel")).toHaveClass(
+		/text-editor-print-preview-panel--shell/,
+	);
+	await expect(editor).toBeEmpty();
+	await page.getByRole("button", { name: "Tools" }).click();
+	await page.locator("#text-editor-size-menu-button").click();
+	const widthInput = page.locator("#text-editor-size-width");
+	await widthInput.fill("7.5");
+
+	await loadButton.click();
+	await page.getByRole("button", { name: "Load Templates" }).click();
+	await page.getByRole("button", { name: "Replacement template" }).click();
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole("button", { name: "Save", exact: true }).click();
+
+	await expect(page.locator("#text-editor-print-preview-panel")).not.toHaveClass(
+		/text-editor-print-preview-panel--shell/,
+	);
+	await expect(editor).toHaveText("Replacement text");
+	const savedEntries = await page.evaluate(() =>
+		JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates") || "[]"),
+	);
+	expect(savedEntries.find((entry) => entry.id === "replacement-shell").template).toMatchObject({
+		widthValue: "7.5",
+		isShell: true,
+	});
+});
+
+test("browser page exit warns only while the active document has unsaved edits", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Template", exact: true }).click();
+
+	const dispatchBeforeUnload = () =>
+		page.evaluate(() => {
+			const event = new Event("beforeunload", { cancelable: true });
+			window.dispatchEvent(event);
+			return event.defaultPrevented;
+		});
+	expect(await dispatchBeforeUnload()).toBe(false);
+
+	await page.locator(".print-preview-paper-editor").fill("Unsaved text");
+	expect(await dispatchBeforeUnload()).toBe(true);
 });
 
 test("navigation Save tracks new template text and new shell grid changes", async ({ page }) => {
@@ -347,7 +576,6 @@ test("navigation Save names and stores template settings in Load Templates", asy
 	await page.locator("#text-editor-size-width").fill("7");
 	await page.locator("#text-editor-editing-tools-button").click();
 	await page.locator("#text-editor-grid-button").click();
-	await page.locator("#grid-applied-button").click();
 	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
 	await page.locator("#grid-rows-amount").fill("8");
 
@@ -420,7 +648,6 @@ test("navigation Save names and stores shell settings in Load Shells", async ({ 
 	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
 
 	await page.locator("#text-editor-grid-button").click();
-	await page.locator("#grid-applied-button").click();
 	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
 	await page.locator("#grid-rows-amount").fill("9");
 
@@ -483,7 +710,6 @@ test("Grid menu Apply and Save stores and reloads template grid options", async 
 	expect(applyButtonStyle.backgroundImage).toContain("rgb(0, 216, 61)");
 	expect(applyButtonStyle.boxShadow).not.toBe("none");
 
-	await page.locator("#grid-applied-button").click();
 	await page.locator("#grid-apply-to-margins-button").click();
 	await page.locator("#grid-menu-grid-prints-button").click();
 	await page.locator("#grid-menu-alignment-dropdown > summary").click();
@@ -545,6 +771,95 @@ test("Grid menu Apply and Save stores and reloads template grid options", async 
 	await expect(page.locator("#grid-columns-amount")).toHaveValue("9");
 });
 
+test("New template and shell clear loaded content and grid while Load restores saved state", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 2560, height: 1080 });
+	await page.addInitScript(() => {
+		window.localStorage.setItem(
+			"ze2.textEditor.savedTemplates",
+			JSON.stringify([
+				{
+					id: "loaded-grid-template",
+					name: "Loaded Grid Template",
+					template: {
+						html: "<p>Saved template content</p>",
+						isShell: false,
+						gridSides: 4,
+						gridShapeVariant: "vertical-rectangle",
+						gridOptions: {
+							isApplied: true,
+							isPrintable: false,
+							applyToMargins: true,
+							rows: "8",
+							columns: "9",
+							alignment: "center",
+							moveStep: 0.25,
+							nudgeX: 2,
+							nudgeY: -3,
+							widthInput: "0.5",
+							heightInput: "0.75",
+							selectedShapeSides: 4,
+							selectedShapeVariant: "vertical-rectangle",
+						},
+					},
+				},
+			]),
+		);
+	});
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Loaded Grid Template", exact: true }).click();
+
+	await expect(page.locator(".print-preview-paper-editor")).toHaveText(
+		"Saved template content",
+	);
+	await expect(page.locator("#print-preview-paper")).toHaveAttribute(
+		"data-grid-applied",
+		"true",
+	);
+	await page.locator("#text-editor-grid-button").click();
+	await expect(page.locator("#grid-applied-button")).toHaveAttribute(
+		"aria-pressed",
+		"true",
+	);
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+	await expect(page.locator("#grid-rows-amount")).toHaveValue("8");
+	await expect(page.locator("#grid-columns-amount")).toHaveValue("9");
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Template", exact: true }).click();
+	await expect(page.locator(".print-preview-paper-editor")).toBeEmpty();
+	await expect(page.locator("#print-preview-paper")).toHaveAttribute(
+		"data-grid-applied",
+		"false",
+	);
+	await expect(page.locator("#print-preview-grid")).toHaveCount(0);
+	await expect(page.locator("#grid-applied-button")).toHaveAttribute(
+		"aria-pressed",
+		"false",
+	);
+	await expect(page.locator("#grid-apply-to-margins-button")).toHaveAttribute(
+		"aria-pressed",
+		"false",
+	);
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+	await expect(page.locator("#grid-rows-amount")).toHaveValue("");
+	await expect(page.locator("#grid-columns-amount")).toHaveValue("");
+
+	await page.getByRole("button", { name: "New +" }).click();
+	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+	await expect(page.locator(".print-preview-paper-editor")).toBeEmpty();
+	await expect(page.locator("#print-preview-paper")).toHaveAttribute(
+		"data-grid-applied",
+		"false",
+	);
+	await expect(page.locator("#print-preview-grid")).toHaveCount(0);
+});
+
 test("Grid menu Apply and Save names shell entries for Load Shells", async ({ page }) => {
 	await page.setViewportSize({ width: 2560, height: 1080 });
 	await page.goto("./");
@@ -589,6 +904,7 @@ test("Grid Size inputs update live and persist for templates and shells", async 
 			})
 			.click();
 		await page.locator("#text-editor-grid-button").click();
+		await page.locator("#grid-applied-button").click();
 		await page.locator("#grid-menu-dimensions-dropdown > summary").click();
 
 		const shapePattern = page.locator("#print-preview-grid-shape-pattern");
@@ -958,7 +1274,7 @@ test("new templates inherit Tools settings while shells omit font settings", asy
 	);
 });
 
-test("template and shell paper left edges stay fixed when width increases", async ({ page }) => {
+test("wide template and shell papers start 16px from the screen left", async ({ page }) => {
 	await page.setViewportSize({ width: 1280, height: 1200 });
 
 	for (const action of ["Create A Shell", "Create A Template"]) {
@@ -983,7 +1299,7 @@ test("template and shell paper left edges stay fixed when width increases", asyn
 		});
 
 		await page.locator("#text-editor-size-menu-button").click();
-		await page.locator("#text-editor-size-width").fill("10");
+		await page.locator("#text-editor-size-width").fill("12");
 
 		const paperAfter = await paper.evaluate((element) => {
 			const paperRect = element.getBoundingClientRect();
@@ -998,8 +1314,7 @@ test("template and shell paper left edges stay fixed when width increases", asyn
 		});
 
 		expect(paperBefore.gap).toBe(16);
-		expect(paperAfter.gap).toBe(16);
-		expect(paperAfter.left).toBe(paperBefore.left);
+		expect(paperAfter.left).toBe(16);
 		expect(paperAfter.width).toBeGreaterThan(paperBefore.width);
 	}
 });

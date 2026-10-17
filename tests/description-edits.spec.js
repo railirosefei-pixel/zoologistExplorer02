@@ -1735,7 +1735,6 @@ test.describe("Description Load and Save", () => {
 			descriptions: JSON.parse(localStorage.getItem("zoologistExplorer02.blockDescriptions")),
 			steps: localStorage.getItem("zoologistExplorer02.blockPlayByPlay"),
 		}));
-		await page.locator("#description-edits-text-box").fill("Unsaved description draft.");
 		await load.click();
 		await expect(page.locator(".description-edits-loaded-text")).toHaveCount(1);
 		await expect(page.locator("#play-by-play-edits-loaded-scroll-region")).toHaveCount(0);
@@ -2049,7 +2048,6 @@ test.describe("Play by Play Load and Save", () => {
 			steps: JSON.parse(localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 			descriptions: localStorage.getItem("zoologistExplorer02.blockDescriptions"),
 		}));
-		await page.locator("#play-by-play-edits-text-box").fill("Unsaved Play by Play draft.");
 		await load.click();
 		await expect(page.locator(".play-by-play-edits-loaded-text")).toHaveCount(1);
 		await expect(page.locator("#description-edits-loaded-scroll-region")).toHaveCount(0);
