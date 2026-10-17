@@ -42,6 +42,24 @@ async function openParent(page) {
 	await page.getByRole("button", { name: "Open parent section" }).click();
 }
 
+async function revealBadgesButton(page) {
+	await page.locator("#rewards-page-chest-button").click();
+	const goldBag = page.locator("#rewards-page-gold-bag-button");
+	await expect(goldBag).toBeVisible();
+	await goldBag.evaluate((element) => {
+		for (const animation of element.getAnimations()) {
+			animation.finish();
+		}
+	});
+	const badgesButton = page.locator("#rewards-page-badges-button");
+	await expect(badgesButton).toBeVisible();
+	await badgesButton.evaluate((element) => {
+		for (const animation of element.getAnimations()) {
+			animation.finish();
+		}
+	});
+}
+
 test("parent screens share navigation and Back returns one level", async ({ page }) => {
 	await openParent(page);
 	await verifyNavigation(page, null, "parent-screen-back-button-parent");
@@ -51,14 +69,12 @@ test("parent screens share navigation and Back returns one level", async ({ page
 		"student-edits-screen-home-button",
 		"student-edits-screen-back-button",
 	);
-	await page.getByRole("button", { name: "Open Blocks menu" }).click();
+	await page.getByRole("button", { name: "Block Completion Edits", exact: true }).click();
 	await verifyNavigation(page, "blocks-screen-home-button", "blocks-screen-back-button");
-	await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
 	await page.locator("#blocks-screen-back-button").click();
 	await expect(page.locator("#description-edits-position-wrapper")).toHaveCount(0);
-	await expect(page.locator("#blocks-menu-sidebar")).toBeVisible();
-	await page.locator("#blocks-screen-back-button").click();
 	await expect(page.locator("#blocks-menu-sidebar")).toHaveCount(0);
+	await expect(page.locator("#blocks-screen-back-button")).toHaveCount(0);
 	await verifyNavigation(
 		page,
 		"student-edits-screen-home-button",
@@ -82,7 +98,15 @@ test("Student Edits labels and Rewards Edits sidebar match the requested layout"
 	await openParent(page);
 	await page.getByRole("button", { name: "Student Edits", exact: true }).click();
 	await expect(page.locator("#curriculum-game-button")).toHaveText("Progress Menu Edits");
-	await expect(page.locator("#blocks-menu-button")).toHaveText("Block Edits");
+	await expect(page.locator("#blocks-menu-button")).toHaveCount(0);
+	await expect(page.locator("#description-edits-button").locator("..")).toHaveAttribute(
+		"id",
+		"student-edits-sidebar",
+	);
+	await expect(page.locator("#block-edits-button").locator("..")).toHaveAttribute(
+		"id",
+		"student-edits-sidebar",
+	);
 
 	await page.getByRole("button", { name: "Open Rewards Edits menu" }).click();
 	const sidebar = page.locator("#rewards-edits-sidebar");
@@ -98,12 +122,15 @@ test("Student Edits labels and Rewards Edits sidebar match the requested layout"
 		page.locator("#badges-earned-button"),
 		page.locator("#cards-earned-button"),
 	];
-	const blockButtonStyle = await page.locator("#blocks-menu-button").evaluate((button) => {
+	await expect(page.locator("#rewards-edits-menu-button")).toHaveCSS(
+		"background-image",
+		"linear-gradient(rgb(217, 242, 208) 0%, rgb(180, 223, 170) 100%)",
+	);
+	const blockButtonStyle = await page.locator("#rewards-edits-menu-button").evaluate((button) => {
 		const style = getComputedStyle(button);
 		return {
 			padding: style.padding,
 			border: style.border,
-			backgroundImage: style.backgroundImage,
 			color: style.color,
 			fontFamily: style.fontFamily,
 			fontSize: style.fontSize,
@@ -113,12 +140,15 @@ test("Student Edits labels and Rewards Edits sidebar match the requested layout"
 	for (const button of rewardsButtons) {
 		await expect(button).toBeVisible();
 		await expect(button).toHaveClass(/blocks-menu-button/);
+		await expect(button).toHaveCSS(
+			"background-image",
+			"linear-gradient(rgb(207, 228, 255) 0%, rgb(147, 197, 253) 100%)",
+		);
 		const style = await button.evaluate((element) => {
 			const computedStyle = getComputedStyle(element);
 			return {
 				padding: computedStyle.padding,
 				border: computedStyle.border,
-				backgroundImage: computedStyle.backgroundImage,
 				color: computedStyle.color,
 				fontFamily: computedStyle.fontFamily,
 				fontSize: computedStyle.fontSize,
@@ -192,9 +222,9 @@ test("parent Games Back returns game, gallery, sidebar, then Parent", async ({ p
 	await page.getByRole("button", { name: "Games", exact: true }).click();
 	await page.getByRole("button", { name: "Math", exact: true }).click();
 	await verifyNavigation(page, null, "parent-screen-back-button-parent");
-	await page.locator("#math-game-place-names").click();
-	await verifyNavigation(page, null, "math-games-back-to-gallery-button");
-	await page.locator("#math-games-back-to-gallery-button").click();
+	await page.locator("#student-safari-place-value-thumbnail").click();
+	await verifyNavigation(page, null, "safari-place-value-back-button");
+	await page.locator("#safari-place-value-back-button").click();
 	await page.locator("#parent-screen-back-button-parent").click();
 	await expect(page.locator("#math-games-view")).toHaveCount(0);
 	await expect(page.locator("#games-sidebar-panel")).toBeVisible();
@@ -216,6 +246,19 @@ test("student, Progress, Rewards, calendar pages and games share navigation", as
 	await verifyNavigation(page, "student-progress-home-button", "student-progress-back-button");
 	await page.locator("#student-progress-back-button").click();
 	await page.getByRole("button", { name: "Open Rewards tab" }).click();
+	await verifyNavigation(page, null, "rewards-page-back-button");
+	await revealBadgesButton(page);
+	await page.getByRole("button", { name: "Badges" }).click();
+	await verifyNavigation(
+		page,
+		"rewards-page-home-button",
+		"rewards-page-back-button",
+	);
+	await expect(page.locator("#rewards-page-back-button")).toHaveAttribute(
+		"aria-label",
+		"Back to Rewards menu",
+	);
+	await page.locator("#rewards-page-back-button").click();
 	await verifyNavigation(page, null, "rewards-page-back-button");
 	await page.locator("#rewards-page-back-button").click();
 	await page.getByRole("button", { name: "Open Games tab" }).click();
@@ -244,7 +287,8 @@ test("Daily subjects and Story return one screen while Home exits to the home pa
 }) => {
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
-	const day = page.locator("#calendar-day-cell-October-2026-7");
+	const day = page.locator("#calendar-day-cell-October-2026-18");
+	await expect(day).toBeEnabled();
 	await day.click();
 	await expect(day).toHaveClass(/calendar-day-cell--exploding/);
 	await expect(day).toBeEnabled();
@@ -271,7 +315,6 @@ test("Math Curriculum controls match the shared position, styles, and Home desti
 }) => {
 	await openParent(page);
 	await page.getByRole("button", { name: "Student Edits", exact: true }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-play-by-play-button").click();
 	await page.locator("#math-curriculum-october-button").click();

@@ -22,14 +22,6 @@ const goldCoinTotal = ref(0);
 const activeRewardCelebration = ref(null);
 const isCompletionRewardFlowActive = ref(false);
 const REWARD_RETURN_DELAY_MS = 1300;
-let rewardReturnTimerId = null;
-
-function clearRewardReturnTimer() {
-	if (rewardReturnTimerId !== null) {
-		window.clearTimeout(rewardReturnTimerId);
-		rewardReturnTimerId = null;
-	}
-}
 
 /** Home navigation pipeline boundary. */
 function handleStudentMenuOpen() {
@@ -48,7 +40,6 @@ function handleStudentMenuClose() {
 
 /** Rewards-page navigation pipeline boundary. */
 function handleRewardsPageOpen(celebration = null, preserveStudentMenu = false) {
-	clearRewardReturnTimer();
 	activeRewardCelebration.value = celebration;
 	try {
 		const savedProgress = JSON.parse(
@@ -66,13 +57,24 @@ function handleRewardsPageOpen(celebration = null, preserveStudentMenu = false) 
 
 /** Rewards-page return pipeline boundary. */
 function handleRewardsPageClose() {
-	clearRewardReturnTimer();
 	if (isCompletionRewardFlowActive.value) {
 		studentNavigationRef.value?.closeProgress();
 		isCompletionRewardFlowActive.value = false;
 	}
 	isRewardsPageOpen.value = false;
 	isStudentMenuOpen.value = true;
+	activeRewardCelebration.value = null;
+}
+
+/** Rewards-page Home destination boundary. */
+function handleRewardsPageHome() {
+	if (isCompletionRewardFlowActive.value) {
+		studentNavigationRef.value?.closeProgress();
+		isCompletionRewardFlowActive.value = false;
+	}
+	isRewardsPageOpen.value = false;
+	isStudentMenuOpen.value = false;
+	activeStudentTab.value = "calendar";
 	activeRewardCelebration.value = null;
 }
 
@@ -99,19 +101,6 @@ async function handleCompletionRewardOpen(celebration) {
 	}
 
 	handleRewardsPageOpen(celebration, true);
-}
-
-/** Start the return delay only after the badge has finished its arrival animation. */
-function handleRewardAnimationComplete() {
-	if (!isRewardsPageOpen.value || !activeRewardCelebration.value) {
-		return;
-	}
-
-	clearRewardReturnTimer();
-	rewardReturnTimerId = window.setTimeout(() => {
-		rewardReturnTimerId = null;
-		handleRewardsPageClose();
-	}, REWARD_RETURN_DELAY_MS);
 }
 
 /** Student-menu tab navigation pipeline boundary. */
@@ -263,6 +252,6 @@ function handleParentChainHome() {
 		:earned-badges="earnedBadges"
 		:celebrating-badge="activeRewardCelebration"
 		@back-to-student-menu="handleRewardsPageClose"
-		@badge-animation-complete="handleRewardAnimationComplete"
+		@go-home="handleRewardsPageHome"
 	/>
 </template>

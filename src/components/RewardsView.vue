@@ -1,12 +1,12 @@
-/** Full-screen rewards destination and background asset pipeline. */
+/** Rewards destination, earned-badge collection, and celebration pipeline. */
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import rewardsBackground from "../../assets/images/backgrounds/rewardsMenu02.webp";
 import rewardChest from "../../assets/images/rewards/minecraftChest01.webp";
 import rewardChestHover from "../../assets/images/rewards/minecraftChest02.webp";
 import rewardChestClicked from "../../assets/images/rewards/minecraftChest03.webp";
 
-const emit = defineEmits(["back-to-student-menu", "badge-animation-complete"]);
+const emit = defineEmits(["back-to-student-menu", "go-home"]);
 const props = defineProps({
 	goldCoinTotal: {
 		type: Number,
@@ -23,54 +23,187 @@ const props = defineProps({
 });
 const isRewardChestHovered = ref(false);
 const isRewardChestClicked = ref(false);
-const isBadgeAnimationActive = ref(Boolean(props.celebratingBadge?.animate));
+const isBadgesMenuOpen = ref(Boolean(props.celebratingBadge));
+const isBadgesButtonVisible = ref(Boolean(props.celebratingBadge));
+const isBadgesButtonEmerging = ref(false);
+const isBadgeAnimationActive = ref(false);
+const isCelebratingBadgeHidden = ref(Boolean(props.celebratingBadge?.animate));
+const isCelebrationChestVisible = ref(false);
+const isCelebrationChestOpen = ref(false);
 const isGoldBagHovered = ref(false);
 const isGoldBagOpen = ref(false);
 const isGoldCoinTotalVisible = ref(false);
-const badgePanelRef = ref(null);
+const badgeAnimationTrackRef = ref(null);
+const celebrationChestContainerRef = ref(null);
 const rewardsBackgroundImage = `url("${rewardsBackground}")`;
-const badgeLandingClassNames = [
-	"rewards-page-badge-animation--slot-0",
-	"rewards-page-badge-animation--slot-1",
-	"rewards-page-badge-animation--slot-2",
-	"rewards-page-badge-animation--slot-3",
-	"rewards-page-badge-animation--slot-4",
-	"rewards-page-badge-animation--slot-5",
-	"rewards-page-badge-animation--slot-6",
-	"rewards-page-badge-animation--slot-7",
-	"rewards-page-badge-animation--slot-8",
-	"rewards-page-badge-animation--slot-9",
-	"rewards-page-badge-animation--slot-10",
-	"rewards-page-badge-animation--slot-11",
-	"rewards-page-badge-animation--slot-12",
-	"rewards-page-badge-animation--slot-13",
-	"rewards-page-badge-animation--slot-14",
-	"rewards-page-badge-animation--slot-15",
-	"rewards-page-badge-animation--slot-16",
-	"rewards-page-badge-animation--slot-17",
-	"rewards-page-badge-animation--slot-18",
-	"rewards-page-badge-animation--slot-19",
-];
-const badgeLandingClass = computed(() => {
-	const badgeId = props.celebratingBadge?.badge?.id;
-	const slotIndex = props.earnedBadges.findIndex((badge) => badge.id === badgeId);
-	return badgeLandingClassNames[Math.max(0, slotIndex)] ?? badgeLandingClassNames[0];
-});
+const badgeImageElements = new Map();
+let badgesButtonDelayTimerId = null;
+let badgeAnimation = null;
+let chestAnimation = null;
 
-onMounted(() => {
-	if (props.celebratingBadge?.animate) {
-		const slotIndex = props.earnedBadges.findIndex(
-			(badge) => badge.id === props.celebratingBadge.badge.id,
-		);
-		badgePanelRef.value?.scrollTo({ top: Math.floor(slotIndex / 3) * 262 });
-	} else if (props.celebratingBadge) {
-		emit("badge-animation-complete");
+onMounted(async () => {
+	if (
+		props.celebratingBadge?.animate &&
+		props.earnedBadges.some((badge) => badge.id === props.celebratingBadge.badge?.id)
+	) {
+		isCelebrationChestVisible.value = true;
+		await nextTick();
+		startCelebrationChestFadeIn();
 	}
 });
 
+onBeforeUnmount(() => {
+	clearBadgesButtonDelay();
+	badgeAnimation?.cancel();
+	chestAnimation?.cancel();
+});
+
+function clearBadgesButtonDelay() {
+	if (badgesButtonDelayTimerId !== null) {
+		window.clearTimeout(badgesButtonDelayTimerId);
+		badgesButtonDelayTimerId = null;
+	}
+}
+
+function setBadgeImageRef(element, badgeId) {
+	if (element) {
+		badgeImageElements.set(badgeId, element);
+	} else {
+		badgeImageElements.delete(badgeId);
+	}
+}
+
+async function startBadgeAnimation() {
+	const badgeId = props.celebratingBadge?.badge?.id;
+	const targetImage = badgeImageElements.get(badgeId);
+	const animationTrack = badgeAnimationTrackRef.value;
+	const chestContainer = celebrationChestContainerRef.value;
+	if (!targetImage || !animationTrack || !chestContainer) {
+		throw new Error("The earned badge animation target is unavailable.");
+	}
+
+	targetImage.scrollIntoView({ block: "nearest", inline: "nearest" });
+	await nextTick();
+	const targetBounds = targetImage.getBoundingClientRect();
+	const originBounds = animationTrack.getBoundingClientRect();
+	const hoverTop = Math.max(16, targetBounds.top - 180);
+	const targetX = targetBounds.left - originBounds.left;
+	const targetY = targetBounds.top - originBounds.top;
+	const hoverY = hoverTop - originBounds.top;
+	const enlargedTransform = `translate(${targetX}px, ${hoverY}px) scale(2) rotate(1440deg)`;
+	const landingTransform = `translate(${targetX}px, ${targetY}px) scale(1) rotate(1440deg)`;
+	const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	const duration = prefersReducedMotion ? 250 : 4500;
+	const chestFadeDuration = prefersReducedMotion ? 250 : 3000;
+	chestAnimation = chestContainer.animate(
+		[{ opacity: 1 }, { opacity: 0 }],
+		{
+			duration: chestFadeDuration,
+			easing: "linear",
+			fill: "forwards",
+		},
+	);
+	chestAnimation.onfinish = handleCelebrationChestFadeOutComplete;
+	badgeAnimation = animationTrack.animate(
+		prefersReducedMotion
+			? [
+					{ opacity: 0, transform: landingTransform },
+					{ opacity: 1, transform: landingTransform },
+				]
+			: [
+					{
+						opacity: 1,
+						transform: "translate(0, 0) scale(0.12) rotate(0deg)",
+						offset: 0,
+					},
+					{ opacity: 1, transform: enlargedTransform, offset: 2 / 3 },
+					{ opacity: 1, transform: landingTransform, offset: 1 },
+				],
+		{
+			duration,
+			easing: "linear",
+			fill: "forwards",
+		},
+	);
+	badgeAnimation.onfinish = handleBadgeAnimationComplete;
+}
+
+function startCelebrationChestFadeIn() {
+	const chestContainer = celebrationChestContainerRef.value;
+	if (!chestContainer) {
+		throw new Error("The earned badge celebration chest is unavailable.");
+	}
+
+	const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+		? 250
+		: 3000;
+	chestAnimation = chestContainer.animate(
+		[{ opacity: 0 }, { opacity: 1 }],
+		{
+			duration,
+			easing: "linear",
+			fill: "both",
+		},
+	);
+	chestAnimation.onfinish = handleCelebrationChestFadeInComplete;
+}
+
+async function handleCelebrationChestFadeInComplete() {
+	chestAnimation = null;
+	if (!isBadgesMenuOpen.value) {
+		return;
+	}
+
+	isCelebrationChestOpen.value = true;
+	isBadgeAnimationActive.value = true;
+	await nextTick();
+	await startBadgeAnimation();
+}
+
+function handleCelebrationChestFadeOutComplete() {
+	isCelebrationChestVisible.value = false;
+	chestAnimation = null;
+}
+
+function cancelBadgeAnimation() {
+	if (badgeAnimation && badgeAnimation.playState !== "finished") {
+		badgeAnimation.cancel();
+	}
+	if (chestAnimation && chestAnimation.playState !== "finished") {
+		chestAnimation.cancel();
+	}
+	badgeAnimation = null;
+	chestAnimation = null;
+	isBadgeAnimationActive.value = false;
+	isCelebratingBadgeHidden.value = false;
+	isCelebrationChestVisible.value = false;
+	isCelebrationChestOpen.value = false;
+}
+
+function closeBadgesMenu() {
+	isBadgesMenuOpen.value = false;
+	cancelBadgeAnimation();
+}
+
 /** Rewards-page return pipeline boundary. */
 function handleRewardsPageBack() {
+	if (isBadgesMenuOpen.value) {
+		closeBadgesMenu();
+		return;
+	}
 	emit("back-to-student-menu");
+}
+
+function handleRewardsPageHome() {
+	emit("go-home");
+}
+
+function handleBadgesToggle() {
+	if (isBadgesMenuOpen.value) {
+		closeBadgesMenu();
+		return;
+	}
+	isBadgesMenuOpen.value = true;
 }
 
 /** Opens the reward chest for the current rewards-page visit. */
@@ -91,15 +224,30 @@ function handleGoldBagClick() {
 	isGoldBagOpen.value = true;
 }
 
+/** Reveals the Badges control after the gold bag finishes emerging. */
+function handleGoldBagAnimationComplete() {
+	if (isBadgesButtonVisible.value || badgesButtonDelayTimerId !== null) {
+		return;
+	}
+
+	badgesButtonDelayTimerId = window.setTimeout(() => {
+		badgesButtonDelayTimerId = null;
+		isBadgesButtonVisible.value = true;
+		isBadgesButtonEmerging.value = true;
+	}, 500);
+}
+
 /** Reveals the total after the final coin finishes spilling. */
 function handleGoldCoinSpillComplete() {
 	isGoldCoinTotalVisible.value = true;
 }
 
-/** Reveals the earned badge in its collection after its arrival animation. */
+/** Reveals the earned badge after its arrival animation. */
 function handleBadgeAnimationComplete() {
 	isBadgeAnimationActive.value = false;
-	emit("badge-animation-complete");
+	isCelebratingBadgeHidden.value = false;
+	isCelebrationChestVisible.value = false;
+	badgeAnimation = null;
 }
 </script>
 
@@ -124,18 +272,46 @@ function handleBadgeAnimationComplete() {
 				type="button"
 				name="rewards-page-back-button"
 				data-button-name="rewards-page-back-button"
-				aria-label="Back to student menu"
-				title="Back to student menu"
+				:aria-label="
+					isBadgesMenuOpen ? 'Back to Rewards menu' : 'Back to student menu'
+				"
+				:title="isBadgesMenuOpen ? 'Back to Rewards menu' : 'Back to student menu'"
 				@click="handleRewardsPageBack"
 			>
 				Back
 			</button>
-			<h1 id="rewards-page-heading" class="rewards-page-heading">Rewards</h1>
 		</header>
+		<button
+			v-if="isBadgesButtonVisible && !isBadgesMenuOpen"
+			id="rewards-page-badges-button"
+			class="rewards-page-badges-toggle"
+			:class="{
+				'rewards-page-badges-toggle--pressed': isBadgesMenuOpen,
+				'rewards-page-badges-toggle--emerging': isBadgesButtonEmerging,
+			}"
+			type="button"
+			aria-label="Badges"
+			title="Badges"
+			:aria-pressed="isBadgesMenuOpen"
+			@click="handleBadgesToggle"
+		>
+			Badges
+		</button>
+		<button
+			v-if="isBadgesMenuOpen"
+			id="rewards-page-home-button"
+			class="rewards-page-home-button navigation-home-button"
+			type="button"
+			aria-label="Back to home page"
+			title="Back to home page"
+			@click="handleRewardsPageHome"
+		>
+			Home
+		</button>
 		<aside
-			id="rewards-page-badge-panel"
-			ref="badgePanelRef"
-			class="rewards-page-badge-panel"
+			v-if="isBadgesMenuOpen"
+			id="rewards-page-badge-menu"
+			class="rewards-page-badge-menu"
 			aria-label="Earned badges"
 			title="Earned badges"
 		>
@@ -146,11 +322,12 @@ function handleBadgeAnimationComplete() {
 					class="rewards-page-badge-item"
 					:class="{
 						'rewards-page-badge-item--hidden':
-							isBadgeAnimationActive &&
+							isCelebratingBadgeHidden &&
 							props.celebratingBadge?.badge?.id === badge.id,
 					}"
 				>
 					<img
+						:ref="(element) => setBadgeImageRef(element, badge.id)"
 						class="rewards-page-badge-image"
 						:class="{
 							'rewards-page-badge-image--wide-artwork': badge.subject === 'math',
@@ -160,84 +337,113 @@ function handleBadgeAnimationComplete() {
 					/>
 				</li>
 			</ul>
-			<p v-else class="rewards-page-badge-empty">Badges you earn will appear here.</p>
+			<p v-else class="rewards-page-badge-empty">
+				Your earned badges will appear here
+			</p>
 		</aside>
-		<img
+		<div
 			v-if="isBadgeAnimationActive && props.celebratingBadge?.badge"
-			class="rewards-page-badge-animation"
-			:class="[
-				badgeLandingClass,
-				{
-					'rewards-page-badge-animation--wide-artwork':
-						props.celebratingBadge.badge.subject === 'math',
-				},
-			]"
-			:src="props.celebratingBadge.badge.src"
-			alt=""
-			@animationend="handleBadgeAnimationComplete"
-		/>
-		<button
-			id="rewards-page-chest-button"
-			class="rewards-page-chest-button"
-			type="button"
-			name="rewards-page-chest-button"
-			data-button-name="rewards-page-chest-button"
-			aria-label="Open reward chest"
-			title="Open reward chest"
-			@mouseenter="isRewardChestHovered = true"
-			@click="handleRewardChestClick"
-			@mouseleave="isRewardChestHovered = false"
-			@focus="isRewardChestHovered = true"
-			@blur="isRewardChestHovered = false"
+			ref="badgeAnimationTrackRef"
+			class="rewards-page-badge-animation-track"
 		>
 			<img
-				class="rewards-page-chest"
-				:src="
-					props.celebratingBadge || isRewardChestClicked
-						? rewardChestClicked
-						: isRewardChestHovered
-							? rewardChestHover
-							: rewardChest
-				"
+				class="rewards-page-badge-animation"
+				:class="{
+					'rewards-page-badge-animation--wide-artwork':
+						props.celebratingBadge.badge.subject === 'math',
+				}"
+				:src="props.celebratingBadge.badge.src"
 				alt=""
 			/>
-		</button>
-		<button
-			v-if="isRewardChestClicked"
-			id="rewards-page-gold-bag-button"
-			class="rewards-page-gold-bag"
-			:class="{ 'rewards-page-gold-bag--uncinched': isGoldBagHovered || isGoldBagOpen }"
-			type="button"
-			aria-label="Gold cinch bag"
-			:aria-expanded="isGoldBagOpen"
-			@mouseenter="isGoldBagHovered = true"
-			@mouseleave="isGoldBagHovered = false"
-			@focus="isGoldBagHovered = true"
-			@blur="isGoldBagHovered = false"
-			@click="handleGoldBagClick"
+		</div>
+		<div
+			v-if="!isBadgesMenuOpen || isCelebrationChestVisible"
+			id="rewards-page-chest-container"
+			ref="celebrationChestContainerRef"
+			class="rewards-page-chest-container"
+			:class="{
+				'rewards-page-chest-container--celebrating': isCelebrationChestVisible,
+			}"
 		>
-			<span class="rewards-page-gold-bag-neck" aria-hidden="true" />
-			<span class="rewards-page-gold-bag-body" aria-hidden="true" />
-			<span class="rewards-page-gold-bag-tie" aria-hidden="true" />
-			<span v-if="isGoldBagOpen" class="rewards-page-gold-coins" aria-hidden="true">
-				<span class="rewards-page-gold-coin rewards-page-gold-coin--one" />
-				<span class="rewards-page-gold-coin rewards-page-gold-coin--two" />
-				<span class="rewards-page-gold-coin rewards-page-gold-coin--three" />
-				<span class="rewards-page-gold-coin rewards-page-gold-coin--four" />
-				<span
-					class="rewards-page-gold-coin rewards-page-gold-coin--five"
-					@animationend="handleGoldCoinSpillComplete"
+			<button
+				id="rewards-page-chest-button"
+				class="rewards-page-chest-button"
+				type="button"
+				name="rewards-page-chest-button"
+				data-button-name="rewards-page-chest-button"
+				aria-label="Open reward chest"
+				title="Open reward chest"
+				@mouseenter="isRewardChestHovered = true"
+				@click="handleRewardChestClick"
+				@mouseleave="isRewardChestHovered = false"
+				@focus="isRewardChestHovered = true"
+				@blur="isRewardChestHovered = false"
+			>
+				<img
+					class="rewards-page-chest"
+					:src="
+						props.celebratingBadge
+							? isCelebrationChestOpen
+								? rewardChestClicked
+								: rewardChest
+							: isRewardChestClicked
+								? rewardChestClicked
+								: isRewardChestHovered
+									? rewardChestHover
+									: rewardChest
+					"
+					alt=""
 				/>
-			</span>
-		</button>
-		<output v-if="isGoldCoinTotalVisible" class="rewards-page-gold-total">
-			{{ props.goldCoinTotal }} gold coins
-		</output>
+			</button>
+			<div v-if="isRewardChestClicked" class="rewards-page-gold-reward">
+				<button
+					id="rewards-page-gold-bag-button"
+					class="rewards-page-gold-bag"
+					:class="{ 'rewards-page-gold-bag--uncinched': isGoldBagHovered || isGoldBagOpen }"
+					type="button"
+					aria-label="Gold cinch bag"
+					:aria-expanded="isGoldBagOpen"
+					@mouseenter="isGoldBagHovered = true"
+					@mouseleave="isGoldBagHovered = false"
+					@focus="isGoldBagHovered = true"
+					@blur="isGoldBagHovered = false"
+					@animationend.self="handleGoldBagAnimationComplete"
+					@click="handleGoldBagClick"
+				>
+					<span class="rewards-page-gold-bag-neck" aria-hidden="true" />
+					<span class="rewards-page-gold-bag-body" aria-hidden="true" />
+					<span class="rewards-page-gold-bag-tie" aria-hidden="true" />
+					<span
+						v-if="isGoldBagOpen"
+						class="rewards-page-gold-coins"
+						aria-hidden="true"
+					>
+						<span class="rewards-page-gold-coin rewards-page-gold-coin--one" />
+						<span class="rewards-page-gold-coin rewards-page-gold-coin--two" />
+						<span class="rewards-page-gold-coin rewards-page-gold-coin--three" />
+						<span class="rewards-page-gold-coin rewards-page-gold-coin--four" />
+						<span
+							class="rewards-page-gold-coin rewards-page-gold-coin--five"
+							@animationend="handleGoldCoinSpillComplete"
+						/>
+					</span>
+				</button>
+				<output v-if="isGoldCoinTotalVisible" class="rewards-page-gold-total">
+					{{ props.goldCoinTotal }} gold coins
+				</output>
+			</div>
+		</div>
 	</main>
 </template>
 
 <style scoped>
 .rewards-page {
+	--rewards-chest-half-width: min(46.8vw, 21rem, max(0px, calc(50vw - 481px)));
+	--rewards-chest-width: calc(
+		var(--rewards-chest-half-width) + var(--rewards-chest-half-width)
+	);
+	--rewards-gold-bag-size: clamp(4rem, 12vw, 9rem);
+	height: 100svh;
 	min-height: 100vh;
 	min-height: 100svh;
 	position: relative;
@@ -253,213 +459,26 @@ function handleBadgeAnimationComplete() {
 	gap: 1rem;
 	padding: 1rem;
 	position: relative;
-	z-index: 4;
+	z-index: 1000;
 }
 
-.rewards-page-chest-button {
+.rewards-page-chest-container {
 	position: absolute;
-	left: calc(930px + 32px + (100% - 930px - 32px) / 2);
+	left: 50%;
 	top: 50%;
-	width: min(93.6vw, 42rem, max(0px, calc(100vw - 962px)));
-	padding: 0;
-	border: 0;
-	background: transparent;
+	width: var(--rewards-chest-width);
 	transform: translate(-50%, -50%);
-	cursor: pointer;
 	z-index: 1;
 }
 
-.rewards-page-badge-panel {
-	position: absolute;
-	top: auto;
-	bottom: 16px;
-	left: 1rem;
-	z-index: 2;
-	box-sizing: border-box;
-	width: 930px;
-	max-height: calc(100svh - 6rem);
-	padding: 1rem;
-	overflow-y: auto;
-	border-radius: 0.5rem;
-	background: #f1ddff;
-	box-shadow: inset 0 0 0 2px #6b5136;
-}
-
-.rewards-page-badge-list {
-	display: grid;
-	grid-template-columns: repeat(3, 246px);
-	gap: 1rem;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.rewards-page-badge-item {
-	display: grid;
-	width: 246px;
-	height: 246px;
-	place-items: center;
-}
-
-.rewards-page-badge-item--hidden {
-	visibility: hidden;
-}
-
-.rewards-page-badge-image {
+.rewards-page-chest-button {
 	display: block;
-	width: 246px;
-	height: 246px;
-	object-fit: contain;
-}
-
-.rewards-page-badge-animation {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	z-index: 5;
-	width: 246px;
-	height: 246px;
-	object-fit: contain;
-	transform-origin: center;
-	animation: rewards-badge-emerge 2600ms cubic-bezier(0.18, 0.72, 0.25, 1) both;
-}
-
-.rewards-page-badge-image--wide-artwork,
-.rewards-page-badge-animation--wide-artwork {
-	object-fit: cover;
-}
-
-.rewards-page-badge-animation--slot-0 {
-	--badge-landing-x: 32px;
-	--badge-landing-y: min(96px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-1 {
-	--badge-landing-x: 294px;
-	--badge-landing-y: min(96px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-2 {
-	--badge-landing-x: 556px;
-	--badge-landing-y: min(96px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-3 {
-	--badge-landing-x: 32px;
-	--badge-landing-y: min(358px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-4 {
-	--badge-landing-x: 294px;
-	--badge-landing-y: min(358px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-5 {
-	--badge-landing-x: 556px;
-	--badge-landing-y: min(358px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-6 {
-	--badge-landing-x: 32px;
-	--badge-landing-y: min(620px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-7 {
-	--badge-landing-x: 294px;
-	--badge-landing-y: min(620px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-8 {
-	--badge-landing-x: 556px;
-	--badge-landing-y: min(620px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-9 {
-	--badge-landing-x: 32px;
-	--badge-landing-y: min(882px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-10 {
-	--badge-landing-x: 294px;
-	--badge-landing-y: min(882px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-11 {
-	--badge-landing-x: 556px;
-	--badge-landing-y: min(882px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-12 {
-	--badge-landing-x: 32px;
-	--badge-landing-y: min(1144px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-13 {
-	--badge-landing-x: 294px;
-	--badge-landing-y: min(1144px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-14 {
-	--badge-landing-x: 556px;
-	--badge-landing-y: min(1144px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-15 {
-	--badge-landing-x: 32px;
-	--badge-landing-y: min(1406px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-16 {
-	--badge-landing-x: 294px;
-	--badge-landing-y: min(1406px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-17 {
-	--badge-landing-x: 556px;
-	--badge-landing-y: min(1406px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-18 {
-	--badge-landing-x: 32px;
-	--badge-landing-y: min(1668px, calc(100svh - 114px));
-}
-
-.rewards-page-badge-animation--slot-19 {
-	--badge-landing-x: 294px;
-	--badge-landing-y: min(1668px, calc(100svh - 114px));
-}
-
-@keyframes rewards-badge-emerge {
-	0% {
-		opacity: 0;
-		transform: translate(-50%, -50%) scale(0.12) rotate(0);
-	}
-
-	12% {
-		opacity: 1;
-	}
-
-	52% {
-		transform: translate(-50%, -50%) scale(3.2) rotate(1440deg);
-	}
-
-	65% {
-		transform: translate(-50%, -50%) scale(3.2) rotate(1440deg);
-	}
-
-	100% {
-		top: var(--badge-landing-y);
-		left: var(--badge-landing-x);
-		transform: scale(1) rotate(1440deg);
-	}
-}
-
-.rewards-page-badge-empty {
-	margin: 0;
-	color: #3e2e4a;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.85rem;
-	text-align: center;
+	position: relative;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
 }
 
 .rewards-page-chest {
@@ -469,13 +488,22 @@ function handleBadgeAnimationComplete() {
 	object-fit: contain;
 }
 
+.rewards-page-gold-reward {
+	position: absolute;
+	top: 50%;
+	left: calc(100% + 1rem);
+	width: var(--rewards-gold-bag-size);
+	height: var(--rewards-gold-bag-size);
+	transform: translateY(-50%);
+}
+
 .rewards-page-gold-bag {
 	position: absolute;
-	left: 76%;
-	top: 56%;
-	width: clamp(5rem, 12vw, 9rem);
+	left: 50%;
+	top: 0;
+	width: 100%;
 	aspect-ratio: 1;
-	transform: translate(-50%, -50%);
+	transform: translate(-50%, 0);
 	z-index: 2;
 	animation: rewards-gold-bag-emerge 1800ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 	transition: filter 150ms ease;
@@ -595,14 +623,15 @@ function handleBadgeAnimationComplete() {
 
 .rewards-page-gold-total {
 	position: absolute;
-	left: 76%;
-	top: 68%;
-	width: min(38vw, 18rem);
+	top: calc(100% + 16px);
+	left: 50%;
+	width: max-content;
+	max-width: calc(100vw - 2rem);
 	transform: translateX(-50%);
 	margin: 0;
 	color: #ffe25b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 1.2rem;
+	font-size: clamp(0.75rem, 2vw, 1.2rem);
 	text-align: center;
 	text-shadow:
 		0 0 0.35rem #ffea00,
@@ -613,7 +642,7 @@ function handleBadgeAnimationComplete() {
 	0% {
 		opacity: 0;
 		z-index: 0;
-		transform: translate(-50%, -50%) translate(-26vw, -6vh) scale(0.12) rotate(-720deg);
+		transform: translate(-50%, 0) translate(-26vw, -6vh) scale(0.12) rotate(-720deg);
 	}
 
 	18% {
@@ -623,7 +652,7 @@ function handleBadgeAnimationComplete() {
 	100% {
 		opacity: 1;
 		z-index: 2;
-		transform: translate(-50%, -50%) scale(1) rotate(0);
+		transform: translate(-50%, 0) scale(1) rotate(0);
 	}
 }
 
@@ -644,10 +673,157 @@ function handleBadgeAnimationComplete() {
 	}
 }
 
-.rewards-page-heading {
+.rewards-page-badges-toggle {
+	position: fixed;
+	top: 50%;
+	right: calc(50% + var(--rewards-chest-half-width) + 1rem);
+	z-index: 1001;
 	margin: 0;
-	color: #fff7cc;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	transform: translateY(-50%);
+	color: #ffe66d;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: clamp(1.5rem, 3vw, 2.5rem);
+	line-height: 1.2;
+	text-shadow:
+		0 1px 0 #b27614,
+		0 2px 0 #96600f,
+		0 3px 0 #75490b,
+		0 5px 0 #593707,
+		0 8px 6px rgba(27, 17, 2, 0.72);
+	cursor: pointer;
+	transition:
+		filter 120ms ease,
+		text-shadow 120ms ease;
+}
+
+.rewards-page-badges-toggle--emerging {
+	animation: rewards-badges-toggle-emerge 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+.rewards-page-badges-toggle:hover {
+	filter: brightness(1.15);
+}
+
+.rewards-page-badges-toggle--pressed {
+	transform: translateY(-50%);
+	text-shadow:
+		0 1px 0 #96600f,
+		0 2px 0 #75490b,
+		0 3px 0 #593707,
+		0 4px 4px rgba(27, 17, 2, 0.72);
+}
+
+@keyframes rewards-badges-toggle-emerge {
+	0% {
+		opacity: 0;
+		transform: translate(85%, -50%) scale(0.12) rotate(-720deg);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate(0, -50%) scale(1) rotate(0);
+	}
+}
+
+.rewards-page-badge-menu {
+	position: fixed;
+	inset: 0;
+	z-index: 10;
+	box-sizing: border-box;
+	min-height: 0;
+	padding: 60px 16px 16px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	border-radius: 0;
+	background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 35%, #e1bee7 70%, #d1c4e9 100%);
+	box-shadow:
+		inset 0 0 0 1px rgba(93, 58, 111, 0.52),
+		0 0.75rem 1.5rem rgba(47, 25, 61, 0.36),
+		inset 0 0.125rem 0 rgba(255, 255, 255, 0.9),
+		inset 0 -0.25rem 0 rgba(89, 55, 105, 0.22);
+}
+
+.rewards-page-badge-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 246px);
+	grid-auto-rows: 246px;
+	gap: 16px;
+	align-content: start;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.rewards-page-badge-item {
+	display: grid;
+	width: 246px;
+	height: 246px;
+	place-items: center;
+}
+
+.rewards-page-badge-item--hidden {
+	visibility: hidden;
+}
+
+.rewards-page-badge-image {
+	position: static;
+	top: auto;
+	left: auto;
+	z-index: auto;
+	display: block;
+	width: 246px;
+	height: 246px;
+	object-fit: contain;
+}
+
+.rewards-page-badge-image--wide-artwork {
+	object-fit: cover;
+	transform: none;
+	animation: none;
+}
+
+.rewards-page-badge-empty {
+	margin: 0;
+	color: #3e2e4a;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: clamp(0.75rem, 2vw, 1.5rem);
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.rewards-page-chest-container--celebrating {
+	z-index: 12;
+}
+
+.rewards-page-badge-animation-track {
+	position: fixed;
+	top: calc(50% - 123px);
+	left: calc(50% - 123px);
+	z-index: 13;
+	width: 246px;
+	height: 246px;
+	pointer-events: none;
+}
+
+.rewards-page-badge-animation {
+	position: static;
+	top: auto;
+	left: auto;
+	z-index: auto;
+	display: block;
+	width: 246px;
+	height: 246px;
+	object-fit: contain;
+	transform: none;
+	animation: none;
+}
+
+.rewards-page-badge-animation--wide-artwork {
+	object-fit: cover;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -655,7 +831,7 @@ function handleBadgeAnimationComplete() {
 		animation-duration: 1ms;
 	}
 
-	.rewards-page-badge-animation {
+	.rewards-page-badges-toggle--emerging {
 		animation-duration: 1ms;
 	}
 

@@ -310,6 +310,7 @@ test("Vue files keep shared structure and style ownership consistent", () => {
 				"ProgressXpBar.vue": ["progress-xp-bar-"],
 				"StudentNavigation.vue": ["student-"],
 				"StudentGamesView.vue": ["student-games-"],
+				"StudentEditsView.vue": ["student-edits-"],
 			}[path.basename(filePath)];
 
 			if (!allowedSelectorPrefixes) {

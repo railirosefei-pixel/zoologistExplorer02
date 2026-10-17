@@ -84,6 +84,11 @@ test("Move mode button and Raili drag wiring are present", () => {
 	assert.match(cssSource, /\.student-progress-move-button/);
 	assert.match(cssSource, /\.student-progress-move-button--engaged/);
 	assert.match(cssSource, /\.student-progress-raili-frame--move-active/);
+	assert.match(
+		cssSource,
+		/\.student-progress-raili-frame--move-active\s*\{[^}]*transition:\s*none;/s,
+		"Raili movement must not lag behind the pointer due to transform animation",
+	);
 	assert.match(cssSource, /var\(--student-raili-offset-x/);
 	assert.match(cssSource, /#38bdf8/);
 	assert.doesNotMatch(studentSource, /class="student-progress-resize-button"[^>]*>\s*Move/);

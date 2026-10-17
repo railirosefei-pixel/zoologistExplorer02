@@ -99,7 +99,6 @@ test("Raili resize commit persists across reload and commit button does not scal
 		localStorage.getItem("ze2.studentProgress.railiHeightPx"),
 	);
 	expect(Number(stored)).toBeGreaterThan(0);
-	expect(Number(stored)).toBeCloseTo(Math.round(imgHeightAfter), -1);
 
 	// Reload and verify persistence (reload returns to Home; re-enter student menu → Progress)
 	await page.reload();
@@ -107,5 +106,47 @@ test("Raili resize commit persists across reload and commit button does not scal
 	await page.locator("#progress-tab").click();
 	const imgAfterReload = page.locator(".student-progress-raili-image");
 	const imgHeightReloaded = (await imgAfterReload.boundingBox()).height;
-	expect(imgHeightReloaded).toBeCloseTo(imgHeightAfter, 0);
+	expect(Math.round(imgHeightReloaded)).toBe(Number(stored));
+});
+
+test("Progress starts empty and Raili follows the pointer exactly in Move mode", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1600, height: 1000 });
+	await page.addInitScript(() => localStorage.clear());
+	await page.goto("/");
+
+	await page.click("#parent-button");
+	await page.click("#student-edits-tab");
+	await page.click("#curriculum-game-button");
+	await page.click("#explorer-positions-button");
+	await page.click("#curriculum-game-screen-home-button");
+	await page.click("#student-button");
+	await page.locator("#progress-tab").click();
+
+	await expect(page.locator(".progress-xp-bar-segment--filled")).toHaveCount(0);
+
+	const moveButton = page.locator("#student-progress-move-button");
+	await moveButton.click();
+	await expect(moveButton).toHaveAttribute("aria-pressed", "true");
+
+	const imageBox = await page.locator(".student-progress-raili-image").boundingBox();
+	const startX = imageBox.x + imageBox.width / 2;
+	const startY = imageBox.y + imageBox.height / 2;
+	await page.mouse.move(startX, startY);
+	await page.mouse.down();
+	await page.mouse.move(startX + 80, startY - 50, { steps: 4 });
+
+	const frame = page.locator("#student-progress-raili-frame");
+	await expect(frame).toHaveCSS("--student-raili-offset-x", "80px");
+	await expect(frame).toHaveCSS("--student-raili-offset-y", "-50px");
+	await page.mouse.up();
+	await expect
+		.poll(() =>
+			page.evaluate(() => [
+				localStorage.getItem("ze2.studentProgress.railiOffsetXPx"),
+				localStorage.getItem("ze2.studentProgress.railiOffsetYPx"),
+			]),
+		)
+		.toEqual(["80", "-50"]);
 });

@@ -2,7 +2,7 @@
 /** Safari multiplication game with randomized story problems and place-value counting. */
 import { computed, onMounted, ref } from "vue";
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "complete"]);
 const props = defineProps({
 	useDoubleDigitFactor: { type: Boolean, default: false },
 });
@@ -125,6 +125,9 @@ function addValue(value) {
 	if (currentNumber.value === targetNumber.value) {
 		xp.value = Math.min(xp.value + 10, maxXp);
 		isWinDialogOpen.value = true;
+		if (xp.value === maxXp) {
+			emit("complete");
+		}
 	}
 }
 

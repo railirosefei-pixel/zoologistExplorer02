@@ -2,6 +2,7 @@ import { fontStyleOptions } from "./fontStyleOptions.js";
 
 const FORMATTED_TEXT_PREFIX = "\u0000ze2-font-style-v1:";
 const allowedFontStyleIds = new Set(fontStyleOptions.map(({ id }) => id));
+const allowedTextAlignments = new Set(["left", "center", "right"]);
 
 function sanitizeElementChildren(element) {
 	for (const child of [...element.childNodes]) {
@@ -15,8 +16,17 @@ function sanitizeElementChildren(element) {
 		const tagName = child.tagName.toLowerCase();
 		sanitizeElementChildren(child);
 		if (tagName === "br" || tagName === "div" || tagName === "p") {
+			const textAlignment = allowedTextAlignments.has(child.dataset.textAlignment)
+				? child.dataset.textAlignment
+				: allowedTextAlignments.has(child.style.textAlign)
+					? child.style.textAlign
+					: null;
 			for (const attribute of [...child.attributes]) {
 				child.removeAttribute(attribute.name);
+			}
+			if (textAlignment) {
+				child.dataset.textAlignment = textAlignment;
+				child.style.textAlign = textAlignment;
 			}
 			continue;
 		}
@@ -65,6 +75,18 @@ function appendNormalizedNode(node, parent) {
 	}
 	if (node.tagName === "DIV" || node.tagName === "P") {
 		const children = [...node.childNodes];
+		const textAlignment = node.dataset.textAlignment;
+		if (
+			allowedTextAlignments.has(textAlignment) &&
+			!(children.length === 1 && children[0].nodeName === "BR")
+		) {
+			const alignedBlock = document.createElement(node.tagName.toLowerCase());
+			alignedBlock.dataset.textAlignment = textAlignment;
+			alignedBlock.style.textAlign = textAlignment;
+			parent.append(alignedBlock);
+			appendNormalizedNodes(children, alignedBlock);
+			return;
+		}
 		if (children.length === 1 && children[0].nodeName === "BR") {
 			return;
 		}
@@ -79,7 +101,11 @@ function appendNormalizedNode(node, parent) {
 function appendNormalizedNodes(nodes, parent) {
 	for (const node of nodes) {
 		const isBlock = node.nodeType === Node.ELEMENT_NODE && ["DIV", "P"].includes(node.tagName);
-		if (isBlock && parent.hasChildNodes()) {
+		const previousIsAlignedBlock =
+			parent.lastChild?.nodeType === Node.ELEMENT_NODE &&
+			["DIV", "P"].includes(parent.lastChild.tagName) &&
+			allowedTextAlignments.has(parent.lastChild.dataset.textAlignment);
+		if (isBlock && parent.hasChildNodes() && !previousIsAlignedBlock) {
 			parent.append(document.createTextNode("\n"));
 		}
 		appendNormalizedNode(node, parent);
@@ -121,8 +147,27 @@ function appendPlainText(node, chunks) {
 /** Return a plain-text value or a versioned, sanitized HTML value for storage. */
 export function serializeFormattedText(editor) {
 	sanitizeElementChildren(editor);
-	const html = editor.innerHTML;
-	if (editor.querySelector("[data-font-style], [data-font-color], span[style]")) {
+	const textAlignment = allowedTextAlignments.has(editor.dataset.textAlignment)
+		? editor.dataset.textAlignment
+		: allowedTextAlignments.has(editor.style.textAlign)
+			? editor.style.textAlign
+			: null;
+	let html = editor.innerHTML;
+	if (textAlignment) {
+		const alignedBlock = editor.ownerDocument.createElement("div");
+		alignedBlock.dataset.textAlignment = textAlignment;
+		alignedBlock.style.textAlign = textAlignment;
+		alignedBlock.innerHTML = html;
+		const container = editor.ownerDocument.createElement("div");
+		container.append(alignedBlock);
+		html = container.innerHTML;
+	}
+	if (
+		textAlignment ||
+		editor.querySelector(
+			"[data-font-style], [data-font-color], [data-text-alignment], span[style]",
+		)
+	) {
 		return `${FORMATTED_TEXT_PREFIX}${html}`;
 	}
 	const chunks = [];

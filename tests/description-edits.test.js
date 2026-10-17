@@ -31,8 +31,18 @@ async function createDescriptionEditsView(emit = () => {}) {
 			JSON.stringify(new URL("../src/js/fontStyleOptions.js", import.meta.url).href),
 		)
 		.replace(
+			'"../js/gameExtraCreditState.js"',
+			JSON.stringify(new URL("../src/js/gameExtraCreditState.js", import.meta.url).href),
+		)
+		.replace(
 			'"../js/schoolSchedule.js"',
 			JSON.stringify(new URL("../src/js/schoolSchedule.js", import.meta.url).href),
+		)
+		.replace(
+			'"./StudentGamesView.vue"',
+			JSON.stringify(
+				`data:text/javascript;base64,${Buffer.from("export default {}").toString("base64")}`,
+			),
 		)
 		.replace(
 			'"../js/formattedText.js"',
@@ -44,11 +54,12 @@ async function createDescriptionEditsView(emit = () => {}) {
 	return component.setup({}, { expose() {}, emit });
 }
 
-test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", () => {
+test("StudentEditsView.vue keeps the moved edit controls in the Student Edits sidebar", () => {
 	const source = readSource("src/components/StudentEditsView.vue");
 	const requiredIds = [
-		"blocks-menu-button",
 		"blocks-menu-sidebar",
+		"block-edits-button",
+		"game-edits-button",
 		"description-edits-button",
 		"description-editor-button",
 		"description-editor-options",
@@ -59,6 +70,8 @@ test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", 
 		"description-editor-font-color-button",
 		"description-editor-font-color-swatch",
 		"description-editor-font-color-picker",
+		"description-editor-text-alignment-button",
+		"description-editor-text-alignment-options",
 		"description-edits-position-wrapper",
 		"description-edits-panel-container",
 		"description-edits-text-box",
@@ -88,6 +101,21 @@ test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", 
 	}
 	assert.match(
 		source,
+		/:id="`description-editor-text-alignment-\$\{alignment\}-button`"/,
+		"Font Alignment options must have distinct Left, Center, and Right button ids",
+	);
+	assert.ok(!source.includes('id="blocks-menu-button"'), "removed Block Edits launcher must stay absent");
+	assert.ok(
+		source.indexOf('id="description-edits-button"') <
+			source.indexOf('id="blocks-menu-sidebar"'),
+		"Curriculum Description must be declared in the Student Edits sidebar",
+	);
+	assert.ok(
+		source.indexOf('id="block-edits-button"') < source.indexOf('id="blocks-menu-sidebar"'),
+		"Block Completion Edits must be declared in the Student Edits sidebar",
+	);
+	assert.match(
+		source,
 		/blocks-screen-home-button[\s\S]*@click="handleStudentEditsScreenHome"/,
 		"Blocks Home button must use the home handler",
 	);
@@ -98,7 +126,7 @@ test("StudentEditsView.vue contains all Blocks menu and Description Edits ids", 
 	);
 });
 
-test("Blocks Back closes one layer without invoking parent or Home navigation", async () => {
+test("Blocks Back closes the active edit screen without invoking parent or Home navigation", async () => {
 	const events = [];
 	const view = await createDescriptionEditsView((event) => events.push(event));
 	view.isBlocksMenuOpen.value = true;
@@ -108,14 +136,12 @@ test("Blocks Back closes one layer without invoking parent or Home navigation", 
 	view.handleBlocksScreenBack();
 	assert.equal(view.isDescriptionEditsOpen.value, false);
 	assert.equal(view.descriptionEditsMode.value, null);
-	assert.equal(view.isBlocksMenuOpen.value, true);
+	assert.equal(view.isBlocksMenuOpen.value, false);
 
+	view.isBlocksMenuOpen.value = true;
 	view.isBlockEditsOpen.value = true;
 	view.handleBlocksScreenBack();
 	assert.equal(view.isBlockEditsOpen.value, false);
-	assert.equal(view.isBlocksMenuOpen.value, true);
-
-	view.handleBlocksScreenBack();
 	assert.equal(view.isBlocksMenuOpen.value, false);
 	assert.deepEqual(events, []);
 
@@ -328,6 +354,8 @@ test("Description Load reopens saved text without writing until Save", async () 
 	view.descriptionEditsDraft.value = "Unrelated draft.";
 	await nextTick();
 
+	assert.equal(view.descriptionEditsLoadedFields.value[0].text, savedText);
+	assert.equal(view.descriptionEditsLoadedSelectionKey.value, `${dateKey}::math::1`);
 	view.handleDescriptionEditsLoad();
 	assert.equal(view.descriptionEditsLoadedFields.value[0].text, savedText);
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "math", 1), savedText);
@@ -409,6 +437,8 @@ test("Play by Play Load independently reopens saved text and preserves it until 
 	view.descriptionEditsPlayByPlayDraft.value = "Unrelated Play by Play draft.";
 	await nextTick();
 
+	assert.equal(view.playByPlayEditsLoadedFields.value[0].text, savedText);
+	assert.equal(view.playByPlayEditsLoadedSelectionKey.value, `${dateKey}::math::1`);
 	view.handlePlayByPlayEditsLoad();
 	assert.equal(view.playByPlayEditsLoadedFields.value[0].text, savedText);
 	assert.equal(view.descriptionEditsDraft.value, "Unsaved Description draft.");
@@ -670,7 +700,13 @@ test("Description All Blocks edits only changed original keys, including empty t
 	view.handleDescriptionEditsLoad();
 	view.descriptionEditsLoadedFields.value[0].text = "Discarded edit";
 	view.descriptionEditsSelectedDay.value = 17;
-	assert.deepEqual(view.descriptionEditsLoadedFields.value, []);
+	assert.deepEqual(view.descriptionEditsLoadedFields.value, [
+		{
+			blocks: [2],
+			originalText: "Other date",
+			text: "Other date",
+		},
+	]);
 	assert.equal(blockDescriptionStore.getDescription(dateKey, "science", 1), "Description 1");
 	view.handleDescriptionEditsLoad();
 	view.handleDescriptionEditsHistorySelect({ text: "History draft" });
@@ -835,7 +871,13 @@ test("Play by Play All Blocks edits only changed original keys, including empty 
 	view.handlePlayByPlayEditsLoad();
 	view.playByPlayEditsLoadedFields.value[0].text = "Discarded steps";
 	view.descriptionEditsSelectedDay.value = 20;
-	assert.deepEqual(view.playByPlayEditsLoadedFields.value, []);
+	assert.deepEqual(view.playByPlayEditsLoadedFields.value, [
+		{
+			blocks: [2],
+			originalText: "Other date steps",
+			text: "Other date steps",
+		},
+	]);
 	assert.equal(blockDescriptionStore.getPlayByPlay(dateKey, "science", 1), "Steps 1");
 	view.handlePlayByPlayEditsLoad();
 	view.handlePlayByPlayEditsHistorySelect({ text: "History steps" });
@@ -1255,8 +1297,8 @@ test("input.css keeps Blocks menu and Description Edits layout invariants", () =
 	);
 	assert.match(
 		source,
-		/\.description-edits-button\s*\{[^}]*linear-gradient\(180deg,\s*#fff7b8\s*0%,\s*#f8e99a\s*100%\)/s,
-		"Description Edits button must use the pastel yellow gradient",
+		/\.description-edits-button\s*\{[^}]*linear-gradient\(180deg,\s*#ffddb8\s*0%,\s*#ffc28f\s*100%\)/s,
+		"Description Edits button must use the warm orange gradient",
 	);
 	assert.match(
 		source,

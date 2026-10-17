@@ -2,7 +2,7 @@
 /** Safari place-value game adapted from the standalone mathGames01.html prototype. */
 import { computed, onMounted, ref } from "vue";
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "complete"]);
 
 const maxXp = 100;
 const placeBlocks = [
@@ -74,6 +74,9 @@ function addValue(value) {
 	if (currentNumber.value === targetNumber.value) {
 		xp.value = Math.min(xp.value + 10, maxXp);
 		isWinDialogOpen.value = true;
+		if (xp.value === maxXp) {
+			emit("complete");
+		}
 	}
 }
 

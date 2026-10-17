@@ -1,5 +1,22 @@
 import { expect, test } from "@playwright/test";
 
+async function revealBadgesButton(page) {
+	await page.locator("#rewards-page-chest-button").click();
+	const goldBag = page.locator("#rewards-page-gold-bag-button");
+	await expect(goldBag).toBeVisible();
+	await goldBag.evaluate((element) => {
+		for (const animation of element.getAnimations()) {
+			animation.finish();
+		}
+	});
+	await expect(page.locator("#rewards-page-badges-button")).toBeVisible();
+	await page.locator("#rewards-page-badges-button").evaluate((element) => {
+		for (const animation of element.getAnimations()) {
+			animation.finish();
+		}
+	});
+}
+
 async function completeFinalBlockForBadge(
 	page,
 	{
@@ -9,6 +26,7 @@ async function completeFinalBlockForBadge(
 		badgeAlt,
 		earnedBadgeIds = [],
 		verifyConfettiSequence = false,
+		reducedMotion = "reduce",
 	},
 ) {
 	const legacyCompletionDay = dayNumber === 20 ? 9 : dayNumber - 4;
@@ -19,7 +37,7 @@ async function completeFinalBlockForBadge(
 			true,
 		]),
 	);
-	await page.emulateMedia({ reducedMotion: "reduce" });
+	await page.emulateMedia({ reducedMotion });
 	await page.addInitScript(
 		({ completedBlocks: initialCompletions, initialBadgeIds }) => {
 			localStorage.setItem(
@@ -71,50 +89,246 @@ async function completeFinalBlockForBadge(
 		await expect(page.locator("#rewards-page")).toBeHidden();
 	}
 	await expect(page.locator("#rewards-page")).toBeVisible({ timeout: 10000 });
-	await expect(page.locator(".rewards-page-badge-image").last()).toHaveAttribute(
-		"alt",
-		badgeAlt,
-	);
+	expect(await page.locator("#rewards-page-chest-container").count()).toBe(1);
+	await expect(page.locator("#rewards-page-badge-menu")).toBeVisible();
+	await expect(page.locator("#rewards-page-badges-button")).toHaveCount(0);
+	await expect(
+		page.locator(`.rewards-page-badge-image[alt="${badgeAlt}"]`),
+	).toHaveCount(1);
 }
 
-test("badge animation returns to the open calendar block after 1.3 seconds", async ({ page }) => {
-	await page.addInitScript(() => {
-		window.rewardBadgeAnimationEndedAt = null;
-		window.progressConfettiAnimationEndedAt = null;
-		document.addEventListener(
-			"animationend",
-			(event) => {
-				if (event.target.matches(".rewards-page-badge-animation")) {
-					window.rewardBadgeAnimationEndedAt = performance.now();
-				}
-				if (event.target.matches(".student-progress-confetti-piece")) {
-					window.progressConfettiAnimationEndedAt = performance.now();
-				}
-			},
-			true,
-		);
-	});
+test("badge earning opens and retains the Badges menu after its animation", async ({ page }) => {
 	await completeFinalBlockForBadge(page, {
 		dayNumber: 16,
 		subjectKey: "math",
 		subjectLabel: "Math",
 		badgeAlt: "Math badge 001",
 		verifyConfettiSequence: true,
+		reducedMotion: "no-preference",
 	});
 
-	const rewardsPage = page.locator("#rewards-page");
-	const elapsedAfterConfetti = await page.evaluate(
-		() => performance.now() - window.progressConfettiAnimationEndedAt,
+	const earnedBadge = page.locator(".rewards-page-badge-image[alt='Math badge 001']");
+	expect(await earnedBadge.isVisible()).toBe(false);
+	await expect(page.locator("#rewards-page-chest-container")).toBeVisible();
+	const badgeTrack = page.locator(".rewards-page-badge-animation-track");
+	await expect(badgeTrack).toBeVisible();
+	const emergingBadgeSource = await badgeTrack
+		.locator(".rewards-page-badge-animation")
+		.getAttribute("src");
+	expect(emergingBadgeSource).toBe(await earnedBadge.getAttribute("src"));
+	await expect(badgeTrack).toHaveCount(0, {
+		timeout: 9500,
+	});
+	await expect(earnedBadge).toBeVisible();
+	expect(await earnedBadge.getAttribute("src")).toBe(emergingBadgeSource);
+	await expect(page.locator("#rewards-page-badge-menu")).toBeVisible();
+	await expect(page.locator("#rewards-page")).toBeVisible();
+	await expect(page.locator("#student-menu-page")).toBeHidden();
+});
+
+test("badge completion replays the chest animation when the badge was already earned", async ({
+	page,
+}) => {
+	await completeFinalBlockForBadge(page, {
+		dayNumber: 16,
+		subjectKey: "math",
+		subjectLabel: "Math",
+		badgeAlt: "Math badge 001",
+		earnedBadgeIds: ["2026-10-16::math"],
+	});
+
+	await expect(page.locator("#rewards-page-chest-container")).toBeVisible();
+	await expect(page.locator(".rewards-page-badge-animation-track")).toBeVisible();
+});
+
+test("badge animation peaks at twice its resting size", async ({ page }) => {
+	await page.addInitScript(() => {
+		const originalAnimate = Element.prototype.animate;
+		Element.prototype.animate = function (...argumentsList) {
+			const animation = originalAnimate.apply(this, argumentsList);
+			if (this.matches(".rewards-page-badge-animation-track")) {
+				animation.pause();
+			}
+			return animation;
+		};
+	});
+	await completeFinalBlockForBadge(page, {
+		dayNumber: 16,
+		subjectKey: "math",
+		subjectLabel: "Math",
+		badgeAlt: "Math badge 001",
+		reducedMotion: "no-preference",
+	});
+
+	await page.setViewportSize({ width: 375, height: 667 });
+	const badgeTrack = page.locator(".rewards-page-badge-animation-track");
+	await expect(badgeTrack).toBeVisible();
+	const animationDuration = await badgeTrack.evaluate((element) => {
+		const animation = element.getAnimations()[0];
+		if (!animation) {
+			throw new Error("The reward badge emergence animation is unavailable.");
+		}
+		return animation.effect.getTiming().duration;
+	});
+	expect(animationDuration).toBe(4500);
+	const peakWidth = await badgeTrack.evaluate((element) => {
+		const animation = element.getAnimations()[0];
+		animation.currentTime = 3000;
+		return element.getBoundingClientRect().width;
+	});
+	expect(peakWidth).toBeCloseTo(492, 0);
+
+	const restingWidth = await badgeTrack.evaluate((element, currentTime) => {
+		const animation = element.getAnimations()[0];
+		animation.currentTime = currentTime;
+		return element.getBoundingClientRect().width;
+	}, animationDuration);
+	expect(restingWidth).toBeCloseTo(246, 0);
+});
+
+test("badge celebration fades the chest in and out over three seconds", async ({ page }) => {
+	await page.addInitScript(() => {
+		const originalAnimate = Element.prototype.animate;
+		Element.prototype.animate = function (...argumentsList) {
+			const animation = originalAnimate.apply(this, argumentsList);
+			if (
+				this.matches(
+					".rewards-page-chest-container--celebrating, .rewards-page-badge-animation-track",
+				)
+			) {
+				animation.pause();
+			}
+			return animation;
+		};
+	});
+	await completeFinalBlockForBadge(page, {
+		dayNumber: 16,
+		subjectKey: "math",
+		subjectLabel: "Math",
+		badgeAlt: "Math badge 001",
+		reducedMotion: "no-preference",
+	});
+
+	const chest = page.locator("#rewards-page-chest-container");
+	await expect(chest).toBeVisible();
+	await chest.locator("#rewards-page-chest-button").hover();
+	await expect(chest.locator(".rewards-page-chest")).toHaveAttribute(
+		"src",
+		/minecraftChest01/,
 	);
-	expect(elapsedAfterConfetti).toBeGreaterThanOrEqual(1300);
-	await expect(page.locator(".rewards-page-badge-animation")).toHaveCount(0);
-	await expect(rewardsPage).toBeHidden();
-	const elapsedAfterAnimation = await page.evaluate(
-		() => performance.now() - window.rewardBadgeAnimationEndedAt,
+	const fadeIn = await chest.evaluate((element) => {
+		const animation = element.getAnimations()[0];
+		animation.currentTime = 0;
+		const initialOpacity = getComputedStyle(element).opacity;
+		animation.currentTime = 1500;
+		const midpointOpacity = getComputedStyle(element).opacity;
+		return {
+			duration: animation.effect.getTiming().duration,
+			initialOpacity,
+			midpointOpacity,
+		};
+	});
+	expect(fadeIn).toEqual({
+		duration: 3000,
+		initialOpacity: "0",
+		midpointOpacity: "0.5",
+	});
+	await chest.evaluate((element) => element.getAnimations()[0].finish());
+	await expect(page.locator(".rewards-page-chest")).toHaveAttribute(
+		"src",
+		/minecraftChest03/,
 	);
-	expect(elapsedAfterAnimation).toBeGreaterThanOrEqual(1300);
-	await expect(page.locator("#student-menu-page")).toBeVisible();
-	await expect(page.locator("#daily-menu-math-block-3-panel")).toBeVisible();
+	const badgeTrack = page.locator(".rewards-page-badge-animation-track");
+	await expect(badgeTrack).toBeVisible();
+
+	const choreography = await page.evaluate(() => {
+		const chestContainer = document.querySelector("#rewards-page-chest-container");
+		const chestFadeOut = chestContainer
+			.getAnimations()
+			.find((animation) => animation.playState === "paused");
+		const badgeTrackElement = document.querySelector(
+			".rewards-page-badge-animation-track",
+		);
+		const badgeAnimation = badgeTrackElement.getAnimations()[0];
+		chestFadeOut.currentTime = 0;
+		const chestOpacityAtStart = getComputedStyle(chestContainer).opacity;
+		chestFadeOut.currentTime = 1500;
+		const chestOpacityAtMidpoint = getComputedStyle(chestContainer).opacity;
+		chestFadeOut.currentTime = 3000;
+		badgeAnimation.currentTime = 3000;
+		return {
+			chestFadeDuration: chestFadeOut.effect.getTiming().duration,
+			chestOpacityAtStart,
+			chestOpacityAtMidpoint,
+			chestOpacityAtBadgePeak: getComputedStyle(chestContainer).opacity,
+			badgeDuration: badgeAnimation.effect.getTiming().duration,
+			badgePeakWidth: badgeTrackElement.getBoundingClientRect().width,
+		};
+	});
+	expect(choreography).toEqual({
+		chestFadeDuration: 3000,
+		chestOpacityAtStart: "1",
+		chestOpacityAtMidpoint: "0.5",
+		chestOpacityAtBadgePeak: "0",
+		badgeDuration: 4500,
+		badgePeakWidth: 492,
+	});
+});
+
+test("reduced-motion badge celebration uses visible fades without badge travel", async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		const originalAnimate = Element.prototype.animate;
+		Element.prototype.animate = function (...argumentsList) {
+			const animation = originalAnimate.apply(this, argumentsList);
+			if (
+				this.matches(
+					".rewards-page-chest-container--celebrating, .rewards-page-badge-animation-track",
+				)
+			) {
+				animation.pause();
+			}
+			return animation;
+		};
+	});
+	await completeFinalBlockForBadge(page, {
+		dayNumber: 16,
+		subjectKey: "math",
+		subjectLabel: "Math",
+		badgeAlt: "Math badge 001",
+		reducedMotion: "reduce",
+	});
+
+	const chest = page.locator("#rewards-page-chest-container");
+	await expect(chest).toBeVisible();
+	const chestFadeIn = await chest.evaluate((element) => {
+		const animation = element.getAnimations()[0];
+		if (!animation) {
+			throw new Error("The reduced-motion chest fade-in is unavailable.");
+		}
+		return animation.effect.getTiming().duration;
+	});
+	expect(chestFadeIn).toBe(250);
+	await chest.evaluate((element) => element.getAnimations()[0].finish());
+
+	const badgeTrack = page.locator(".rewards-page-badge-animation-track");
+	await expect(badgeTrack).toBeVisible();
+	const badgeFade = await badgeTrack.evaluate((element) => {
+		const animation = element.getAnimations()[0];
+		if (!animation) {
+			throw new Error("The reduced-motion badge fade is unavailable.");
+		}
+		const keyframes = animation.effect.getKeyframes();
+		return {
+			duration: animation.effect.getTiming().duration,
+			opacities: keyframes.map((frame) => frame.opacity),
+			transforms: keyframes.map((frame) => frame.transform),
+		};
+	});
+	expect(badgeFade.duration).toBe(250);
+	expect(badgeFade.opacities).toEqual(["0", "1"]);
+	expect(new Set(badgeFade.transforms).size).toBe(1);
 });
 
 test("completing Math on October 16 awards and persists badge 001", async ({ page }) => {
@@ -143,6 +357,8 @@ test("completing Math on October 16 awards and persists badge 001", async ({ pag
 
 	await page.locator("#daily-menu-math-block-3-complete-button").click();
 	await expect(page.locator("#rewards-page")).toBeVisible({ timeout: 10000 });
+	await expect(page.locator("#rewards-page-badge-menu")).toBeVisible();
+	await expect(page.locator("#rewards-page-chest-container")).toBeVisible();
 	await expect(page.locator("#rewards-page-chest-button .rewards-page-chest")).toHaveAttribute(
 		"src",
 		/minecraftChest03/,
@@ -152,13 +368,13 @@ test("completing Math on October 16 awards and persists badge 001", async ({ pag
 		"alt",
 		"Math badge 001",
 	);
-	await expect(page.locator(".rewards-page-badge-animation")).toBeVisible();
+	await expect(page.locator(".rewards-page-badge-animation-track")).toBeVisible();
 	await expect(page.locator(".rewards-page-badge-animation")).toHaveCSS(
 		"object-fit",
 		"cover",
 	);
-	await expect(page.locator(".rewards-page-badge-animation")).toHaveCount(0, {
-		timeout: 5000,
+	await expect(page.locator(".rewards-page-badge-animation-track")).toHaveCount(0, {
+		timeout: 6500,
 	});
 	const earnedBadgeBounds = await page
 		.locator(".rewards-page-badge-image")
@@ -168,6 +384,8 @@ test("completing Math on October 16 awards and persists badge 001", async ({ pag
 	await page.reload();
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Open Rewards tab" }).click();
+	await revealBadgesButton(page);
+	await page.getByRole("button", { name: "Badges" }).click();
 	await expect(page.locator(".rewards-page-badge-image")).toHaveCount(1);
 });
 
@@ -285,6 +503,8 @@ test("all subject badges use matching dimensions in the rewards collection", asy
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Open Rewards tab" }).click();
+	await revealBadgesButton(page);
+	await page.getByRole("button", { name: "Badges" }).click();
 
 	const badgeImages = page.locator(".rewards-page-badge-image");
 	await expect(badgeImages).toHaveCount(20);
@@ -301,9 +521,151 @@ test("all subject badges use matching dimensions in the rewards collection", asy
 			objectFit: index % 4 === 0 ? "cover" : "contain",
 		})),
 	);
+	const layout = await page.evaluate(() => {
+		const panel = document.querySelector("#rewards-page-badge-menu");
+		const images = [...panel.querySelectorAll(".rewards-page-badge-image")];
+		const firstBounds = images[0].getBoundingClientRect();
+		const secondBounds = images[1].getBoundingClientRect();
+		const firstRowCount = images.filter(
+			(image) => image.getBoundingClientRect().top === firstBounds.top,
+		).length;
+		const nextRowBounds = images[firstRowCount].getBoundingClientRect();
+		const panelBounds = panel.getBoundingClientRect();
+		const homeBounds = document
+			.querySelector("#rewards-page-home-button")
+			.getBoundingClientRect();
+		const styles = getComputedStyle(panel);
+		return {
+			top: panelBounds.top,
+			rightGap: innerWidth - panelBounds.right,
+			bottomGap: innerHeight - panelBounds.bottom,
+			left: panelBounds.left,
+			leftBadgeGap: firstBounds.left - panelBounds.left,
+			buttonGap: firstBounds.top - homeBounds.bottom,
+			horizontalBadgeGap: secondBounds.left - firstBounds.right,
+			verticalBadgeGap: nextRowBounds.top - firstBounds.bottom,
+			overflowY: styles.overflowY,
+			scrollHeight: panel.scrollHeight,
+			clientHeight: panel.clientHeight,
+		};
+	});
+	expect(layout).toMatchObject({
+		top: 0,
+		rightGap: 0,
+		bottomGap: 0,
+		left: 0,
+		leftBadgeGap: 16,
+		buttonGap: 0,
+		horizontalBadgeGap: 16,
+		verticalBadgeGap: 16,
+		overflowY: "auto",
+	});
+	expect(layout.scrollHeight).toBeGreaterThan(layout.clientHeight);
+	await page.locator("#rewards-page-badge-menu").evaluate((element) => {
+		element.scrollTop = element.scrollHeight;
+	});
+	await expect(badgeImages.last()).toBeInViewport();
 });
 
-test("earned badge collection scrolls through all subjects in three columns", async ({ page }) => {
+test("Badges button opens a full-screen menu and hides while open", async ({ page }) => {
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Open Rewards tab" }).click();
+
+	const badgesButton = page.locator("#rewards-page-badges-button");
+	await expect(badgesButton).toHaveCount(0);
+	await page.locator("#rewards-page-chest-button").click();
+	const goldBag = page.locator("#rewards-page-gold-bag-button");
+	await expect(goldBag).toBeVisible();
+	await goldBag.click();
+	const spilledCoins = page.locator(".rewards-page-gold-coin");
+	await expect(spilledCoins).toHaveCount(5);
+	await spilledCoins.evaluateAll((elements) => {
+		for (const element of elements) {
+			for (const animation of element.getAnimations()) {
+				animation.finish();
+			}
+		}
+	});
+	await expect(badgesButton).toHaveCount(0);
+	await goldBag.evaluate((element) => {
+		for (const animation of element.getAnimations()) {
+			animation.finish();
+		}
+	});
+	await page.waitForTimeout(300);
+	await expect(badgesButton).toHaveCount(0);
+	await expect(badgesButton).toBeVisible();
+	await badgesButton.evaluate((element) => {
+		for (const animation of element.getAnimations()) {
+			animation.finish();
+		}
+	});
+	const placement = await badgesButton.evaluate((element) => {
+		const buttonBounds = element.getBoundingClientRect();
+		const chestBounds = document
+			.querySelector("#rewards-page-chest-button")
+			.getBoundingClientRect();
+		return {
+			gap: chestBounds.left - buttonBounds.right,
+			centerOffset:
+				buttonBounds.top +
+				buttonBounds.height / 2 -
+				(chestBounds.top + chestBounds.height / 2),
+		};
+	});
+	expect(placement.gap).toBe(16);
+	expect(Math.abs(placement.centerOffset)).toBeLessThan(0.1);
+	await expect(badgesButton).toHaveAttribute("aria-pressed", "false");
+	await expect(page.locator("#rewards-page-badge-menu")).toHaveCount(0);
+	const buttonStyles = await badgesButton.evaluate((element) => {
+		const styles = getComputedStyle(element);
+		return {
+			backgroundColor: styles.backgroundColor,
+			borderStyle: styles.borderStyle,
+			boxShadow: styles.boxShadow,
+			textShadow: styles.textShadow,
+			fontSize: Number.parseFloat(styles.fontSize),
+		};
+	});
+	expect(buttonStyles.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+	expect(buttonStyles.borderStyle).toBe("none");
+	expect(buttonStyles.boxShadow).toBe("none");
+	expect(buttonStyles.textShadow.split(",").length).toBeGreaterThanOrEqual(5);
+	expect(buttonStyles.fontSize).toBeGreaterThanOrEqual(24);
+
+	await badgesButton.click();
+	await expect(badgesButton).toHaveCount(0);
+	const panel = page.locator("#rewards-page-badge-menu");
+	await expect(panel).toBeVisible();
+	await expect(panel).toHaveText("Your earned badges will appear here");
+	await expect(panel.locator(".rewards-page-badge-empty")).toHaveCSS(
+		"white-space",
+		"nowrap",
+	);
+	const panelBounds = await panel.boundingBox();
+	const viewportSize = page.viewportSize();
+	expect(panelBounds).toEqual({
+		x: 0,
+		y: 0,
+		width: viewportSize.width,
+		height: viewportSize.height,
+	});
+	await expect(page.locator("#rewards-page-home-button")).toBeVisible();
+
+	await page.locator("#rewards-page-back-button").click();
+	await expect(panel).toHaveCount(0);
+	await expect(badgesButton).toBeVisible();
+	await expect(page.locator("#rewards-page-home-button")).toHaveCount(0);
+
+	await badgesButton.click();
+	await page.locator("#rewards-page-home-button").click();
+	await expect(page.locator("#home-page-shell")).toBeVisible();
+});
+
+test("Rewards page keeps badges hidden until opened and preserves the gold bag", async ({
+	page,
+}) => {
 	const earnedBadgeIds = [];
 	for (const dayNumber of [16, 17, 18, 19, 20]) {
 		const dateKey = `2026-10-${dayNumber}`;
@@ -324,83 +686,61 @@ test("earned badge collection scrolls through all subjects in three columns", as
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Open Rewards tab" }).click();
 
-	const panel = page.locator("#rewards-page-badge-panel");
-	const oneBadgeHeight = (await panel.boundingBox()).height;
-	await page.evaluate((badgeIds) => {
-		localStorage.setItem(
-			"ze2.studentProgress.earnedBadges",
-			JSON.stringify(badgeIds),
-		);
-	}, earnedBadgeIds.slice(0, 4));
-	await page.reload();
-	await page.getByRole("button", { name: "Open student section" }).click();
-	await page.getByRole("button", { name: "Open Rewards tab" }).click();
-	const fourBadgeHeight = (await panel.boundingBox()).height;
-	expect(fourBadgeHeight).toBeGreaterThan(oneBadgeHeight);
-	const fourBadgeScrollMetrics = await panel.evaluate((element) => ({
-		scrollHeight: element.scrollHeight,
-		clientHeight: element.clientHeight,
-	}));
-	expect(fourBadgeScrollMetrics.scrollHeight).toBe(
-		fourBadgeScrollMetrics.clientHeight,
-	);
+	await expect(page.locator("#rewards-page-badge-menu")).toHaveCount(0);
+	await expect(page.locator(".rewards-page-badge-image")).toHaveCount(0);
 
-	await page.evaluate((badgeIds) => {
-		localStorage.setItem(
-			"ze2.studentProgress.earnedBadges",
-			JSON.stringify(badgeIds),
-		);
-	}, earnedBadgeIds);
-	await page.reload();
-	await page.getByRole("button", { name: "Open student section" }).click();
-	await page.getByRole("button", { name: "Open Rewards tab" }).click();
-	await expect(panel.locator(".rewards-page-badge-image")).toHaveCount(20);
-	const dimensions = await panel.evaluate((element) => {
-		const items = [...element.querySelectorAll(".rewards-page-badge-item")];
-		const firstRow = items.slice(0, 3).map((item) => item.getBoundingClientRect());
-		const secondRow = items.slice(3, 6).map((item) => item.getBoundingClientRect());
-		const panelBounds = element.getBoundingClientRect();
+	await page.locator("#rewards-page-chest-button").click();
+	const goldBag = page.locator("#rewards-page-gold-bag-button");
+	await expect(goldBag).toBeVisible();
+	await goldBag.evaluate((element) =>
+		element.getAnimations().forEach((animation) => animation.finish()),
+	);
+	const goldBagPosition = await goldBag.evaluate((element) => {
+		const bagBounds = element.getBoundingClientRect();
 		const chestBounds = document
 			.querySelector("#rewards-page-chest-button")
 			.getBoundingClientRect();
-		const styles = getComputedStyle(element);
 		return {
-			width: panelBounds.width,
-			bottomGap: window.innerHeight - panelBounds.bottom,
-			gap: firstRow[1].left - firstRow[0].right,
-			edgeGap: firstRow[0].left - panelBounds.left,
-			rightEdgeGap: panelBounds.right - firstRow[2].right,
-			chestGap: chestBounds.left - panelBounds.right,
-			badgeWidth: items[0].querySelector("img").getBoundingClientRect().width,
-			badgeBounds: [...element.querySelectorAll(".rewards-page-badge-image")].map(
-				(image) => {
-					const { width, height } = image.getBoundingClientRect();
-					return { width, height };
-				},
-			),
-			rowGap: secondRow[0].top - firstRow[0].bottom,
-			overflowY: styles.overflowY,
-			scrollHeight: element.scrollHeight,
-			clientHeight: element.clientHeight,
+			chestCenterOffset:
+				chestBounds.left +
+				chestBounds.width / 2 -
+				window.innerWidth / 2,
+			bagRightGap: bagBounds.left - chestBounds.right,
+			bagCenterOffset:
+				bagBounds.top +
+				bagBounds.height / 2 -
+				(chestBounds.top + chestBounds.height / 2),
 		};
 	});
-	expect(dimensions.width).toBe(930);
-	expect(dimensions.bottomGap).toBe(16);
-	expect(dimensions.gap).toBe(16);
-	expect(dimensions.edgeGap).toBe(16);
-	expect(dimensions.rightEdgeGap).toBe(144);
-	expect(dimensions.chestGap).toBeGreaterThanOrEqual(16);
-	expect(dimensions.badgeWidth).toBe(246);
-	expect(dimensions.badgeBounds).toEqual(
-		Array.from({ length: 20 }, () => ({ width: 246, height: 246 })),
-	);
-	expect(dimensions.rowGap).toBe(16);
-	expect(dimensions.overflowY).toBe("auto");
-	expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.clientHeight);
-	await panel.evaluate((element) => {
-		element.scrollTop = element.scrollHeight;
+	expect(goldBagPosition.chestCenterOffset).toBeCloseTo(0);
+	expect(goldBagPosition.bagRightGap).toBe(16);
+	expect(Math.abs(goldBagPosition.bagCenterOffset)).toBeLessThan(0.1);
+
+	await goldBag.click();
+	await page.locator(".rewards-page-gold-coin").evaluateAll((elements) => {
+		for (const element of elements) {
+			for (const animation of element.getAnimations()) {
+				animation.finish();
+			}
+		}
 	});
-	await expect(panel.locator(".rewards-page-badge-image").last()).toBeInViewport();
+	const goldTotal = page.locator(".rewards-page-gold-total");
+	await expect(goldTotal).toHaveText("0 gold coins");
+	const goldTotalPosition = await goldTotal.evaluate((element) => {
+		const totalBounds = element.getBoundingClientRect();
+		const bagBounds = document
+			.querySelector("#rewards-page-gold-bag-button")
+			.getBoundingClientRect();
+		return {
+			centerOffset:
+				totalBounds.left +
+				totalBounds.width / 2 -
+				(bagBounds.left + bagBounds.width / 2),
+			topGap: totalBounds.top - bagBounds.bottom,
+		};
+	});
+	expect(Math.abs(goldTotalPosition.centerOffset)).toBeLessThan(0.1);
+	expect(goldTotalPosition.topGap).toBe(16);
 });
 
 test("Badges Earned filters by subject, shows badge details, and resets the student reward", async ({
@@ -512,8 +852,59 @@ test("Badges Earned filters by subject, shows badge details, and resets the stud
 	await page.reload();
 	await page.getByRole("button", { name: "Open student section" }).click();
 	await page.getByRole("button", { name: "Open Rewards tab" }).click();
+	await revealBadgesButton(page);
+	await page.getByRole("button", { name: "Badges" }).click();
 	await expect(page.locator(".rewards-page-badge-image")).toHaveCount(4);
 	await expect(
 		page.locator('.rewards-page-badge-image[alt="Math badge 001"]'),
 	).toHaveCount(0);
+});
+
+test("parent badge resets replace earned state and compact collection placement", async ({
+	page,
+}) => {
+	const earnedBadgeIds = [
+		"2026-10-16::math",
+		"2026-10-17::math",
+		"2026-10-16::language-arts",
+	];
+	await page.addInitScript((badgeIds) => {
+		if (!sessionStorage.getItem("parent-reset-test-seeded")) {
+			localStorage.setItem("ze2.studentProgress.earnedBadges", JSON.stringify(badgeIds));
+			sessionStorage.setItem("parent-reset-test-seeded", "true");
+		}
+	}, earnedBadgeIds);
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Student Edits", exact: true }).click();
+	await page.getByRole("button", { name: "Open Rewards Edits menu" }).click();
+	await page.locator("#badges-earned-button").click();
+	await page.locator("#earned-badges-subject-math-button").click();
+	await page.locator(".badges-earned-image-button").first().click();
+	await page.getByRole("button", { name: "Reset Math Badge Day 1" }).click();
+	await expect
+		.poll(() =>
+			page.evaluate(() =>
+				JSON.parse(localStorage.getItem("ze2.studentProgress.earnedBadges")),
+			),
+		)
+		.toEqual(earnedBadgeIds.slice(1));
+
+	await page.reload();
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Open Rewards tab" }).click();
+	await revealBadgesButton(page);
+	await page.getByRole("button", { name: "Badges" }).click();
+	const badges = page.locator(".rewards-page-badge-image");
+	await expect(badges).toHaveCount(2);
+	await expect(badges.nth(0)).toHaveAttribute("alt", "Math badge 002");
+	await expect(badges.nth(1)).toHaveAttribute("alt", "Language Arts badge 001");
+	const positions = await badges.evaluateAll((images) =>
+		images.map((image) => {
+			const { left, top, right } = image.getBoundingClientRect();
+			return { left, top, right };
+		}),
+	);
+	expect(positions[1].top).toBe(positions[0].top);
+	expect(positions[1].left - positions[0].right).toBe(16);
 });

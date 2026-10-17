@@ -16,7 +16,6 @@ test("Description month choices start with October 2026 and end with December 20
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await clickOffscreenControl(page, "#description-edits-description-button");
 	await clickOffscreenControl(page, "#description-edits-date-dropdown-button");
@@ -90,7 +89,6 @@ test("Description and Play by Play Font Size formats selected and newly typed te
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await page.locator("#description-editor-button").click();
 		await clickOffscreenControl(
@@ -132,12 +130,65 @@ test("Description and Play by Play Font Size formats selected and newly typed te
 	}
 });
 
+test("Font Size applies to the highlighted text after choosing a font style", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	for (const mode of ["description", "play-by-play"]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
+		await page.locator("#description-editor-button").click();
+		await clickOffscreenControl(
+			page,
+			mode === "description"
+				? "#description-edits-description-button"
+				: "#description-edits-play-by-play-button",
+		);
+		const editorSelector =
+			mode === "description" ? "#description-edits-text-box" : "#play-by-play-edits-text-box";
+		const editor = page.locator(editorSelector);
+		await editor.fill("plain colored tail");
+		const editorFontSize = await editor.evaluate(
+			(element) => getComputedStyle(element).fontSize,
+		);
+		await editor.focus();
+		await page.keyboard.press("End");
+		await page.locator("#description-editor-font-style-button").click();
+		await page.getByRole("button", { name: "Minecraft 1 Reg", exact: true }).click();
+		await expect(editor.locator("[data-font-style]")).toHaveCount(0);
+		await page.keyboard.type("!");
+		const newlyTypedStyle = editor.locator('[data-font-style="minecraft-regular-1"]');
+		await expect(newlyTypedStyle).toHaveText("!");
+		await expect
+			.poll(() =>
+				newlyTypedStyle.evaluate((element) => ({
+					fontSize: getComputedStyle(element).fontSize,
+					fontSizeAdjust: getComputedStyle(element).fontSizeAdjust,
+				})),
+			)
+			.toEqual({ fontSize: editorFontSize, fontSizeAdjust: "0.5" });
+
+		await selectTextInEditor(page, editorSelector, "colored");
+		await page.getByRole("button", { name: "Minecraft 1 Reg", exact: true }).click();
+		await page.locator("#description-editor-font-size-button").click();
+		await page.locator("#description-editor-font-size-input").fill("24");
+		await page.locator("#description-editor-font-size-commit-button").click();
+
+		const styledText = editor.locator(
+			'[data-font-style="minecraft-regular-1"]:has([style*="font-size"])',
+		);
+		const sizedText = styledText.locator('[style*="font-size"]');
+		await expect(styledText).toHaveText("colored");
+		await expect(sizedText).toHaveText("colored");
+		await expect(sizedText).toHaveAttribute("style", /font-size:\s*24pt/);
+	}
+});
+
 test("Font Color in-page picker matches its swatch with 16px vertical gaps", async ({ page }) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-editor-button").click();
 	await clickOffscreenControl(page, "#description-edits-description-button");
@@ -215,7 +266,6 @@ test("Load buttons match neighboring workflow button geometry and typography", a
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-description-button").click();
 
@@ -268,7 +318,6 @@ test("Date selectors match and align with workflow buttons in both modes", async
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-description-button").click();
 
@@ -337,7 +386,6 @@ test("Date selector row keeps the panel fixed with 16px gaps in both modes", asy
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-description-button").click();
 
@@ -407,7 +455,6 @@ test("Selecting date fields does not resize or shift the Description Edits panel
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await page.locator(`#description-edits-${mode}-button`).click();
 
@@ -476,7 +523,6 @@ test("Description and Play by Play keep independent selected dates", async ({ pa
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-description-button").click();
 	await page.locator("#description-edits-date-dropdown-button").click();
@@ -523,7 +569,6 @@ test("Description and Play by Play keep independent selected subjects and blocks
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-description-button").click();
 	await page.locator("#description-edits-subject-dropdown-button").click();
@@ -562,7 +607,6 @@ test("Selecting a block does not resize or shift the Description Edits panel", a
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await page.locator(`#description-edits-${mode}-button`).click();
 		const prefix = mode === "description" ? "description-edits" : "play-by-play-edits";
@@ -611,13 +655,12 @@ test.beforeEach(async ({ page }) => {
 	await page.reload();
 });
 
-test("Curriculum Description stays depressed while hovered and toggles on click", async ({
+test("Curriculum Description stays depressed while hovered and Back leaves no empty edit screen", async ({
 	page,
 }) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 
 	const button = page.getByRole("button", { name: "Curriculum Description", exact: true });
 	await button.click();
@@ -630,9 +673,11 @@ test("Curriculum Description stays depressed while hovered and toggles on click"
 	await expect(button).toHaveAttribute("aria-pressed", "true");
 	await expect(button).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 4)");
 
-	await button.click();
+	await page.locator("#blocks-screen-back-button").click();
 	await expect(button).toHaveAttribute("aria-pressed", "false");
 	await expect(page.locator("#description-edits-panel-container")).toBeHidden();
+	await expect(page.locator("#blocks-menu-sidebar")).toHaveCount(0);
+	await expect(page.locator("#student-edits-screen-back-button")).toBeVisible();
 });
 
 test("Block Completion Edits and Curriculum Description cannot be active together", async ({
@@ -640,7 +685,6 @@ test("Block Completion Edits and Curriculum Description cannot be active togethe
 }) => {
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.getByRole("button", { name: "Open Blocks menu" }).click();
 
 	const descriptionButton = page.getByRole("button", {
 		name: "Curriculum Description",
@@ -653,11 +697,20 @@ test("Block Completion Edits and Curriculum Description cannot be active togethe
 
 	await descriptionButton.click();
 	await expect(descriptionButton).toHaveAttribute("aria-pressed", "true");
+	await page.locator("#blocks-screen-back-button").click();
+	await expect(descriptionButton).toHaveAttribute("aria-pressed", "false");
+	await expect(page.locator("#blocks-menu-sidebar")).toHaveCount(0);
+
 	await blockEditsButton.click();
 	await expect(descriptionButton).toHaveAttribute("aria-pressed", "false");
 	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "true");
 	await expect(page.locator("#description-edits-panel-container")).toBeHidden();
 	await expect(page.locator(".block-edits-panel")).toHaveCount(5);
+
+	await page.locator("#blocks-screen-back-button").click();
+	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "false");
+	await expect(page.locator("#blocks-menu-sidebar")).toHaveCount(0);
+	await expect(page.locator("#student-edits-screen-back-button")).toBeVisible();
 
 	await descriptionButton.click();
 	await expect(descriptionButton).toHaveAttribute("aria-pressed", "true");
@@ -666,43 +719,33 @@ test("Block Completion Edits and Curriculum Description cannot be active togethe
 	await expect(page.locator(".block-edits-panel")).toHaveCount(0);
 });
 
-test("Curriculum Description reveals an aligned Editor button", async ({ page }) => {
+test("Curriculum Description opens the Editor sidebar from Student Edits", async ({ page }) => {
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.getByRole("button", { name: "Open Blocks menu" }).click();
 
 	const editorButton = page.getByRole("button", { name: "Editor", exact: true });
 	await expect(editorButton).toHaveCount(0);
 	await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
 	await expect(editorButton).toBeVisible();
-	await page.mouse.move(700, 500);
-	const blockEditsButton = page.locator("#block-edits-button");
-	await expect(blockEditsButton).toHaveCSS("transform", "none");
-
-	const buttonGeometry = await page.evaluate(() => {
-		const blockButton = document.querySelector("#block-edits-button").getBoundingClientRect();
-		const editorButton = document
-			.querySelector("#description-editor-button")
-			.getBoundingClientRect();
-		return {
-			blockLeft: blockButton.left,
-			blockRight: blockButton.right,
-			blockBottom: blockButton.bottom,
-			editorLeft: editorButton.left,
-			editorRight: editorButton.right,
-			editorTop: editorButton.top,
-		};
-	});
-
-	expect(buttonGeometry.editorLeft).toBe(buttonGeometry.blockLeft);
-	expect(buttonGeometry.editorRight).toBe(buttonGeometry.blockRight);
-	expect(buttonGeometry.editorTop - buttonGeometry.blockBottom).toBe(16);
+	await expect(page.locator("#blocks-menu-sidebar")).toBeVisible();
+	await expect(editorButton.locator("..")).toHaveAttribute("id", "blocks-menu-sidebar");
+	await expect(page.locator("#description-edits-button").locator("..")).toHaveAttribute(
+		"id",
+		"student-edits-sidebar",
+	);
+	await expect(page.locator("#block-edits-button").locator("..")).toHaveAttribute(
+		"id",
+		"student-edits-sidebar",
+	);
+	await expect(page.locator("#description-edits-button").locator("..")).not.toHaveAttribute(
+		"id",
+		"blocks-menu-sidebar",
+	);
 });
 
 test("Editor reveals aligned pastel font controls with 16px gaps", async ({ page }) => {
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.getByRole("button", { name: "Open Blocks menu" }).click();
 	await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
 
 	const editorButton = page.getByRole("button", { name: "Editor", exact: true });
@@ -780,6 +823,79 @@ test("Editor reveals aligned pastel font controls with 16px gaps", async ({ page
 	}
 });
 
+test("Font Alignment formats selected and subsequently typed text in both modes", async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 1440, height: 1200 });
+	for (const mode of [
+		{
+			name: "Description",
+			editor: "#description-edits-text-box",
+			action: "description",
+			otherAction: "play-by-play",
+		},
+		{
+			name: "Play by Play",
+			editor: "#play-by-play-edits-text-box",
+			action: "play-by-play",
+			otherAction: "description",
+		},
+	]) {
+		await page.goto("./");
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Student Edits" }).click();
+		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
+		await page.locator("#description-editor-button").click();
+		await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
+		const editor = page.locator(mode.editor);
+		await editor.fill("before target after");
+
+		for (const alignment of ["left", "center", "right"]) {
+			await editor.fill("before target after");
+			await selectTextInEditor(page, mode.editor, "target");
+			const alignmentButton = page.locator(
+				`#description-editor-text-alignment-${alignment}-button`,
+			);
+			if (!(await alignmentButton.isVisible())) {
+				await page.locator("#description-editor-text-alignment-button").click();
+			}
+			await expect(alignmentButton).toBeVisible();
+			await alignmentButton.click();
+			await page.keyboard.type(alignment[0]);
+
+			const alignedText = await editor.evaluate((element) => {
+				const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+				let textNode;
+				while ((textNode = walker.nextNode())) {
+					if (textNode.nodeValue.includes("target")) {
+						const block = textNode.parentElement.closest("div, p") ?? element;
+						return {
+							text: element.textContent,
+							alignment: getComputedStyle(block).textAlign,
+						};
+					}
+				}
+				return null;
+			});
+			expect(alignedText).toEqual({
+				text: `before target${alignment[0]} after`,
+				alignment,
+			});
+
+			await clickOffscreenControl(page, `#description-edits-${mode.otherAction}-button`);
+			await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
+			await expect
+				.poll(() =>
+					editor.evaluate((element) => {
+						const block = element.querySelector("[data-text-alignment]");
+						return block ? getComputedStyle(block).textAlign : null;
+					}),
+				)
+				.toBe(alignment);
+		}
+	}
+});
+
 test("Font Style options match the Text Editor and format selected and subsequently typed text", async ({
 	page,
 }) => {
@@ -804,7 +920,6 @@ test("Font Style options match the Text Editor and format selected and subsequen
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
 		await page.locator("#description-editor-button").click();
 		const editor = page.locator(mode.editor);
@@ -909,7 +1024,9 @@ test("Font Style options match the Text Editor and format selected and subsequen
 	}
 });
 
-test("Description and Play by Play highlights clear only on permitted clicks", async ({ page }) => {
+test("Description and Play by Play highlights clear only on left double-click", async ({
+	page,
+}) => {
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	for (const mode of [
 		{ action: "description", editor: "#description-edits-text-box" },
@@ -918,7 +1035,6 @@ test("Description and Play by Play highlights clear only on permitted clicks", a
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
 		const editor = page.locator(mode.editor);
@@ -942,6 +1058,12 @@ test("Description and Play by Play highlights clear only on permitted clicks", a
 		await expect.poll(highlightedText).toEqual(["this highlighted"]);
 		await page.locator("#description-editor-button").click();
 		await expect.poll(highlightedText).toEqual(["this highlighted"]);
+		await page.evaluate(() => {
+			document.querySelector("#student-edits-screen").dispatchEvent(
+				new MouseEvent("dblclick", { bubbles: true, button: 2 }),
+			);
+		});
+		await expect.poll(highlightedText).toEqual(["this highlighted"]);
 		await page.locator("#description-editor-button").dblclick();
 		await expect.poll(highlightedText).toEqual([]);
 
@@ -951,6 +1073,8 @@ test("Description and Play by Play highlights clear only on permitted clicks", a
 		});
 		await expect.poll(highlightedText).toEqual(["this highlighted"]);
 		await editor.click({ position: { x: 100, y: 30 } });
+		await expect.poll(highlightedText).toEqual(["this highlighted"]);
+		await editor.dblclick({ position: { x: 100, y: 30 } });
 		await expect.poll(highlightedText).toEqual([]);
 	}
 });
@@ -986,7 +1110,6 @@ test("Font Color picker applies hex colors to selections and subsequent text in 
 		await page.setViewportSize({ width: 1440, height: 1200 });
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
 		await page.locator("#description-editor-button").click();
 		if (scenario.action === "play-by-play") {
@@ -1113,7 +1236,6 @@ test("Font Color hex input reflects uniformly colored selections in both modes",
 		await page.setViewportSize({ width: 1440, height: 1200 });
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.getByRole("button", { name: "Curriculum Description", exact: true }).click();
 		await page.locator("#description-editor-button").click();
 		await clickOffscreenControl(page, `#description-edits-${scenario.action}-button`);
@@ -1149,7 +1271,6 @@ for (const mode of [
 		test(`${mode.name} Font selection at a caret works with ${scenario}`, async ({ page }) => {
 			await page.getByRole("button", { name: "Open parent section" }).click();
 			await page.getByRole("button", { name: "Student Edits" }).click();
-			await page.locator("#blocks-menu-button").click();
 			await page.locator("#description-edits-button").click();
 			await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
 			await page.locator("#description-editor-button").click();
@@ -1247,7 +1368,6 @@ for (const mode of [
 	}) => {
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await clickOffscreenControl(page, `#description-edits-${mode.action}-button`);
 		const editorSelector = `#${mode.prefix}-text-box`;
@@ -1289,7 +1409,6 @@ test("Description Edits panel expands on selection and stays fixed across conten
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.evaluate(() => document.fonts.ready);
 
@@ -1352,7 +1471,6 @@ test("Description and Play by Play buttons keep their size across modes", async 
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.evaluate(() => document.fonts.ready);
 
@@ -1405,7 +1523,6 @@ for (const mode of [
 		await page.setViewportSize({ width: 1440, height: 1200 });
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await page.locator(`#description-edits-${mode.button}-button`).click();
 
@@ -1530,7 +1647,6 @@ test.describe("Description Load and Save", () => {
 		await page.reload();
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await page.locator("#description-edits-description-button").click();
 
@@ -1845,7 +1961,6 @@ test.describe("Play by Play Load and Save", () => {
 		await page.reload();
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await page.locator("#description-edits-play-by-play-button").click();
 
@@ -2137,7 +2252,6 @@ test.describe("Description selection summary", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Student Edits" }).click();
-		await page.locator("#blocks-menu-button").click();
 		await page.locator("#description-edits-button").click();
 		await page.locator("#description-edits-description-button").click();
 	});
@@ -2324,7 +2438,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await page.setViewportSize({ width: 1440, height: 1200 });
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
+	await page.locator("#description-edits-button").click();
 
 	const blocksSidebar = page.locator("#blocks-menu-sidebar");
 	await expect(blocksSidebar).toBeVisible();
@@ -2338,7 +2452,6 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	expect(sidebarBox.height).toBeGreaterThanOrEqual(page.viewportSize().height);
 
 	const descriptionEditsButton = page.locator("#description-edits-button");
-	await descriptionEditsButton.click();
 	await expect(descriptionEditsButton).toHaveClass(/description-edits-button--active/);
 	await expect(page.locator("#description-edits-text-box")).toBeVisible();
 	await expect(page.locator("#description-edits-commit-button")).toHaveCount(0);
@@ -2362,7 +2475,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await clickOffscreenControl(page, "#description-edits-month-dropdown-button");
 	await page.locator("#description-edits-month-option-2026-9").click();
 	await clickOffscreenControl(page, "#description-edits-day-dropdown-button");
-	await page.locator("#description-edits-day-option-13").click();
+	await page.locator("#description-edits-day-option-16").click();
 	await clickOffscreenControl(page, "#description-edits-year-dropdown-button");
 	await page.locator("#description-edits-year-option-2026").click();
 	await clickOffscreenControl(page, "#description-edits-subject-dropdown-button");
@@ -2381,7 +2494,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	const storedDescriptions = await page.evaluate(() =>
 		JSON.parse(globalThis.localStorage.getItem("zoologistExplorer02.blockDescriptions")),
 	);
-	expect(storedDescriptions["2026-10-13::math::2"]).toContain(
+	expect(storedDescriptions["2026-10-16::math::2"]).toContain(
 		'<span data-font-style="minecraft-regular-2-bold">description</span>',
 	);
 
@@ -2406,7 +2519,7 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	await clickOffscreenControl(page, "#play-by-play-edits-month-dropdown-button");
 	await page.locator("#play-by-play-edits-month-option-2026-9").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-day-dropdown-button");
-	await page.locator("#play-by-play-edits-day-option-13").click();
+	await page.locator("#play-by-play-edits-day-option-16").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-year-dropdown-button");
 	await page.locator("#play-by-play-edits-year-option-2026").click();
 	await clickOffscreenControl(page, "#play-by-play-edits-subject-dropdown-button");
@@ -2424,18 +2537,17 @@ test("Blocks sidebar is 336px wide and Description Edits commit reaches the cale
 	const storedPlayByPlay = await page.evaluate(() =>
 		JSON.parse(globalThis.localStorage.getItem("zoologistExplorer02.blockPlayByPlay")),
 	);
-	expect(storedPlayByPlay["2026-10-13::math::2"]).toContain(
+	expect(storedPlayByPlay["2026-10-16::math::2"]).toContain(
 		'<span data-font-style="minecraft-regular-2-italic">First step</span>',
 	);
 
-	await page.locator("#description-edits-button").click();
-	await page.locator("#blocks-menu-button").evaluate((element) => element.click());
+	await page.locator("#blocks-screen-back-button").click();
 	await page.locator("#student-edits-screen-home-button").click();
 	await page.reload();
 	await page.getByRole("button", { name: "Open student section" }).click();
-	const octoberThirteenth = page.locator("#calendar-day-cell-October-2026-15");
-	await octoberThirteenth.click();
-	await octoberThirteenth.click();
+	const octoberSixteenth = page.locator("#calendar-day-cell-October-2026-18");
+	await octoberSixteenth.click();
+	await octoberSixteenth.click();
 
 	await page.locator("#daily-menu-math-button").click();
 	await page.locator("#daily-menu-math-block-2-button").click();
@@ -2499,7 +2611,6 @@ test("Math Curriculum October opens grouped Friday-through-Tuesday buttons with 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.locator("#blocks-menu-button").click();
 	await page.locator("#description-edits-button").click();
 	await page.locator("#description-edits-play-by-play-button").click();
 

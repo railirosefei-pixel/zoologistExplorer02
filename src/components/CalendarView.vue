@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, ref } from "vue";
 import minecraftExplosion from "../../assets/animations/minecraftExplosion.gif";
 import explosionSound from "../../assets/sounds/Explosion Dynamite 01.wav";
 import artBackground from "../../assets/images/backgrounds/art(Background)01.webp";
+import exerciseBackground from "../../assets/images/backgrounds/exercise(background)01.webp";
 import languageArtsBackground from "../../assets/images/backgrounds/languageArts(Background)01.webp";
 import mathBackground from "../../assets/images/backgrounds/math(Background)01.webp";
 import scienceBackground from "../../assets/images/backgrounds/science(Background)01.webp";
@@ -417,8 +418,16 @@ function resetToCalendar() {
 defineExpose({ resetToCalendar });
 
 function handleDailyMenuSubjectSelection(subject) {
+	if (selectedDailyMenuSubject.value === subject) {
+		selectedDailyMenuSubject.value = null;
+		selectedDailyMenuBlock.value = null;
+		activeStoryTimelineTab.value = null;
+		return;
+	}
+
 	selectedDailyMenuSubject.value = subject;
-	selectedDailyMenuBlock.value = subject === "story" ? null : 1;
+	selectedDailyMenuBlock.value =
+		subject === "story" || subject === "exercise" ? null : 1;
 	if (subject === "story") {
 		activeStoryTimelineTab.value = "Year";
 		return;
@@ -477,7 +486,7 @@ function handleBlockComplete(subject, blockNumber) {
 	if (hasCompletedSubjectBlocks) {
 		const reward = awardCompletedSubjectBadge(selectedDailyMenuDateLabel.value, subject);
 		if (reward) {
-			emit("open-reward", { badge: reward.badge, animate: reward.isNew });
+			emit("open-reward", { badge: reward.badge, animate: true });
 			return;
 		}
 	}
@@ -763,6 +772,7 @@ onBeforeUnmount(() => {
 						type="button"
 						aria-label="Math"
 						title="Math"
+						:aria-pressed="selectedDailyMenuSubject === 'math'"
 						@click="handleDailyMenuSubjectSelection('math')"
 					>
 						<img :src="mathBackground" alt="" />
@@ -773,9 +783,21 @@ onBeforeUnmount(() => {
 						type="button"
 						aria-label="Language Arts"
 						title="Language Arts"
+						:aria-pressed="selectedDailyMenuSubject === 'language-arts'"
 						@click="handleDailyMenuSubjectSelection('language-arts')"
 					>
 						<img :src="languageArtsBackground" alt="" />
+					</button>
+					<button
+						id="daily-menu-exercise-button"
+						class="daily-menu-exercise-button"
+						type="button"
+						aria-label="Exercise"
+						title="Exercise"
+						:aria-pressed="selectedDailyMenuSubject === 'exercise'"
+						@click="handleDailyMenuSubjectSelection('exercise')"
+					>
+						<img :src="exerciseBackground" alt="" />
 					</button>
 					<button
 						id="daily-menu-social-studies-button"
@@ -783,6 +805,7 @@ onBeforeUnmount(() => {
 						type="button"
 						aria-label="Social Studies"
 						title="Social Studies"
+						:aria-pressed="selectedDailyMenuSubject === 'social-studies'"
 						@click="handleDailyMenuSubjectSelection('social-studies')"
 					>
 						<img :src="socialStudiesBackground" alt="" />
@@ -793,6 +816,7 @@ onBeforeUnmount(() => {
 						type="button"
 						aria-label="Science"
 						title="Science"
+						:aria-pressed="selectedDailyMenuSubject === 'science'"
 						@click="handleDailyMenuSubjectSelection('science')"
 					>
 						<img :src="scienceBackground" alt="" />
@@ -803,6 +827,7 @@ onBeforeUnmount(() => {
 						type="button"
 						aria-label="Art"
 						title="Art"
+						:aria-pressed="selectedDailyMenuSubject === 'art'"
 						@click="handleDailyMenuSubjectSelection('art')"
 					>
 						<img :src="artBackground" alt="" />
@@ -883,24 +908,6 @@ onBeforeUnmount(() => {
 							}}
 						</button>
 						<div
-							v-if="isExplorerCopyActive(selectedDailyMenuSubject)"
-							class="daily-menu-subject-panel-message"
-						>
-							<p
-								v-for="line in getExplorerCopy(selectedDailyMenuSubject)"
-								:key="line"
-							>
-								<span
-									:class="{
-										'daily-menu-explorer-name':
-											line.startsWith('Explorer Raili'),
-									}"
-								>
-									{{ line }}
-								</span>
-							</p>
-						</div>
-						<div
 							v-if="
 								getSavedBlockDescription(
 									selectedDailyMenuSubject,
@@ -922,6 +929,24 @@ onBeforeUnmount(() => {
 								"
 							/>
 							<!-- eslint-enable vue/no-v-html -->
+						</div>
+						<div
+							v-else-if="isExplorerCopyActive(selectedDailyMenuSubject)"
+							class="daily-menu-subject-panel-message"
+						>
+							<p
+								v-for="line in getExplorerCopy(selectedDailyMenuSubject)"
+								:key="line"
+							>
+								<span
+									:class="{
+										'daily-menu-explorer-name':
+											line.startsWith('Explorer Raili'),
+									}"
+								>
+									{{ line }}
+								</span>
+							</p>
 						</div>
 						<div
 							v-if="

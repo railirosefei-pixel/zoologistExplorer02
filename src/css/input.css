@@ -767,9 +767,11 @@ body {
 }
 
 .daily-menu-subject-grid {
+	position: relative;
+	z-index: 3;
 	display: grid;
 	grid-template-columns: repeat(5, minmax(0, 1fr));
-	gap: 0.75rem;
+	gap: 1rem;
 	width: min(100%, 72rem);
 	margin: 0 auto;
 }
@@ -783,20 +785,87 @@ body {
 	background: var(--daily-menu-button-background);
 	box-shadow:
 		inset 0 2px 0 rgba(255, 255, 255, 0.45),
-		0 4px 0 var(--daily-menu-button-shadow-color);
+		0 9px 0 var(--daily-menu-button-shadow-color),
+		0 14px 18px rgba(25, 17, 8, 0.35);
 	cursor: pointer;
 	overflow: hidden;
+	transform: translateY(-4px);
+	transition:
+		transform 140ms ease,
+		box-shadow 140ms ease,
+		filter 140ms ease;
 }
 
 .daily-menu-story-button,
 .daily-menu-math-button,
 .daily-menu-language-arts-button,
+.daily-menu-exercise-button,
 .daily-menu-social-studies-button,
 .daily-menu-science-button,
 .daily-menu-art-button {
 	--daily-menu-button-background: #2a1d0f;
 	--daily-menu-button-border-color: rgba(255, 248, 190, 0.82);
-	--daily-menu-button-shadow-color: rgba(70, 44, 18, 0.35);
+	--daily-menu-button-shadow-color: var(
+		--daily-menu-button-glow,
+		rgba(70, 44, 18, 0.35)
+	);
+}
+
+.daily-menu-math-button {
+	--daily-menu-button-glow: rgba(255, 235, 145, 0.96);
+	--daily-menu-button-glow-soft: rgba(255, 235, 145, 0.68);
+}
+
+.daily-menu-language-arts-button {
+	--daily-menu-button-glow: rgba(255, 173, 180, 0.96);
+	--daily-menu-button-glow-soft: rgba(255, 173, 180, 0.68);
+}
+
+.daily-menu-social-studies-button {
+	--daily-menu-button-glow: rgba(174, 239, 184, 0.96);
+	--daily-menu-button-glow-soft: rgba(174, 239, 184, 0.68);
+}
+
+.daily-menu-science-button {
+	--daily-menu-button-glow: rgba(166, 218, 255, 0.96);
+	--daily-menu-button-glow-soft: rgba(166, 218, 255, 0.68);
+}
+
+.daily-menu-art-button {
+	--daily-menu-button-glow: rgba(255, 184, 218, 0.96);
+	--daily-menu-button-glow-soft: rgba(198, 190, 255, 0.68);
+}
+
+.daily-menu-exercise-button {
+	--daily-menu-button-glow: rgba(218, 224, 235, 0.96);
+	--daily-menu-button-glow-soft: rgba(218, 224, 235, 0.68);
+}
+
+.daily-menu-subject-grid > button:hover {
+	filter: brightness(1.08);
+	transform: translateY(-6px);
+}
+
+.daily-menu-subject-grid > button[aria-pressed="true"] {
+	box-shadow:
+		inset 0 5px 8px rgba(20, 15, 5, 0.32),
+		inset 0 0 0 2px rgba(255, 255, 255, 0.65),
+		0 2px 0 var(--daily-menu-button-shadow-color),
+		0 0 20px 8px var(--daily-menu-button-glow),
+		0 0 42px 15px var(--daily-menu-button-glow-soft);
+	transform: translateY(7px);
+}
+
+.daily-menu-subject-grid > .daily-menu-art-button[aria-pressed="true"] {
+	box-shadow:
+		inset 0 5px 8px rgba(20, 15, 5, 0.32),
+		inset 0 0 0 2px rgba(255, 255, 255, 0.65),
+		0 2px 0 var(--daily-menu-button-shadow-color),
+		0 0 18px 6px rgba(255, 166, 203, 0.96),
+		0 0 30px 12px rgba(255, 226, 156, 0.8),
+		0 0 42px 18px rgba(190, 240, 174, 0.72),
+		0 0 54px 24px rgba(160, 220, 255, 0.64),
+		0 0 66px 30px rgba(198, 184, 255, 0.56);
 }
 
 .daily-menu-subject-grid > button img {
@@ -804,6 +873,10 @@ body {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+}
+
+.daily-menu-exercise-button img {
+	transform: scale(1.35);
 }
 
 .daily-menu-subject-grid > button:focus-visible {
@@ -816,8 +889,21 @@ body {
 	display: flex;
 	flex: 1;
 	width: min(100%, 72rem);
-	margin: 12px auto 0;
+	margin: calc(2.8rem + 15px) auto 0;
 	min-height: 0;
+	transition: margin-top 140ms ease;
+}
+
+.daily-menu-content:has(
+		.daily-menu-art-button:hover:not([aria-pressed="true"])
+	)
+	.daily-menu-subject-panel-stack {
+	margin-top: calc(2.8rem + 13px);
+}
+
+.daily-menu-content:has(.daily-menu-art-button[aria-pressed="true"])
+	.daily-menu-subject-panel-stack {
+	margin-top: calc(2.8rem + 26px);
 }
 
 .daily-menu-subject-panel-stack--story {
@@ -840,6 +926,15 @@ body {
 		inset 0 2px 0 rgba(255, 255, 255, 0.45),
 		0 4px 0 rgba(70, 44, 18, 0.35);
 	color: #2a1d0f;
+}
+
+.daily-menu-block-panel {
+	z-index: 3;
+	transform: translateY(-6px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.45),
+		0 9px 0 rgba(70, 44, 18, 0.35),
+		0 14px 18px rgba(35, 22, 8, 0.3);
 }
 
 .daily-menu-story-panel {
@@ -1028,14 +1123,26 @@ body {
 	writing-mode: horizontal-tb;
 	text-orientation: mixed;
 	transform: none;
+	transition:
+		transform 120ms ease,
+		box-shadow 120ms ease;
+}
+
+.daily-menu-subject-tab-list > button[aria-selected="true"] {
+	z-index: 1;
+	transform: translateY(-6px);
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.32),
+		0 9px 0 rgba(70, 44, 18, 0.28),
+		0 12px 12px rgba(35, 22, 8, 0.18);
 }
 
 .daily-menu-math-block-1-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #e8dca8;
+	border: 2px solid #efe3a4;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #fff9d6 0%, #fdf1a8 100%);
+	background: linear-gradient(180deg, #fffde8 0%, #fff6c7 100%);
 	color: #4d3b0a;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
@@ -1044,9 +1151,9 @@ body {
 .daily-menu-math-block-2-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #f0d38a;
+	border: 2px solid #ead477;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #fbe9a5 0%, #f7d97c 100%);
+	background: linear-gradient(180deg, #fff1ad 0%, #ffe47e 100%);
 	color: #4d3b0a;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
@@ -1055,9 +1162,9 @@ body {
 .daily-menu-math-block-3-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #e9bd53;
+	border: 2px solid #dfbf4e;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #f6d88a 0%, #e7bd5f 100%);
+	background: linear-gradient(180deg, #ffe078 0%, #ffd04d 100%);
 	color: #4d3b0a;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
@@ -1066,10 +1173,10 @@ body {
 .daily-menu-language-arts-block-1-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #7f1d1d;
+	border: 2px solid #f3bdc1;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #7f1d1d 0%, #b91c1c 100%);
-	color: #fff5f5;
+	background: linear-gradient(180deg, #fff0f1 0%, #ffe0e3 100%);
+	color: #57252b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -1077,10 +1184,10 @@ body {
 .daily-menu-language-arts-block-2-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #dc2626;
+	border: 2px solid #e89aa1;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #dc2626 0%, #ef4444 100%);
-	color: #fff5f5;
+	background: linear-gradient(180deg, #ffd2d6 0%, #ffb8c0 100%);
+	color: #57252b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -1088,10 +1195,10 @@ body {
 .daily-menu-language-arts-block-3-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #f87171;
+	border: 2px solid #d97882;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #f89191 0%, #fca5a5 100%);
-	color: #7f1d1d;
+	background: linear-gradient(180deg, #ffb0b8 0%, #f995a0 100%);
+	color: #57252b;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -1099,10 +1206,10 @@ body {
 .daily-menu-social-studies-block-1-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #14532d;
+	border: 2px solid #c4ddb0;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #14532d 0%, #166534 100%);
-	color: #f0fdf4;
+	background: linear-gradient(180deg, #f0f8e8 0%, #e2f0d3 100%);
+	color: #2b4320;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -1110,10 +1217,10 @@ body {
 .daily-menu-social-studies-block-2-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #15803d;
+	border: 2px solid #a7ce8e;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #15803d 0%, #22c55e 100%);
-	color: #f0fdf4;
+	background: linear-gradient(180deg, #d8edc7 0%, #c5e3ae 100%);
+	color: #2b4320;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -1121,10 +1228,10 @@ body {
 .daily-menu-social-studies-block-3-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #4ade80;
+	border: 2px solid #8ebc70;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #4ade80 0%, #86efac 100%);
-	color: #14532d;
+	background: linear-gradient(180deg, #c0dda9 0%, #add08e 100%);
+	color: #2b4320;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -1257,6 +1364,94 @@ body {
 	display: flex;
 	align-items: center;
 	gap: 32px;
+}
+
+.grid-menu-save-controls {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 10px;
+	width: 100%;
+	margin-top: auto;
+	padding-top: 16px;
+}
+
+.grid-menu-save-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.grid-menu-save-name {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #eff5f7;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.875rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.grid-menu-save-name-input {
+	box-sizing: border-box;
+	width: 180px;
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid #8ba7c3;
+	border-radius: 6px;
+	background: #fff;
+	color: #1b1b1b;
+	font: inherit;
+}
+
+.grid-menu-save-button {
+	min-width: 64px;
+	height: 32px;
+	padding: 0 10px;
+	border: 1px solid #15803d;
+	border-radius: 8px;
+	background: linear-gradient(180deg, #bbf7d0 0%, #4ade80 100%);
+	color: #052e16;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 0.875rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 2px 0 rgba(255, 255, 255, 0.45),
+		0 2px 0 #166534,
+		0 4px 6px rgba(0, 0, 0, 0.28);
+}
+
+.grid-menu-save-error {
+	margin: 0;
+	color: #fecaca;
+	font-size: 0.875rem;
+	font-weight: 700;
+}
+
+.grid-menu-apply-and-save-button {
+	min-width: 190px;
+	min-height: 48px;
+	padding: 0 22px;
+	border: 2px solid #00c832;
+	border-radius: 999px;
+	background: linear-gradient(180deg, #9dffb1 0%, #00d83d 100%);
+	color: #063b16;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow:
+		inset 0 3px 0 rgba(255, 255, 255, 0.55),
+		inset 0 -5px 0 rgba(0, 0, 0, 0.22),
+		0 4px 0 #08752a,
+		0 8px 10px rgba(0, 0, 0, 0.32);
+	transition: transform 80ms ease;
+}
+
+.grid-menu-apply-and-save-button:active {
+	transform: translateY(3px);
 }
 
 .grid-menu-control-row--applied > .grid-menu-control-label,
@@ -1393,7 +1588,6 @@ body {
 }
 
 .grid-menu-alignment-heading,
-.grid-menu-lines-heading,
 .grid-menu-position-heading {
 	color: #000;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
@@ -1401,13 +1595,6 @@ body {
 	font-weight: 700;
 	line-height: 1.25;
 	text-align: center;
-}
-
-.grid-menu-lines-heading {
-	align-self: flex-start;
-	width: 298px;
-	margin-top: 35px;
-	text-align: left;
 }
 
 .grid-menu-position-heading {
@@ -1465,35 +1652,6 @@ body {
 
 .grid-menu-position-button:active {
 	transform: translateY(2px);
-}
-
-.grid-menu-printable-button {
-	min-width: 108px;
-	height: 34px;
-	margin-top: 8px;
-	border: 2px solid #008c24;
-	border-radius: 6px;
-	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
-	font-size: 0.9rem;
-	font-weight: 700;
-	cursor: pointer;
-}
-
-.grid-menu-printable-button--on {
-	transform: translateY(3px);
-	background-color: #00ff40;
-	color: #003d10;
-	box-shadow:
-		inset 0 2px 0 rgba(255, 255, 255, 0.75),
-		0 0 12px 4px rgba(0, 255, 64, 0.85);
-}
-
-.grid-menu-printable-button--off {
-	transform: none;
-	border-color: #bd0000;
-	background-color: #ff3030;
-	color: #000000;
-	box-shadow: none;
 }
 
 .grid-menu-shapes-heading {
@@ -1691,6 +1849,13 @@ body {
 
 .grid-menu-control-row--margins {
 	margin-top: 0;
+}
+
+.grid-menu-grid-prints-control {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-left: 8px;
 }
 
 .grid-menu-control-row--amount {
@@ -4063,7 +4228,13 @@ body {
 #app:has(#calendar-previous-month-button, #daily-menu-panel) #student-menu-back-button,
 #student-menu-page:has(#student-submenu-panel) #calendar-panel .navigation-back-button,
 #student-menu-page:has(#student-submenu-panel) #calendar-panel .navigation-home-button,
-#app:has(#math-games-current-level, #math-games-complete) #parent-screen-back-button-parent,
+#app:has(
+		#math-games-current-level,
+		#math-games-complete,
+		#safari-place-value-game,
+		#safari-multiplication-game
+	)
+	#parent-screen-back-button-parent,
 body:has(#grid-menu-quadrilateral-prompt) #parent-screen-back-button,
 body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	display: none;
@@ -4409,7 +4580,7 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	padding: 0.9rem 1rem;
 	border: 1px solid rgba(255, 248, 190, 0.65);
 	border-radius: 0.875rem;
-	background: linear-gradient(180deg, #cfe4ff 0%, #93c5fd 100%);
+	background: linear-gradient(180deg, #f8d1d1 0%, #f2aaaa 100%);
 	color: #16293f;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1.5rem;
@@ -4449,7 +4620,7 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	padding: 0.9rem 1rem;
 	border: 1px solid rgba(255, 248, 190, 0.65);
 	border-radius: 0.875rem;
-	background: linear-gradient(180deg, #d8f3dc 0%, #b7e4c7 100%);
+	background: linear-gradient(180deg, #fff4b8 0%, #f7df8b 100%);
 	color: #1e3d24;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1.5rem;
@@ -4624,6 +4795,10 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 		transform 120ms ease,
 		box-shadow 120ms ease,
 		filter 120ms ease;
+}
+
+#rewards-edits-menu-button {
+	background: linear-gradient(180deg, #d9f2d0 0%, #b4dfaa 100%);
 }
 
 .blocks-menu-button:hover {
@@ -4847,6 +5022,31 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	background: linear-gradient(180deg, #fff2b3 0%, #f5df7d 100%);
 }
 
+.description-editor-text-alignment-button {
+	background: linear-gradient(180deg, #cfe4ff 0%, #a8c9ef 100%);
+}
+
+.description-editor-text-alignment-options {
+	display: flex;
+	width: 100%;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.description-editor-text-alignment-option-button {
+	align-self: flex-start;
+	width: 70%;
+	padding: 0.75rem 1rem;
+	border: 1px solid rgba(255, 255, 255, 0.65);
+	border-radius: 0.875rem;
+	background: linear-gradient(180deg, #cfe4ff 0%, #a8c9ef 100%);
+	color: #352a26;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	font-size: 1.125rem;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+}
+
 .description-editor-font-size-menu {
 	display: flex;
 	align-items: center;
@@ -4997,12 +5197,17 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	font-family: "Minecraft2BoldItalic", "Trebuchet MS", sans-serif;
 }
 
+#description-edits-text-box [data-font-style],
+#play-by-play-edits-text-box [data-font-style] {
+	font-size-adjust: 0.5;
+}
+
 .description-edits-button {
 	width: 100%;
 	padding: 0.9rem 1rem;
 	border: 1px solid rgba(255, 248, 190, 0.65);
 	border-radius: 0.875rem;
-	background: linear-gradient(180deg, #fff7b8 0%, #f8e99a 100%);
+	background: linear-gradient(180deg, #ffddb8 0%, #ffc28f 100%);
 	color: #513d12;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	font-size: 1.5rem;
@@ -7663,6 +7868,7 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 	cursor: grab;
 	outline: 2px dashed #38bdf8;
 	outline-offset: 4px;
+	transition: none;
 }
 
 .student-progress-raili-image {
@@ -7715,10 +7921,10 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 .daily-menu-science-block-1-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #1e3a8a;
+	border: 2px solid #c2dced;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
-	color: #eff6ff;
+	background: linear-gradient(180deg, #edf7ff 0%, #dceeff 100%);
+	color: #243b50;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -7726,10 +7932,10 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 .daily-menu-science-block-2-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #2563eb;
+	border: 2px solid #9fc8e5;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
-	color: #eff6ff;
+	background: linear-gradient(180deg, #d3ebfb 0%, #b9dcf3 100%);
+	color: #243b50;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
 }
@@ -7737,12 +7943,55 @@ body:has(#grid-menu-quadrilateral-prompt) #text-editor-workflow-back-button {
 .daily-menu-science-block-3-button {
 	margin: 0;
 	padding: 0.75rem 1rem;
-	border: 2px solid #60a5fa;
+	border: 2px solid #79aed6;
 	border-radius: 0.6rem 0.6rem 0 0;
-	background: linear-gradient(180deg, #60a5fa 0%, #93c5fd 100%);
-	color: #172554;
+	background: linear-gradient(180deg, #b5d9f2 0%, #99c8e9 100%);
+	color: #243b50;
 	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
 	cursor: pointer;
+}
+
+.daily-menu-art-block-1-button,
+.daily-menu-art-block-2-button,
+.daily-menu-art-block-3-button {
+	margin: 0;
+	padding: 0.75rem 1rem;
+	border: 2px solid #d8bfdc;
+	border-radius: 0.6rem 0.6rem 0 0;
+	background:
+		linear-gradient(
+			90deg,
+			#ffe1e6 0%,
+			#ffd1d8 7.69%,
+			#ffe6d3 15.38%,
+			#ffd6b8 23.08%,
+			#fff4c2 30.77%,
+			#ffeba3 38.46%,
+			#e4f3ca 46.15%,
+			#d1e9ad 53.85%,
+			#d8efff 61.54%,
+			#bfe4ff 69.23%,
+			#dfe2ff 76.92%,
+			#c9d0ff 84.62%,
+			#f0dcff 92.31%,
+			#e2c4ff 100%
+		);
+	background-size: 300% 100%;
+	color: #44364a;
+	font-family: "Minecraft2Bold", "Trebuchet MS", sans-serif;
+	cursor: pointer;
+}
+
+.daily-menu-art-block-1-button {
+	background-position: 0% 50%;
+}
+
+.daily-menu-art-block-2-button {
+	background-position: 50% 50%;
+}
+
+.daily-menu-art-block-3-button {
+	background-position: 100% 50%;
 }
 
 @media (max-width: 48rem) {

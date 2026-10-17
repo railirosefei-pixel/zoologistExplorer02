@@ -7,6 +7,10 @@ import railiFront from "../../assets/images/characters/railiFront.webp";
 import ProgressXpBar from "./ProgressXpBar.vue";
 import StudentGamesView from "./StudentGamesView.vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
+import {
+	extraCreditSegments,
+	extraCreditStorageError,
+} from "../js/gameExtraCreditState.js";
 
 const props = defineProps({
 	explorerPositionsModeActive: { type: Boolean, default: false },
@@ -17,11 +21,30 @@ const activeStudentMenu = ref("");
 const activeGamesSubject = ref("");
 const PROGRESS_COMPLETION_DELAY_MS = 1000;
 const PROGRESS_RAILI_TRANSITION_MS = 700;
+const MATH_GAME_COMPLETION_DELAY_MS = 1300;
+const isSafariMathCompletionFlowActive = ref(false);
+const isSafariMathRewardSegmentVisible = ref(false);
+let safariMathCompletionTimerId = null;
 let progressStepIndex = 1;
 
 function advanceProgressCharacter() {
-	const nextStepIndex = (progressStepIndex % 13) + 1;
-	const position = committedPositions.value[nextStepIndex] ?? savedPositions.value[nextStepIndex];
+	const currentPosition = readCurrentRailiOffset();
+	const currentPositionEntry = Object.entries(committedPositions.value).find(
+		([, position]) => position.x === currentPosition.x && position.y === currentPosition.y,
+	);
+	if (currentPositionEntry) {
+		progressStepIndex = Number.parseInt(currentPositionEntry[0], 10);
+	}
+
+	let nextStepIndex = progressStepIndex;
+	let position;
+	for (let step = 0; step < 13; step += 1) {
+		nextStepIndex = (nextStepIndex % 13) + 1;
+		position = committedPositions.value[nextStepIndex];
+		if (position) {
+			break;
+		}
+	}
 	if (!position) {
 		return;
 	}
@@ -110,6 +133,42 @@ function triggerCompletionConfettiSequence(holdProgressScreen = false) {
 	});
 }
 
+function clearSafariMathCompletionFlow() {
+	if (safariMathCompletionTimerId !== null) {
+		window.clearTimeout(safariMathCompletionTimerId);
+		safariMathCompletionTimerId = null;
+	}
+	isSafariMathCompletionFlowActive.value = false;
+	isSafariMathRewardSegmentVisible.value = false;
+}
+
+function showSafariMathCompletionReward() {
+	if (isSafariMathCompletionFlowActive.value || activeStudentMenu.value !== "games") {
+		return;
+	}
+
+	const returnMenu = activeStudentMenu.value;
+	isSafariMathCompletionFlowActive.value = true;
+	isSafariMathRewardSegmentVisible.value = false;
+	activeStudentMenu.value = "progress";
+	safariMathCompletionTimerId = window.setTimeout(() => {
+		safariMathCompletionTimerId = null;
+		if (activeStudentMenu.value !== "progress") {
+			clearSafariMathCompletionFlow();
+			return;
+		}
+
+		isSafariMathRewardSegmentVisible.value = true;
+		safariMathCompletionTimerId = window.setTimeout(() => {
+			safariMathCompletionTimerId = null;
+			if (activeStudentMenu.value === "progress") {
+				activeStudentMenu.value = returnMenu;
+			}
+			clearSafariMathCompletionFlow();
+		}, MATH_GAME_COMPLETION_DELAY_MS);
+	}, MATH_GAME_COMPLETION_DELAY_MS);
+}
+
 async function openProgress(advanceFromCompletion = false, { holdProgressScreen = false } = {}) {
 	activeStudentMenu.value = "progress";
 	clearCompletionConfettiSequence();
@@ -143,6 +202,7 @@ async function openProgress(advanceFromCompletion = false, { holdProgressScreen 
 }
 
 function closeProgress() {
+	clearSafariMathCompletionFlow();
 	clearCompletionConfettiSequence();
 	activeStudentMenu.value = "";
 }
@@ -193,6 +253,7 @@ let isCompletionProgressPending = false;
 
 onBeforeUnmount(() => {
 	clearCompletionConfettiSequence();
+	clearSafariMathCompletionFlow();
 });
 watch(totalXp, (xp) => {
 	if (!isCompletionProgressPending) {
@@ -227,6 +288,7 @@ let railiMoveActive = false;
 
 /** Student-menu navigation pipeline boundary for the calendar tab. */
 function handleCalendarNavigation() {
+	clearSafariMathCompletionFlow();
 	activeStudentMenu.value = "";
 	emit("open-calendar");
 }
@@ -238,6 +300,7 @@ function handleRewardsNavigation() {
 
 /** Student sidebar submenu pipeline boundary. */
 function handleStudentMenuNavigation(menuName) {
+	clearSafariMathCompletionFlow();
 	activeGamesSubject.value = "";
 	activeStudentMenu.value = menuName;
 }
@@ -249,12 +312,14 @@ function handleGamesSubjectChange(subjectId) {
 
 /** Progress-menu exit pipeline boundary. */
 function handleProgressBack() {
+	clearSafariMathCompletionFlow();
 	clearCompletionConfettiSequence();
 	emit("back-to-home");
 }
 
 /** Games Home navigation pipeline boundary. */
 function handleGamesHome() {
+	clearSafariMathCompletionFlow();
 	emit("back-to-home");
 }
 
@@ -808,11 +873,13 @@ onMounted(() => {
 				Home
 			</button>
 			<StudentGamesView
-				v-if="activeStudentMenu === 'games'"
+				v-if="activeStudentMenu === 'games' || isSafariMathCompletionFlowActive"
+				v-show="activeStudentMenu === 'games'"
 				:active-subject-id="activeGamesSubject"
 				@subject-change="handleGamesSubjectChange"
 				@go-home="handleGamesHome"
 				@close="activeStudentMenu = ''"
+				@first-math-game-completion="showSafariMathCompletionReward"
 			/>
 			<article
 				v-if="activeStudentMenu === 'extra-credit'"
@@ -825,7 +892,19 @@ onMounted(() => {
 				<p>Explore optional challenges and activities.</p>
 			</article>
 			<div v-if="activeStudentMenu === 'progress'" class="student-progress-xp-bar-slot">
-				<ProgressXpBar :xp="progressXp" :level="level" />
+				<p
+					v-if="extraCreditStorageError"
+					class="mb-3 rounded border-2 border-rose-800 bg-rose-50 p-3 text-rose-950"
+					role="alert"
+				>
+					Safari Math Extra Credit could not be loaded or saved.
+				</p>
+				<ProgressXpBar
+					:xp="progressXp"
+					:level="level"
+					:highlight-second-to-last-segment="isSafariMathRewardSegmentVisible"
+					:extra-credit-segments="extraCreditSegments"
+				/>
 			</div>
 			<div
 				v-if="

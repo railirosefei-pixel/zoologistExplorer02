@@ -18,7 +18,7 @@ import {
 } from "../js/templateStorage.js";
 import { fontStyleOptions } from "../js/fontStyleOptions.js";
 import { convertToPixels } from "../js/unitConversion.js";
-import MathGamesView from "./MathGamesView.vue";
+import StudentGamesView from "./StudentGamesView.vue";
 
 const emit = defineEmits(["open-student-edits", "back-to-home"]);
 const isTextEditorOpen = ref(false);
@@ -490,6 +490,42 @@ function finishNavigationSave() {
 	navigationSaveError.value = "";
 }
 
+function openGridSavePrompt() {
+	gridSaveName.value = "";
+	gridSaveError.value = "";
+	isGridSavePromptOpen.value = true;
+	nextTick(() => gridSaveNameInputRef.value?.focus());
+}
+
+function saveGridSettings() {
+	const trimmedName = gridSaveName.value.trim();
+	if (!trimmedName) {
+		gridSaveError.value = "Enter a name before saving.";
+		return;
+	}
+
+	const snapshot = captureCurrentTemplate();
+	if (!snapshot) {
+		gridSaveError.value = "The current paper could not be saved.";
+		return;
+	}
+
+	const nextEntries = [
+		...savedTemplates.value,
+		buildTemplateEntry(trimmedName, snapshot),
+	];
+	if (!saveSavedTemplates(nextEntries)) {
+		gridSaveError.value = "The paper could not be saved. Please try again.";
+		return;
+	}
+
+	savedTemplates.value = nextEntries;
+	savedDocumentBaseline.value = snapshot;
+	isGridSavePromptOpen.value = false;
+	gridSaveName.value = "";
+	gridSaveError.value = "";
+}
+
 function captureCurrentTemplate() {
 	const editor = printPreviewPaperEditorRef.value;
 	if (!editor) {
@@ -840,14 +876,40 @@ async function loadSavedTemplate(entry) {
 	gridColumnShapeAdditions.value = Array.isArray(gridShapeEdits.columnAdditions)
 		? gridShapeEdits.columnAdditions
 		: [];
-	gridRowsAmount.value = entry.template.gridOptions?.rows ?? gridRowsAmount.value;
-	gridColumnsAmount.value = entry.template.gridOptions?.columns ?? gridColumnsAmount.value;
+	const gridOptions = entry.template.gridOptions ?? {};
+	isGridApplied.value = gridOptions.isApplied ?? true;
+	isGridPrintable.value = gridOptions.isPrintable ?? true;
+	isApplyToMarginsOn.value = gridOptions.applyToMargins ?? false;
+	gridRowsAmount.value = gridOptions.rows ?? "";
+	gridColumnsAmount.value = gridOptions.columns ?? "";
 	activateTemplateGridSides(
 		entry.template.gridSides ?? 4,
 		entry.template.gridShapeVariant ?? "vertical-rectangle",
 	);
-	currentGridShapeWidthInches.value = entry.template.gridShapeWidthInches ?? null;
-	currentGridShapeHeightInches.value = entry.template.gridShapeHeightInches ?? null;
+	selectedGridAlignment.value = gridOptions.alignment ?? null;
+	gridMoveStep.value = gridOptions.moveStep ?? null;
+	gridNudgeX.value = gridOptions.nudgeX ?? 0;
+	gridNudgeY.value = gridOptions.nudgeY ?? 0;
+	gridShapeWidthInput.value = String(
+		gridOptions.widthInput ?? entry.template.gridShapeWidthInches ?? "",
+	);
+	gridShapeHeightInput.value = String(
+		gridOptions.heightInput ?? entry.template.gridShapeHeightInches ?? "",
+	);
+	selectedGridShapeSides.value =
+		gridOptions.selectedShapeSides === undefined
+			? currentTemplateGridSides.value
+			: gridOptions.selectedShapeSides;
+	selectedGridShapeVariant.value =
+		gridOptions.selectedShapeVariant === undefined
+			? currentTemplateGridShapeVariant.value
+			: gridOptions.selectedShapeVariant;
+	currentGridShapeWidthInches.value = parseGridDimension(
+		entry.template.gridShapeWidthInches ?? gridShapeWidthInput.value,
+	);
+	currentGridShapeHeightInches.value = parseGridDimension(
+		entry.template.gridShapeHeightInches ?? gridShapeHeightInput.value,
+	);
 	widthValue.value = entry.template.widthValue ?? widthValue.value;
 	widthUnit.value = entry.template.widthUnit ?? widthUnit.value;
 	heightValue.value = entry.template.heightValue ?? heightValue.value;
@@ -1346,15 +1408,22 @@ function sanitizeGridDimension(value) {
 		.replaceAll(".", "")}`.slice(0, 4);
 }
 
+function parseGridDimension(value) {
+	const dimension = Number.parseFloat(value);
+	return Number.isFinite(dimension) && dimension > 0 ? dimension : null;
+}
+
 function updateGridShapeWidthInput(event) {
 	const sanitizedValue = sanitizeGridDimension(event.target.value);
 	gridShapeWidthInput.value = sanitizedValue;
+	currentGridShapeWidthInches.value = parseGridDimension(sanitizedValue);
 	event.target.value = sanitizedValue;
 }
 
 function updateGridShapeHeightInput(event) {
 	const sanitizedValue = sanitizeGridDimension(event.target.value);
 	gridShapeHeightInput.value = sanitizedValue;
+	currentGridShapeHeightInches.value = parseGridDimension(sanitizedValue);
 	event.target.value = sanitizedValue;
 }
 
@@ -2055,6 +2124,10 @@ const navigationSaveName = ref("");
 const navigationSaveEntryId = ref(null);
 const navigationSaveNameInputRef = ref(null);
 const navigationSaveError = ref("");
+const isGridSavePromptOpen = ref(false);
+const gridSaveName = ref("");
+const gridSaveNameInputRef = ref(null);
+const gridSaveError = ref("");
 const savedTemplates = ref(loadSavedTemplates());
 const isSavedShellsMenuOpen = ref(false);
 const savedShellEntries = computed(() =>
@@ -2392,7 +2465,11 @@ function handleCalibrationBarPointerUp() {
 					Art
 				</button>
 			</aside>
-			<MathGamesView v-if="isGamesSidebarOpen && activeGamesButton === 'math'" />
+			<StudentGamesView
+				v-if="isGamesSidebarOpen && activeGamesButton === 'math'"
+				layout="parent"
+				active-subject-id="math"
+			/>
 		</template>
 		<section
 			v-else
@@ -3251,6 +3328,27 @@ function handleCalibrationBarPointerUp() {
 						>
 							{{ isApplyToMarginsOn ? "On" : "Off" }}
 						</button>
+						<div class="grid-menu-grid-prints-control">
+							<span id="grid-prints-label" class="grid-menu-control-label">
+								Grid Prints
+							</span>
+							<button
+								id="grid-menu-grid-prints-button"
+								class="grid-menu-toggle-button"
+								:class="{
+									'grid-menu-toggle-button--on': isGridPrintable,
+									'grid-menu-toggle-button--off': !isGridPrintable,
+								}"
+								type="button"
+								:aria-label="
+									isGridPrintable ? 'Grid Prints: On' : 'Grid Prints: Off'
+								"
+								:aria-pressed="isGridPrintable"
+								@click="toggleGridPrintable"
+							>
+								{{ isGridPrintable ? "On" : "Off" }}
+							</button>
+						</div>
 					</div>
 				</div>
 				<div class="grid-menu-controls-layout">
@@ -3817,21 +3915,41 @@ function handleCalibrationBarPointerUp() {
 						</ul>
 					</div>
 				</div>
-				<div id="grid-menu-lines-heading" class="grid-menu-lines-heading">Lines</div>
-				<button
-					id="grid-menu-printable-button"
-					class="grid-menu-printable-button"
-					:class="
-						isGridPrintable
-							? 'grid-menu-printable-button--on'
-							: 'grid-menu-printable-button--off'
-					"
-					type="button"
-					:aria-pressed="isGridPrintable"
-					@click="toggleGridPrintable"
-				>
-					Printable
-				</button>
+				<div class="grid-menu-save-controls">
+					<div v-if="isGridSavePromptOpen" class="grid-menu-save-row">
+						<label class="grid-menu-save-name" for="grid-menu-save-name-input">
+							<span>{{ isShellMode ? "Shell Name" : "Template Name" }}</span>
+							<input
+								id="grid-menu-save-name-input"
+								ref="gridSaveNameInputRef"
+								v-model="gridSaveName"
+								class="grid-menu-save-name-input"
+								type="text"
+								maxlength="15"
+								@keydown.enter.prevent="saveGridSettings"
+							/>
+						</label>
+						<button
+							id="grid-menu-save-button"
+							class="grid-menu-save-button"
+							type="button"
+							@click="saveGridSettings"
+						>
+							Save
+						</button>
+					</div>
+					<p v-if="gridSaveError" class="grid-menu-save-error" role="alert">
+						{{ gridSaveError }}
+					</p>
+					<button
+						id="grid-menu-apply-and-save-button"
+						class="grid-menu-apply-and-save-button"
+						type="button"
+						@click="openGridSavePrompt"
+					>
+						Apply and Save
+					</button>
+				</div>
 				<dialog
 					v-if="isQuadrilateralPromptOpen"
 					id="grid-menu-quadrilateral-prompt"

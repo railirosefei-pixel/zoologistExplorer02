@@ -14,6 +14,7 @@ test("ProgressXpBar.vue exists with 14 segments of 20 XP and no inline styles", 
 	const source = readSource("src/components/ProgressXpBar.vue");
 	assert.match(source, /SEGMENT_COUNT = 14/, "bar must have 14 segments");
 	assert.match(source, /XP_PER_SEGMENT = 20/, "each segment must require 20 XP");
+	assert.match(source, /xp: \{ type: Number, default: 0 \}/, "the default bar must start empty");
 	assert.match(source, /width: 672px/, "bar must be exactly 672px long");
 	assert.match(source, /Level/, "bar must display the word Level");
 	assert.doesNotMatch(source, /style="/, "template must not use inline style attributes");
@@ -66,8 +67,13 @@ test("StudentNavigation.vue renders ProgressXpBar in the Student Progress menu",
 	assert.match(source, /import ProgressXpBar/, "must import ProgressXpBar");
 	assert.match(
 		source,
-		/<ProgressXpBar :xp="progressXp" :level="level" \/>/,
+		/<ProgressXpBar\s+:xp="progressXp"\s+:level="level"\s+:highlight-second-to-last-segment="isSafariMathRewardSegmentVisible"\s+:extra-credit-segments="extraCreditSegments"\s*\/>/,
 		"must render the XP bar with xp and level",
+	);
+	assert.match(
+		readSource("src/components/ProgressXpBar.vue"),
+		/extraCreditSegments >= 1[\s\S]*extraCreditSegments >= 2/,
+		"Extra Credit must fill the final two reserved segments",
 	);
 	assert.match(
 		source,

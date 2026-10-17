@@ -452,6 +452,189 @@ test("navigation Save names and stores shell settings in Load Shells", async ({ 
 	await expect(page.getByRole("button", { name: "Navigation Shell", exact: true })).toBeVisible();
 });
 
+test("Grid menu Apply and Save stores and reloads template grid options", async ({ page }) => {
+	await page.setViewportSize({ width: 2560, height: 1080 });
+	await page.goto("./");
+	await page.evaluate(() => window.localStorage.clear());
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-new-button").click();
+	await page.getByRole("button", { name: "Create A Template", exact: true }).click();
+	await page.locator("#text-editor-grid-button").click();
+
+	const gridMenu = page.locator("#text-editor-grid-menu");
+	const applyAndSaveButton = page.locator("#grid-menu-apply-and-save-button");
+	const gridMenuBounds = await gridMenu.boundingBox();
+	const applyButtonBounds = await applyAndSaveButton.boundingBox();
+	expect(applyButtonBounds.x).toBeGreaterThan(gridMenuBounds.x + gridMenuBounds.width / 2);
+	expect(applyButtonBounds.y).toBeGreaterThan(gridMenuBounds.y + gridMenuBounds.height / 2);
+	expect(applyButtonBounds.x + applyButtonBounds.width).toBeLessThanOrEqual(
+		gridMenuBounds.x + gridMenuBounds.width,
+	);
+	const applyButtonStyle = await applyAndSaveButton.evaluate((button) => {
+		const styles = window.getComputedStyle(button);
+		return {
+			borderRadius: styles.borderRadius,
+			backgroundImage: styles.backgroundImage,
+			boxShadow: styles.boxShadow,
+		};
+	});
+	expect(applyButtonStyle.borderRadius).toBe("999px");
+	expect(applyButtonStyle.backgroundImage).toContain("rgb(0, 216, 61)");
+	expect(applyButtonStyle.boxShadow).not.toBe("none");
+
+	await page.locator("#grid-applied-button").click();
+	await page.locator("#grid-apply-to-margins-button").click();
+	await page.locator("#grid-menu-grid-prints-button").click();
+	await page.locator("#grid-menu-alignment-dropdown > summary").click();
+	await page.locator("#grid-alignment-center-button").click();
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+	await page.locator("#grid-rows-amount").fill("8");
+	await page.locator("#grid-columns-amount").fill("9");
+	await page.locator("#grid-menu-apply-and-save-button").click();
+
+	await expect(page.getByText("Template Name", { exact: true })).toBeVisible();
+	const saveNameInput = page.locator("#grid-menu-save-name-input");
+	await saveNameInput.fill("Grid Template Name Too Long");
+	await expect(saveNameInput).toHaveValue("Grid Template N");
+	await page.locator("#grid-menu-save-button").click();
+
+	const savedEntries = await page.evaluate(() =>
+		JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates")),
+	);
+	expect(savedEntries).toHaveLength(1);
+	expect(savedEntries[0].name).toBe("Grid Template N");
+	expect(savedEntries[0].template.gridOptions).toMatchObject({
+		isApplied: false,
+		isPrintable: false,
+		applyToMargins: true,
+		rows: "8",
+		columns: "9",
+		alignment: "center",
+		moveStep: null,
+		nudgeX: 0,
+		nudgeY: 0,
+		widthInput: "",
+		heightInput: "",
+		selectedShapeSides: 4,
+		selectedShapeVariant: "vertical-rectangle",
+	});
+
+	await page.locator("#text-editor-workflow-back-button").click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Grid Template N", exact: true }).click();
+	await expect(page.locator("#grid-applied-button")).toHaveAttribute(
+		"aria-pressed",
+		"false",
+	);
+	await expect(page.locator("#grid-apply-to-margins-button")).toHaveAttribute(
+		"aria-pressed",
+		"true",
+	);
+	await expect(page.locator("#grid-menu-grid-prints-button")).toHaveAttribute(
+		"aria-pressed",
+		"false",
+	);
+	await page.locator("#grid-menu-alignment-dropdown > summary").click();
+	await expect(page.locator("#grid-alignment-center-button")).toHaveAttribute(
+		"aria-pressed",
+		"true",
+	);
+	await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+	await expect(page.locator("#grid-rows-amount")).toHaveValue("8");
+	await expect(page.locator("#grid-columns-amount")).toHaveValue("9");
+});
+
+test("Grid menu Apply and Save names shell entries for Load Shells", async ({ page }) => {
+	await page.setViewportSize({ width: 2560, height: 1080 });
+	await page.goto("./");
+	await page.evaluate(() => window.localStorage.clear());
+	await page.getByRole("button", { name: "Open parent section" }).click();
+	await page.getByRole("button", { name: "Text Editor" }).click();
+	await page.locator("#text-editor-template-new-button").click();
+	await page.getByRole("button", { name: "Create A Shell", exact: true }).click();
+	await page.locator("#text-editor-grid-button").click();
+	await page.locator("#grid-menu-apply-and-save-button").click();
+
+	await expect(page.getByText("Shell Name", { exact: true })).toBeVisible();
+	await page.locator("#grid-menu-save-name-input").fill("Grid Shell");
+	await page.locator("#grid-menu-save-button").click();
+	const savedShell = await page.evaluate(() =>
+		JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates"))[0],
+	);
+	expect(savedShell.name).toBe("Grid Shell");
+	expect(savedShell.template.isShell).toBe(true);
+	await page.locator("#text-editor-workflow-back-button").click();
+	await page.locator("#text-editor-template-load-button").click();
+	await page.getByRole("button", { name: "Load Shells", exact: true }).click();
+	await expect(
+		page.getByRole("button", { name: "Grid Shell", exact: true }),
+	).toBeVisible();
+});
+
+test("Grid Size inputs update live and persist for templates and shells", async ({ page }) => {
+	await page.setViewportSize({ width: 2560, height: 1080 });
+
+	for (const documentType of ["template", "shell"]) {
+		await page.goto("./");
+		await page.evaluate(() => window.localStorage.clear());
+		await page.reload();
+		await page.getByRole("button", { name: "Open parent section" }).click();
+		await page.getByRole("button", { name: "Text Editor" }).click();
+		await page.locator("#text-editor-template-new-button").click();
+		await page
+			.getByRole("button", {
+				name: documentType === "shell" ? "Create A Shell" : "Create A Template",
+				exact: true,
+			})
+			.click();
+		await page.locator("#text-editor-grid-button").click();
+		await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+
+		const shapePattern = page.locator("#print-preview-grid-shape-pattern");
+		await page.locator("#grid-shape-width-input").fill("2");
+		await page.locator("#grid-shape-height-input").fill("3");
+		await expect(shapePattern).toHaveAttribute("width", "218");
+		await expect(shapePattern).toHaveAttribute("height", "327");
+
+		await page.locator("#grid-menu-apply-and-save-button").click();
+		const entryName = documentType === "shell" ? "Grid Shell" : "Grid Template";
+		await page.locator("#grid-menu-save-name-input").fill(entryName);
+		await page.locator("#grid-menu-save-button").click();
+		const savedEntry = await page.evaluate(
+			(name) =>
+				JSON.parse(window.localStorage.getItem("ze2.textEditor.savedTemplates")).find(
+					(entry) => entry.name === name,
+				),
+			entryName,
+		);
+		expect(savedEntry.template).toMatchObject({
+			isShell: documentType === "shell",
+			gridShapeWidthInches: 2,
+			gridShapeHeightInches: 3,
+			gridOptions: {
+				widthInput: "2",
+				heightInput: "3",
+			},
+		});
+
+		await page.locator("#text-editor-workflow-back-button").click();
+		await page.locator("#text-editor-template-load-button").click();
+		if (documentType === "shell") {
+			await page.locator("#text-editor-load-menu-shells-button").click();
+		}
+		await page.getByRole("button", { name: entryName, exact: true }).click();
+		if (!(await page.locator("#text-editor-grid-menu").isVisible())) {
+			await page.locator("#text-editor-grid-button").click();
+		}
+		await page.locator("#grid-menu-dimensions-dropdown > summary").click();
+		await expect(page.locator("#grid-shape-width-input")).toHaveValue("2");
+		await expect(page.locator("#grid-shape-height-input")).toHaveValue("3");
+		await expect(shapePattern).toHaveAttribute("width", "218");
+		await expect(shapePattern).toHaveAttribute("height", "327");
+	}
+});
+
 test("navigation Save tracks loaded template content and loaded shell size", async ({ page }) => {
 	await page.goto("./");
 	await page.evaluate(() => {

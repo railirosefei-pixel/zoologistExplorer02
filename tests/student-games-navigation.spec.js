@@ -184,6 +184,82 @@ test("Safari Place Value Adventure can be played and returned to the Games menu"
 	await expect(page.locator("#safari-place-value-game")).toHaveCount(0);
 });
 
+test("the first completed Safari Math game briefly highlights Progress and never repeats", async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		localStorage.removeItem("zoologistExplorer02.safariMathGamesCompleted");
+		Math.random = () => 0;
+	});
+	await page.goto("./");
+	await page.getByRole("button", { name: "Open student section" }).click();
+	await page.getByRole("button", { name: "Open Games tab", exact: true }).click();
+	await page.locator("#student-safari-place-value-thumbnail").click();
+
+	const solveCurrentQuest = async () => {
+		let target = Number(
+			(await page.locator("#safari-place-value-target").innerText()).replaceAll(",", ""),
+		);
+		for (const value of [1000, 100, 10, 1]) {
+			const blockCount = Math.floor(target / value);
+			for (let count = 0; count < blockCount; count += 1) {
+				await page.locator(`#safari-place-value-add-${value}`).click();
+			}
+			target %= value;
+		}
+	};
+
+	for (let quest = 0; quest < 10; quest += 1) {
+		await solveCurrentQuest();
+		if (quest < 9) {
+			await page.locator("#safari-place-value-next-button").click();
+		}
+	}
+
+	await expect(page.locator("#progress-xp-bar")).toBeVisible();
+	await expect(page.locator(".progress-xp-bar-segment--reward")).toHaveCount(0);
+	await page.waitForTimeout(700);
+	await expect(page.locator(".progress-xp-bar-segment--reward")).toHaveCount(0);
+	await expect(page.locator(".progress-xp-bar-segment--reward")).toHaveCount(1, {
+		timeout: 1500,
+	});
+	await expect(page.locator("#progress-xp-bar")).toHaveAttribute("aria-label", "Level 0, 0 XP");
+	const rewardSegment = page
+		.locator("#progress-xp-bar .progress-xp-bar-segment")
+		.nth(12);
+	await expect(rewardSegment).toHaveClass(/progress-xp-bar-segment--reward/);
+	await expect(rewardSegment).not.toHaveClass(/progress-xp-bar-segment--filled/);
+	await expect(rewardSegment).toHaveCSS("box-shadow", /rgb\(255, 255, 0\)/);
+
+	await expect(page.locator("#safari-place-value-win-dialog")).toBeVisible({ timeout: 2000 });
+	await expect(page.locator("#progress-xp-bar")).toHaveCount(0);
+	await expect
+		.poll(() =>
+			page.evaluate(() =>
+				JSON.parse(localStorage.getItem("zoologistExplorer02.safariMathGamesCompleted")),
+			),
+		)
+		.toEqual({ "safari-place-value": true });
+
+	await page.locator("#safari-place-value-next-button").click();
+	for (let quest = 0; quest < 10; quest += 1) {
+		await solveCurrentQuest();
+		if (quest < 9) {
+			await page.locator("#safari-place-value-next-button").click();
+		}
+	}
+	await expect(page.locator("#safari-place-value-win-dialog")).toBeVisible();
+	await page.waitForTimeout(1500);
+	await expect(page.locator("#progress-xp-bar")).toHaveCount(0);
+	await expect
+		.poll(() =>
+			page.evaluate(() =>
+				JSON.parse(localStorage.getItem("zoologistExplorer02.safariMathGamesCompleted")),
+			),
+		)
+		.toEqual({ "safari-place-value": true });
+});
+
 test("Safari Multiplication Adventure can be solved, reset, and returned to the Games menu", async ({
 	page,
 }) => {

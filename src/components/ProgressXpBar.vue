@@ -12,9 +12,13 @@ import { computed } from "vue";
 
 const props = defineProps({
 	/** Total XP earned, already capped at 240 by the store. */
-	xp: { type: Number, required: true },
+	xp: { type: Number, default: 0 },
 	/** Permanent level; increments once per 240 XP earned. */
 	level: { type: Number, required: true },
+	/** Briefly highlight the second-to-last segment without changing earned XP. */
+	highlightSecondToLastSegment: { type: Boolean, default: false },
+	/** Persistent Extra Credit fills reserved segments 13 and 14. */
+	extraCreditSegments: { type: Number, default: 0 },
 });
 
 const XP_PER_SEGMENT = 20;
@@ -24,7 +28,11 @@ const SEGMENT_COUNT = 14;
 const segments = computed(() =>
 	Array.from({ length: SEGMENT_COUNT }, (_, index) => ({
 		index,
-		filled: props.xp >= (index + 1) * XP_PER_SEGMENT,
+		filled:
+			props.xp >= (index + 1) * XP_PER_SEGMENT ||
+			(index === SEGMENT_COUNT - 2 && props.extraCreditSegments >= 1) ||
+			(index === SEGMENT_COUNT - 1 && props.extraCreditSegments >= 2),
+		reward: props.highlightSecondToLastSegment && index === SEGMENT_COUNT - 2,
 	})),
 );
 </script>
@@ -46,7 +54,10 @@ const segments = computed(() =>
 				v-for="segment in segments"
 				:key="segment.index"
 				class="progress-xp-bar-segment"
-				:class="{ 'progress-xp-bar-segment--filled': segment.filled }"
+				:class="{
+					'progress-xp-bar-segment--filled': segment.filled,
+					'progress-xp-bar-segment--reward': segment.reward,
+				}"
 			/>
 		</div>
 	</div>
@@ -180,6 +191,15 @@ const segments = computed(() =>
 .progress-xp-bar-segment--filled:nth-child(14) {
 	--xp-segment-light: #832523;
 	--xp-segment-dark: #581919;
+}
+
+.progress-xp-bar-segment--reward {
+	background: linear-gradient(180deg, #ffffed 0%, #fff700 44%, #ffb700 100%);
+	box-shadow:
+		inset 0 2px 0 #fffde7,
+		inset 0 -2px 0 #e8a000,
+		0 0 12px 4px rgba(255, 255, 0, 1),
+		0 0 30px 12px rgba(255, 215, 0, 0.95);
 }
 
 .progress-xp-bar-level-row {

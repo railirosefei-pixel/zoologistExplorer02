@@ -47,7 +47,6 @@ test("Parent Block Completion Edits shows a Friday through Tuesday weekly panel 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open parent section" }).click();
 	await page.getByRole("button", { name: "Student Edits" }).click();
-	await page.getByRole("button", { name: "Open Blocks menu" }).click();
 	const blockEditsButton = page.getByRole("button", { name: "Block Completion Edits", exact: true });
 	await blockEditsButton.click();
 	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "true");
@@ -81,9 +80,12 @@ test("Parent Block Completion Edits shows a Friday through Tuesday weekly panel 
 		.evaluateAll((elements) => elements.map((element) => new Date(element.textContent).getDay()));
 	expect(schoolWeekdays).toEqual([5, 6, 0, 1, 2]);
 
-	await blockEditsButton.click();
+	await page.locator("#blocks-screen-back-button").click();
 	await expect(blockEditsButton).toHaveAttribute("aria-pressed", "false");
 	await expect(panels).toHaveCount(0);
+	await expect(page.locator("#blocks-menu-sidebar")).toHaveCount(0);
+	await expect(page.locator("#blocks-screen-back-button")).toHaveCount(0);
+	await expect(page.locator("#student-edits-screen-back-button")).toBeVisible();
 });
 
 test("Text Editor Back returns to the Parent menu", async ({ page }) => {
@@ -780,7 +782,7 @@ test("Shape Swap highlights applied templates and shells with bordered green-yel
 	}
 });
 
-test("Text Editor prints only the selected paper and respects the grid Printable toggle", async ({
+test("Text Editor prints only the selected paper and respects the Grid Prints toggle", async ({
 	page,
 }) => {
 	await page.addInitScript(() => {
@@ -817,6 +819,26 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 	await page.getByRole("button", { name: "Grid", exact: true }).click();
 	const grid = page.locator("#print-preview-grid");
 	await expect(grid).toBeVisible();
+	const gridPrintsLabel = page.locator("#grid-prints-label");
+	const gridPrintsButton = page.locator("#grid-menu-grid-prints-button");
+	await expect(gridPrintsLabel).toHaveText("Grid Prints");
+	await expect(gridPrintsButton).toHaveText("On");
+	await expect(gridPrintsButton).toHaveAttribute("aria-pressed", "true");
+	const gridPrintsGaps = await page.evaluate(() => {
+		const marginsButton = document
+			.querySelector("#grid-apply-to-margins-button")
+			.getBoundingClientRect();
+		const label = document.querySelector("#grid-prints-label").getBoundingClientRect();
+		const button = document
+			.querySelector("#grid-menu-grid-prints-button")
+			.getBoundingClientRect();
+		return {
+			marginsToLabel: label.left - marginsButton.right,
+			labelToButton: button.left - label.right,
+		};
+	});
+	expect(gridPrintsGaps.marginsToLabel).toBe(16);
+	expect(gridPrintsGaps.labelToButton).toBe(16);
 	const bottomAlignmentButton = page.locator("#grid-alignment-bottom-button");
 	const topAlignmentButton = page.locator("#grid-alignment-top-button");
 	const gridAreaHeight = await grid.evaluate((element) =>
@@ -848,7 +870,7 @@ test("Text Editor prints only the selected paper and respects the grid Printable
 	await expect(grid).toHaveCSS("display", "block");
 
 	await page.emulateMedia({ media: "screen" });
-	await page.locator("#grid-menu-printable-button").click();
+	await page.locator("#grid-menu-grid-prints-button").click();
 	await expect(page.locator("#print-preview-paper")).toHaveAttribute(
 		"data-grid-printable",
 		"false",
@@ -891,266 +913,17 @@ test("Parent menu includes a Games side panel and toggling buttons", async ({ pa
 	);
 });
 
-test("Math place-value game has ten self-paced levels and supports retry and replay", async ({
-	page,
-}) => {
+test("Student Math gallery displays the supported Safari games", async ({ page }) => {
 	await page.goto("./");
-	await page.getByRole("button", { name: "Open parent section" }).click();
-	await page.getByRole("button", { name: "Games", exact: true }).click();
-	await page.getByRole("button", { name: "Math", exact: true }).click();
-	await page.getByRole("button", { name: "Place-Value Treehouse", exact: true }).click();
-	await expect(page.getByText("Level 1 of 10", { exact: true })).toBeVisible();
-	await page.getByRole("button", { name: "Millions", exact: true }).click();
-	await expect(page.getByRole("status")).toContainText("Not yet");
-	await expect(page.getByText("Level 1 of 10", { exact: true })).toBeVisible();
-	await page.getByRole("button", { name: "Hint", exact: true }).click();
-	await expect(page.getByText(/^From right to left:/)).toBeVisible();
-	const answers = [
-		"Ones",
-		"Tens",
-		"Ones",
-		"Hundreds",
-		"Tens",
-		"Thousands",
-		"Hundreds",
-		"Ten Thousands",
-		"Hundred Thousands",
-		"Millions",
-	];
-	for (const [levelIndex, answer] of answers.entries()) {
-		await expect(
-			page.getByText(`Level ${levelIndex + 1} of 10`, { exact: true }),
-		).toBeVisible();
-		await page.getByRole("button", { name: answer, exact: true }).click();
-		await expect(page.getByRole("status")).toHaveText("Correct!");
-		await page
-			.getByRole("button", { name: levelIndex === 9 ? "Finish" : "Next level", exact: true })
-			.click();
-	}
-	await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
-	await page.getByRole("button", { name: "Play again", exact: true }).click();
-	await expect(page.getByText("Level 1 of 10", { exact: true })).toBeVisible();
+	await openStudentMathGames(page);
+	const thumbnails = page.locator("#student-games-gallery .student-games-card > button");
+	await expect(thumbnails).toHaveCount(3);
+	expect(await thumbnails.evaluateAll((elements) => elements.map((element) => element.id))).toEqual([
+		"student-safari-place-value-thumbnail",
+		"student-safari-multiplication-thumbnail",
+		"student-safari-multiplication-double-digit-thumbnail",
+	]);
 });
-
-const mathPlaceNumbers = [23, 47, 315, 682, 2437, 8169, 35428, 760915, 934862, 1000000];
-const mathFirstNumbers = [24, 57, 126, 428, 1234, 5729, 12345, 42876, 135792, 246810];
-const mathSecondNumbers = [12, 24, 27, 156, 623, 1347, 6342, 17893, 62748, 135729];
-const mathTargetPlaces = [0, 1, 0, 2, 1, 3, 2, 4, 5, 6];
-const mathPlaceNames = [
-	"Ones",
-	"Tens",
-	"Hundreds",
-	"Thousands",
-	"Ten Thousands",
-	"Hundred Thousands",
-	"Millions",
-];
-const mathWordAnswers = [
-	"",
-	"forty-seven",
-	"",
-	"six hundred eighty-two",
-	"",
-	"eight thousand one hundred sixty-nine",
-	"",
-	"seven hundred sixty thousand nine hundred fifteen",
-	"",
-	"one million",
-];
-const mathGameIds = [
-	"place-names",
-	"digit-values",
-	"place-relations",
-	"place-conversion",
-	"expanded-form",
-	"number-words",
-	"compare-numbers",
-	"compare-tables",
-	"order-numbers",
-	"round-place",
-	"round-any",
-	"round-puzzles",
-	"add-numbers",
-	"add-word",
-	"subtract-numbers",
-	"subtract-word",
-	"compare-word",
-	"sum-difference",
-	"estimate-sums",
-	"estimate-sums-word",
-	"estimate-differences",
-	"estimate-differences-word",
-	"multi-step-word",
-	"equation-word",
-];
-
-for (const gameId of mathGameIds) {
-	test(`Math minigame: ${gameId} teaches its topic through all ten levels`, async ({ page }) => {
-		await page.goto("./");
-		await page.getByRole("button", { name: "Open parent section" }).click();
-		await page.getByRole("button", { name: "Games", exact: true }).click();
-		await page.getByRole("button", { name: "Math", exact: true }).click();
-		await expect(page.locator("[data-game-id]")).toHaveCount(24);
-		const thumbnail = page.locator(`[data-game-id="${gameId}"]`);
-		const thumbnailArtwork = await thumbnail
-			.locator("svg")
-			.first()
-			.evaluate((element) => ({
-				path: element.querySelector("path").getAttribute("d"),
-				symbol: element.querySelector("text").textContent,
-				background: element.querySelector("rect").getAttribute("fill"),
-			}));
-		const gameTitle = await thumbnail.getAttribute("aria-label");
-		await thumbnail.click();
-		const firstLevelArtwork = page.getByRole("img", {
-			name: `First-level image for ${gameTitle}`,
-			exact: true,
-		});
-		await expect(firstLevelArtwork).toBeVisible();
-		const gameArtwork = await firstLevelArtwork.evaluate((element) => ({
-			path: element.querySelector("path").getAttribute("d"),
-			symbol: element.querySelector("text").textContent,
-			background: element.querySelector("rect").getAttribute("fill"),
-		}));
-		expect(gameArtwork).toEqual(thumbnailArtwork);
-		for (let stage = 0; stage < 10; stage += 1) {
-			await expect(page.getByText(`Level ${stage + 1} of 10`, { exact: true })).toBeVisible();
-			const number = mathPlaceNumbers[stage];
-			const first = mathFirstNumbers[stage];
-			const second = mathSecondNumbers[stage];
-			let answers = [];
-			let choices = [];
-			let needsCheck = false;
-			switch (gameId) {
-				case "place-names":
-					choices = [mathPlaceNames[mathTargetPlaces[stage]]];
-					break;
-				case "digit-values": {
-					const digit = String(number).at(-1 - mathTargetPlaces[stage]);
-					choices = [
-						`Digit ${digit} in the ${mathPlaceNames[mathTargetPlaces[stage]]} place`,
-					];
-					break;
-				}
-				case "place-relations":
-					choices = [stage % 2 === 0 ? "10 times as much" : "One tenth as much"];
-					break;
-				case "place-conversion":
-					answers = [[20, 30, 400, 500, 600, 700, 8000, 9000, 10000, 11000][stage]];
-					break;
-				case "expanded-form":
-					if (stage % 2) answers = [number];
-					else {
-						choices = [...String(number)]
-							.map(
-								(digit, digitIndex, digits) =>
-									Number(digit) * 10 ** (digits.length - 1 - digitIndex),
-							)
-							.filter(Boolean)
-							.map((term) => term.toLocaleString("en-US"));
-						needsCheck = true;
-					}
-					break;
-				case "number-words":
-					if (stage % 2 === 0) answers = [number];
-					else choices = [mathWordAnswers[stage]];
-					break;
-				case "compare-numbers": {
-					const displayed = await page
-						.getByLabel("Numbers to compare", { exact: true })
-						.locator("span")
-						.allTextContents();
-					for (const value of displayed.filter((text) => text !== "?")) {
-						expect(Number(value.replaceAll(",", ""))).toBeLessThanOrEqual(1000000);
-					}
-					choices = [
-						stage % 3 === 0
-							? "Less than"
-							: stage % 3 === 1
-								? "Equal to"
-								: "Greater than",
-					];
-					break;
-				}
-				case "compare-tables":
-					choices = [stage % 2 === 0 ? "Forest" : "Wetland"];
-					break;
-				case "order-numbers":
-					choices = [number - 3, number - 12, number - 1, number - 7]
-						.sort((left, right) => (stage % 2 ? right - left : left - right))
-						.map((value) => value.toLocaleString("en-US"));
-					needsCheck = true;
-					break;
-				case "round-place": {
-					const unit = 10 ** (Math.min(Math.floor(stage / 2), 4) + 1);
-					choices = [(Math.round(first / unit) * unit).toLocaleString("en-US")];
-					break;
-				}
-				case "round-any": {
-					const unit = 10 ** [1, 2, 1, 3, 2, 4, 3, 5, 4, 5][stage];
-					answers = [Math.round(first / unit) * unit];
-					break;
-				}
-				case "round-puzzles":
-					choices = [first.toLocaleString("en-US")];
-					break;
-				case "add-numbers":
-				case "add-word":
-					answers = [first + second];
-					break;
-				case "subtract-numbers":
-				case "subtract-word":
-					answers = [first - second];
-					break;
-				case "compare-word":
-					answers = [stage % 2 ? first - second : first + second];
-					break;
-				case "sum-difference":
-					answers = [second, first];
-					break;
-				case "estimate-sums":
-				case "estimate-sums-word":
-				case "estimate-differences":
-				case "estimate-differences-word": {
-					const unit = 10 ** (1 + Math.floor(stage / 3));
-					const roundedFirst = Math.round(first / unit) * unit;
-					const roundedSecond = Math.round(second / unit) * unit;
-					answers = [
-						roundedFirst,
-						roundedSecond,
-						gameId.includes("sums")
-							? roundedFirst + roundedSecond
-							: roundedFirst - roundedSecond,
-					];
-					break;
-				}
-				case "multi-step-word":
-					answers = [first + second, first + second - Math.floor(second / 2) - 1];
-					break;
-				case "equation-word":
-					choices = [`x = (${first} + ${second}) - ${Math.floor(second / 2) + 1}`];
-					answers = [first + second - Math.floor(second / 2) - 1];
-					break;
-			}
-			for (const choice of choices)
-				await page.getByRole("button", { name: choice, exact: true }).click();
-			for (const [answerIndex, answer] of answers.entries())
-				await page.locator(`#math-game-answer-${answerIndex}`).fill(String(answer));
-			if (["add-numbers", "sum-difference"].includes(gameId)) {
-				await page.locator("#math-game-answer-0").press("Enter");
-			} else if (answers.length || needsCheck) {
-				await page.getByRole("button", { name: "Check answer", exact: true }).click();
-			}
-			await expect(page.getByRole("status")).toHaveText("Correct!");
-			await page
-				.getByRole("button", { name: stage === 9 ? "Finish" : "Next level", exact: true })
-				.click();
-		}
-		await expect(page.getByRole("heading", { name: "All 10 levels complete!" })).toBeVisible();
-		await page.getByRole("button", { name: "Back to games", exact: true }).click();
-		await expect(page.locator(`[data-game-id="${gameId}"]`)).toContainText("10 / 10");
-	});
-}
 
 async function openStudentMathGames(page) {
 	await page.getByRole("button", { name: "Open student section", exact: true }).click();
@@ -1166,139 +939,9 @@ test("Student Games menu and gallery use pastel green and blue backgrounds", asy
 	);
 	await expect(page.locator("#games-menu")).toHaveCount(0);
 	await expect(page.locator("#student-games-top-navigation")).toBeVisible();
-	await expect(page.locator("#math-games-view")).toHaveCSS(
-		"background-color",
-		"rgb(191, 233, 190)",
-	);
-});
-
-async function revealGoldCoinTotal(page, expectedTotal) {
-	await page.getByRole("button", { name: "Open Rewards tab", exact: true }).click();
-	await page.getByRole("button", { name: "Open reward chest", exact: true }).click();
-	const pouch = page.getByRole("button", { name: "Gold cinch bag", exact: true });
-	await pouch.evaluate((element) =>
-		element.getAnimations().forEach((animation) => animation.finish()),
-	);
-	await pouch.click();
-	await page
-		.locator(".rewards-page-gold-coin")
-		.evaluateAll((elements) =>
-			elements.forEach((element) =>
-				element.getAnimations().forEach((animation) => animation.finish()),
-			),
-		);
-	await expect(page.locator(".rewards-page-gold-total")).toHaveText(
-		`${expectedTotal} gold coins`,
-	);
-}
-
-test("Math gold coin progress, celebration and first-only rewards", async ({ page }, testInfo) => {
-	await page.addInitScript(() => {
-		window.mathWinningNotesPlayed = 0;
-		const originalCreateOscillator = AudioContext.prototype.createOscillator;
-		AudioContext.prototype.createOscillator = function (...args) {
-			window.mathWinningNotesPlayed += 1;
-			return originalCreateOscillator.apply(this, args);
-		};
-	});
-	await page.goto("./");
-	await openStudentMathGames(page);
-	const navigationNoteCount = await page.evaluate(() => window.mathWinningNotesPlayed);
-	const thumbnail = page.locator('[data-game-id="place-names"]');
-	await expect(thumbnail.locator("[data-game-shadow]")).toHaveAttribute("fill", "#111827");
-	await expect(thumbnail.locator("[data-game-shadow]")).toHaveAttribute("fill-opacity", "0.72");
-	for (let run = 0; run < 2; run += 1) {
-		await page.setViewportSize(
-			run ? { width: 375, height: 812 } : { width: 1280, height: 720 },
-		);
-		for (let stage = 0; stage < 10; stage += 1) {
-			if (run === 0 || stage === 0) await thumbnail.click();
-			await expect(page.getByText(`Level ${stage + 1} of 10`, { exact: true })).toBeVisible();
-			await page
-				.getByRole("button", { name: mathPlaceNames[mathTargetPlaces[stage]], exact: true })
-				.click();
-			if (stage === 9) {
-				await page.getByRole("button", { name: "Finish", exact: true }).click();
-				const coin = page.getByRole("img", { name: "Winning gold coin", exact: true });
-				if (run === 0) {
-					await expect(coin).toBeVisible();
-					await expect(coin).toHaveCSS("animation-duration", "3s");
-					const keyframes = await coin.evaluate((element) =>
-						element.getAnimations()[0].effect.getKeyframes(),
-					);
-					expect(keyframes[0].transform).toContain("scale(0.5)");
-					expect(keyframes.at(-1).transform).toContain("rotateY(1080deg)");
-					expect(keyframes.at(-1).transform).toContain("scale(2.6)");
-					if (page.viewportSize().width === 375) {
-						await coin.evaluate((element) => {
-							const animation = element.getAnimations()[0];
-							animation.pause();
-							animation.currentTime = 2000;
-						});
-						const coinBox = await coin.boundingBox();
-						expect(coinBox.width).toBeGreaterThan(109);
-						expect(coinBox.x).toBeGreaterThanOrEqual(0);
-						expect(coinBox.x + coinBox.width).toBeLessThanOrEqual(375);
-						expect(coinBox.y).toBeGreaterThanOrEqual(0);
-						expect(coinBox.y + coinBox.height).toBeLessThanOrEqual(812);
-					}
-					await page.screenshot({
-						path: testInfo.outputPath(`winning-coin-run-${run}.png`),
-					});
-					if (page.viewportSize().width === 375)
-						await coin.evaluate((element) => element.getAnimations()[0].play());
-					await expect(coin).toHaveCount(0, { timeout: 5000 });
-					await expect(page.locator("#math-games-view")).toHaveAttribute(
-						"data-winning-sound",
-						"played",
-					);
-				} else {
-					await expect(coin).toHaveCount(0);
-				}
-				const notes = await page.evaluate(() => window.mathWinningNotesPlayed);
-				expect(notes).toBe(navigationNoteCount + 4);
-			}
-			if (run === 0 || stage === 9) {
-				await page.getByRole("button", { name: "Back to games", exact: true }).click();
-				await expect(thumbnail.locator("[data-game-shadow]")).toHaveAttribute(
-					"fill-opacity",
-					String(run ? 0 : (0.72 * (9 - stage)) / 10),
-				);
-			} else {
-				await page.getByRole("button", { name: "Next level", exact: true }).click();
-			}
-		}
-		await expect(thumbnail.locator(".math-games-thumbnail-coin")).toHaveCSS(
-			"filter",
-			/drop-shadow/,
-		);
-		await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
-		await revealGoldCoinTotal(page, 1);
-		await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
-		await page.getByRole("button", { name: "Open Games tab", exact: true }).click();
-	}
-	await page.evaluate(() => {
-		const savedProgress = JSON.parse(localStorage.getItem("zoologist-math-games-progress"));
-		localStorage.setItem(
-			"zoologist-math-games-progress",
-			JSON.stringify({ ...savedProgress, "digit-values": 9 }),
-		);
-	});
-	await page.reload();
-	await openStudentMathGames(page);
-	await page.locator('[data-game-id="digit-values"]').click();
-	await expect(page.getByText("Level 10 of 10", { exact: true })).toBeVisible();
-	await page.getByRole("button", { name: "Digit 1 in the Millions place", exact: true }).click();
-	await page.getByRole("button", { name: "Finish", exact: true }).click();
-	await expect(page.getByRole("img", { name: "Winning gold coin", exact: true })).toHaveCount(0, {
-		timeout: 5000,
-	});
-	await page.getByRole("button", { name: "Back to games", exact: true }).click();
-	await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
-	await revealGoldCoinTotal(page, 2);
-	await page.reload();
-	await page.getByRole("button", { name: "Open student section", exact: true }).click();
-	await revealGoldCoinTotal(page, 2);
+	const gallery = page.locator("#student-games-gallery");
+	await expect(gallery).toBeVisible();
+	await expect(gallery.locator(".student-games-card > button")).toHaveCount(3);
 });
 
 for (const viewport of [
@@ -1313,8 +956,14 @@ for (const viewport of [
 		await page.getByRole("button", { name: "Open parent section" }).click();
 		await page.getByRole("button", { name: "Games", exact: true }).click();
 		await page.getByRole("button", { name: "Math", exact: true }).click();
-		const thumbnails = page.locator(".parent-math-game-thumbnail");
-		await expect(thumbnails).toHaveCount(24);
+		const thumbnails = page.locator("#math-games-view .student-games-card > button");
+		await expect(thumbnails).toHaveCount(3);
+		await expect(thumbnails.nth(0)).toHaveAttribute("id", "student-safari-place-value-thumbnail");
+		await expect(thumbnails.nth(1)).toHaveAttribute("id", "student-safari-multiplication-thumbnail");
+		await expect(thumbnails.nth(2)).toHaveAttribute(
+			"id",
+			"student-safari-multiplication-double-digit-thumbnail",
+		);
 		await expect(page.locator("#math-games-view")).toHaveClass(/bg-purple-950/);
 		await expect(page.locator("#math-games-view")).toHaveCSS(
 			"background-color",
@@ -1326,7 +975,7 @@ for (const viewport of [
 				return { x, y, width, height };
 			}),
 		);
-		for (const box of boxes) expect(box).toMatchObject({ width: 218, height: 218 });
+		for (const box of boxes) expect(box).toMatchObject({ width: 218, height: 248 });
 		const sidebar = await page.locator("#games-sidebar-panel").boundingBox();
 		expect(boxes[0].x - sidebar.x - sidebar.width).toBe(16);
 		const navigation = await page.locator("#parent-screen-tab-rail").boundingBox();
@@ -1341,7 +990,9 @@ for (const viewport of [
 				(left, right) => left - right,
 			);
 			for (let position = 1; position < positions.length; position += 1)
-				expect(positions[position] - positions[position - 1] - 218).toBe(16);
+				expect(positions[position] - positions[position - 1] - (axis === "x" ? 218 : 248)).toBe(
+					16,
+				);
 		}
 		if (viewport.width <= 768) {
 			expect(sidebar.width).toBe(125);
@@ -1375,32 +1026,38 @@ for (const viewport of [
 	{ width: 1280, height: 720 },
 	{ width: 375, height: 812 },
 ]) {
-	test(`Student math thumbnails have exact dimensions and gaps at ${viewport.width}px`, async ({
+	test(`Student Safari-game thumbnails have exact dimensions and gaps at ${viewport.width}px`, async ({
 		page,
 	}, testInfo) => {
 		await page.setViewportSize(viewport);
 		await page.goto("./");
 		await page.getByRole("button", { name: "Open student section" }).click();
 		await page.getByRole("button", { name: "Open Games tab", exact: true }).click();
-		const thumbnails = page.locator(".student-math-game-thumbnail");
-		await expect(thumbnails).toHaveCount(24);
+		const thumbnails = page.locator("#student-games-gallery .student-games-card > button");
+		await expect(thumbnails).toHaveCount(3);
+		expect(
+			await thumbnails.evaluateAll((elements) => elements.map((element) => element.id)),
+		).toEqual([
+			"student-safari-place-value-thumbnail",
+			"student-safari-multiplication-thumbnail",
+			"student-safari-multiplication-double-digit-thumbnail",
+		]);
 		const boxes = await thumbnails.evaluateAll((elements) =>
 			elements.map((element) => {
 				const { x, y, width, height } = element.getBoundingClientRect();
 				return { x, y, width, height };
 			}),
 		);
-		for (const box of boxes) expect(box.width).toBe(box.height);
+		for (const box of boxes) expect(box).toMatchObject({ width: 218, height: 248 });
 		const sidebar = await page.locator("#student-menu-navigation").boundingBox();
-		expect(boxes[0].x - (sidebar.x + sidebar.width)).toBe(16);
 		const navigation = await page.locator("#student-games-top-navigation").boundingBox();
-		const gallery = await page.locator("#math-games-view").boundingBox();
+		const gallery = await page.locator("#student-games-gallery").boundingBox();
 		expect(gallery.x).toBe(sidebar.x + sidebar.width + 16);
 		expect(gallery.y - (navigation.y + navigation.height)).toBe(16);
-		expect(boxes[0].y).toBe(gallery.y);
+		expect(boxes[0].x - gallery.x).toBe(16);
+		expect(boxes[0].y - gallery.y).toBe(16);
 		expect(viewport.width - gallery.x - gallery.width).toBe(16);
 		expect(viewport.height - gallery.y - gallery.height).toBe(32);
-		expect(Math.max(...boxes.map((box) => box.x + box.width))).toBe(viewport.width - 16);
 		for (const axis of ["x", "y"]) {
 			const positions = [...new Set(boxes.map((box) => box[axis]))].sort(
 				(left, right) => left - right,
@@ -1409,27 +1066,9 @@ for (const viewport of [
 			for (let position = 1; position < positions.length; position += 1)
 				expect(positions[position] - positions[position - 1] - tileSize).toBe(16);
 		}
-		const captionsFit = await thumbnails
-			.locator("[data-game-caption]")
-			.evaluateAll((elements) =>
-				elements.every(
-					(element) =>
-						element.scrollHeight <= element.clientHeight &&
-						element.scrollWidth <= element.clientWidth,
-				),
-			);
-		expect(captionsFit).toBe(true);
-		await page.screenshot({ path: testInfo.outputPath(`student-math-${viewport.width}.png`) });
-		await thumbnails.first().click();
-		await page.getByRole("button", { name: "Ones", exact: true }).click();
-		await expect(page.getByRole("status")).toHaveText("Correct!");
-		await page.getByRole("button", { name: "Back to games", exact: true }).click();
-		await expect(thumbnails.first()).toContainText("1 / 10");
-		await page.getByRole("button", { name: "Back to student menu", exact: true }).click();
-		await expect(page.locator("#student-submenu-panel")).toHaveCount(0);
-		await expect(
-			page.getByRole("button", { name: "Back to home page", exact: true }),
-		).toBeVisible();
+		await page.screenshot({
+			path: testInfo.outputPath(`student-safari-games-${viewport.width}.png`),
+		});
 	});
 }
 
@@ -2316,7 +1955,7 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 	const rewardsPage = page.locator("#rewards-page");
 	await expect(rewardsPage).toBeVisible();
 	await expect(page.locator("#student-menu-page")).toBeHidden();
-	await expect(rewardsPage.locator("#rewards-page-heading")).toHaveText("Rewards");
+	await expect(rewardsPage.locator("#rewards-page-heading")).toHaveCount(0);
 
 	const backgroundImage = await rewardsPage.evaluate(
 		(element) => getComputedStyle(element).backgroundImage,
@@ -2333,6 +1972,7 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 
 	const rewardChestButton = page.getByRole("button", { name: "Open reward chest" });
 	const rewardChestImage = rewardChestButton.locator(".rewards-page-chest");
+	await expect(rewardsPage.locator("#rewards-page-badges-button")).toHaveCount(0);
 	await expect(rewardChestImage).toHaveAttribute("src", /minecraftChest01[^/]*\.webp/);
 
 	await rewardChestButton.hover();
@@ -2353,6 +1993,28 @@ test("Rewards button opens full-screen rewards page", async ({ page }) => {
 			animation.finish();
 		}
 	});
+	const badgesButton = rewardsPage.locator("#rewards-page-badges-button");
+	await expect(badgesButton).toBeVisible();
+	await badgesButton.evaluate((element) => {
+		for (const animation of element.getAnimations()) {
+			animation.finish();
+		}
+	});
+	const badgesButtonPosition = await badgesButton.evaluate((element) => {
+		const buttonBounds = element.getBoundingClientRect();
+		const chestBounds = document
+			.querySelector("#rewards-page-chest-button")
+			.getBoundingClientRect();
+		return {
+			chestLeftGap: chestBounds.left - buttonBounds.right,
+			centerOffset:
+				buttonBounds.top +
+				buttonBounds.height / 2 -
+				(chestBounds.top + chestBounds.height / 2),
+		};
+	});
+	expect(badgesButtonPosition.chestLeftGap).toBe(16);
+	expect(Math.abs(badgesButtonPosition.centerOffset)).toBeLessThan(0.1);
 	await goldBag.hover();
 	await expect(goldBag).toHaveCSS("filter", /drop-shadow/);
 	await expect(goldBag.locator(".rewards-page-gold-bag-neck")).not.toHaveCSS("transform", "none");
@@ -2417,7 +2079,7 @@ test("TNT-visible day cell is disabled until its texture has cleared", async ({ 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const clickedDay = page.locator("#calendar-day-cell-October-2026-7");
+	const clickedDay = page.locator("#calendar-day-cell-October-2026-18");
 	await clickedDay.click();
 	await expect(clickedDay).toBeDisabled();
 	await expect(page.locator(".calendar-day-replacement")).toBeVisible();
@@ -2442,7 +2104,7 @@ test("TNT explosion remains scoped to its clicked month and day cell", async ({ 
 	await page.goto("./");
 	await page.getByRole("button", { name: "Open student section" }).click();
 
-	const clickedDay = page.locator("#calendar-day-cell-October-2026-7");
+	const clickedDay = page.locator("#calendar-day-cell-October-2026-18");
 	await clickedDay.click();
 	await expect(page.locator(".calendar-day-replacement")).toBeVisible();
 	await expect(clickedDay.locator(".calendar-day-cell-explosion")).toBeVisible();
@@ -3032,59 +2694,53 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	const gridShapesList = page.locator("#grid-menu-shapes-list");
 	await expect(page.locator("#grid-sides-label, #grid-sides-input")).toHaveCount(0);
 	const gridHeadingLayout = await page.evaluate(() => {
-		const menu = document.querySelector("#text-editor-grid-menu");
 		const alignment = document.querySelector("#grid-menu-alignment-heading");
-		const lines = document.querySelector("#grid-menu-lines-heading");
 		const shapes = document.querySelector("#grid-menu-shapes-heading");
+		const shapesList = document.querySelector("#grid-menu-shapes-list");
 		const size = document.querySelector("#grid-menu-size-heading");
 		const sizeDimensions = document.querySelector("#grid-shape-size-row");
 		const dimensionsDropdown = document.querySelector("#grid-menu-dimensions-dropdown");
-		const alignmentStyles = getComputedStyle(alignment);
-		const linesStyles = getComputedStyle(lines);
-		const menuLeft = menu.getBoundingClientRect().left;
 		return {
-			linesLeftOffset: lines.getBoundingClientRect().left - menuLeft,
-			shapesLeftOffset: shapes.getBoundingClientRect().left - menuLeft,
+			shapesColumnGap:
+				shapes.getBoundingClientRect().left - alignment.getBoundingClientRect().right,
+			shapesListLeftOffset:
+				shapesList.getBoundingClientRect().left - shapes.getBoundingClientRect().left,
+			shapesHeadingTopOffset:
+				shapes.getBoundingClientRect().top - alignment.getBoundingClientRect().top,
 			sizeDimensionsGap:
 				sizeDimensions.getBoundingClientRect().top - size.getBoundingClientRect().bottom,
 			sizeHeadingInsideDimensions:
 				size.closest("#grid-menu-dimensions-dropdown") === dimensionsDropdown,
 			sizeControlsInsideDimensions:
 				sizeDimensions.closest("#grid-menu-dimensions-dropdown") === dimensionsDropdown,
-			shapesGap: shapes.getBoundingClientRect().top - size.getBoundingClientRect().bottom,
+			shapesListGap:
+				shapesList.getBoundingClientRect().top - shapes.getBoundingClientRect().bottom,
 			sizeText: size.textContent.trim(),
-			linesTextAlign: linesStyles.textAlign,
-			matchingStyle: ["color", "fontFamily", "fontSize", "fontWeight", "lineHeight"].every(
-				(property) => alignmentStyles[property] === linesStyles[property],
-			),
 		};
 	});
 	expect(gridHeadingLayout.sizeText).toBe("Size");
-	expect(gridHeadingLayout.linesLeftOffset).toBe(16);
-	expect(gridHeadingLayout.shapesLeftOffset).toBe(16);
+	expect(gridHeadingLayout.shapesColumnGap).toBeGreaterThan(0);
+	expect(gridHeadingLayout.shapesListLeftOffset).toBe(0);
+	expect(gridHeadingLayout.shapesHeadingTopOffset).toBe(0);
 	expect(gridHeadingLayout.sizeDimensionsGap).toBe(16);
 	expect(gridHeadingLayout.sizeHeadingInsideDimensions).toBe(true);
 	expect(gridHeadingLayout.sizeControlsInsideDimensions).toBe(true);
-	expect(gridHeadingLayout.shapesGap).toBeGreaterThan(0);
-	expect(gridHeadingLayout.linesTextAlign).toBe("left");
-	expect(gridHeadingLayout.matchingStyle).toBe(true);
+	expect(gridHeadingLayout.shapesListGap).toBeGreaterThan(0);
 	await expect(gridAppliedButton).toHaveText("On");
 	await expect(gridAppliedButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
-	const gridPrintableButton = page.locator("#grid-menu-printable-button");
-	await expect(gridPrintableButton).toHaveText("Printable");
-	await expect(gridPrintableButton).toHaveAttribute("aria-pressed", "true");
-	await expect(gridPrintableButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
-	const printableOnShadow = await gridPrintableButton.evaluate(
-		(button) => getComputedStyle(button).boxShadow,
-	);
-	expect(printableOnShadow).toContain("rgba(0, 255, 64, 0.85)");
-	await expect(gridPrintableButton).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 3)");
-	await gridPrintableButton.click();
-	await expect(gridPrintableButton).toHaveAttribute("aria-pressed", "false");
-	await expect(gridPrintableButton).toHaveCSS("background-color", "rgb(255, 48, 48)");
-	await expect(gridPrintableButton).toHaveCSS("box-shadow", "none");
-	await gridPrintableButton.click();
-	await expect(gridPrintableButton).toHaveAttribute("aria-pressed", "true");
+	const gridPrintsButton = page.locator("#grid-menu-grid-prints-button");
+	await expect(gridPrintsButton).toHaveText("On");
+	await expect(gridPrintsButton).toHaveAttribute("aria-pressed", "true");
+	await expect(gridPrintsButton).toHaveCSS("background-color", "rgb(0, 255, 64)");
+	await expect(gridPrintsButton).toHaveCSS("width", "48px");
+	await expect(gridPrintsButton).toHaveCSS("height", "28px");
+	await expect(gridPrintsButton).toHaveCSS("border-radius", "999px");
+	await gridPrintsButton.click();
+	await expect(gridPrintsButton).toHaveAttribute("aria-pressed", "false");
+	await expect(gridPrintsButton).toHaveText("Off");
+	await expect(gridPrintsButton).toHaveCSS("background-color", "rgb(255, 48, 48)");
+	await gridPrintsButton.click();
+	await expect(gridPrintsButton).toHaveAttribute("aria-pressed", "true");
 	await expect(applyToMarginsButton).toHaveText("Off");
 	await expect(applyToMarginsButton).toHaveCSS("background-color", "rgb(255, 48, 48)");
 	await expect(rowsAmount).toHaveAttribute("maxlength", "3");
@@ -3263,12 +2919,12 @@ test("Text Editor navigation controls stay aligned with the New menu", async ({ 
 	await expect(grid).toHaveAttribute("data-grid-rendered-columns", "4");
 	await expect(grid).toHaveAttribute("data-grid-sides", "4");
 	await expect(grid).toBeVisible();
-	await gridPrintableButton.click();
+	await gridPrintsButton.click();
 	await expect(paper).toHaveAttribute("data-grid-printable", "false");
 	await page.emulateMedia({ media: "print" });
 	await expect(grid).toBeHidden();
 	await page.emulateMedia({ media: "screen" });
-	await gridPrintableButton.click();
+	await gridPrintsButton.click();
 	await expect(paper).toHaveAttribute("data-grid-printable", "true");
 	await page.emulateMedia({ media: "print" });
 	await expect(grid).toBeVisible();

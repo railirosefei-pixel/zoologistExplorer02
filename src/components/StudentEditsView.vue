@@ -1,15 +1,17 @@
 <script setup>
 /**
- * Parent > Student Edits screen. Hosts the Curriculum Game and Block Edits
- * sidebar controls plus a weekly Friday-through-Tuesday Block Edits set that
- * mirrors the Student daily-menu block completion behavior for each day.
+ * Parent > Student Edits screen. Hosts the curriculum and edit controls plus
+ * a weekly Friday-through-Tuesday Block Edits set that mirrors Student block
+ * completion behavior for each day.
  * Font choices apply to selected text and new text in drafts and loaded fields.
  */
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { blockCompletionStore } from "../js/blockCompletionState.js";
 import { blockDescriptionStore } from "../js/blockDescriptionState.js";
 import { fontStyleOptions } from "../js/fontStyleOptions.js";
+import { resetGameExtraCredit } from "../js/gameExtraCreditState.js";
 import { getSchoolWeekStartDate } from "../js/schoolSchedule.js";
+import StudentGamesView from "./StudentGamesView.vue";
 import {
 	formattedTextToHtml,
 	insertPlainTextAtSelection,
@@ -44,6 +46,9 @@ const isBlockEditsOpen = ref(false);
 const isBlocksMenuOpen = ref(props.initialDescriptionEditsOpen);
 const isRewardsEditsMenuOpen = ref(false);
 const isBadgesEarnedMenuOpen = ref(false);
+const isGameEditsMenuOpen = ref(false);
+const isGameExtraCreditResetFailed = ref(false);
+const activeGameEditsSubject = ref("");
 const activeEarnedBadgeSubject = ref(null);
 const selectedEarnedBadgeId = ref(null);
 const earnedBadgeSubjects = [
@@ -64,6 +69,7 @@ const isDescriptionEditorOpen = ref(false);
 const isDescriptionFontStylesOpen = ref(false);
 const isDescriptionFontSizeMenuOpen = ref(false);
 const isDescriptionFontColorMenuOpen = ref(false);
+const isDescriptionTextAlignmentOpen = ref(false);
 const isDescriptionFontColorPickerOpen = ref(false);
 const descriptionEditorFontColorInput = ref("#000000");
 const descriptionFontColorSwatchCanvas = ref(null);
@@ -179,6 +185,9 @@ watch(
 	() => {
 		descriptionEditsLoadedSelectionKey.value = null;
 		descriptionEditsLoadedFields.value = [];
+		if (isDescriptionEditsLoadEnabled.value) {
+			handleDescriptionEditsLoad();
+		}
 	},
 	{ flush: "sync" },
 );
@@ -207,6 +216,9 @@ watch(
 	() => {
 		playByPlayEditsLoadedSelectionKey.value = null;
 		playByPlayEditsLoadedFields.value = [];
+		if (isPlayByPlayEditsLoadEnabled.value) {
+			handlePlayByPlayEditsLoad();
+		}
 	},
 	{ flush: "sync" },
 );
@@ -384,6 +396,30 @@ function getRangeInDescriptionEditor(editor) {
 	return editor.contains(range.commonAncestorContainer) ? range : null;
 }
 
+function getDescriptionTextEditorFormattingRange(editor) {
+	const currentRange = getRangeInDescriptionEditor(editor);
+	if (currentRange && !currentRange.collapsed) {
+		return currentRange;
+	}
+	const savedRange =
+		savedDescriptionTextEditor === editor ? savedDescriptionTextEditorRange : null;
+	const cursorRange =
+		currentRange?.collapsed ? currentRange : savedRange?.collapsed ? savedRange : null;
+	const highlightedRange =
+		highlightedDescriptionTextEditor === editor ? highlightedDescriptionTextEditorRange : null;
+	if (
+		cursorRange &&
+		highlightedRange &&
+		!highlightedRange.collapsed &&
+		editor.contains(highlightedRange.commonAncestorContainer) &&
+		cursorRange.startContainer === highlightedRange.endContainer &&
+		cursorRange.startOffset === highlightedRange.endOffset
+	) {
+		return highlightedRange.cloneRange();
+	}
+	return currentRange ?? savedRange;
+}
+
 function getDescriptionTextRangeFontColor(editor, range) {
 	const walker = editor.ownerDocument.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
 	let selectedColor = null;
@@ -418,7 +454,6 @@ function getDescriptionTextRangeFontColor(editor, range) {
 const descriptionTextSelectionHighlightName = "description-edits-text-selection";
 let highlightedDescriptionTextEditor = null;
 let highlightedDescriptionTextEditorRange = null;
-let descriptionTextEditorMouseDown = null;
 
 function clearDescriptionTextEditorSelectionHighlight() {
 	CSS.highlights.delete(descriptionTextSelectionHighlightName);
@@ -455,39 +490,11 @@ function rememberDescriptionTextEditorSelection(event) {
 	}
 }
 
-function handleDescriptionTextEditorMouseDown(event) {
-	if (event.button === 0) {
-		descriptionTextEditorMouseDown = {
-			editor: event.currentTarget,
-			x: event.clientX,
-			y: event.clientY,
-		};
-	}
-}
-
-function handleDescriptionTextEditorClick(event) {
-	if (event.button !== 0 || event.detail === 0) {
-		return;
-	}
-	const mouseDown = descriptionTextEditorMouseDown;
-	descriptionTextEditorMouseDown = null;
-	if (
-		!mouseDown ||
-		mouseDown.editor !== event.currentTarget ||
-		(Math.abs(event.clientX - mouseDown.x) <= 4 && Math.abs(event.clientY - mouseDown.y) <= 4)
-	) {
-		clearDescriptionTextEditorSelectionHighlight();
-	}
-}
-
 function handleDescriptionTextEditorDocumentDoubleClick(event) {
-	if (event.button !== 0) {
-		return;
-	}
-	const target = event.target;
 	if (
-		target instanceof Element &&
-		target.closest("#description-edits-panel-container [contenteditable='true']")
+		event.button !== 0 ||
+		(event.target instanceof Element &&
+			event.target.closest("#description-editor-font-color-menu"))
 	) {
 		return;
 	}
@@ -703,10 +710,7 @@ function commitDescriptionFontColor() {
 	if (!editor?.isConnected) {
 		return;
 	}
-	const currentRange = getRangeInDescriptionEditor(editor);
-	const range =
-		currentRange ??
-		(savedDescriptionTextEditor === editor ? savedDescriptionTextEditorRange : null);
+	const range = getDescriptionTextEditorFormattingRange(editor);
 	if (!range || !editor.contains(range.commonAncestorContainer)) {
 		return;
 	}
@@ -749,10 +753,7 @@ function commitDescriptionFontSize() {
 	if (!editor?.isConnected) {
 		return;
 	}
-	const currentRange = getRangeInDescriptionEditor(editor);
-	const range =
-		currentRange ??
-		(savedDescriptionTextEditor === editor ? savedDescriptionTextEditorRange : null);
+	const range = getDescriptionTextEditorFormattingRange(editor);
 	if (!range || !editor.contains(range.commonAncestorContainer)) {
 		return;
 	}
@@ -834,10 +835,7 @@ function handleDescriptionFontStyleSelect(fontOption) {
 	if (!editor?.isConnected) {
 		return;
 	}
-	const currentRange = getRangeInDescriptionEditor(editor);
-	const range =
-		currentRange ??
-		(savedDescriptionTextEditor === editor ? savedDescriptionTextEditorRange : null);
+	const range = getDescriptionTextEditorFormattingRange(editor);
 	if (!range || !editor.contains(range.commonAncestorContainer)) {
 		return;
 	}
@@ -963,18 +961,45 @@ function handleBlockEditsToggle() {
 	const shouldOpen = !isBlockEditsOpen.value;
 	isBlockEditsOpen.value = shouldOpen;
 	if (shouldOpen) {
+		isGameEditsMenuOpen.value = false;
 		isDescriptionEditsOpen.value = false;
+		isBlocksMenuOpen.value = true;
+	} else if (!isDescriptionEditsOpen.value) {
+		isBlocksMenuOpen.value = false;
 	}
-}
-
-/** Toggle the Blocks menu sidebar. */
-function handleBlocksMenuToggle() {
-	isBlocksMenuOpen.value = !isBlocksMenuOpen.value;
 }
 
 function handleRewardsEditsMenuOpen() {
 	isBlocksMenuOpen.value = false;
+	isGameEditsMenuOpen.value = false;
 	isRewardsEditsMenuOpen.value = true;
+}
+
+function handleGameEditsMenuToggle() {
+	isGameEditsMenuOpen.value = !isGameEditsMenuOpen.value;
+	if (isGameEditsMenuOpen.value) {
+		isBlocksMenuOpen.value = false;
+		isRewardsEditsMenuOpen.value = false;
+		isBadgesEarnedMenuOpen.value = false;
+		isBlockEditsOpen.value = false;
+		isDescriptionEditsOpen.value = false;
+		descriptionEditsMode.value = null;
+		activeGameEditsSubject.value = "";
+	}
+}
+
+function handleGameEditsSubjectChange(subjectId) {
+	activeGameEditsSubject.value = subjectId;
+}
+
+function handleGameExtraCreditReset(gameId) {
+	try {
+		resetGameExtraCredit(gameId);
+		isGameExtraCreditResetFailed.value = false;
+	} catch (error) {
+		isGameExtraCreditResetFailed.value = true;
+		console.error("Unable to reset Safari Math Extra Credit.", error);
+	}
 }
 
 function handleBadgesEarnedMenuOpen() {
@@ -1004,6 +1029,10 @@ function handleDescriptionEditsToggle() {
 	isDescriptionEditsOpen.value = shouldOpen;
 	if (shouldOpen) {
 		isBlockEditsOpen.value = false;
+		isGameEditsMenuOpen.value = false;
+		isBlocksMenuOpen.value = true;
+	} else if (!isBlockEditsOpen.value) {
+		isBlocksMenuOpen.value = false;
 	}
 }
 
@@ -1044,6 +1073,68 @@ function handleDescriptionFontColorToggle() {
 		isDescriptionFontSizeMenuOpen.value = false;
 		isDescriptionFontColorPickerOpen.value = false;
 	}
+}
+
+function handleDescriptionTextAlignmentToggle() {
+	const editor = activeDescriptionTextEditor.value;
+	if (editor?.isConnected) {
+		rememberDescriptionTextEditorSelection({ currentTarget: editor });
+	}
+	isDescriptionTextAlignmentOpen.value = !isDescriptionTextAlignmentOpen.value;
+	if (isDescriptionTextAlignmentOpen.value) {
+		isDescriptionFontStylesOpen.value = false;
+		isDescriptionFontSizeMenuOpen.value = false;
+		isDescriptionFontColorMenuOpen.value = false;
+		isDescriptionFontColorPickerOpen.value = false;
+	}
+}
+
+function handleDescriptionTextAlignmentSelect(alignment) {
+	const alignmentCommands = {
+		left: "justifyLeft",
+		center: "justifyCenter",
+		right: "justifyRight",
+	};
+	const command = alignmentCommands[alignment];
+	const editor = activeDescriptionTextEditor.value;
+	if (!command || !editor?.isConnected) {
+		return;
+	}
+	const range = getDescriptionTextEditorFormattingRange(editor);
+	if (!range || !editor.contains(range.commonAncestorContainer)) {
+		return;
+	}
+
+	editor.focus();
+	const selection = window.getSelection();
+	selection?.removeAllRanges();
+	selection?.addRange(range);
+	editor.ownerDocument.execCommand(command, false);
+
+	const alignedRange = getRangeInDescriptionEditor(editor) ?? range;
+	const paragraphBlocks = [...editor.children].filter((child) =>
+		["DIV", "P"].includes(child.tagName),
+	);
+	const affectedBlocks = paragraphBlocks.filter((block) =>
+		alignedRange.collapsed
+			? block.contains(alignedRange.startContainer)
+			: alignedRange.intersectsNode(block),
+	);
+	if (affectedBlocks.length > 0) {
+		for (const block of affectedBlocks) {
+			block.dataset.textAlignment = alignment;
+			block.style.textAlign = alignment;
+		}
+	} else {
+		editor.dataset.textAlignment = alignment;
+		editor.style.textAlign = alignment;
+	}
+	alignedRange.collapse(false);
+	selection?.removeAllRanges();
+	selection?.addRange(alignedRange);
+	savedDescriptionTextEditor = editor;
+	savedDescriptionTextEditorRange = alignedRange.cloneRange();
+	syncDescriptionTextEditor(editor);
 }
 
 function createDescriptionTextNodeWithFormatting(editor, text, fontStyleId, fontColor, fontSize) {
@@ -1489,8 +1580,10 @@ function handleBlocksScreenBack() {
 	if (isDescriptionEditsOpen.value) {
 		isDescriptionEditsOpen.value = false;
 		descriptionEditsMode.value = null;
+		isBlocksMenuOpen.value = false;
 	} else if (isBlockEditsOpen.value) {
 		isBlockEditsOpen.value = false;
+		isBlocksMenuOpen.value = false;
 	} else {
 		isBlocksMenuOpen.value = false;
 	}
@@ -1543,16 +1636,32 @@ function handleStudentEditsScreenHome() {
 				Progress Menu Edits
 			</button>
 			<button
-				id="blocks-menu-button"
-				class="blocks-menu-button"
+				id="description-edits-button"
+				class="description-edits-button"
+				:class="{ 'description-edits-button--active': isDescriptionEditsOpen }"
 				type="button"
-				name="blocks-menu-button"
-				data-button-name="blocks-menu-button"
-				aria-label="Open Blocks menu"
-				title="Open Blocks menu"
-				@click="handleBlocksMenuToggle"
+				name="description-edits-button"
+				data-button-name="description-edits-button"
+				aria-label="Curriculum Description"
+				title="Curriculum Description"
+				:aria-pressed="isDescriptionEditsOpen"
+				@click="handleDescriptionEditsToggle"
 			>
-				Block Edits
+				Curriculum Description
+			</button>
+			<button
+				id="block-edits-button"
+				class="block-edits-button"
+				:class="{ 'block-edits-button--active': isBlockEditsOpen }"
+				type="button"
+				name="block-edits-button"
+				data-button-name="block-edits-button"
+				aria-label="Block Completion Edits"
+				title="Block Completion Edits"
+				:aria-pressed="isBlockEditsOpen"
+				@click="handleBlockEditsToggle"
+			>
+				Block Completion Edits
 			</button>
 			<button
 				id="rewards-edits-menu-button"
@@ -1565,6 +1674,20 @@ function handleStudentEditsScreenHome() {
 				@click="handleRewardsEditsMenuOpen"
 			>
 				Rewards Edits
+			</button>
+			<button
+				id="game-edits-button"
+				class="blocks-menu-button"
+				type="button"
+				name="game-edits-button"
+				data-button-name="game-edits-button"
+				aria-label="Game Edits"
+				title="Game Edits"
+				:aria-expanded="isGameEditsMenuOpen"
+				aria-controls="student-edits-game-menu"
+				@click="handleGameEditsMenuToggle"
+			>
+				Game Edits
 			</button>
 			<div class="student-edits-sidebar-actions">
 				<button
@@ -1595,6 +1718,27 @@ function handleStudentEditsScreenHome() {
 				</button>
 			</div>
 		</aside>
+		<div
+			v-if="isGameEditsMenuOpen"
+			id="student-edits-game-menu"
+			class="student-edits-game-menu"
+			aria-label="Game Edits menu"
+			title="Game Edits menu"
+		>
+			<p
+				v-if="isGameExtraCreditResetFailed"
+				class="fixed top-4 right-4 z-[80] max-w-[calc(100vw-2rem)] rounded border-2 border-rose-800 bg-rose-50 p-3 text-rose-950"
+				role="alert"
+			>
+				This game's Extra Credit could not be reset. Please try again.
+			</p>
+			<StudentGamesView
+				:active-subject-id="activeGameEditsSubject"
+				:is-game-edits-mode="true"
+				@subject-change="handleGameEditsSubjectChange"
+				@reset-extra-credit="handleGameExtraCreditReset"
+			/>
+		</div>
 		<aside
 			v-if="isBlocksMenuOpen"
 			id="blocks-menu-sidebar"
@@ -1602,34 +1746,6 @@ function handleStudentEditsScreenHome() {
 			aria-label="Blocks menu"
 			title="Blocks menu"
 		>
-			<button
-				id="description-edits-button"
-				class="description-edits-button"
-				:class="{ 'description-edits-button--active': isDescriptionEditsOpen }"
-				type="button"
-				name="description-edits-button"
-				data-button-name="description-edits-button"
-				aria-label="Curriculum Description"
-				title="Curriculum Description"
-				:aria-pressed="isDescriptionEditsOpen"
-				@click="handleDescriptionEditsToggle"
-			>
-				Curriculum Description
-			</button>
-			<button
-				id="block-edits-button"
-				class="block-edits-button"
-				:class="{ 'block-edits-button--active': isBlockEditsOpen }"
-				type="button"
-				name="block-edits-button"
-				data-button-name="block-edits-button"
-				aria-label="Block Completion Edits"
-				title="Block Completion Edits"
-				:aria-pressed="isBlockEditsOpen"
-				@click="handleBlockEditsToggle"
-			>
-				Block Completion Edits
-			</button>
 			<button
 				v-if="isDescriptionEditsOpen"
 				id="description-editor-button"
@@ -1748,6 +1864,41 @@ function handleStudentEditsScreenHome() {
 				>
 					Font Color
 				</button>
+				<button
+					id="description-editor-text-alignment-button"
+					class="description-editor-submenu-button description-editor-text-alignment-button"
+					type="button"
+					name="description-editor-text-alignment-button"
+					data-button-name="description-editor-text-alignment-button"
+					aria-label="Font Alignment"
+					title="Font Alignment"
+					:aria-expanded="isDescriptionTextAlignmentOpen"
+					aria-controls="description-editor-text-alignment-options"
+					@mousedown.prevent
+					@click="handleDescriptionTextAlignmentToggle"
+				>
+					Font Alignment
+				</button>
+				<div
+					v-if="isDescriptionTextAlignmentOpen"
+					id="description-editor-text-alignment-options"
+					class="description-editor-text-alignment-options"
+					aria-label="Font Alignment options"
+				>
+					<button
+						v-for="alignment in ['left', 'center', 'right']"
+						:id="`description-editor-text-alignment-${alignment}-button`"
+						:key="alignment"
+						class="description-editor-text-alignment-option-button"
+						type="button"
+						:name="`description-editor-text-alignment-${alignment}-button`"
+						:data-button-name="`description-editor-text-alignment-${alignment}-button`"
+						@mousedown.prevent
+						@click="handleDescriptionTextAlignmentSelect(alignment)"
+					>
+						{{ alignment[0].toUpperCase() + alignment.slice(1) }}
+					</button>
+				</div>
 				<div
 					v-if="isDescriptionFontColorMenuOpen"
 					id="description-editor-font-color-menu"
@@ -2064,10 +2215,8 @@ function handleStudentEditsScreenHome() {
 									: 'h-[240px]'
 							"
 							@focus="rememberDescriptionTextEditorSelection"
-							@mousedown="handleDescriptionTextEditorMouseDown"
 							@mouseup="rememberDescriptionTextEditorSelection"
 							@keyup="rememberDescriptionTextEditorSelection"
-							@click="handleDescriptionTextEditorClick"
 							@beforeinput="handleDescriptionTextEditorBeforeInput"
 							@paste="handleDescriptionTextEditorPaste"
 							@input="handleDescriptionTextEditorInput($event, field)"
@@ -2106,10 +2255,8 @@ function handleStudentEditsScreenHome() {
 								playByPlayEditsLoadedFields.length === 1 ? 'h-[704px]' : 'h-[240px]'
 							"
 							@focus="rememberDescriptionTextEditorSelection"
-							@mousedown="handleDescriptionTextEditorMouseDown"
 							@mouseup="rememberDescriptionTextEditorSelection"
 							@keyup="rememberDescriptionTextEditorSelection"
-							@click="handleDescriptionTextEditorClick"
 							@beforeinput="handleDescriptionTextEditorBeforeInput"
 							@paste="handleDescriptionTextEditorPaste"
 							@input="handleDescriptionTextEditorInput($event, field)"
@@ -2127,10 +2274,8 @@ function handleStudentEditsScreenHome() {
 					aria-multiline="true"
 					name="play-by-play-edits-text-box"
 					@focus="rememberDescriptionTextEditorSelection"
-					@mousedown="handleDescriptionTextEditorMouseDown"
 					@mouseup="rememberDescriptionTextEditorSelection"
 					@keyup="rememberDescriptionTextEditorSelection"
-					@click="handleDescriptionTextEditorClick"
 					@beforeinput="handleDescriptionTextEditorBeforeInput"
 					@paste="handleDescriptionTextEditorPaste"
 					@input="handleDescriptionTextEditorInput"
@@ -2150,10 +2295,8 @@ function handleStudentEditsScreenHome() {
 					aria-multiline="true"
 					name="description-edits-text-box"
 					@focus="rememberDescriptionTextEditorSelection"
-					@mousedown="handleDescriptionTextEditorMouseDown"
 					@mouseup="rememberDescriptionTextEditorSelection"
 					@keyup="rememberDescriptionTextEditorSelection"
-					@click="handleDescriptionTextEditorClick"
 					@beforeinput="handleDescriptionTextEditorBeforeInput"
 					@paste="handleDescriptionTextEditorPaste"
 					@input="handleDescriptionTextEditorInput"
@@ -2945,3 +3088,17 @@ function handleStudentEditsScreenHome() {
 		</section>
 	</main>
 </template>
+
+<style scoped>
+.student-edits-sidebar {
+	z-index: 20;
+}
+
+.student-edits-game-menu {
+	--student-menu-navigation-width: 336px;
+	position: fixed;
+	z-index: 1;
+	inset: 0 0 0 336px;
+	background: #bfe9be;
+}
+</style>
